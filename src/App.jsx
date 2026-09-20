@@ -425,12 +425,12 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN BODY LAYOUT */}
+      {/* MAIN BODY LAYOUT (Expanded Center Area & Compact Sidebar) */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", padding: "8px", gap: "8px", boxSizing: "border-box" }}>
         
         {/* LEFT SIDEBAR NAVIGATION */}
         {isDesktop && (
-          <div style={{ width: "260px", background: "#121212", borderRadius: "8px", padding: "20px", display: "flex", flexDirection: "column", gap: "20px", boxSizing: "border-box" }}>
+          <div style={{ width: "220px", flexShrink: 0, background: "#121212", borderRadius: "8px", padding: "20px", display: "flex", flexDirection: "column", gap: "20px", boxSizing: "border-box" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "14px", color: selectedPlaylistId === null ? "#ffffff" : "#b3b3b3", fontWeight: "bold", fontSize: "14px" }}>
                 <Home size={22} color={selectedPlaylistId === null ? "#1DB954" : "#b3b3b3"} /> Global Library
@@ -450,8 +450,8 @@ export default function App() {
           </div>
         )}
 
-        {/* CENTER MAIN CONTENT AREA */}
-        <div style={{ flex: 1, background: "#121212", borderRadius: "8px", padding: "24px", overflowY: "auto", boxSizing: "border-box", display: "flex", flexDirection: "column" }} className="custom-scrollbar">
+        {/* CENTER MAIN CONTENT AREA (Takes up maximum available width) */}
+        <div style={{ flex: 1, background: "#121212", borderRadius: "8px", padding: "32px", overflowY: "auto", boxSizing: "border-box", display: "flex", flexDirection: "column" }} className="custom-scrollbar">
           
           {/* MOBILE PLAYLIST SELECTOR TABS */}
           {!isDesktop && (
@@ -583,54 +583,54 @@ export default function App() {
 
         </div>
 
-        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (Wider 380px panel with scaled cover art container) */}
+        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (Fixed framing: flexShrink: 0, max 160px cover art) */}
         {isDesktop && currentTrack && (
-          <div style={{ width: "380px", background: "#121212", borderRadius: "8px", padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", position: "relative", overflow: "hidden" }}>
+          <div style={{ width: "340px", flexShrink: 0, background: "#121212", borderRadius: "8px", padding: "16px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", position: "relative", overflow: "hidden" }}>
             {currentTrack.poster_url && (
               <div style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(0.4) saturate(200%)", opacity: 0.7, zIndex: 0, pointerEvents: "none" }} />
             )}
 
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-              {/* PROPORTIONALLY CONSTRAINED COVER ART CONTAINER */}
-              <div style={{ width: "100%", display: "flex", justifyContent: "center", flexShrink: 1, minHeight: 0 }}>
-                <div style={{ width: "100%", maxWidth: "210px", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative", margin: "0 auto" }}>
+              {/* COMPLETELY FRAMED COVER ART CONTAINER */}
+              <div style={{ width: "100%", display: "flex", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: "100%", maxWidth: "160px", aspectRatio: "1/1", borderRadius: "10px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 30px rgba(0,0,0,0.7)", position: "relative", margin: "0 auto" }}>
                   {showLyrics ? (
-                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "16px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "14px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
+                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "12px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "13px", lineHeight: "1.5", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
                       {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available.</span>}
                     </div>
                   ) : (
-                    currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={64} color="#555" />
+                    currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={48} color="#555" />
                   )}
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "10px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "8px 0" }}>
                 <div style={{ textAlign: "left", flex: 1, overflow: "hidden", textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
-                  <h3 style={{ margin: "0 0 4px 0", fontSize: "17px", fontWeight: "bold", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.title}</h3>
-                  <p style={{ margin: 0, color: "#d0d0d0", fontSize: "13px", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.artist}</p>
+                  <h3 style={{ margin: "0 0 2px 0", fontSize: "16px", fontWeight: "bold", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.title}</h3>
+                  <p style={{ margin: 0, color: "#d0d0d0", fontSize: "12px", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.artist}</p>
                 </div>
-                <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? "#1DB954" : "rgba(255,255,255,0.1)", color: showLyrics ? "#000" : "#fff", border: "none", borderRadius: "20px", padding: "6px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: "bold", backdropFilter: "blur(5px)" }}>
-                  <Mic2 size={14} /> {showLyrics ? "Hide" : "Lyrics"}
+                <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? "#1DB954" : "rgba(255,255,255,0.1)", color: showLyrics ? "#000" : "#fff", border: "none", borderRadius: "20px", padding: "4px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: "bold", backdropFilter: "blur(5px)" }}>
+                  <Mic2 size={12} /> {showLyrics ? "Hide" : "Lyrics"}
                 </button>
               </div>
 
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
                   <span style={{ fontSize: "11px", color: "#b3b3b3", minWidth: "30px" }}>{formatTime(currentTime)}</span>
                   <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, #ffffff ${progressPercent}%, rgba(255,255,255,0.2) ${progressPercent}%)` }} />
                   <span style={{ fontSize: "11px", color: "#b3b3b3", minWidth: "30px", textAlign: "right" }}>{formatTime(duration)}</span>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "6px", cursor: "pointer" }}>{renderModeIcon()}</button>
-                  <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><SkipBack size={22} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "48px", height: "48px", borderRadius: "50%", border: "none", backgroundColor: "#1DB954", color: "#000", cursor: "pointer" }}>
-                      {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "2px" }} />}
+                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer" }}>{renderModeIcon()}</button>
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><SkipBack size={20} fill="currentColor" /></button>
+                    <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "42px", height: "42px", borderRadius: "50%", border: "none", backgroundColor: "#1DB954", color: "#000", cursor: "pointer" }}>
+                      {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" style={{ marginLeft: "2px" }} />}
                     </button>
-                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><SkipForward size={22} fill="currentColor" /></button>
+                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><SkipForward size={20} fill="currentColor" /></button>
                   </div>
-                  <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}>{isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
+                  <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}>{isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}</button>
                 </div>
               </div>
             </div>
