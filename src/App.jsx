@@ -583,19 +583,19 @@ export default function App() {
 
         </div>
 
-        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (Desktop View with Framed Cover Art) */}
+        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (Wider 380px panel with scaled cover art container) */}
         {isDesktop && currentTrack && (
-          <div style={{ width: "340px", background: "#121212", borderRadius: "8px", padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", position: "relative", overflow: "hidden" }}>
+          <div style={{ width: "380px", background: "#121212", borderRadius: "8px", padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", position: "relative", overflow: "hidden" }}>
             {currentTrack.poster_url && (
               <div style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(0.4) saturate(200%)", opacity: 0.7, zIndex: 0, pointerEvents: "none" }} />
             )}
 
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-              {/* FRAMED COVER ART CONTAINER */}
-              <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-                <div style={{ width: "100%", maxWidth: "240px", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative", margin: "0 auto" }}>
+              {/* PROPORTIONALLY CONSTRAINED COVER ART CONTAINER */}
+              <div style={{ width: "100%", display: "flex", justifyContent: "center", flexShrink: 1, minHeight: 0 }}>
+                <div style={{ width: "100%", maxWidth: "210px", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative", margin: "0 auto" }}>
                   {showLyrics ? (
-                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "20px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "15px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
+                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "16px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "14px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
                       {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available.</span>}
                     </div>
                   ) : (
@@ -604,9 +604,9 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "12px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "10px 0" }}>
                 <div style={{ textAlign: "left", flex: 1, overflow: "hidden", textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
-                  <h3 style={{ margin: "0 0 4px 0", fontSize: "18px", fontWeight: "bold", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.title}</h3>
+                  <h3 style={{ margin: "0 0 4px 0", fontSize: "17px", fontWeight: "bold", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.title}</h3>
                   <p style={{ margin: 0, color: "#d0d0d0", fontSize: "13px", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.artist}</p>
                 </div>
                 <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? "#1DB954" : "rgba(255,255,255,0.1)", color: showLyrics ? "#000" : "#fff", border: "none", borderRadius: "20px", padding: "6px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: "bold", backdropFilter: "blur(5px)" }}>
