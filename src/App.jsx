@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, ChevronDown, FolderPlus
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, ChevronDown, FolderPlus, Trash2, Clock
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -89,18 +89,21 @@ export default function App() {
     fetchData();
   }, [session]);
 
-  // Fetch songs inside selected playlist when changed
+  // Fetch songs inside selected playlist along with added dates
   useEffect(() => {
     if (selectedPlaylistId === null) return;
 
     const fetchPlaylistSongs = async () => {
       const { data, error } = await supabase
         .from("playlist_songs")
-        .select("song_id, songs(*)")
+        .select("song_id, added_at, songs(*)")
         .eq("playlist_id", selectedPlaylistId);
 
       if (data) {
-        const formattedSongs = data.map(item => item.songs).filter(Boolean);
+        const formattedSongs = data.map(item => ({
+          ...item.songs,
+          added_at: item.added_at
+        })).filter(item => item.id);
         setPlaylistSongs(formattedSongs);
       }
     };
@@ -109,6 +112,7 @@ export default function App() {
 
   const activeTrackList = selectedPlaylistId === null ? playlist : playlistSongs;
   const currentTrack = activeTrackList[currentTrackIndex];
+  const activePlaylistObj = userPlaylists.find(p => p.id === selectedPlaylistId);
 
   useEffect(() => {
     setShowLyrics(false);
@@ -216,6 +220,21 @@ export default function App() {
     }
   };
 
+  const handleRemoveSongFromPlaylist = async (playlistId, songId, e) => {
+    e.stopPropagation();
+    const { error } = await supabase
+      .from("playlist_songs")
+      .delete()
+      .eq("playlist_id", playlistId)
+      .eq("song_id", songId);
+
+    if (error) {
+      alert("Error removing song: " + error.message);
+    } else {
+      setPlaylistSongs(playlistSongs.filter(s => s.id !== songId));
+    }
+  };
+
   const handlePlayPause = (e) => {
     if (e) e.stopPropagation();
     if (!audioRef.current || !currentTrack) return;
@@ -300,6 +319,12 @@ export default function App() {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Recently";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
   const renderModeIcon = () => {
     switch (playMode) {
       case "repeat-all": return <Repeat size={20} color="#1DB954" />;
@@ -329,8 +354,8 @@ export default function App() {
       <style>{`
         .hover-effect { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .hover-effect:hover { transform: scale(1.15); }
-        .playlist-track { transition: background 0.2s ease; }
-        .playlist-track:hover { background: #2d2d2d !important; }
+        .playlist-row { transition: background 0.2s ease; }
+        .playlist-row:hover { background: rgba(255,255,255,0.08) !important; }
         .glow-slider { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 6px; outline: none; cursor: pointer; transition: height 0.2s ease, filter 0.2s ease; }
         .glow-slider:hover { height: 8px; filter: drop-shadow(0 0 8px rgba(29, 185, 84, 0.6)); }
         .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 0px; height: 0px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(29, 185, 84, 0.8); transition: width 0.2s ease, height 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; }
@@ -347,7 +372,7 @@ export default function App() {
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "20px" }}>
           <div style={{ background: "#181818", padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto" }} className="custom-scrollbar">
             <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#a0a0a0", cursor: "pointer" }}><X size={24} /></button>
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px" }}><UploadCloud color="#1DB954" /> Add New Song</h2>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px" }}><UploadCloud color="#1DB954" /> Add Song Globally</h2>
             <form onSubmit={handleUploadSubmit}>
               <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="upload-input" />
               <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={(e) => setUploadArtist(e.target.value)} className="upload-input" />
@@ -383,14 +408,14 @@ export default function App() {
         </div>
       )}
 
-      <div style={{ width: "100%", maxWidth: isDesktop ? "960px" : "480px" }}>
+      <div style={{ width: "100%", maxWidth: isDesktop ? "1050px" : "480px" }}>
         
         {/* HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h1 style={{ margin: 0, fontSize: "24px", color: "#1DB954", fontWeight: "bold", letterSpacing: "-0.5px" }}>Euphony</h1>
           <div style={{ display: "flex", gap: "8px" }}>
             <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
-              <Plus size={16} color="#1DB954" /> Add Song
+              <Plus size={16} color="#1DB954" /> Add Song Globally
             </button>
             <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
               <FolderPlus size={16} color="#1DB954" /> New Playlist
@@ -420,53 +445,130 @@ export default function App() {
         {/* LAYOUT CONTAINER */}
         <div style={{ display: "flex", flexDirection: isDesktop ? "row" : "column", gap: "32px", alignItems: "flex-start" }}>
           
-          {/* TRACK LIST SECTION */}
+          {/* MAIN VIEW AREA (Global Library or Spotify-Style Playlist Banner & Table) */}
           <div style={{ flex: 1, width: "100%" }}>
-            <h3 style={{ fontSize: "16px", color: "#ffffff", marginBottom: "16px", fontWeight: "bold" }}>
-              {selectedPlaylistId === null ? `Global Library (${playlist.length})` : `Playlist Songs (${activeTrackList.length})`}
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {activeTrackList.length > 0 ? (
-                activeTrackList.map((track, index) => {
-                  const isSelected = index === currentTrackIndex;
-                  return (
-                    <div key={track.id || index} className="playlist-track" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ padding: "8px 12px", borderRadius: "8px", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px" }}>
-                      <div style={{ width: "48px", height: "48px", borderRadius: "4px", backgroundColor: "#282828", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                         {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color="#555" />}
-                      </div>
-                      <div style={{ flex: 1, overflow: "hidden" }}>
-                        <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "normal", color: isSelected ? "#1DB954" : "#ffffff", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.title}</div>
-                        <div style={{ fontSize: "14px", color: "#a0a0a0", marginTop: "2px", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.artist}</div>
-                      </div>
-                      
-                      {userPlaylists.length > 0 && selectedPlaylistId === null && (
-                        <select 
-                          onClick={(e) => e.stopPropagation()} 
-                          onChange={(e) => {
-                            if (e.target.value) handleAddSongToPlaylist(e.target.value, track.id);
-                            e.target.value = "";
-                          }}
-                          defaultValue=""
-                          style={{ background: "#222", color: "#bbb", border: "1px solid #444", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", cursor: "pointer" }}
-                        >
-                          <option value="" disabled>Add to...</option>
-                          {userPlaylists.map(pl => (
-                            <option key={pl.id} value={pl.id}>{pl.name}</option>
-                          ))}
-                        </select>
-                      )}
-
-                      {isSelected && isPlaying && <span style={{ fontSize: "12px", color: "#1DB954" }}><Loader2 size={16} className="animate-spin" /></span>}
-                    </div>
-                  );
-                })
-              ) : (
-                <div style={{ textAlign: "center", padding: "60px 0", color: "#a0a0a0", background: "#1e1e1e", borderRadius: "16px" }}>
-                  <ImageIcon size={48} color="#333" style={{ marginBottom: "16px" }} />
-                  <p style={{ margin: 0, fontSize: "16px" }}>No songs in this view yet.</p>
+            
+            {/* SPOTIFY-STYLE PLAYLIST BANNER WHEN A PRIVATE PLAYLIST IS SELECTED */}
+            {selectedPlaylistId !== null && activePlaylistObj && (
+              <div style={{ background: "linear-gradient(180deg, #2b3833 0%, #121212 100%)", padding: "28px", borderRadius: "12px", marginBottom: "24px", display: "flex", alignItems: "flex-end", gap: "24px" }}>
+                <div style={{ width: "150px", height: "150px", backgroundColor: "#282828", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px rgba(0,0,0,0.6)", flexShrink: 0 }}>
+                  <FolderPlus size={56} color="#1DB954" />
                 </div>
-              )}
-            </div>
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: "#ccc" }}>Private Playlist</span>
+                  <h2 style={{ margin: "4px 0 12px 0", fontSize: "36px", fontWeight: "bold" }}>{activePlaylistObj.name}</h2>
+                  <p style={{ margin: 0, fontSize: "14px", color: "#b3b3b3" }}>Your personal collection • {playlistSongs.length} songs</p>
+                </div>
+              </div>
+            )}
+
+            {/* TABLE / TRACK LIST HEADER */}
+            {selectedPlaylistId !== null ? (
+              <div style={{ width: "100%" }}>
+                {/* Playlist Action Bar */}
+                <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "20px" }}>
+                  {playlistSongs.length > 0 && (
+                    <button onClick={() => { setCurrentTrackIndex(0); setIsPlaying(true); }} className="hover-effect" style={{ width: "56px", height: "56px", borderRadius: "50%", background: "#1DB954", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
+                      <Play size={24} fill="#000" color="#000" style={{ marginLeft: "3px" }} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Table Headers */}
+                <div style={{ display: "grid", gridTemplateColumns: "40px 2fr 1.5fr 1.2fr 50px", padding: "0 12px 12px 12px", borderBottom: "1px solid #282828", color: "#b3b3b3", fontSize: "13px", fontWeight: "bold" }}>
+                  <span>#</span>
+                  <span>Title</span>
+                  <span>Album</span>
+                  <span>Date added</span>
+                  <span style={{ textAlign: "right" }}><Clock size={16} /></span>
+                </div>
+
+                {/* Playlist Table Rows */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "8px" }}>
+                  {playlistSongs.length > 0 ? (
+                    playlistSongs.map((track, index) => {
+                      const isSelected = index === currentTrackIndex;
+                      return (
+                        <div key={track.id} className="playlist-row" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ display: "grid", gridTemplateColumns: "40px 2fr 1.5fr 1.2fr 50px", alignItems: "center", padding: "10px 12px", borderRadius: "6px", cursor: "pointer" }}>
+                          <span style={{ color: isSelected ? "#1DB954" : "#b3b3b3", fontSize: "14px" }}>{index + 1}</span>
+                          
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px", overflow: "hidden" }}>
+                            <div style={{ width: "40px", height: "40px", borderRadius: "4px", backgroundColor: "#282828", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color="#555" />}
+                            </div>
+                            <div style={{ overflow: "hidden" }}>
+                              <div style={{ fontSize: "14px", fontWeight: isSelected ? "bold" : "normal", color: isSelected ? "#1DB954" : "#ffffff", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.title}</div>
+                              <div style={{ fontSize: "12px", color: "#a0a0a0", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.artist}</div>
+                            </div>
+                          </div>
+
+                          <span style={{ color: "#b3b3b3", fontSize: "14px", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.album || "—"}</span>
+                          <span style={{ color: "#b3b3b3", fontSize: "13px" }}>{formatDate(track.added_at)}</span>
+
+                          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "8px" }}>
+                            <button title="Remove from playlist" onClick={(e) => handleRemoveSongFromPlaylist(selectedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: "#b3b3b3", cursor: "pointer" }} className="hover-effect">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div style={{ textAlign: "center", padding: "60px 0", color: "#a0a0a0" }}>
+                      <p style={{ margin: 0, fontSize: "16px" }}>This playlist is empty. Add songs from your Global Library!</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* GLOBAL LIBRARY LIST */
+              <div>
+                <h3 style={{ fontSize: "16px", color: "#ffffff", marginBottom: "16px", fontWeight: "bold" }}>Global Library ({playlist.length})</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {playlist.length > 0 ? (
+                    playlist.map((track, index) => {
+                      const isSelected = index === currentTrackIndex;
+                      return (
+                        <div key={track.id} className="playlist-track" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ padding: "8px 12px", borderRadius: "8px", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px" }}>
+                          <div style={{ width: "48px", height: "48px", borderRadius: "4px", backgroundColor: "#282828", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                             {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color="#555" />}
+                          </div>
+                          <div style={{ flex: 1, overflow: "hidden" }}>
+                            <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "normal", color: isSelected ? "#1DB954" : "#ffffff", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.title}</div>
+                            <div style={{ fontSize: "14px", color: "#a0a0a0", marginTop: "2px", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.artist}</div>
+                          </div>
+                          
+                          {userPlaylists.length > 0 && (
+                            <select 
+                              onClick={(e) => e.stopPropagation()} 
+                              onChange={(e) => {
+                                if (e.target.value) handleAddSongToPlaylist(e.target.value, track.id);
+                                e.target.value = "";
+                              }}
+                              defaultValue=""
+                              style={{ background: "#222", color: "#bbb", border: "1px solid #444", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", cursor: "pointer" }}
+                            >
+                              <option value="" disabled>Add to playlist...</option>
+                              {userPlaylists.map(pl => (
+                                <option key={pl.id} value={pl.id}>{pl.name}</option>
+                              ))}
+                            </select>
+                          )}
+
+                          {isSelected && isPlaying && <span style={{ fontSize: "12px", color: "#1DB954" }}><Loader2 size={16} className="animate-spin" /></span>}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div style={{ textAlign: "center", padding: "60px 0", color: "#a0a0a0", background: "#1e1e1e", borderRadius: "16px" }}>
+                      <ImageIcon size={48} color="#333" style={{ marginBottom: "16px" }} />
+                      <p style={{ margin: 0, fontSize: "16px" }}>Your library is empty.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* DESKTOP PLAYER CARD */}
