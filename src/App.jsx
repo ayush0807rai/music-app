@@ -287,7 +287,7 @@ export default function App() {
         
         {/* HEADER WITH LOGOUT BUTTON */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h1 style={{ margin: 0, fontSize: "24px" }}>My Cloud Player</h1>
+          <h1 style={{ margin: 0, fontSize: "24px" }}>Euphony</h1>
           <div style={{ display: "flex", gap: "10px" }}>
             <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
               <Plus size={16} color="#1DB954" /> Add Song
