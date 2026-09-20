@@ -396,7 +396,6 @@ export default function App() {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
-  // Upgraded renderModeIcon to accept dynamic colors for high-contrast visibility
   const renderModeIcon = (iconColor = COLORS.primary) => {
     switch (playMode) {
       case "repeat-all": return <Repeat size={20} color={iconColor} />;
@@ -473,19 +472,29 @@ export default function App() {
     <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: COLORS.bgBase, color: COLORS.textMain, fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <style>{`
         :root { max-width: none !important; }
+        
         body, html, #root { 
           margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important;
           background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important;
-          /* Disable text selection globally */
+          /* Mobile + Desktop strict selection blocking */
           -webkit-user-select: none;
+          -moz-user-select: none;
           -ms-user-select: none;
           user-select: none;
+          /* Stop iOS magnifier and context menu */
+          -webkit-touch-callout: none;
         }
-        * { box-sizing: border-box; }
+
+        * { 
+          box-sizing: border-box; 
+          /* Stop Android/iOS tap highlight flashing */
+          -webkit-tap-highlight-color: transparent; 
+        }
         
         /* Re-enable text selection for input fields */
         input, textarea {
           -webkit-user-select: auto;
+          -moz-user-select: auto;
           -ms-user-select: auto;
           user-select: auto;
         }
@@ -820,7 +829,7 @@ export default function App() {
       {!isDesktop && currentTrack && isMobilePlayerOpen && (
         <div className="slide-up-enter" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 4000, background: COLORS.bgBase, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           
-          {/* Background Blur (Unchanged exactly as requested) */}
+          {/* Background Blur */}
           {currentTrack.poster_url && (
             <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(1.2) saturate(80%)", opacity: 0.3, zIndex: 0, pointerEvents: "none" }} />
           )}
