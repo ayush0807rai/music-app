@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -19,7 +19,7 @@ const COLORS = {
   hover: "rgba(26, 43, 76, 0.06)",  
 };
 
-// --- UPGRADED LRC PARSER (Supports Standard & Enhanced Word-by-Word) ---
+// --- UPGRADED LRC PARSER ---
 const parseLyrics = (lrcString) => {
   if (!lrcString) return [];
   
@@ -109,6 +109,9 @@ export default function App() {
   const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const lyricRefs = useRef([]);
+  
+  // MOBILE PLAYER STATE
+  const [isMobilePlayerOpen, setIsMobilePlayerOpen] = useState(false);
 
   const audioRef = useRef(null);
   const isFirstRender = useRef(true);
@@ -257,7 +260,6 @@ export default function App() {
     }
   };
 
-  // INTERACTIVE CLICK-TO-SEEK LYRICS
   const handleLyricClick = (time, e) => {
     if (e) e.stopPropagation();
     if (audioRef.current) {
@@ -403,6 +405,64 @@ export default function App() {
     }
   };
 
+  const renderLyricsBlock = (isMobile) => (
+    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: COLORS.primary, textAlign: "center", borderRadius: "12px" }}>
+      {parsedLyrics.length > 0 ? (
+        <div style={{ padding: isMobile ? "80px 0" : "120px 0" }}>
+          {parsedLyrics.map((lyric, index) => {
+            const isActiveLine = index === activeLyricIndex;
+            return (
+              <div 
+                key={index}
+                ref={el => lyricRefs.current[index] = el}
+                onClick={(e) => handleLyricClick(lyric.time, e)}
+                style={{ 
+                  fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), 
+                  fontWeight: isActiveLine ? "800" : "600", 
+                  color: isActiveLine ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)", 
+                  textShadow: isActiveLine && !lyric.words ? `0 0 16px rgba(243, 240, 230, 0.6)` : "none",
+                  padding: "10px 0",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  transform: isActiveLine ? "scale(1.05)" : "scale(1)",
+                  lineHeight: "1.4",
+                  cursor: "pointer"
+                }}
+              >
+                {lyric.words ? (
+                  lyric.words.map((wordObj, wIndex) => {
+                    const isActiveWord = isActiveLine && wIndex === activeWordIndex;
+                    const isPastWord = isActiveLine && wIndex < activeWordIndex;
+                    return (
+                      <span 
+                        key={wIndex}
+                        onClick={(e) => handleLyricClick(wordObj.time, e)}
+                        style={{
+                          color: (isActiveWord || isPastWord) ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)",
+                          textShadow: isActiveWord ? `0 0 16px rgba(243, 240, 230, 0.8)` : "none",
+                          transition: "all 0.2s ease",
+                          marginRight: "4px",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {wordObj.text} 
+                      </span>
+                    );
+                  })
+                ) : (
+                  lyric.text
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ color: COLORS.bgBase, opacity: 0.6, fontSize: "15px", fontWeight: "500", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {currentTrack.lyrics ? currentTrack.lyrics : "No synchronized lyrics available."}
+        </div>
+      )}
+    </div>
+  );
+
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   if (!isSessionLoaded) return <div style={{ background: COLORS.bgBase, width: '100vw', height: '100vh' }} />; 
@@ -415,8 +475,20 @@ export default function App() {
         body, html, #root { 
           margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important;
           background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important;
+          /* Disable text selection globally */
+          -webkit-user-select: none;
+          -ms-user-select: none;
+          user-select: none;
         }
         * { box-sizing: border-box; }
+        
+        /* Re-enable text selection for input fields */
+        input, textarea {
+          -webkit-user-select: auto;
+          -ms-user-select: auto;
+          user-select: auto;
+        }
+
         .hover-effect { transition: transform 0.2s ease, opacity 0.2s ease; }
         .hover-effect:hover { transform: scale(1.05); }
         .playlist-row { transition: background 0.2s ease; }
@@ -652,7 +724,7 @@ export default function App() {
           )}
         </div>
 
-        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL */}
+        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (DESKTOP) */}
         {isDesktop && currentTrack && (
           <div style={{ width: "320px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", boxSizing: "border-box", position: "relative", overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
             {currentTrack.poster_url && (
@@ -663,64 +735,8 @@ export default function App() {
               <div style={{ width: "100%", marginBottom: "24px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   
-                  {/* SCROLLING LYRICS UI WITH GLOW & CLICK-TO-SEEK */}
-                  {showLyrics ? (
-                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: COLORS.primary, textAlign: "center", borderRadius: "12px" }}>
-                      {parsedLyrics.length > 0 ? (
-                        <div style={{ padding: "120px 0" }}>
-                          {parsedLyrics.map((lyric, index) => {
-                            const isActiveLine = index === activeLyricIndex;
-                            return (
-                              <div 
-                                key={index}
-                                ref={el => lyricRefs.current[index] = el}
-                                onClick={(e) => handleLyricClick(lyric.time, e)}
-                                style={{ 
-                                  fontSize: isActiveLine ? "22px" : "16px", 
-                                  fontWeight: isActiveLine ? "800" : "600", 
-                                  color: isActiveLine ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)", 
-                                  textShadow: isActiveLine && !lyric.words ? `0 0 16px rgba(243, 240, 230, 0.6)` : "none",
-                                  padding: "10px 0",
-                                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-                                  transform: isActiveLine ? "scale(1.05)" : "scale(1)",
-                                  lineHeight: "1.4",
-                                  cursor: "pointer"
-                                }}
-                              >
-                                {lyric.words ? (
-                                  lyric.words.map((wordObj, wIndex) => {
-                                    const isActiveWord = isActiveLine && wIndex === activeWordIndex;
-                                    const isPastWord = isActiveLine && wIndex < activeWordIndex;
-                                    return (
-                                      <span 
-                                        key={wIndex}
-                                        onClick={(e) => handleLyricClick(wordObj.time, e)}
-                                        style={{
-                                          color: (isActiveWord || isPastWord) ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)",
-                                          textShadow: isActiveWord ? `0 0 16px rgba(243, 240, 230, 0.8)` : "none",
-                                          transition: "all 0.2s ease",
-                                          marginRight: "4px",
-                                          cursor: "pointer"
-                                        }}
-                                      >
-                                        {wordObj.text} 
-                                      </span>
-                                    );
-                                  })
-                                ) : (
-                                  lyric.text
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div style={{ color: COLORS.bgBase, opacity: 0.6, fontSize: "15px", fontWeight: "500", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          {currentTrack.lyrics ? currentTrack.lyrics : "No synchronized lyrics available."}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
+                  {/* SCROLLING LYRICS OR ALBUM ART */}
+                  {showLyrics ? renderLyricsBlock(false) : (
                     currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={80} color={COLORS.textMuted} />
                   )}
 
@@ -761,9 +777,12 @@ export default function App() {
         )}
       </div>
 
-      {/* MOBILE BOTTOM MINIMIZED PLAYER BAR */}
-      {!isDesktop && currentTrack && (
-        <div style={{ position: "fixed", bottom: "16px", left: "12px", right: "12px", background: COLORS.bgPanel, borderRadius: "12px", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 8px 24px rgba(26,43,76,0.15)", zIndex: 2000, border: `1px solid ${COLORS.border}` }}>
+      {/* MINIMIZED MOBILE BOTTOM BAR */}
+      {!isDesktop && currentTrack && !isMobilePlayerOpen && (
+        <div 
+          onClick={() => setIsMobilePlayerOpen(true)} 
+          style={{ position: "fixed", bottom: "16px", left: "12px", right: "12px", background: COLORS.bgPanel, borderRadius: "12px", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 8px 24px rgba(26,43,76,0.15)", zIndex: 2000, border: `1px solid ${COLORS.border}`, cursor: "pointer" }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: "14px", overflow: "hidden", flex: 1, minWidth: 0 }}>
             <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
               {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
@@ -773,9 +792,77 @@ export default function App() {
               <div style={{ fontSize: "13px", color: COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</div>
             </div>
           </div>
-          <button onClick={handlePlayPause} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "8px", flexShrink: 0 }}>
+          <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "8px", flexShrink: 0 }}>
             {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
           </button>
+        </div>
+      )}
+
+      {/* FULL-SCREEN MOBILE PLAYER MODAL */}
+      {!isDesktop && currentTrack && isMobilePlayerOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 4000, background: COLORS.bgBase, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          
+          {/* Background Blur */}
+          {currentTrack.poster_url && (
+            <div style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(1.2) saturate(80%)", opacity: 0.3, zIndex: 0, pointerEvents: "none" }} />
+          )}
+
+          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
+            
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
+              <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }}>
+                <ChevronDown size={32} />
+              </button>
+              <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: COLORS.primary, opacity: 0.8 }}>Now Playing</span>
+              <div style={{ width: "40px" }} /> {/* Spacer for centering */}
+            </div>
+
+            {/* Art / Lyrics Section */}
+            <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
+              <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics ? "none" : "0 20px 40px rgba(26,43,76,0.2)" }}>
+                {showLyrics ? renderLyricsBlock(true) : (
+                  currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={100} color={COLORS.textMuted} />
+                )}
+              </div>
+            </div>
+
+            {/* Title & Lyrics Toggle */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{currentTrack.title}</h2>
+                <p style={{ margin: 0, color: COLORS.textMuted, fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</p>
+              </div>
+              <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? COLORS.primary : "rgba(26,43,76,0.08)", color: showLyrics ? COLORS.bgPanel : COLORS.primary, border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "bold", flexShrink: 0, marginLeft: "16px" }}>
+                <Mic2 size={18} /> {showLyrics ? "Hide" : "Lyrics"}
+              </button>
+            </div>
+
+            {/* Scrub Bar */}
+            <div style={{ marginBottom: "24px" }}>
+              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, ${COLORS.primary} ${progressPercent}%, rgba(26,43,76,0.15) ${progressPercent}%)`, marginBottom: "8px" }} />
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "13px", color: COLORS.textMuted, fontWeight: "500" }}>{formatTime(currentTime)}</span>
+                <span style={{ fontSize: "13px", color: COLORS.textMuted, fontWeight: "500" }}>{formatTime(duration)}</span>
+              </div>
+            </div>
+
+            {/* Main Controls */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
+              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer" }}>{renderModeIcon()}</button>
+              
+              <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }}><SkipBack size={36} fill="currentColor" /></button>
+                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 12px 24px rgba(26,43,76,0.25)" }}>
+                  {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
+                </button>
+                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }}><SkipForward size={36} fill="currentColor" /></button>
+              </div>
+
+              <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "8px" }}>{isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}</button>
+            </div>
+            
+          </div>
         </div>
       )}
     </div>
