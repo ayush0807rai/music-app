@@ -120,20 +120,17 @@ export default function App() {
   const isFirstRender = useRef(true);
 
   // --- NATIVE BACK BUTTON ROUTER INTERCEPT ---
-  // Sync the current open states to a ref so the event listener can read the latest values
   useEffect(() => {
     stateRefs.current = { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId };
   }, [showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId]);
 
   useEffect(() => {
-    // Push an initial state into the browser history stack to act as our "app trap"
     window.history.pushState({ page: 'euphony' }, '', window.location.href);
 
     const handlePopState = (e) => {
       const { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId } = stateRefs.current;
       let handled = false;
 
-      // Close the highest priority UI layer first
       if (showUploadModal) {
         setShowUploadModal(false);
         handled = true;
@@ -149,24 +146,20 @@ export default function App() {
       }
 
       if (handled) {
-        // We intercepted the back button. Push state again to maintain the trap.
         window.history.pushState({ page: 'euphony' }, '', window.location.href);
         exitWarningRef.current = false;
         setShowExitToast(false);
       } else {
-        // Nothing is open, we are at the Global Library (Home)
         if (!exitWarningRef.current) {
           exitWarningRef.current = true;
           setShowExitToast(true);
-          // Push state again so the next back press is caught
           window.history.pushState({ page: 'euphony' }, '', window.location.href);
           
           setTimeout(() => {
             exitWarningRef.current = false;
             setShowExitToast(false);
-          }, 2500); // Reset warning after 2.5 seconds
+          }, 2500); 
         } else {
-          // Warning is active and they pressed back again. Allow exit.
           window.history.back();
         }
       }
@@ -175,7 +168,6 @@ export default function App() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
-  // ------------------------------------------
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
@@ -550,6 +542,7 @@ export default function App() {
           -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto;
         }
 
+        /* --- UI ANIMATIONS --- */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
@@ -566,8 +559,52 @@ export default function App() {
         .playlist-row:hover { background: ${COLORS.hover} !important; }
         .sidebar-item { transition: color 0.2s ease; cursor: pointer; }
         .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
-        .glow-slider { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 6px; outline: none; cursor: pointer; }
-        .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 0; height: 0; }
+        
+        /* --- SPARKLING GLOW SLIDER --- */
+        .glow-slider { 
+          -webkit-appearance: none; 
+          appearance: none; 
+          height: 6px; 
+          border-radius: 6px; 
+          outline: none; 
+          cursor: pointer; 
+        }
+        
+        /* The Sparkling Thumb */
+        .glow-slider::-webkit-slider-thumb { 
+          -webkit-appearance: none; 
+          appearance: none; 
+          width: 12px; 
+          height: 12px; 
+          border-radius: 50%;
+          background: #FFFFFF;
+          cursor: pointer;
+          box-shadow: 
+            0 0 4px 2px #FFFFFF,
+            0 0 12px 4px rgba(255, 255, 255, 0.8),
+            -15px 0 15px 4px rgba(255, 255, 255, 0.4),
+            15px 0 15px 4px rgba(255, 255, 255, 0.4);
+          transition: transform 0.2s ease;
+        }
+        
+        .glow-slider::-moz-range-thumb {
+          width: 12px; 
+          height: 12px; 
+          border: none;
+          border-radius: 50%;
+          background: #FFFFFF;
+          cursor: pointer;
+          box-shadow: 
+            0 0 4px 2px #FFFFFF,
+            0 0 12px 4px rgba(255, 255, 255, 0.8),
+            -15px 0 15px 4px rgba(255, 255, 255, 0.4),
+            15px 0 15px 4px rgba(255, 255, 255, 0.4);
+          transition: transform 0.2s ease;
+        }
+
+        .glow-slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
+        .glow-slider::-moz-range-thumb:hover { transform: scale(1.3); }
+
         .upload-input { width: 100%; padding: 12px; background: #FFFFFF; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.primary}; margin-bottom: 16px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: border-color 0.2s ease; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -838,7 +875,7 @@ export default function App() {
               <div style={{ marginTop: "auto", paddingBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
-                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.2) ${progressPercent}%)`, boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
+                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
                 </div>
 
@@ -922,7 +959,7 @@ export default function App() {
             </div>
 
             <div style={{ marginBottom: "24px" }}>
-              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.2) ${progressPercent}%)`, marginBottom: "8px", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
+              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, marginBottom: "8px", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
