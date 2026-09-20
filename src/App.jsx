@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -9,19 +9,18 @@ import Auth from "./Auth";
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 
 export default function App() {
-  // Database & UI States
   const [playlist, setPlaylist] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
-  // Auth State
   const [session, setSession] = useState(null);
 
-  // Upload Form States
+  // Upload States
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadArtist, setUploadArtist] = useState("");
   const [uploadAlbum, setUploadAlbum] = useState("");
+  const [uploadLyrics, setUploadLyrics] = useState("");
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadPoster, setUploadPoster] = useState(null);
 
@@ -34,6 +33,7 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(0.8);
   const [playMode, setPlayMode] = useState("repeat-all");
+  const [showLyrics, setShowLyrics] = useState(false);
 
   const audioRef = useRef(null);
 
@@ -43,7 +43,6 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch from the NEW 'songs' table
   useEffect(() => {
     const fetchSongs = async () => {
       const { data, error } = await supabase
@@ -59,6 +58,11 @@ export default function App() {
   }, []);
 
   const currentTrack = playlist[currentTrackIndex];
+
+  // Reset lyrics toggle when track changes
+  useEffect(() => {
+    setShowLyrics(false);
+  }, [currentTrackIndex]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = isMuted ? 0 : volume;
@@ -80,7 +84,6 @@ export default function App() {
     setIsUploading(true);
 
     try {
-      // 1. Upload Audio
       const fileExt = uploadFile.name.split('.').pop();
       const fileName = `${Date.now()}-audio.${fileExt}`;
       const { error: audioError } = await supabase.storage
@@ -89,7 +92,6 @@ export default function App() {
       if (audioError) throw audioError;
       const { data: { publicUrl: audioUrl } } = supabase.storage.from("songs").getPublicUrl(fileName);
 
-      // 2. Upload Poster (if provided)
       let posterUrl = null;
       if (uploadPoster) {
         const posterExt = uploadPoster.name.split('.').pop();
@@ -101,13 +103,13 @@ export default function App() {
         posterUrl = supabase.storage.from("songs").getPublicUrl(posterName).data.publicUrl;
       }
 
-      // 3. Insert into database
       const { data: dbData, error: dbError } = await supabase
         .from("songs")
         .insert([{ 
           title: uploadTitle, 
           artist: uploadArtist, 
           album: uploadAlbum || null,
+          lyrics: uploadLyrics || null,
           url: audioUrl,
           poster_url: posterUrl
         }])
@@ -120,6 +122,7 @@ export default function App() {
       setUploadTitle("");
       setUploadArtist("");
       setUploadAlbum("");
+      setUploadLyrics("");
       setUploadFile(null);
       setUploadPoster(null);
       alert("Song uploaded successfully!");
@@ -256,12 +259,15 @@ export default function App() {
         .glow-slider:hover::-webkit-slider-thumb { width: 14px; height: 14px; transform: scale(1.2); box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
         .upload-input { width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; color: white; margin-bottom: 16px; outline: none; box-sizing: border-box; }
         .upload-input:focus { border-color: #1DB954; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #555; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #777; }
       `}</style>
 
       {/* UPLOAD MODAL */}
       {showUploadModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}>
-          <div style={{ background: "#181818", padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative" }}>
+          <div style={{ background: "#181818", padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto" }} className="custom-scrollbar">
             <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#a0a0a0", cursor: "pointer" }}>
               <X size={24} />
             </button>
@@ -273,6 +279,8 @@ export default function App() {
               <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="upload-input" />
               <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={(e) => setUploadArtist(e.target.value)} className="upload-input" />
               <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={(e) => setUploadAlbum(e.target.value)} className="upload-input" />
+              
+              <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={(e) => setUploadLyrics(e.target.value)} className="upload-input custom-scrollbar" style={{ minHeight: "100px", resize: "vertical" }} />
               
               <div style={{ marginBottom: "16px", padding: "12px", border: "1px dashed #333", borderRadius: "8px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: "#a0a0a0", fontSize: "14px" }}>Poster Image (Optional)</label>
@@ -314,23 +322,37 @@ export default function App() {
             {/* MAIN PLAYER CARD */}
             <div style={{ background: "linear-gradient(180deg, #2a2a2a 0%, #121212 100%)", padding: "24px", borderRadius: "16px", marginBottom: "24px", boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}>
               
-              {/* SPOTIFY-STYLE POSTER IMAGE */}
-              <div style={{ width: "100%", aspectRatio: "1/1", marginBottom: "24px", borderRadius: "8px", overflow: "hidden", backgroundColor: "#282828", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px rgba(0,0,0,0.5)" }}>
-                {currentTrack.poster_url ? (
-                  <img src={currentTrack.poster_url} alt="Album Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {/* SPOTIFY-STYLE POSTER IMAGE OR LYRICS */}
+              <div style={{ width: "100%", aspectRatio: "1/1", marginBottom: "24px", borderRadius: "8px", overflow: "hidden", backgroundColor: "#282828", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px rgba(0,0,0,0.5)", position: "relative" }}>
+                {showLyrics ? (
+                  <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px", overflowY: "auto", background: "#1a1a1a", color: "#fff", fontSize: "18px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center" }}>
+                    {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#777" }}>No lyrics available for this track.</span>}
+                  </div>
                 ) : (
-                  <ImageIcon size={64} color="#555" />
+                  currentTrack.poster_url ? (
+                    <img src={currentTrack.poster_url} alt="Album Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <ImageIcon size={64} color="#555" />
+                  )
                 )}
               </div>
 
-              {/* TRACK INFO */}
-              <div style={{ marginBottom: "24px", textAlign: "left" }}>
-                <h2 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: "bold", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-                  {currentTrack.title}
-                </h2>
-                <p style={{ margin: 0, color: "#a0a0a0", fontSize: "16px" }}>
-                  {currentTrack.artist} {currentTrack.album && `• ${currentTrack.album}`}
-                </p>
+              {/* TRACK INFO & LYRICS TOGGLE */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+                <div style={{ textAlign: "left", flex: 1, overflow: "hidden" }}>
+                  <h2 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: "bold", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                    {currentTrack.title}
+                  </h2>
+                  <p style={{ margin: 0, color: "#a0a0a0", fontSize: "16px", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                    {currentTrack.artist} {currentTrack.album && `• ${currentTrack.album}`}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowLyrics(!showLyrics)}
+                  style={{ background: showLyrics ? "#1DB954" : "transparent", color: showLyrics ? "#000" : "#a0a0a0", border: showLyrics ? "none" : "1px solid #444", borderRadius: "8px", padding: "8px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", transition: "all 0.2s" }}
+                >
+                  <Mic2 size={16} /> {showLyrics ? "Hide Lyrics" : "Lyrics"}
+                </button>
               </div>
 
               {/* SEEK BAR */}
@@ -368,7 +390,6 @@ export default function App() {
                 return (
                   <div key={track.id} className="playlist-track" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ padding: "8px 12px", borderRadius: "8px", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px" }}>
                     
-                    {/* Small thumbnail in playlist */}
                     <div style={{ width: "48px", height: "48px", borderRadius: "4px", backgroundColor: "#282828", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                        {track.poster_url ? (
                          <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
