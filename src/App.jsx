@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, ChevronDown
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, ChevronDown, FolderPlus, ListMusic
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -20,8 +20,13 @@ const getDeviceType = () => {
 export default function App() {
   const [deviceType, setDeviceType] = useState("desktop");
   const [playlist, setPlaylist] = useState([]);
+  const [userPlaylists, setUserPlaylists] = useState([]);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState(null); // null means "Global Library"
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Modals
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
   const [session, setSession] = useState(null);
@@ -33,6 +38,9 @@ export default function App() {
   const [uploadLyrics, setUploadLyrics] = useState("");
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadPoster, setUploadPoster] = useState(null);
+
+  // New Playlist Form State
+  const [newPlaylistName, setNewPlaylistName] = useState("");
 
   // Player States
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -55,19 +63,32 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Fetch Songs & User Playlists on Auth/Session load
   useEffect(() => {
-    const fetchSongs = async () => {
-      const { data, error } = await supabase
+    if (!session) return;
+    
+    const fetchData = async () => {
+      setIsLoading(true);
+      // Fetch global songs
+      const { data: songsData } = await supabase
         .from("songs")
         .select("*")
         .order("created_at", { ascending: true });
+      if (songsData) setPlaylist(songsData);
 
-      if (error) console.error("Error fetching songs:", error);
-      else if (data) setPlaylist(data);
+      // Fetch user's private playlists
+      const { data: playlistData } = await supabase
+        .from("playlists")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: true });
+      if (playlistData) setUserPlaylists(playlistData);
+
       setIsLoading(false);
     };
-    fetchSongs();
-  }, []);
+
+    fetchData();
+  }, [session]);
 
   const currentTrack = playlist[currentTrackIndex];
 
@@ -143,6 +164,37 @@ export default function App() {
       alert("Error uploading: " + error.message);
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleCreatePlaylist = async (e) => {
+    e.preventDefault();
+    if (!newPlaylistName.trim()) return;
+
+    const { data, error } = await supabase
+      .from("playlists")
+      .insert([{ name: newPlaylistName, user_id: session.user.id }])
+      .select();
+
+    if (error) {
+      alert("Error creating playlist: " + error.message);
+    } else if (data) {
+      setUserPlaylists([...userPlaylists, data[0]]);
+      setNewPlaylistName("");
+      setShowPlaylistModal(false);
+    }
+  };
+
+  const handleAddSongToPlaylist = async (playlistId, songId) => {
+    const { error } = await supabase
+      .from("playlist_songs")
+      .insert([{ playlist_id: playlistId, song_id: songId }]);
+
+    if (error) {
+      if (error.code === "23505") alert("Song is already in this playlist.");
+      else alert("Error adding song: " + error.message);
+    } else {
+      alert("Added to playlist successfully!");
     }
   };
 
@@ -248,7 +300,7 @@ export default function App() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#121212', color: '#1DB954' }}>
         <Loader2 className="animate-spin" size={48} style={{ animation: "spin 1s linear infinite" }} />
-        <p style={{ marginTop: '16px', fontFamily: 'sans-serif' }}>Loading your tracks from Supabase...</p>
+        <p style={{ marginTop: '16px', fontFamily: 'sans-serif' }}>Loading your tracks and playlists...</p>
         <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -272,37 +324,42 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #777; }
       `}</style>
 
-      {/* UPLOAD MODAL */}
+      {/* UPLOAD SONG MODAL */}
       {showUploadModal && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "20px" }}>
           <div style={{ background: "#181818", padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto" }} className="custom-scrollbar">
-            <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#a0a0a0", cursor: "pointer" }}>
-              <X size={24} />
-            </button>
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <UploadCloud color="#1DB954" /> Add New Song
-            </h2>
-            
+            <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#a0a0a0", cursor: "pointer" }}><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px" }}><UploadCloud color="#1DB954" /> Add New Song</h2>
             <form onSubmit={handleUploadSubmit}>
               <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="upload-input" />
               <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={(e) => setUploadArtist(e.target.value)} className="upload-input" />
               <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={(e) => setUploadAlbum(e.target.value)} className="upload-input" />
-              
               <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={(e) => setUploadLyrics(e.target.value)} className="upload-input custom-scrollbar" style={{ minHeight: "100px", resize: "vertical" }} />
-              
               <div style={{ marginBottom: "16px", padding: "12px", border: "1px dashed #333", borderRadius: "8px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: "#a0a0a0", fontSize: "14px" }}>Poster Image (Optional)</label>
                 <input type="file" accept="image/*" onChange={(e) => setUploadPoster(e.target.files[0])} style={{ color: "#a0a0a0", width: "100%" }} />
               </div>
-
               <div style={{ marginBottom: "24px", padding: "12px", border: "1px dashed #333", borderRadius: "8px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: "#a0a0a0", fontSize: "14px" }}>MP3 Audio File *</label>
                 <input type="file" accept="audio/*" required onChange={(e) => setUploadFile(e.target.files[0])} style={{ color: "#a0a0a0", width: "100%" }} />
               </div>
-
               <button type="submit" disabled={isUploading} style={{ width: "100%", padding: "14px", borderRadius: "8px", background: isUploading ? "#555" : "#1DB954", color: isUploading ? "#aaa" : "#000", border: "none", fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                {isUploading ? <><Loader2 size={18} className="animate-spin" style={{ animation: "spin 1s linear infinite" }} /> Uploading...</> : "Upload to Cloud"}
+                {isUploading ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Upload to Cloud"}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CREATE PLAYLIST MODAL */}
+      {showPlaylistModal && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "20px" }}>
+          <div style={{ background: "#181818", padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative" }}>
+            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#a0a0a0", cursor: "pointer" }}><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px" }}><FolderPlus color="#1DB954" /> Create Private Playlist</h2>
+            <form onSubmit={handleCreatePlaylist}>
+              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={(e) => setNewPlaylistName(e.target.value)} className="upload-input" />
+              <button type="submit" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: "#1DB954", color: "#000", border: "none", fontWeight: "bold", cursor: "pointer" }}>Save Playlist</button>
             </form>
           </div>
         </div>
@@ -311,16 +368,31 @@ export default function App() {
       <div style={{ width: "100%", maxWidth: isDesktop ? "960px" : "480px" }}>
         
         {/* HEADER */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h1 style={{ margin: 0, fontSize: "24px", color: "#1DB954", fontWeight: "bold", letterSpacing: "-0.5px" }}>Euphony</h1>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
+              <FolderPlus size={16} color="#1DB954" /> New Playlist
+            </button>
             <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
-              <Plus size={16} color="#1DB954" /> Add Song
+              <Plus size={16} color="#1DB954" /> Upload
             </button>
             <button className="hover-effect" onClick={() => supabase.auth.signOut()} style={{ background: "transparent", border: "1px solid #333", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", fontSize: "14px" }}>
               Log Out
             </button>
           </div>
+        </div>
+
+        {/* PLAYLIST SELECTION TABS */}
+        <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px" }} className="custom-scrollbar">
+          <button onClick={() => setSelectedPlaylistId(null)} style={{ background: selectedPlaylistId === null ? "#1DB954" : "#282828", color: selectedPlaylistId === null ? "#000" : "#fff", border: "none", borderRadius: "20px", padding: "6px 14px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
+            Global Library ({playlist.length})
+          </button>
+          {userPlaylists.map((pl) => (
+            <button key={pl.id} onClick={() => setSelectedPlaylistId(pl.id)} style={{ background: selectedPlaylistId === pl.id ? "#1DB954" : "#282828", color: selectedPlaylistId === pl.id ? "#000" : "#fff", border: "none", borderRadius: "20px", padding: "6px 14px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
+              🔒 {pl.name}
+            </button>
+          ))}
         </div>
 
         {playlist.length > 0 && currentTrack && (
@@ -341,12 +413,11 @@ export default function App() {
                 <div style={{ width: 32 }} />
               </div>
 
-              {/* MOBILE SQUARE COVER ART CONTAINER */}
               <div style={{ width: "100%", display: "flex", justifyContent: "center", margin: "16px 0" }}>
                 <div style={{ width: "82%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative" }}>
                   {showLyrics ? (
                     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "18px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
-                      {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available for this track.</span>}
+                      {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available.</span>}
                     </div>
                   ) : (
                     currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={64} color="#555" />
@@ -385,12 +456,14 @@ export default function App() {
           </div>
         )}
 
-        {/* LAYOUT CONTAINER (Split Screen for Desktop, Stacked for Mobile) */}
+        {/* LAYOUT CONTAINER */}
         <div style={{ display: "flex", flexDirection: isDesktop ? "row" : "column", gap: "32px", alignItems: "flex-start" }}>
           
-          {/* LIBRARY LIST SECTION */}
+          {/* LIBRARY / TRACK LIST SECTION */}
           <div style={{ flex: 1, width: "100%" }}>
-            <h3 style={{ fontSize: "16px", color: "#ffffff", marginBottom: "16px", fontWeight: "bold" }}>Global Library ({playlist.length})</h3>
+            <h3 style={{ fontSize: "16px", color: "#ffffff", marginBottom: "16px", fontWeight: "bold" }}>
+              {selectedPlaylistId === null ? `Global Library (${playlist.length})` : `Playlist Songs`}
+            </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {playlist.length > 0 ? (
                 playlist.map((track, index) => {
@@ -404,6 +477,25 @@ export default function App() {
                         <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "normal", color: isSelected ? "#1DB954" : "#ffffff", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.title}</div>
                         <div style={{ fontSize: "14px", color: "#a0a0a0", marginTop: "2px", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>{track.artist}</div>
                       </div>
+                      
+                      {/* Add to Playlist button dropdown / quick action */}
+                      {userPlaylists.length > 0 && selectedPlaylistId === null && (
+                        <select 
+                          onClick={(e) => e.stopPropagation()} 
+                          onChange={(e) => {
+                            if (e.target.value) handleAddSongToPlaylist(e.target.value, track.id);
+                            e.target.value = "";
+                          }}
+                          defaultValue=""
+                          style={{ background: "#222", color: "#bbb", border: "1px solid #444", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", cursor: "pointer" }}
+                        >
+                          <option value="" disabled>Add to...</option>
+                          {userPlaylists.map(pl => (
+                            <option key={pl.id} value={pl.id}>{pl.name}</option>
+                          ))}
+                        </select>
+                      )}
+
                       {isSelected && isPlaying && <span style={{ fontSize: "12px", color: "#1DB954" }}><Loader2 size={16} className="animate-spin" /></span>}
                     </div>
                   );
@@ -412,23 +504,20 @@ export default function App() {
                 <div style={{ textAlign: "center", padding: "60px 0", color: "#a0a0a0", background: "#1e1e1e", borderRadius: "16px" }}>
                   <ImageIcon size={48} color="#333" style={{ marginBottom: "16px" }} />
                   <p style={{ margin: 0, fontSize: "16px" }}>Your library is empty.</p>
-                  <p style={{ margin: "8px 0 0 0", fontSize: "14px", color: "#777" }}>Click "Add Song" to upload your first track.</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* DESKTOP PERMANENT PLAYER CARD (Right Sidebar on Windows/Mac) */}
+          {/* DESKTOP PERMANENT PLAYER CARD */}
           {isDesktop && currentTrack && (
             <div style={{ width: "380px", position: "sticky", top: "20px", background: "linear-gradient(180deg, #2a2a2a 0%, #121212 100%)", padding: "24px", borderRadius: "16px", boxShadow: "0 8px 32px rgba(0,0,0,0.6)", overflow: "hidden" }}>
               
-              {/* DYNAMIC AMBIENT GLOW */}
               {currentTrack.poster_url && (
                 <div style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(0.5) saturate(200%)", opacity: 0.8, zIndex: 0, pointerEvents: "none", transition: "background-image 0.5s ease" }} />
               )}
 
               <div style={{ position: "relative", zIndex: 1 }}>
-                {/* DESKTOP SQUARE COVER ART CONTAINER */}
                 <div style={{ width: "100%", display: "flex", justifyContent: "center", marginBottom: "20px" }}>
                   <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative" }}>
                     {showLyrics ? (
