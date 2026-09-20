@@ -14,7 +14,9 @@ export default function App() {
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null); 
   const [playlistSongs, setPlaylistSongs] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  
+  // Changed to track initial load only
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   // Modals
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -60,11 +62,11 @@ export default function App() {
     };
   }, []);
 
+  // FIX: Only re-run fetch if the actual User ID changes, avoiding re-renders on token refresh
   useEffect(() => {
-    if (!session) return;
+    if (!session?.user?.id) return;
     
     const fetchData = async () => {
-      setIsLoading(true);
       const { data: songsData } = await supabase
         .from("songs")
         .select("*")
@@ -78,10 +80,10 @@ export default function App() {
         .order("created_at", { ascending: true });
       if (playlistData) setUserPlaylists(playlistData);
 
-      setIsLoading(false);
+      setIsInitialLoad(false);
     };
     fetchData();
-  }, [session]);
+  }, [session?.user?.id]); 
 
   useEffect(() => {
     if (selectedPlaylistId === null) return;
@@ -113,11 +115,13 @@ export default function App() {
 
   useEffect(() => {
     if (audioRef.current && isPlaying && currentTrack) {
-      audioRef.current.play().catch((err) => console.log("Playback error:", err));
+      if (audioRef.current.paused) {
+        audioRef.current.play().catch((err) => console.log("Playback error:", err));
+      }
     }
-  }, [currentTrackIndex, currentTrack]);
+  }, [currentTrackIndex, currentTrack, isPlaying]);
 
-  // --- MEDIA SESSION API LOGIC ---
+  // MEDIA SESSION API LOGIC
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new window.MediaMetadata({
@@ -148,7 +152,6 @@ export default function App() {
       navigator.mediaSession.setActionHandler('nexttrack', () => handleNext());
     }
   }, [currentTrack]);
-  // -------------------------------
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
@@ -285,16 +288,6 @@ export default function App() {
 
   if (!session) return <Auth />;
 
-  if (isLoading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#121212', color: '#1DB954' }}>
-        <Loader2 className="animate-spin" size={48} style={{ animation: "spin 1s linear infinite" }} />
-        <p style={{ marginTop: '16px', fontFamily: 'sans-serif' }}>Loading your tracks and playlists...</p>
-        <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
-
   return (
     <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: "#000", color: "#fff", fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <style>{`
@@ -317,6 +310,23 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #555; border-radius: 10px; border: 2px solid #121212; }
       `}</style>
+
+      {/* FIXED AUDIO TAG: Always mounted in the DOM to prevent unmounting drop-offs */}
+      <audio 
+        ref={audioRef} 
+        src={currentTrack?.url || ""} 
+        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)} 
+        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} 
+        onEnded={handleTrackEnded} 
+      />
+
+      {/* OVERLAY LOADER: Replaces the unmounting loader component */}
+      {isInitialLoad && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#121212", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#1DB954" }}>
+          <Loader2 className="animate-spin" size={48} />
+          <p style={{ marginTop: "16px", fontFamily: "sans-serif", color: "#b3b3b3" }}>Loading your tracks...</p>
+        </div>
+      )}
 
       {/* UPLOAD MODAL */}
       {showUploadModal && (
@@ -357,10 +367,6 @@ export default function App() {
             </form>
           </div>
         </div>
-      )}
-
-      {activeTrackList.length > 0 && currentTrack && (
-        <audio ref={audioRef} src={currentTrack.url} onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} />
       )}
 
       {/* TOP HEADER BAR (Mobile optimized) */}
