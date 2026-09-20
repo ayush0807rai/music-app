@@ -4,6 +4,7 @@ import {
   Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud
 } from "lucide-react";
 import { supabase } from "./supabase";
+import Auth from "./Auth";
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 
@@ -13,6 +14,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Auth State
+  const [session, setSession] = useState(null);
 
   // Upload Form States
   const [uploadTitle, setUploadTitle] = useState("");
@@ -30,6 +34,19 @@ export default function App() {
   const [playMode, setPlayMode] = useState("repeat-all");
 
   const audioRef = useRef(null);
+
+  // Handle Authentication Session
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Fetch playlist on load
   useEffect(() => {
@@ -73,23 +90,19 @@ export default function App() {
     setIsUploading(true);
 
     try {
-      // 1. Generate a unique filename to prevent overwriting
       const fileExt = uploadFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-      // 2. Upload the file to the 'songs' storage bucket
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("songs")
         .upload(fileName, uploadFile, { cacheControl: "3600", upsert: false });
 
       if (uploadError) throw uploadError;
 
-      // 3. Get the permanent public URL
       const { data: { publicUrl } } = supabase.storage
         .from("songs")
         .getPublicUrl(fileName);
 
-      // 4. Save the track details to the 'playlist' table
       const { data: dbData, error: dbError } = await supabase
         .from("playlist")
         .insert([{ title: uploadTitle, artist: uploadArtist, url: publicUrl }])
@@ -97,7 +110,6 @@ export default function App() {
 
       if (dbError) throw dbError;
 
-      // 5. Update the UI with the new song immediately
       setPlaylist([...playlist, dbData[0]]);
       setShowUploadModal(false);
       setUploadTitle("");
@@ -213,6 +225,11 @@ export default function App() {
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const volumePercent = isMuted ? 0 : volume * 100;
 
+  // BLOCK UI IF NOT LOGGED IN
+  if (!session) {
+    return <Auth />;
+  }
+
   if (isLoading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#121212', color: '#1DB954' }}>
@@ -267,11 +284,18 @@ export default function App() {
       )}
 
       <div style={{ width: "100%", maxWidth: "480px" }}>
+        
+        {/* HEADER WITH LOGOUT BUTTON */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h1 style={{ margin: 0, fontSize: "24px" }}>My Cloud Player</h1>
-          <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
-            <Plus size={16} color="#1DB954" /> Add Song
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
+              <Plus size={16} color="#1DB954" /> Add Song
+            </button>
+            <button className="hover-effect" onClick={() => supabase.auth.signOut()} style={{ background: "transparent", border: "1px solid #333", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", fontSize: "14px" }}>
+              Log Out
+            </button>
+          </div>
         </div>
 
         {playlist.length > 0 && currentTrack ? (
