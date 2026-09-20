@@ -103,18 +103,79 @@ export default function App() {
   const [previousVolume, setPreviousVolume] = useState(0.8);
   const [playMode, setPlayMode] = useState("repeat-all");
   
-  // LYRICS STATES
+  // LYRICS & PLAYER STATES
   const [showLyrics, setShowLyrics] = useState(false);
   const [parsedLyrics, setParsedLyrics] = useState([]);
   const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const lyricRefs = useRef([]);
-  
-  // MOBILE PLAYER STATE
   const [isMobilePlayerOpen, setIsMobilePlayerOpen] = useState(false);
+
+  // APP NAVIGATION & EXIT STATES
+  const [showExitToast, setShowExitToast] = useState(false);
+  const exitWarningRef = useRef(false);
+  const stateRefs = useRef({});
 
   const audioRef = useRef(null);
   const isFirstRender = useRef(true);
+
+  // --- NATIVE BACK BUTTON ROUTER INTERCEPT ---
+  // Sync the current open states to a ref so the event listener can read the latest values
+  useEffect(() => {
+    stateRefs.current = { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId };
+  }, [showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId]);
+
+  useEffect(() => {
+    // Push an initial state into the browser history stack to act as our "app trap"
+    window.history.pushState({ page: 'euphony' }, '', window.location.href);
+
+    const handlePopState = (e) => {
+      const { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId } = stateRefs.current;
+      let handled = false;
+
+      // Close the highest priority UI layer first
+      if (showUploadModal) {
+        setShowUploadModal(false);
+        handled = true;
+      } else if (showPlaylistModal) {
+        setShowPlaylistModal(false);
+        handled = true;
+      } else if (isMobilePlayerOpen) {
+        setIsMobilePlayerOpen(false);
+        handled = true;
+      } else if (selectedPlaylistId !== null) {
+        setSelectedPlaylistId(null);
+        handled = true;
+      }
+
+      if (handled) {
+        // We intercepted the back button. Push state again to maintain the trap.
+        window.history.pushState({ page: 'euphony' }, '', window.location.href);
+        exitWarningRef.current = false;
+        setShowExitToast(false);
+      } else {
+        // Nothing is open, we are at the Global Library (Home)
+        if (!exitWarningRef.current) {
+          exitWarningRef.current = true;
+          setShowExitToast(true);
+          // Push state again so the next back press is caught
+          window.history.pushState({ page: 'euphony' }, '', window.location.href);
+          
+          setTimeout(() => {
+            exitWarningRef.current = false;
+            setShowExitToast(false);
+          }, 2500); // Reset warning after 2.5 seconds
+        } else {
+          // Warning is active and they pressed back again. Allow exit.
+          window.history.back();
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+  // ------------------------------------------
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
@@ -476,37 +537,28 @@ export default function App() {
         body, html, #root { 
           margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important;
           background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important;
-          /* Mobile + Desktop strict selection blocking */
-          -webkit-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-          user-select: none;
-          /* Stop iOS magnifier and context menu */
+          -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
           -webkit-touch-callout: none;
         }
 
         * { 
           box-sizing: border-box; 
-          /* Stop Android/iOS tap highlight flashing */
           -webkit-tap-highlight-color: transparent; 
         }
         
-        /* Re-enable text selection for input fields */
         input, textarea {
-          -webkit-user-select: auto;
-          -moz-user-select: auto;
-          -ms-user-select: auto;
-          user-select: auto;
+          -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto;
         }
 
-        /* --- UI ANIMATIONS --- */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes toastUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
         
         .fade-enter { animation: fadeIn 0.35s ease-out forwards; }
         .slide-up-enter { animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .pop-enter { animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .toast-enter { animation: toastUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         .hover-effect { transition: transform 0.2s ease, opacity 0.2s ease; }
         .hover-effect:hover { transform: scale(1.05); }
@@ -523,6 +575,13 @@ export default function App() {
       `}</style>
 
       <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} />
+
+      {/* GLOBAL EXIT WARNING TOAST */}
+      {showExitToast && (
+        <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none" }}>
+          Press back again to exit
+        </div>
+      )}
 
       {/* OVERLAY LOADER */}
       {isInitialLoad && (
@@ -629,7 +688,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Wrapper with key to trigger CSS transition when playlist changes */}
           <div key={selectedPlaylistId || 'global'} className="fade-enter" style={{ width: "100%" }}>
             
             {selectedPlaylistId !== null && activePlaylistObj && (
@@ -758,7 +816,6 @@ export default function App() {
               <div style={{ width: "100%", marginBottom: "24px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   
-                  {/* SCROLLING LYRICS OR ALBUM ART WITH FADE TRANSITION */}
                   <div key={showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                     {showLyrics ? renderLyricsBlock(false) : (
                       currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>
@@ -768,7 +825,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* High Contrast White Text Fix for Desktop Player */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "20px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
@@ -829,14 +885,12 @@ export default function App() {
       {!isDesktop && currentTrack && isMobilePlayerOpen && (
         <div className="slide-up-enter" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 4000, background: COLORS.bgBase, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           
-          {/* Background Blur */}
           {currentTrack.poster_url && (
             <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(1.2) saturate(80%)", opacity: 0.3, zIndex: 0, pointerEvents: "none" }} />
           )}
 
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
             
-            {/* Header (High Contrast White) */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
               <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", transition: "transform 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">
                 <ChevronDown size={32} />
@@ -845,11 +899,9 @@ export default function App() {
               <div style={{ width: "40px" }} />
             </div>
 
-            {/* Art / Lyrics Section */}
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
               <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
                 
-                {/* Wrap with key for CSS transition on toggle */}
                 <div key={showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                   {showLyrics ? renderLyricsBlock(true) : (
                     currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}><ImageIcon size={100} color={COLORS.textMuted} /></div>
@@ -859,7 +911,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Title & Lyrics Toggle (High Contrast White) */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h2>
@@ -870,7 +921,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* Scrub Bar (High Contrast White) */}
             <div style={{ marginBottom: "24px" }}>
               <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.2) ${progressPercent}%)`, marginBottom: "8px", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -879,7 +929,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Main Controls (High Contrast White & Shadows) */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", transition: "opacity 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               
