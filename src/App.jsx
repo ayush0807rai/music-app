@@ -117,6 +117,39 @@ export default function App() {
     }
   }, [currentTrackIndex, currentTrack]);
 
+  // --- MEDIA SESSION API LOGIC ---
+  useEffect(() => {
+    if ('mediaSession' in navigator && currentTrack) {
+      navigator.mediaSession.metadata = new window.MediaMetadata({
+        title: currentTrack.title,
+        artist: currentTrack.artist,
+        album: currentTrack.album || 'Euphony',
+        artwork: currentTrack.poster_url ? [
+          { src: currentTrack.poster_url, sizes: '512x512', type: 'image/jpeg' },
+          { src: currentTrack.poster_url, sizes: '256x256', type: 'image/jpeg' }
+        ] : []
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (audioRef.current) {
+          audioRef.current.play();
+          setIsPlaying(true);
+        }
+      });
+      
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          setIsPlaying(false);
+        }
+      });
+      
+      navigator.mediaSession.setActionHandler('previoustrack', () => handlePrev());
+      navigator.mediaSession.setActionHandler('nexttrack', () => handleNext());
+    }
+  }, [currentTrack]);
+  // -------------------------------
+
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist) {
@@ -264,7 +297,6 @@ export default function App() {
 
   return (
     <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: "#000", color: "#fff", fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      {/* VITE DEFAULT OVERRIDE RESET - THIS FIXES THE BLACK BORDERS & CLIPPING */}
       <style>{`
         :root { max-width: none !important; }
         body, html, #root { 
