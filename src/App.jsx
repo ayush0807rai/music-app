@@ -475,19 +475,26 @@ export default function App() {
         body, html, #root { 
           margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important;
           background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important;
-          /* Disable text selection globally */
           -webkit-user-select: none;
           -ms-user-select: none;
           user-select: none;
         }
         * { box-sizing: border-box; }
         
-        /* Re-enable text selection for input fields */
         input, textarea {
           -webkit-user-select: auto;
           -ms-user-select: auto;
           user-select: auto;
         }
+
+        /* --- UI ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .fade-enter { animation: fadeIn 0.35s ease-out forwards; }
+        .slide-up-enter { animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .pop-enter { animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         .hover-effect { transition: transform 0.2s ease, opacity 0.2s ease; }
         .hover-effect:hover { transform: scale(1.05); }
@@ -497,7 +504,7 @@ export default function App() {
         .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
         .glow-slider { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 6px; outline: none; cursor: pointer; }
         .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 0; height: 0; }
-        .upload-input { width: 100%; padding: 12px; background: #FFFFFF; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.primary}; margin-bottom: 16px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .upload-input { width: 100%; padding: 12px; background: #FFFFFF; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.primary}; margin-bottom: 16px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: border-color 0.2s ease; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
@@ -507,7 +514,7 @@ export default function App() {
 
       {/* OVERLAY LOADER */}
       {isInitialLoad && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: COLORS.bgBase, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: COLORS.primary }}>
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, zIndex: 9999, background: COLORS.bgBase, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: COLORS.primary }}>
           <Loader2 className="animate-spin" size={48} />
           <p style={{ marginTop: "16px", fontWeight: "500" }}>Loading your tracks...</p>
         </div>
@@ -515,9 +522,9 @@ export default function App() {
 
       {/* UPLOAD MODAL */}
       {showUploadModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000, padding: "20px" }}>
-          <div style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} className="custom-scrollbar">
-            <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }}><X size={24} /></button>
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000, padding: "20px" }}>
+          <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
+            <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><UploadCloud color={COLORS.primary} /> Add Song Globally</h2>
             <form onSubmit={handleUploadSubmit}>
               <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="upload-input" />
@@ -532,7 +539,7 @@ export default function App() {
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
                 <input type="file" accept="audio/*" required onChange={(e) => setUploadFile(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
               </div>
-              <button type="submit" disabled={isUploading} style={{ width: "100%", padding: "14px", borderRadius: "8px", background: isUploading ? COLORS.textMuted : COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <button type="submit" disabled={isUploading} style={{ width: "100%", padding: "14px", borderRadius: "8px", background: isUploading ? COLORS.textMuted : COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "background 0.2s ease" }}>
                 {isUploading ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Upload to Cloud"}
               </button>
             </form>
@@ -542,13 +549,13 @@ export default function App() {
 
       {/* CREATE PLAYLIST MODAL */}
       {showPlaylistModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000, padding: "20px" }}>
-          <div style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
-            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }}><X size={24} /></button>
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000, padding: "20px" }}>
+          <div className="pop-enter" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
+            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Create Private Playlist</h2>
             <form onSubmit={handleCreatePlaylist}>
               <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={(e) => setNewPlaylistName(e.target.value)} className="upload-input" />
-              <button type="submit" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: "pointer" }}>Save Playlist</button>
+              <button type="submit" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: "pointer", transition: "opacity 0.2s ease" }} className="hover-effect">Save Playlist</button>
             </form>
           </div>
         </div>
@@ -599,146 +606,152 @@ export default function App() {
           
           {!isDesktop && (
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", flexShrink: 0 }} className="custom-scrollbar">
-              <button onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === null ? COLORS.primary : "transparent", color: selectedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
+              <button onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === null ? COLORS.primary : "transparent", color: selectedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                 Global Library
               </button>
               {userPlaylists.map((pl) => (
-                <button key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === pl.id ? COLORS.primary : "transparent", color: selectedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
+                <button key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === pl.id ? COLORS.primary : "transparent", color: selectedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                   🔒 {pl.name}
                 </button>
               ))}
             </div>
           )}
 
-          {selectedPlaylistId !== null && activePlaylistObj && (
-            <div style={{ background: `linear-gradient(180deg, #E2D9C5 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
-              <div style={{ width: isDesktop ? "180px" : "140px", height: isDesktop ? "180px" : "140px", backgroundColor: COLORS.primary, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
-                <FolderPlus size={isDesktop ? 72 : 56} color={COLORS.bgPanel} />
-              </div>
-              <div style={{ flex: 1, minWidth: 0, textAlign: isDesktop ? "left" : "center" }}>
-                <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: COLORS.textMuted }}>Private Playlist</span>
-                <h2 style={{ margin: "8px 0 16px 0", fontSize: isDesktop ? "48px" : "32px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{activePlaylistObj.name}</h2>
-                <p style={{ margin: 0, fontSize: "15px", color: COLORS.textMuted, fontWeight: "500" }}>Your personal collection • {playlistSongs.length} songs</p>
-              </div>
-            </div>
-          )}
-
-          {selectedPlaylistId !== null ? (
-            <div style={{ width: "100%" }}>
-              {playlistSongs.length > 0 && (
-                <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px", justifyContent: isDesktop ? "flex-start" : "center" }}>
-                  <button onClick={() => { setCurrentTrackIndex(0); setIsPlaying(true); }} className="hover-effect" style={{ width: "64px", height: "64px", borderRadius: "50%", background: COLORS.primary, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)" }}>
-                    <Play size={28} fill={COLORS.bgPanel} color={COLORS.bgPanel} style={{ marginLeft: "4px" }} />
-                  </button>
+          {/* Wrapper with key to trigger CSS transition when playlist changes */}
+          <div key={selectedPlaylistId || 'global'} className="fade-enter" style={{ width: "100%" }}>
+            
+            {selectedPlaylistId !== null && activePlaylistObj && (
+              <div style={{ background: `linear-gradient(180deg, #E2D9C5 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
+                <div style={{ width: isDesktop ? "180px" : "140px", height: isDesktop ? "180px" : "140px", backgroundColor: COLORS.primary, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
+                  <FolderPlus size={isDesktop ? 72 : 56} color={COLORS.bgPanel} />
                 </div>
-              )}
-
-              <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 50px" : "40px 1fr 40px", padding: "0 16px 12px 16px", borderBottom: `1px solid ${COLORS.border}`, color: COLORS.textMuted, fontSize: "13px", fontWeight: "bold" }}>
-                <span>#</span>
-                <span>Title</span>
-                {isDesktop && <span>Album</span>}
-                {isDesktop && <span>Date added</span>}
-                <span style={{ textAlign: "right" }}><Clock size={16} /></span>
+                <div style={{ flex: 1, minWidth: 0, textAlign: isDesktop ? "left" : "center" }}>
+                  <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: COLORS.textMuted }}>Private Playlist</span>
+                  <h2 style={{ margin: "8px 0 16px 0", fontSize: isDesktop ? "48px" : "32px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{activePlaylistObj.name}</h2>
+                  <p style={{ margin: 0, fontSize: "15px", color: COLORS.textMuted, fontWeight: "500" }}>Your personal collection • {playlistSongs.length} songs</p>
+                </div>
               </div>
+            )}
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "12px" }}>
-                {playlistSongs.length > 0 ? (
-                  playlistSongs.map((track, index) => {
-                    const isSelected = index === currentTrackIndex;
-                    return (
-                      <div key={track.id} className="playlist-row" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 50px" : "40px 1fr 40px", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
-                        <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: "16px", minWidth: 0 }}>
-                          <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
-                          </div>
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ fontSize: "15px", fontWeight: isSelected ? "bold" : "600", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
-                            <div style={{ fontSize: "13px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
-                          </div>
-                        </div>
-                        {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || "—"}</span>}
-                        {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at)}</span>}
-                        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-                          <button title="Remove from playlist" onClick={(e) => handleRemoveSongFromPlaylist(selectedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect">
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div style={{ textAlign: "center", padding: "80px 0", color: COLORS.textMuted }}>
-                    <p style={{ margin: 0, fontSize: "16px" }}>This playlist is empty.</p>
+            {selectedPlaylistId !== null ? (
+              <div style={{ width: "100%" }}>
+                {playlistSongs.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px", justifyContent: isDesktop ? "flex-start" : "center" }}>
+                    <button onClick={() => { setCurrentTrackIndex(0); setIsPlaying(true); }} className="hover-effect" style={{ width: "64px", height: "64px", borderRadius: "50%", background: COLORS.primary, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)" }}>
+                      <Play size={28} fill={COLORS.bgPanel} color={COLORS.bgPanel} style={{ marginLeft: "4px" }} />
+                    </button>
                   </div>
                 )}
+
+                <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 50px" : "40px 1fr 40px", padding: "0 16px 12px 16px", borderBottom: `1px solid ${COLORS.border}`, color: COLORS.textMuted, fontSize: "13px", fontWeight: "bold" }}>
+                  <span>#</span>
+                  <span>Title</span>
+                  {isDesktop && <span>Album</span>}
+                  {isDesktop && <span>Date added</span>}
+                  <span style={{ textAlign: "right" }}><Clock size={16} /></span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "12px" }}>
+                  {playlistSongs.length > 0 ? (
+                    playlistSongs.map((track, index) => {
+                      const isSelected = index === currentTrackIndex;
+                      return (
+                        <div key={track.id} className="playlist-row" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 50px" : "40px 1fr 40px", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
+                          <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "16px", minWidth: 0 }}>
+                            <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
+                            </div>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ fontSize: "15px", fontWeight: isSelected ? "bold" : "600", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
+                              <div style={{ fontSize: "13px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
+                            </div>
+                          </div>
+                          {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || "—"}</span>}
+                          {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at)}</span>}
+                          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+                            <button title="Remove from playlist" onClick={(e) => handleRemoveSongFromPlaylist(selectedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect">
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div style={{ textAlign: "center", padding: "80px 0", color: COLORS.textMuted }}>
+                      <p style={{ margin: 0, fontSize: "16px" }}>This playlist is empty.</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ) : (
-            <div>
-              <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0", textAlign: isDesktop ? "left" : "center", color: COLORS.primary }}>Global Library ({playlist.length})</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {playlist.length > 0 ? (
-                  playlist.map((track, index) => {
-                    const isSelected = index === currentTrackIndex;
-                    return (
-                      <div key={track.id} className="playlist-row" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: isDesktop ? "16px" : "12px" }}>
-                        <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                           {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
+            ) : (
+              <div>
+                <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0", textAlign: isDesktop ? "left" : "center", color: COLORS.primary }}>Global Library ({playlist.length})</h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {playlist.length > 0 ? (
+                    playlist.map((track, index) => {
+                      const isSelected = index === currentTrackIndex;
+                      return (
+                        <div key={track.id} className="playlist-row" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: isDesktop ? "16px" : "12px" }}>
+                          <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                             {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                            <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "600", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
+                            <div style={{ fontSize: "14px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
+                          </div>
+                          
+                          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
+                            {userPlaylists.length > 0 && (
+                              <select 
+                                onClick={(e) => e.stopPropagation()} 
+                                onChange={(e) => {
+                                  if (e.target.value) handleAddSongToPlaylist(e.target.value, track.id);
+                                  e.target.value = "";
+                                }}
+                                defaultValue=""
+                                style={{ background: "#FFFFFF", color: COLORS.primary, border: `1px solid ${COLORS.border}`, borderRadius: "6px", padding: "8px 12px", fontSize: "13px", cursor: "pointer", maxWidth: isDesktop ? "160px" : "120px", textOverflow: "ellipsis", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", fontWeight: "500", transition: "border-color 0.2s ease" }}
+                              >
+                                <option value="" disabled>Add to playlist...</option>
+                                {userPlaylists.map(pl => (
+                                  <option key={pl.id} value={pl.id}>{pl.name}</option>
+                                ))}
+                              </select>
+                            )}
+                            {isSelected && isPlaying && <Loader2 size={18} className="animate-spin" color={COLORS.primary} />}
+                          </div>
                         </div>
-                        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                          <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "600", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
-                          <div style={{ fontSize: "14px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
-                        </div>
-                        
-                        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
-                          {userPlaylists.length > 0 && (
-                            <select 
-                              onClick={(e) => e.stopPropagation()} 
-                              onChange={(e) => {
-                                if (e.target.value) handleAddSongToPlaylist(e.target.value, track.id);
-                                e.target.value = "";
-                              }}
-                              defaultValue=""
-                              style={{ background: "#FFFFFF", color: COLORS.primary, border: `1px solid ${COLORS.border}`, borderRadius: "6px", padding: "8px 12px", fontSize: "13px", cursor: "pointer", maxWidth: isDesktop ? "160px" : "120px", textOverflow: "ellipsis", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", fontWeight: "500" }}
-                            >
-                              <option value="" disabled>Add to playlist...</option>
-                              {userPlaylists.map(pl => (
-                                <option key={pl.id} value={pl.id}>{pl.name}</option>
-                              ))}
-                            </select>
-                          )}
-                          {isSelected && isPlaying && <Loader2 size={18} className="animate-spin" color={COLORS.primary} />}
-                        </div>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div style={{ textAlign: "center", padding: "100px 0", color: COLORS.textMuted }}>
-                    <ImageIcon size={64} color={COLORS.textMuted} style={{ marginBottom: "16px", opacity: 0.5 }} />
-                    <p style={{ margin: 0, fontSize: "18px", fontWeight: "500" }}>Your library is empty. Click "Add Globally" to upload tracks.</p>
-                  </div>
-                )}
+                      );
+                    })
+                  ) : (
+                    <div style={{ textAlign: "center", padding: "100px 0", color: COLORS.textMuted }}>
+                      <ImageIcon size={64} color={COLORS.textMuted} style={{ marginBottom: "16px", opacity: 0.5 }} />
+                      <p style={{ margin: 0, fontSize: "18px", fontWeight: "500" }}>Your library is empty. Click "Add Globally" to upload tracks.</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (DESKTOP) */}
         {isDesktop && currentTrack && (
           <div style={{ width: "320px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", boxSizing: "border-box", position: "relative", overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
             {currentTrack.poster_url && (
-              <div style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(50px) brightness(1) saturate(100%)", opacity: 0.35, zIndex: 0, pointerEvents: "none" }} />
+              <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(50px) brightness(1) saturate(100%)", opacity: 0.35, zIndex: 0, pointerEvents: "none" }} />
             )}
 
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
               <div style={{ width: "100%", marginBottom: "24px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   
-                  {/* SCROLLING LYRICS OR ALBUM ART */}
-                  {showLyrics ? renderLyricsBlock(false) : (
-                    currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={80} color={COLORS.textMuted} />
-                  )}
+                  {/* SCROLLING LYRICS OR ALBUM ART WITH FADE TRANSITION */}
+                  <div key={showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
+                    {showLyrics ? renderLyricsBlock(false) : (
+                      currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>
+                    )}
+                  </div>
 
                 </div>
               </div>
@@ -748,7 +761,7 @@ export default function App() {
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "20px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{currentTrack.title}</h3>
                   <p style={{ margin: 0, color: COLORS.textMuted, fontSize: "15px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</p>
                 </div>
-                <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? COLORS.primary : "rgba(26,43,76,0.08)", color: showLyrics ? COLORS.bgPanel : COLORS.primary, border: "none", borderRadius: "20px", padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", flexShrink: 0, marginLeft: "12px" }}>
+                <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? COLORS.primary : "rgba(26,43,76,0.08)", color: showLyrics ? COLORS.bgPanel : COLORS.primary, border: "none", borderRadius: "20px", padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", flexShrink: 0, marginLeft: "12px", transition: "all 0.3s ease" }}>
                   <Mic2 size={16} /> {showLyrics ? "Hide" : "Lyrics"}
                 </button>
               </div>
@@ -761,7 +774,7 @@ export default function App() {
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer" }}>{renderModeIcon()}</button>
+                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", transition: "opacity 0.2s ease" }} className="hover-effect">{renderModeIcon()}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                     <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", display: "flex" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
                     <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.25)" }}>
@@ -769,7 +782,7 @@ export default function App() {
                     </button>
                     <button onClick={handleNext} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", display: "flex" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
                   </div>
-                  <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }}>{isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
+                  <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
                 </div>
               </div>
             </div>
@@ -781,6 +794,7 @@ export default function App() {
       {!isDesktop && currentTrack && !isMobilePlayerOpen && (
         <div 
           onClick={() => setIsMobilePlayerOpen(true)} 
+          className="slide-up-enter"
           style={{ position: "fixed", bottom: "16px", left: "12px", right: "12px", background: COLORS.bgPanel, borderRadius: "12px", padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 8px 24px rgba(26,43,76,0.15)", zIndex: 2000, border: `1px solid ${COLORS.border}`, cursor: "pointer" }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "14px", overflow: "hidden", flex: 1, minWidth: 0 }}>
@@ -792,7 +806,7 @@ export default function App() {
               <div style={{ fontSize: "13px", color: COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</div>
             </div>
           </div>
-          <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "8px", flexShrink: 0 }}>
+          <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "8px", flexShrink: 0, transition: "transform 0.2s ease" }}>
             {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
           </button>
         </div>
@@ -800,30 +814,35 @@ export default function App() {
 
       {/* FULL-SCREEN MOBILE PLAYER MODAL */}
       {!isDesktop && currentTrack && isMobilePlayerOpen && (
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 4000, background: COLORS.bgBase, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div className="slide-up-enter" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 4000, background: COLORS.bgBase, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           
           {/* Background Blur */}
           {currentTrack.poster_url && (
-            <div style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(1.2) saturate(80%)", opacity: 0.3, zIndex: 0, pointerEvents: "none" }} />
+            <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(1.2) saturate(80%)", opacity: 0.3, zIndex: 0, pointerEvents: "none" }} />
           )}
 
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
             
             {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
-              <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }}>
+              <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", transition: "transform 0.2s ease" }} className="hover-effect">
                 <ChevronDown size={32} />
               </button>
               <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: COLORS.primary, opacity: 0.8 }}>Now Playing</span>
-              <div style={{ width: "40px" }} /> {/* Spacer for centering */}
+              <div style={{ width: "40px" }} />
             </div>
 
             {/* Art / Lyrics Section */}
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
-              <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics ? "none" : "0 20px 40px rgba(26,43,76,0.2)" }}>
-                {showLyrics ? renderLyricsBlock(true) : (
-                  currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={100} color={COLORS.textMuted} />
-                )}
+              <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
+                
+                {/* Wrap with key for CSS transition on toggle */}
+                <div key={showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
+                  {showLyrics ? renderLyricsBlock(true) : (
+                    currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}><ImageIcon size={100} color={COLORS.textMuted} /></div>
+                  )}
+                </div>
+
               </div>
             </div>
 
@@ -833,7 +852,7 @@ export default function App() {
                 <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{currentTrack.title}</h2>
                 <p style={{ margin: 0, color: COLORS.textMuted, fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</p>
               </div>
-              <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? COLORS.primary : "rgba(26,43,76,0.08)", color: showLyrics ? COLORS.bgPanel : COLORS.primary, border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "bold", flexShrink: 0, marginLeft: "16px" }}>
+              <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? COLORS.primary : "rgba(26,43,76,0.08)", color: showLyrics ? COLORS.bgPanel : COLORS.primary, border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "bold", flexShrink: 0, marginLeft: "16px", transition: "all 0.3s ease" }}>
                 <Mic2 size={18} /> {showLyrics ? "Hide" : "Lyrics"}
               </button>
             </div>
@@ -849,17 +868,17 @@ export default function App() {
 
             {/* Main Controls */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
-              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer" }}>{renderModeIcon()}</button>
+              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", transition: "opacity 0.2s ease" }} className="hover-effect">{renderModeIcon()}</button>
               
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }}><SkipBack size={36} fill="currentColor" /></button>
-                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 12px 24px rgba(26,43,76,0.25)" }}>
+                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
+                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 12px 24px rgba(26,43,76,0.25)", transition: "transform 0.2s ease" }} className="hover-effect">
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
                 </button>
-                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }}><SkipForward size={36} fill="currentColor" /></button>
+                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
               </div>
 
-              <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "8px" }}>{isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}</button>
+              <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "8px" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}</button>
             </div>
             
           </div>
