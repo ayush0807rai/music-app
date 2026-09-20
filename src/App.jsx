@@ -560,7 +560,7 @@ export default function App() {
         .sidebar-item { transition: color 0.2s ease; cursor: pointer; }
         .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
         
-        /* --- SPARKLING GLOW SLIDER --- */
+        /* --- SPARKLING GLOW SLIDER (TRAIL FIX) --- */
         .glow-slider { 
           -webkit-appearance: none; 
           appearance: none; 
@@ -570,40 +570,35 @@ export default function App() {
           cursor: pointer; 
         }
         
-        /* The Sparkling Thumb */
+        /* Thin vertical thumb acting as a flare source */
         .glow-slider::-webkit-slider-thumb { 
           -webkit-appearance: none; 
           appearance: none; 
-          width: 12px; 
-          height: 12px; 
-          border-radius: 50%;
+          width: 4px; 
+          height: 6px; 
+          border-radius: 4px;
           background: #FFFFFF;
           cursor: pointer;
           box-shadow: 
-            0 0 4px 2px #FFFFFF,
-            0 0 12px 4px rgba(255, 255, 255, 0.8),
-            -15px 0 15px 4px rgba(255, 255, 255, 0.4),
-            15px 0 15px 4px rgba(255, 255, 255, 0.4);
+            0 0 8px 3px #FFFFFF,
+            -15px 0 10px 4px rgba(255, 255, 255, 0.8),
+            -30px 0 15px 2px rgba(255, 255, 255, 0.4);
           transition: transform 0.2s ease;
         }
         
         .glow-slider::-moz-range-thumb {
-          width: 12px; 
-          height: 12px; 
+          width: 4px; 
+          height: 6px; 
           border: none;
-          border-radius: 50%;
+          border-radius: 4px;
           background: #FFFFFF;
           cursor: pointer;
           box-shadow: 
-            0 0 4px 2px #FFFFFF,
-            0 0 12px 4px rgba(255, 255, 255, 0.8),
-            -15px 0 15px 4px rgba(255, 255, 255, 0.4),
-            15px 0 15px 4px rgba(255, 255, 255, 0.4);
+            0 0 8px 3px #FFFFFF,
+            -15px 0 10px 4px rgba(255, 255, 255, 0.8),
+            -30px 0 15px 2px rgba(255, 255, 255, 0.4);
           transition: transform 0.2s ease;
         }
-
-        .glow-slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
-        .glow-slider::-moz-range-thumb:hover { transform: scale(1.3); }
 
         .upload-input { width: 100%; padding: 12px; background: #FFFFFF; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.primary}; margin-bottom: 16px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: border-color 0.2s ease; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
@@ -875,7 +870,7 @@ export default function App() {
               <div style={{ marginTop: "auto", paddingBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
-                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
+                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }} />
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
                 </div>
 
@@ -959,7 +954,7 @@ export default function App() {
             </div>
 
             <div style={{ marginBottom: "24px" }}>
-              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, marginBottom: "8px", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
+              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, marginBottom: "8px", boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
