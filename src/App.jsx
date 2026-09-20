@@ -19,6 +19,49 @@ const COLORS = {
   hover: "rgba(26, 43, 76, 0.06)",  
 };
 
+// --- UPGRADED LRC PARSER (Supports Standard & Enhanced Word-by-Word) ---
+const parseLyrics = (lrcString) => {
+  if (!lrcString) return [];
+  
+  const lines = lrcString.split('\n');
+  const lineRegex = /\[(\d{2}):(\d{2}(?:\.\d{2,3})?)\](.*)/;
+  const wordRegex = /<(\d{2}):(\d{2}(?:\.\d{2,3})?)>([^<]*)/g;
+  const parsed = [];
+
+  lines.forEach(line => {
+    const match = lineRegex.exec(line);
+    if (match) {
+      const minutes = parseInt(match[1], 10);
+      const seconds = parseFloat(match[2]);
+      const time = minutes * 60 + seconds;
+      const rawText = match[3].trim();
+
+      const words = [];
+      let wordMatch;
+      let hasWords = false;
+      wordRegex.lastIndex = 0;
+      
+      while ((wordMatch = wordRegex.exec(rawText)) !== null) {
+        hasWords = true;
+        const wMins = parseInt(wordMatch[1], 10);
+        const wSecs = parseFloat(wordMatch[2]);
+        words.push({
+          time: wMins * 60 + wSecs,
+          text: wordMatch[3].trim()
+        });
+      }
+
+      parsed.push({ 
+        time, 
+        text: rawText.replace(/<\d{2}:\d{2}(?:\.\d{2,3})?>/g, '').trim(), 
+        words: hasWords ? words : null 
+      });
+    }
+  });
+
+  return parsed;
+};
+
 export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
   
@@ -59,7 +102,13 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(0.8);
   const [playMode, setPlayMode] = useState("repeat-all");
+  
+  // LYRICS STATES
   const [showLyrics, setShowLyrics] = useState(false);
+  const [parsedLyrics, setParsedLyrics] = useState([]);
+  const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
+  const [activeWordIndex, setActiveWordIndex] = useState(-1);
+  const lyricRefs = useRef([]);
 
   const audioRef = useRef(null);
   const isFirstRender = useRef(true);
@@ -123,7 +172,16 @@ export default function App() {
   const currentTrack = activeTrackList[currentTrackIndex] || activeTrackList[0];
   const activePlaylistObj = userPlaylists.find(p => p.id === selectedPlaylistId);
 
-  useEffect(() => setShowLyrics(false), [currentTrackIndex]);
+  useEffect(() => {
+    setShowLyrics(false);
+    setActiveLyricIndex(-1);
+    setActiveWordIndex(-1);
+    if (currentTrack?.lyrics) {
+      setParsedLyrics(parseLyrics(currentTrack.lyrics));
+    } else {
+      setParsedLyrics([]);
+    }
+  }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = isMuted ? 0 : volume;
@@ -174,8 +232,39 @@ export default function App() {
     if (!audioRef.current) return;
     const time = audioRef.current.currentTime;
     setCurrentTime(time);
+    
     if (Math.floor(time) % 2 === 0) localStorage.setItem("euphony_current_time", time);
+
+    if (parsedLyrics.length > 0) {
+      let activeIndex = -1;
+      for (let i = 0; i < parsedLyrics.length; i++) {
+        if (time >= parsedLyrics[i].time) activeIndex = i;
+        else break;
+      }
+      setActiveLyricIndex(activeIndex);
+
+      if (activeIndex !== -1 && parsedLyrics[activeIndex].words) {
+        const words = parsedLyrics[activeIndex].words;
+        let wIndex = -1;
+        for (let j = 0; j < words.length; j++) {
+          if (time >= words[j].time) wIndex = j;
+          else break;
+        }
+        setActiveWordIndex(wIndex);
+      } else {
+        setActiveWordIndex(-1);
+      }
+    }
   };
+
+  useEffect(() => {
+    if (activeLyricIndex !== -1 && lyricRefs.current[activeLyricIndex]) {
+      lyricRefs.current[activeLyricIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [activeLyricIndex]);
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
@@ -326,7 +415,7 @@ export default function App() {
         .upload-input { width: 100%; padding: 12px; background: #FFFFFF; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.primary}; margin-bottom: 16px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .upload-input:focus { border-color: ${COLORS.primary}; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid ${COLORS.bgPanel}; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
       `}</style>
 
       <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} />
@@ -560,13 +649,64 @@ export default function App() {
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
               <div style={{ width: "100%", marginBottom: "24px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
+                  
+                  {/* SCROLLING LYRICS UI WITH GLOW */}
                   {showLyrics ? (
-                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "16px", overflowY: "auto", background: "rgba(250,250,247,0.85)", color: COLORS.primary, fontSize: "15px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)", fontWeight: "500" }}>
-                      {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: COLORS.textMuted }}>No lyrics available.</span>}
+                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: COLORS.primary, textAlign: "center", borderRadius: "12px" }}>
+                      {parsedLyrics.length > 0 ? (
+                        <div style={{ padding: "120px 0" }}>
+                          {parsedLyrics.map((lyric, index) => {
+                            const isActiveLine = index === activeLyricIndex;
+                            return (
+                              <div 
+                                key={index}
+                                ref={el => lyricRefs.current[index] = el}
+                                style={{ 
+                                  fontSize: isActiveLine ? "22px" : "16px", 
+                                  fontWeight: isActiveLine ? "800" : "600", 
+                                  color: isActiveLine ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)", 
+                                  textShadow: isActiveLine && !lyric.words ? `0 0 16px rgba(243, 240, 230, 0.6)` : "none",
+                                  padding: "10px 0",
+                                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                                  transform: isActiveLine ? "scale(1.05)" : "scale(1)",
+                                  lineHeight: "1.4"
+                                }}
+                              >
+                                {lyric.words ? (
+                                  lyric.words.map((wordObj, wIndex) => {
+                                    const isActiveWord = isActiveLine && wIndex === activeWordIndex;
+                                    const isPastWord = isActiveLine && wIndex < activeWordIndex;
+                                    return (
+                                      <span 
+                                        key={wIndex}
+                                        style={{
+                                          color: (isActiveWord || isPastWord) ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)",
+                                          textShadow: isActiveWord ? `0 0 16px rgba(243, 240, 230, 0.8)` : "none",
+                                          transition: "all 0.2s ease",
+                                          marginRight: "4px"
+                                        }}
+                                      >
+                                        {wordObj.text} 
+                                      </span>
+                                    );
+                                  })
+                                ) : (
+                                  lyric.text
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div style={{ color: COLORS.bgBase, opacity: 0.6, fontSize: "15px", fontWeight: "500", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {currentTrack.lyrics ? currentTrack.lyrics : "No synchronized lyrics available."}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={80} color={COLORS.textMuted} />
                   )}
+
                 </div>
               </div>
 
