@@ -257,6 +257,19 @@ export default function App() {
     }
   };
 
+  // INTERACTIVE CLICK-TO-SEEK LYRICS
+  const handleLyricClick = (time, e) => {
+    if (e) e.stopPropagation();
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+      if (!isPlaying) {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    }
+  };
+
   useEffect(() => {
     if (activeLyricIndex !== -1 && lyricRefs.current[activeLyricIndex]) {
       lyricRefs.current[activeLyricIndex].scrollIntoView({
@@ -650,7 +663,7 @@ export default function App() {
               <div style={{ width: "100%", marginBottom: "24px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   
-                  {/* SCROLLING LYRICS UI WITH GLOW */}
+                  {/* SCROLLING LYRICS UI WITH GLOW & CLICK-TO-SEEK */}
                   {showLyrics ? (
                     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: COLORS.primary, textAlign: "center", borderRadius: "12px" }}>
                       {parsedLyrics.length > 0 ? (
@@ -661,6 +674,7 @@ export default function App() {
                               <div 
                                 key={index}
                                 ref={el => lyricRefs.current[index] = el}
+                                onClick={(e) => handleLyricClick(lyric.time, e)}
                                 style={{ 
                                   fontSize: isActiveLine ? "22px" : "16px", 
                                   fontWeight: isActiveLine ? "800" : "600", 
@@ -669,7 +683,8 @@ export default function App() {
                                   padding: "10px 0",
                                   transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
                                   transform: isActiveLine ? "scale(1.05)" : "scale(1)",
-                                  lineHeight: "1.4"
+                                  lineHeight: "1.4",
+                                  cursor: "pointer"
                                 }}
                               >
                                 {lyric.words ? (
@@ -679,11 +694,13 @@ export default function App() {
                                     return (
                                       <span 
                                         key={wIndex}
+                                        onClick={(e) => handleLyricClick(wordObj.time, e)}
                                         style={{
                                           color: (isActiveWord || isPastWord) ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)",
                                           textShadow: isActiveWord ? `0 0 16px rgba(243, 240, 230, 0.8)` : "none",
                                           transition: "all 0.2s ease",
-                                          marginRight: "4px"
+                                          marginRight: "4px",
+                                          cursor: "pointer"
                                         }}
                                       >
                                         {wordObj.text} 
