@@ -334,21 +334,24 @@ export default function App() {
               <div style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(80px) brightness(0.4) saturate(200%)", opacity: 0.85, zIndex: 0, pointerEvents: "none" }} />
             )}
 
-            <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+            <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between", maxWidth: "400px", margin: "0 auto", width: "100%" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <button onClick={() => setIsPlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><ChevronDown size={32} /></button>
                 <span style={{ fontSize: "12px", fontWeight: "bold", letterSpacing: "1px", color: "#ccc" }}>EUPHONY PLAYER</span>
                 <div style={{ width: 32 }} />
               </div>
 
-              <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative", margin: "20px 0" }}>
-                {showLyrics ? (
-                  <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "18px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
-                    {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available for this track.</span>}
-                  </div>
-                ) : (
-                  currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={64} color="#555" />
-                )}
+              {/* MOBILE SQUARE COVER ART CONTAINER */}
+              <div style={{ width: "100%", display: "flex", justifyContent: "center", margin: "16px 0" }}>
+                <div style={{ width: "82%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative" }}>
+                  {showLyrics ? (
+                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "18px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
+                      {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available for this track.</span>}
+                    </div>
+                  ) : (
+                    currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={64} color="#555" />
+                  )}
+                </div>
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -425,14 +428,17 @@ export default function App() {
               )}
 
               <div style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ width: "100%", aspectRatio: "1/1", marginBottom: "20px", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)" }}>
-                  {showLyrics ? (
-                    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "20px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "16px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
-                      {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available.</span>}
-                    </div>
-                  ) : (
-                    currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={64} color="#555" />
-                  )}
+                {/* DESKTOP SQUARE COVER ART CONTAINER */}
+                <div style={{ width: "100%", display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+                  <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative" }}>
+                    {showLyrics ? (
+                      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "20px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "16px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
+                        {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available.</span>}
+                      </div>
+                    ) : (
+                      currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={64} color="#555" />
+                    )}
+                  </div>
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
