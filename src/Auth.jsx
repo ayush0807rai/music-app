@@ -18,7 +18,8 @@ export default function Auth() {
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        alert("Account created successfully! You are now logged in.");
+        // Updated alert message to prompt email verification
+        alert("Success! Please check your email inbox for a verification link.");
       }
     } catch (error) {
       alert(error.error_description || error.message);
