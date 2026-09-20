@@ -18,7 +18,6 @@ export default function Auth() {
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        // Updated alert message to prompt email verification
         alert("Success! Please check your email inbox for a verification link.");
       }
     } catch (error) {
@@ -31,7 +30,13 @@ export default function Auth() {
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#121212", color: "#fff", fontFamily: "sans-serif" }}>
       <div style={{ background: "#181818", padding: "40px", borderRadius: "16px", width: "100%", maxWidth: "350px", boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
-        <h2 style={{ textAlign: "center", marginBottom: "24px" }}>{isLogin ? "Welcome Back" : "Create Account"}</h2>
+        
+        {/* New App Branding */}
+        <h1 style={{ textAlign: "center", margin: "0 0 8px 0", color: "#1DB954", fontSize: "28px" }}>Euphony</h1>
+        <h2 style={{ textAlign: "center", marginBottom: "24px", fontSize: "16px", color: "#a0a0a0", fontWeight: "normal" }}>
+          {isLogin ? "Welcome Back" : "Create Account"}
+        </h2>
+        
         <form onSubmit={handleAuth} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <input
             type="email"
