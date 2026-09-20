@@ -10,12 +10,21 @@ const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 
 export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
+  
+  // 1. SMART MEMORY: Load saved playback state on startup
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(() => {
+    const saved = localStorage.getItem("euphony_track_index");
+    return saved ? parseInt(saved, 10) : 0;
+  });
+  
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState(() => {
+    const saved = localStorage.getItem("euphony_playlist_id");
+    return saved && saved !== "null" ? saved : null;
+  });
+
   const [playlist, setPlaylist] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState(null); 
   const [playlistSongs, setPlaylistSongs] = useState([]);
-  
-  // Changed to track initial load only
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   // Modals
@@ -23,7 +32,9 @@ export default function App() {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
+  // 2. SESSION PROTECTION: Prevent UI flashing
   const [session, setSession] = useState(null);
+  const [isSessionLoaded, setIsSessionLoaded] = useState(false);
 
   // Upload States
   const [uploadTitle, setUploadTitle] = useState("");
@@ -32,12 +43,9 @@ export default function App() {
   const [uploadLyrics, setUploadLyrics] = useState("");
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadPoster, setUploadPoster] = useState(null);
-
-  // New Playlist Form State
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
   // Player States
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -48,13 +56,27 @@ export default function App() {
   const [showLyrics, setShowLyrics] = useState(false);
 
   const audioRef = useRef(null);
+  const isFirstRender = useRef(true);
 
+  // Core Event Listeners & Bulletproof Auth Tracking
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
     window.addEventListener("resize", handleResize);
     
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+    // Initial Session Fetch
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsSessionLoaded(true);
+    });
+
+    // Guarded Auth Listener: Prevents token refresh from destroying the app
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
+      } else if (session) {
+        setSession(session);
+      }
+    });
     
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -62,41 +84,38 @@ export default function App() {
     };
   }, []);
 
-  // FIX: Only re-run fetch if the actual User ID changes, avoiding re-renders on token refresh
+  // Save state to Local Storage automatically
+  useEffect(() => {
+    localStorage.setItem("euphony_track_index", currentTrackIndex);
+  }, [currentTrackIndex]);
+  
+  useEffect(() => {
+    if (selectedPlaylistId) localStorage.setItem("euphony_playlist_id", selectedPlaylistId);
+    else localStorage.removeItem("euphony_playlist_id");
+  }, [selectedPlaylistId]);
+
+  // Fetch Data only when User ID safely exists
   useEffect(() => {
     if (!session?.user?.id) return;
-    
     const fetchData = async () => {
-      const { data: songsData } = await supabase
-        .from("songs")
-        .select("*")
-        .order("created_at", { ascending: true });
+      const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true });
       if (songsData) setPlaylist(songsData);
 
-      const { data: playlistData } = await supabase
-        .from("playlists")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: true });
+      const { data: playlistData } = await supabase.from("playlists").select("*").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) setUserPlaylists(playlistData);
-
+      
       setIsInitialLoad(false);
     };
     fetchData();
   }, [session?.user?.id]); 
 
+  // Fetch active playlist songs
   useEffect(() => {
     if (selectedPlaylistId === null) return;
     const fetchPlaylistSongs = async () => {
-      const { data } = await supabase
-        .from("playlist_songs")
-        .select("song_id, added_at, songs(*)")
-        .eq("playlist_id", selectedPlaylistId);
+      const { data } = await supabase.from("playlist_songs").select("song_id, added_at, songs(*)").eq("playlist_id", selectedPlaylistId);
       if (data) {
-        const formattedSongs = data.map(item => ({
-          ...item.songs,
-          added_at: item.added_at
-        })).filter(item => item.id);
+        const formattedSongs = data.map(item => ({ ...item.songs, added_at: item.added_at })).filter(item => item.id);
         setPlaylistSongs(formattedSongs);
       }
     };
@@ -104,7 +123,7 @@ export default function App() {
   }, [selectedPlaylistId]);
 
   const activeTrackList = selectedPlaylistId === null ? playlist : playlistSongs;
-  const currentTrack = activeTrackList[currentTrackIndex];
+  const currentTrack = activeTrackList[currentTrackIndex] || activeTrackList[0];
   const activePlaylistObj = userPlaylists.find(p => p.id === selectedPlaylistId);
 
   useEffect(() => setShowLyrics(false), [currentTrackIndex]);
@@ -113,15 +132,31 @@ export default function App() {
     if (audioRef.current) audioRef.current.volume = isMuted ? 0 : volume;
   }, [volume, isMuted]);
 
+  // Handle Playback State
   useEffect(() => {
     if (audioRef.current && isPlaying && currentTrack) {
       if (audioRef.current.paused) {
-        audioRef.current.play().catch((err) => console.log("Playback error:", err));
+        audioRef.current.play().catch((err) => {
+          console.log("Playback error (Browser Auto-play Policy):", err);
+          setIsPlaying(false); // Failsafe if browser blocks background auto-play
+        });
       }
     }
   }, [currentTrackIndex, currentTrack, isPlaying]);
 
-  // MEDIA SESSION API LOGIC
+  // Restore Timestamp on initial load
+  useEffect(() => {
+    if (isFirstRender.current && audioRef.current && currentTrack) {
+      const savedTime = localStorage.getItem("euphony_current_time");
+      if (savedTime) {
+        audioRef.current.currentTime = parseFloat(savedTime);
+        setCurrentTime(parseFloat(savedTime));
+      }
+      isFirstRender.current = false;
+    }
+  }, [currentTrack]);
+
+  // MEDIA SESSION API: Keeps audio alive in OS background
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new window.MediaMetadata({
@@ -135,30 +170,31 @@ export default function App() {
       });
 
       navigator.mediaSession.setActionHandler('play', () => {
-        if (audioRef.current) {
-          audioRef.current.play();
-          setIsPlaying(true);
-        }
+        if (audioRef.current) { audioRef.current.play(); setIsPlaying(true); }
       });
-      
       navigator.mediaSession.setActionHandler('pause', () => {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          setIsPlaying(false);
-        }
+        if (audioRef.current) { audioRef.current.pause(); setIsPlaying(false); }
       });
-      
       navigator.mediaSession.setActionHandler('previoustrack', () => handlePrev());
       navigator.mediaSession.setActionHandler('nexttrack', () => handleNext());
     }
   }, [currentTrack]);
 
+  // Audio Progress Handler (Saves timestamp periodically)
+  const handleTimeUpdate = () => {
+    if (!audioRef.current) return;
+    const time = audioRef.current.currentTime;
+    setCurrentTime(time);
+    
+    // Save timestamp slightly throttled so we don't stress the browser
+    if (Math.floor(time) % 2 === 0) {
+      localStorage.setItem("euphony_current_time", time);
+    }
+  };
+
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
-    if (!uploadFile || !uploadTitle || !uploadArtist) {
-      alert("Please fill in the required fields and select an MP3.");
-      return;
-    }
+    if (!uploadFile || !uploadTitle || !uploadArtist) return alert("Please fill in the required fields and select an MP3.");
     setIsUploading(true);
     try {
       const fileExt = uploadFile.name.split('.').pop();
@@ -182,11 +218,7 @@ export default function App() {
       setShowUploadModal(false);
       setUploadTitle(""); setUploadArtist(""); setUploadAlbum(""); setUploadLyrics(""); setUploadFile(null); setUploadPoster(null);
       alert("Song uploaded successfully!");
-    } catch (error) {
-      alert("Error uploading: " + error.message);
-    } finally {
-      setIsUploading(false);
-    }
+    } catch (error) { alert("Error uploading: " + error.message); } finally { setIsUploading(false); }
   };
 
   const handleCreatePlaylist = async (e) => {
@@ -286,6 +318,10 @@ export default function App() {
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  // SAFE RENDER: Never let it render `<Auth />` prematurely and unmount our player!
+  if (!isSessionLoaded) {
+    return <div style={{ background: '#000000', width: '100vw', height: '100vh' }} />; 
+  }
   if (!session) return <Auth />;
 
   return (
@@ -311,16 +347,15 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #555; border-radius: 10px; border: 2px solid #121212; }
       `}</style>
 
-      {/* FIXED AUDIO TAG: Always mounted in the DOM to prevent unmounting drop-offs */}
+      {/* AUDIO TAG: Safely mounted with 'undefined' guard so it never loses source */}
       <audio 
         ref={audioRef} 
-        src={currentTrack?.url || ""} 
-        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)} 
+        src={currentTrack?.url || undefined} 
+        onTimeUpdate={handleTimeUpdate} 
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} 
         onEnded={handleTrackEnded} 
       />
 
-      {/* OVERLAY LOADER: Replaces the unmounting loader component */}
       {isInitialLoad && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "#121212", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#1DB954" }}>
           <Loader2 className="animate-spin" size={48} />
@@ -369,7 +404,7 @@ export default function App() {
         </div>
       )}
 
-      {/* TOP HEADER BAR (Mobile optimized) */}
+      {/* TOP HEADER BAR */}
       <div style={{ height: "64px", flexShrink: 0, background: "#000000", display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", borderBottom: "1px solid #1a1a1a", zIndex: 10 }}>
         <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: "#1DB954", fontWeight: "bold", letterSpacing: "-0.5px" }}>Euphony</h1>
         <div style={{ display: "flex", gap: isDesktop ? "12px" : "8px", alignItems: "center" }}>
@@ -379,7 +414,7 @@ export default function App() {
           <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: "#282828", border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <FolderPlus size={16} color="#1DB954" /> {isDesktop && "New Playlist"}
           </button>
-          <button className="hover-effect" onClick={() => supabase.auth.signOut()} style={{ background: "transparent", border: "1px solid #444", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: "#fff", cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+          <button className="hover-effect" onClick={() => { localStorage.clear(); supabase.auth.signOut(); }} style={{ background: "transparent", border: "1px solid #444", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: "#fff", cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
             {isDesktop ? "Log Out" : <LogOut size={16} />}
           </button>
         </div>
@@ -388,7 +423,7 @@ export default function App() {
       {/* MAIN BODY LAYOUT */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", padding: isDesktop ? "8px" : "4px", gap: isDesktop ? "8px" : "0" }}>
         
-        {/* LEFT SIDEBAR NAVIGATION (Desktop Only) */}
+        {/* LEFT SIDEBAR NAVIGATION */}
         {isDesktop && (
           <div style={{ width: "260px", flexShrink: 0, background: "#121212", borderRadius: "8px", padding: "24px", display: "flex", flexDirection: "column", gap: "24px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -396,9 +431,7 @@ export default function App() {
                 <Home size={24} color={selectedPlaylistId === null ? "#1DB954" : "#b3b3b3"} /> Global Library
               </div>
             </div>
-
             <hr style={{ border: "none", borderTop: "1px solid #282828", margin: "0" }} />
-
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
               <span style={{ fontSize: "12px", fontWeight: "bold", color: "#b3b3b3", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Playlists</span>
               {userPlaylists.map(pl => (
@@ -411,10 +444,9 @@ export default function App() {
           </div>
         )}
 
-        {/* CENTER MAIN CONTENT AREA (Takes remaining width perfectly) */}
+        {/* CENTER MAIN CONTENT AREA */}
         <div style={{ flex: 1, minWidth: 0, background: "#121212", borderRadius: "8px", padding: isDesktop ? "32px" : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "100px" : "32px" }} className="custom-scrollbar">
           
-          {/* MOBILE PLAYLIST SELECTOR TABS */}
           {!isDesktop && (
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", flexShrink: 0 }} className="custom-scrollbar">
               <button onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); }} style={{ background: selectedPlaylistId === null ? "#1DB954" : "#282828", color: selectedPlaylistId === null ? "#000" : "#fff", border: "none", borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -428,7 +460,6 @@ export default function App() {
             </div>
           )}
 
-          {/* PLAYLIST HEADER BANNER */}
           {selectedPlaylistId !== null && activePlaylistObj && (
             <div style={{ background: "linear-gradient(180deg, #2b3833 0%, #121212 100%)", padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px" }}>
               <div style={{ width: isDesktop ? "180px" : "140px", height: isDesktop ? "180px" : "140px", backgroundColor: "#282828", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.6)", flexShrink: 0 }}>
@@ -442,7 +473,6 @@ export default function App() {
             </div>
           )}
 
-          {/* TABLE VIEW FOR PLAYLISTS */}
           {selectedPlaylistId !== null ? (
             <div style={{ width: "100%" }}>
               {playlistSongs.length > 0 && (
@@ -495,7 +525,6 @@ export default function App() {
               </div>
             </div>
           ) : (
-            /* GLOBAL LIBRARY */
             <div>
               <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "bold", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0", textAlign: isDesktop ? "left" : "center" }}>Global Library ({playlist.length})</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -545,18 +574,14 @@ export default function App() {
           )}
         </div>
 
-        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (Desktop View Only) */}
+        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL */}
         {isDesktop && currentTrack && (
           <div style={{ width: "320px", flexShrink: 0, background: "#121212", borderRadius: "8px", padding: "24px", display: "flex", flexDirection: "column", boxSizing: "border-box", position: "relative", overflow: "hidden" }}>
-            
-            {/* Background Blur Effect */}
             {currentTrack.poster_url && (
               <div style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(0.3) saturate(200%)", opacity: 0.8, zIndex: 0, pointerEvents: "none" }} />
             )}
 
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
-              
-              {/* Perfectly Constrained Cover Art Box */}
               <div style={{ width: "100%", marginBottom: "24px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "10px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(0,0,0,0.6)", position: "relative" }}>
                   {showLyrics ? (
@@ -569,7 +594,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Track Info */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{ minWidth: 0, flex: 1, textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "20px", fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</h3>
@@ -580,7 +604,6 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Progress & Controls */}
               <div style={{ marginTop: "auto", paddingBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "#b3b3b3", minWidth: "36px" }}>{formatTime(currentTime)}</span>
@@ -600,7 +623,6 @@ export default function App() {
                   <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}>{isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
                 </div>
               </div>
-
             </div>
           </div>
         )}
@@ -623,7 +645,6 @@ export default function App() {
           </button>
         </div>
       )}
-
     </div>
   );
 }
