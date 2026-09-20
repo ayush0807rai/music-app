@@ -396,12 +396,13 @@ export default function App() {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
-  const renderModeIcon = () => {
+  // Upgraded renderModeIcon to accept dynamic colors for high-contrast visibility
+  const renderModeIcon = (iconColor = COLORS.primary) => {
     switch (playMode) {
-      case "repeat-all": return <Repeat size={20} color={COLORS.primary} />;
-      case "repeat-one": return <Repeat1 size={20} color={COLORS.primary} />;
-      case "shuffle": return <Shuffle size={20} color={COLORS.primary} />;
-      case "order": default: return <ArrowRight size={20} color={COLORS.textMuted} />;
+      case "repeat-all": return <Repeat size={20} color={iconColor} />;
+      case "repeat-one": return <Repeat1 size={20} color={iconColor} />;
+      case "shuffle": return <Shuffle size={20} color={iconColor} />;
+      case "order": default: return <ArrowRight size={20} color={iconColor} />;
     }
   };
 
@@ -475,12 +476,14 @@ export default function App() {
         body, html, #root { 
           margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important;
           background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important;
+          /* Disable text selection globally */
           -webkit-user-select: none;
           -ms-user-select: none;
           user-select: none;
         }
         * { box-sizing: border-box; }
         
+        /* Re-enable text selection for input fields */
         input, textarea {
           -webkit-user-select: auto;
           -ms-user-select: auto;
@@ -756,33 +759,34 @@ export default function App() {
                 </div>
               </div>
 
+              {/* High Contrast White Text Fix for Desktop Player */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <h3 style={{ margin: "0 0 4px 0", fontSize: "20px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{currentTrack.title}</h3>
-                  <p style={{ margin: 0, color: COLORS.textMuted, fontSize: "15px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</p>
+                  <h3 style={{ margin: "0 0 4px 0", fontSize: "20px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
+                  <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "15px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
                 </div>
-                <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? COLORS.primary : "rgba(26,43,76,0.08)", color: showLyrics ? COLORS.bgPanel : COLORS.primary, border: "none", borderRadius: "20px", padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", flexShrink: 0, marginLeft: "12px", transition: "all 0.3s ease" }}>
+                <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", flexShrink: 0, marginLeft: "12px", transition: "all 0.3s ease", backdropFilter: "blur(4px)", textShadow: showLyrics ? "none" : "0 1px 4px rgba(0,0,0,0.5)" }}>
                   <Mic2 size={16} /> {showLyrics ? "Hide" : "Lyrics"}
                 </button>
               </div>
 
               <div style={{ marginTop: "auto", paddingBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "12px", color: COLORS.textMuted, minWidth: "36px", fontWeight: "500" }}>{formatTime(currentTime)}</span>
-                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, ${COLORS.primary} ${progressPercent}%, rgba(26,43,76,0.15) ${progressPercent}%)` }} />
-                  <span style={{ fontSize: "12px", color: COLORS.textMuted, minWidth: "36px", textAlign: "right", fontWeight: "500" }}>{formatTime(duration)}</span>
+                  <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
+                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.2) ${progressPercent}%)`, boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
+                  <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", transition: "opacity 0.2s ease" }} className="hover-effect">{renderModeIcon()}</button>
+                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", transition: "opacity 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", display: "flex" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.25)" }}>
+                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
+                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
-                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", display: "flex" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
+                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
                   </div>
-                  <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
+                  <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
                 </div>
               </div>
             </div>
@@ -816,19 +820,19 @@ export default function App() {
       {!isDesktop && currentTrack && isMobilePlayerOpen && (
         <div className="slide-up-enter" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 4000, background: COLORS.bgBase, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           
-          {/* Background Blur */}
+          {/* Background Blur (Unchanged exactly as requested) */}
           {currentTrack.poster_url && (
             <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(1.2) saturate(80%)", opacity: 0.3, zIndex: 0, pointerEvents: "none" }} />
           )}
 
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
             
-            {/* Header */}
+            {/* Header (High Contrast White) */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
-              <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", transition: "transform 0.2s ease" }} className="hover-effect">
+              <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", transition: "transform 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">
                 <ChevronDown size={32} />
               </button>
-              <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: COLORS.primary, opacity: 0.8 }}>Now Playing</span>
+              <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>Now Playing</span>
               <div style={{ width: "40px" }} />
             </div>
 
@@ -846,39 +850,39 @@ export default function App() {
               </div>
             </div>
 
-            {/* Title & Lyrics Toggle */}
+            {/* Title & Lyrics Toggle (High Contrast White) */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{currentTrack.title}</h2>
-                <p style={{ margin: 0, color: COLORS.textMuted, fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</p>
+                <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h2>
+                <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
               </div>
-              <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? COLORS.primary : "rgba(26,43,76,0.08)", color: showLyrics ? COLORS.bgPanel : COLORS.primary, border: "none", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "bold", flexShrink: 0, marginLeft: "16px", transition: "all 0.3s ease" }}>
+              <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "bold", flexShrink: 0, marginLeft: "16px", transition: "all 0.3s ease", backdropFilter: "blur(4px)", textShadow: showLyrics ? "none" : "0 1px 4px rgba(0,0,0,0.5)" }}>
                 <Mic2 size={18} /> {showLyrics ? "Hide" : "Lyrics"}
               </button>
             </div>
 
-            {/* Scrub Bar */}
+            {/* Scrub Bar (High Contrast White) */}
             <div style={{ marginBottom: "24px" }}>
-              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, ${COLORS.primary} ${progressPercent}%, rgba(26,43,76,0.15) ${progressPercent}%)`, marginBottom: "8px" }} />
+              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.2) ${progressPercent}%)`, marginBottom: "8px", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "13px", color: COLORS.textMuted, fontWeight: "500" }}>{formatTime(currentTime)}</span>
-                <span style={{ fontSize: "13px", color: COLORS.textMuted, fontWeight: "500" }}>{formatTime(duration)}</span>
+                <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
+                <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
               </div>
             </div>
 
-            {/* Main Controls */}
+            {/* Main Controls (High Contrast White & Shadows) */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
-              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", transition: "opacity 0.2s ease" }} className="hover-effect">{renderModeIcon()}</button>
+              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", transition: "opacity 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
-                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 12px 24px rgba(26,43,76,0.25)", transition: "transform 0.2s ease" }} className="hover-effect">
+                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
+                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease" }} className="hover-effect">
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
                 </button>
-                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
+                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
               </div>
 
-              <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "8px" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}</button>
+              <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "8px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}</button>
             </div>
             
           </div>
