@@ -10,13 +10,13 @@ const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 
 // --- COLOR PALETTE CONSTANTS ---
 const COLORS = {
-  bgBase: "#F3F0E6",       // Warm Beige Background
-  bgPanel: "#FAFAF7",      // Lighter Beige/Off-White for Panels
-  primary: "#1A2B4C",      // Deep Navy Blue
-  textMain: "#1A2B4C",     // Navy Blue Text
-  textMuted: "#64748B",    // Slate/Muted Blue for secondary text
-  border: "rgba(26, 43, 76, 0.12)", // Subtle Navy border
-  hover: "rgba(26, 43, 76, 0.06)",  // Subtle Navy hover
+  bgBase: "#F3F0E6",       
+  bgPanel: "#FAFAF7",      
+  primary: "#1A2B4C",      
+  textMain: "#1A2B4C",     
+  textMuted: "#64748B",    
+  border: "rgba(26, 43, 76, 0.12)", 
+  hover: "rgba(26, 43, 76, 0.06)",  
 };
 
 export default function App() {
@@ -403,7 +403,7 @@ export default function App() {
         {isDesktop && (
           <div style={{ width: "260px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px" }}>
+              <div onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); setIsPlaying(false); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px" }}>
                 <Home size={24} color={selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted} /> Global Library
               </div>
             </div>
@@ -411,7 +411,7 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
               <span style={{ fontSize: "12px", fontWeight: "bold", color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Playlists</span>
               {userPlaylists.map(pl => (
-                <div key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setCurrentTrackIndex(0); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: selectedPlaylistId === pl.id ? "bold" : "normal" }}>
+                <div key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setCurrentTrackIndex(0); setIsPlaying(false); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: selectedPlaylistId === pl.id ? "bold" : "normal" }}>
                   <ListMusic size={20} color={selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted} /> 
                   <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pl.name}</span>
                 </div>
@@ -425,11 +425,11 @@ export default function App() {
           
           {!isDesktop && (
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", flexShrink: 0 }} className="custom-scrollbar">
-              <button onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); }} style={{ background: selectedPlaylistId === null ? COLORS.primary : "transparent", color: selectedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
+              <button onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === null ? COLORS.primary : "transparent", color: selectedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
                 Global Library
               </button>
               {userPlaylists.map((pl) => (
-                <button key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setCurrentTrackIndex(0); }} style={{ background: selectedPlaylistId === pl.id ? COLORS.primary : "transparent", color: selectedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
+                <button key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === pl.id ? COLORS.primary : "transparent", color: selectedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
                   🔒 {pl.name}
                 </button>
               ))}
