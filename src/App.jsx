@@ -425,7 +425,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN BODY LAYOUT (Spotify Full-Screen Split Grid) */}
+      {/* MAIN BODY LAYOUT */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", padding: "8px", gap: "8px", boxSizing: "border-box" }}>
         
         {/* LEFT SIDEBAR NAVIGATION */}
@@ -453,7 +453,7 @@ export default function App() {
         {/* CENTER MAIN CONTENT AREA */}
         <div style={{ flex: 1, background: "#121212", borderRadius: "8px", padding: "24px", overflowY: "auto", boxSizing: "border-box", display: "flex", flexDirection: "column" }} className="custom-scrollbar">
           
-          {/* MOBILE PLAYLIST SELECTOR TABS (If mobile view) */}
+          {/* MOBILE PLAYLIST SELECTOR TABS */}
           {!isDesktop && (
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px" }} className="custom-scrollbar">
               <button onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); }} style={{ background: selectedPlaylistId === null ? "#1DB954" : "#282828", color: selectedPlaylistId === null ? "#000" : "#fff", border: "none", borderRadius: "20px", padding: "6px 14px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap" }}>
@@ -583,7 +583,7 @@ export default function App() {
 
         </div>
 
-        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (Desktop View) */}
+        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (Desktop View with Framed Cover Art) */}
         {isDesktop && currentTrack && (
           <div style={{ width: "340px", background: "#121212", borderRadius: "8px", padding: "20px", display: "flex", flexDirection: "column", justifyContent: "space-between", boxSizing: "border-box", position: "relative", overflow: "hidden" }}>
             {currentTrack.poster_url && (
@@ -591,8 +591,9 @@ export default function App() {
             )}
 
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+              {/* FRAMED COVER ART CONTAINER */}
               <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-                <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative" }}>
+                <div style={{ width: "100%", maxWidth: "240px", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(40,40,40,0.5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(0,0,0,0.7)", position: "relative", margin: "0 auto" }}>
                   {showLyrics ? (
                     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "20px", overflowY: "auto", background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "15px", lineHeight: "1.6", whiteSpace: "pre-wrap", textAlign: "center", backdropFilter: "blur(10px)" }}>
                       {currentTrack.lyrics ? currentTrack.lyrics : <span style={{ color: "#aaa" }}>No lyrics available.</span>}
@@ -603,7 +604,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "12px 0" }}>
                 <div style={{ textAlign: "left", flex: 1, overflow: "hidden", textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "18px", fontWeight: "bold", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.title}</h3>
                   <p style={{ margin: 0, color: "#d0d0d0", fontSize: "13px", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{currentTrack.artist}</p>
