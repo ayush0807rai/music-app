@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -21,7 +21,9 @@ export default function App() {
   // Upload Form States
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadArtist, setUploadArtist] = useState("");
+  const [uploadAlbum, setUploadAlbum] = useState("");
   const [uploadFile, setUploadFile] = useState(null);
+  const [uploadPoster, setUploadPoster] = useState(null);
 
   // Player States
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -35,24 +37,17 @@ export default function App() {
 
   const audioRef = useRef(null);
 
-  // Handle Authentication Session
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch playlist on load
+  // Fetch from the NEW 'songs' table
   useEffect(() => {
     const fetchSongs = async () => {
       const { data, error } = await supabase
-        .from("playlist")
+        .from("songs")
         .select("*")
         .order("created_at", { ascending: true });
 
@@ -65,47 +60,57 @@ export default function App() {
 
   const currentTrack = playlist[currentTrackIndex];
 
-  // Sync volume with native audio element
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-    }
+    if (audioRef.current) audioRef.current.volume = isMuted ? 0 : volume;
   }, [volume, isMuted]);
 
-  // Autoplay next track when switching if already playing
   useEffect(() => {
     if (audioRef.current && isPlaying && currentTrack) {
       audioRef.current.play().catch((err) => console.log("Playback error:", err));
     }
   }, [currentTrackIndex, currentTrack]);
 
-  // --- UPLOAD LOGIC ---
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist) {
-      alert("Please fill in all fields and select an MP3 file.");
+      alert("Please fill in the required fields and select an MP3.");
       return;
     }
 
     setIsUploading(true);
 
     try {
+      // 1. Upload Audio
       const fileExt = uploadFile.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const fileName = `${Date.now()}-audio.${fileExt}`;
+      const { error: audioError } = await supabase.storage
         .from("songs")
-        .upload(fileName, uploadFile, { cacheControl: "3600", upsert: false });
+        .upload(fileName, uploadFile, { cacheControl: "3600" });
+      if (audioError) throw audioError;
+      const { data: { publicUrl: audioUrl } } = supabase.storage.from("songs").getPublicUrl(fileName);
 
-      if (uploadError) throw uploadError;
+      // 2. Upload Poster (if provided)
+      let posterUrl = null;
+      if (uploadPoster) {
+        const posterExt = uploadPoster.name.split('.').pop();
+        const posterName = `${Date.now()}-poster.${posterExt}`;
+        const { error: posterError } = await supabase.storage
+          .from("songs")
+          .upload(posterName, uploadPoster, { cacheControl: "3600" });
+        if (posterError) throw posterError;
+        posterUrl = supabase.storage.from("songs").getPublicUrl(posterName).data.publicUrl;
+      }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("songs")
-        .getPublicUrl(fileName);
-
+      // 3. Insert into database
       const { data: dbData, error: dbError } = await supabase
-        .from("playlist")
-        .insert([{ title: uploadTitle, artist: uploadArtist, url: publicUrl }])
+        .from("songs")
+        .insert([{ 
+          title: uploadTitle, 
+          artist: uploadArtist, 
+          album: uploadAlbum || null,
+          url: audioUrl,
+          poster_url: posterUrl
+        }])
         .select();
 
       if (dbError) throw dbError;
@@ -114,18 +119,19 @@ export default function App() {
       setShowUploadModal(false);
       setUploadTitle("");
       setUploadArtist("");
+      setUploadAlbum("");
       setUploadFile(null);
+      setUploadPoster(null);
       alert("Song uploaded successfully!");
 
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Error uploading song: " + error.message);
+      alert("Error uploading: " + error.message);
     } finally {
       setIsUploading(false);
     }
   };
 
-  // --- PLAYER CONTROLS ---
   const handlePlayPause = () => {
     if (!audioRef.current || !currentTrack) return;
     if (isPlaying) {
@@ -225,10 +231,7 @@ export default function App() {
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const volumePercent = isMuted ? 0 : volume * 100;
 
-  // BLOCK UI IF NOT LOGGED IN
-  if (!session) {
-    return <Auth />;
-  }
+  if (!session) return <Auth />;
 
   if (isLoading) {
     return (
@@ -251,7 +254,6 @@ export default function App() {
         .glow-slider:hover { height: 8px; filter: drop-shadow(0 0 8px rgba(29, 185, 84, 0.6)); }
         .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 0px; height: 0px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px rgba(29, 185, 84, 0.8); transition: width 0.2s ease, height 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease; }
         .glow-slider:hover::-webkit-slider-thumb { width: 14px; height: 14px; transform: scale(1.2); box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
-        
         .upload-input { width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #333; border-radius: 8px; color: white; margin-bottom: 16px; outline: none; box-sizing: border-box; }
         .upload-input:focus { border-color: #1DB954; }
       `}</style>
@@ -268,11 +270,18 @@ export default function App() {
             </h2>
             
             <form onSubmit={handleUploadSubmit}>
-              <input type="text" placeholder="Song Title" required value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="upload-input" />
-              <input type="text" placeholder="Artist Name" required value={uploadArtist} onChange={(e) => setUploadArtist(e.target.value)} className="upload-input" />
-              <div style={{ marginBottom: "24px" }}>
-                <label style={{ display: "block", marginBottom: "8px", color: "#a0a0a0", fontSize: "14px" }}>MP3 Audio File</label>
-                <input type="file" accept="audio/*" required onChange={(e) => setUploadFile(e.target.files[0])} style={{ color: "#a0a0a0" }} />
+              <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="upload-input" />
+              <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={(e) => setUploadArtist(e.target.value)} className="upload-input" />
+              <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={(e) => setUploadAlbum(e.target.value)} className="upload-input" />
+              
+              <div style={{ marginBottom: "16px", padding: "12px", border: "1px dashed #333", borderRadius: "8px" }}>
+                <label style={{ display: "block", marginBottom: "8px", color: "#a0a0a0", fontSize: "14px" }}>Poster Image (Optional)</label>
+                <input type="file" accept="image/*" onChange={(e) => setUploadPoster(e.target.files[0])} style={{ color: "#a0a0a0", width: "100%" }} />
+              </div>
+
+              <div style={{ marginBottom: "24px", padding: "12px", border: "1px dashed #333", borderRadius: "8px" }}>
+                <label style={{ display: "block", marginBottom: "8px", color: "#a0a0a0", fontSize: "14px" }}>MP3 Audio File *</label>
+                <input type="file" accept="audio/*" required onChange={(e) => setUploadFile(e.target.files[0])} style={{ color: "#a0a0a0", width: "100%" }} />
               </div>
 
               <button type="submit" disabled={isUploading} style={{ width: "100%", padding: "14px", borderRadius: "8px", background: isUploading ? "#555" : "#1DB954", color: isUploading ? "#aaa" : "#000", border: "none", fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
@@ -285,9 +294,9 @@ export default function App() {
 
       <div style={{ width: "100%", maxWidth: "480px" }}>
         
-        {/* HEADER WITH LOGOUT BUTTON */}
+        {/* HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h1 style={{ margin: 0, fontSize: "24px", color: "#1DB954" }}>Euphony</h1>
+          <h1 style={{ margin: 0, fontSize: "24px", color: "#1DB954", fontWeight: "bold", letterSpacing: "-0.5px" }}>Euphony</h1>
           <div style={{ display: "flex", gap: "10px" }}>
             <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px 12px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px" }}>
               <Plus size={16} color="#1DB954" /> Add Song
@@ -302,54 +311,91 @@ export default function App() {
           <>
             <audio ref={audioRef} src={currentTrack.url} onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} />
 
-            <div style={{ background: "#1e1e1e", padding: "24px", borderRadius: "16px", marginBottom: "24px", boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
-              <div style={{ marginBottom: "16px" }}>
-                <h2 style={{ margin: "0 0 6px 0", fontSize: "18px" }}>{currentTrack.title}</h2>
-                <p style={{ margin: 0, color: "#a0a0a0", fontSize: "14px" }}>{currentTrack.artist}</p>
+            {/* MAIN PLAYER CARD */}
+            <div style={{ background: "linear-gradient(180deg, #2a2a2a 0%, #121212 100%)", padding: "24px", borderRadius: "16px", marginBottom: "24px", boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}>
+              
+              {/* SPOTIFY-STYLE POSTER IMAGE */}
+              <div style={{ width: "100%", aspectRatio: "1/1", marginBottom: "24px", borderRadius: "8px", overflow: "hidden", backgroundColor: "#282828", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px rgba(0,0,0,0.5)" }}>
+                {currentTrack.poster_url ? (
+                  <img src={currentTrack.poster_url} alt="Album Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <ImageIcon size={64} color="#555" />
+                )}
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {/* TRACK INFO */}
+              <div style={{ marginBottom: "24px", textAlign: "left" }}>
+                <h2 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: "bold", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+                  {currentTrack.title}
+                </h2>
+                <p style={{ margin: 0, color: "#a0a0a0", fontSize: "16px" }}>
+                  {currentTrack.artist} {currentTrack.album && `• ${currentTrack.album}`}
+                </p>
+              </div>
+
+              {/* SEEK BAR */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
                 <span style={{ fontSize: "12px", color: "#a0a0a0", minWidth: "35px" }}>{formatTime(currentTime)}</span>
-                <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, #1DB954 ${progressPercent}%, #333 ${progressPercent}%)` }} />
-                <span style={{ fontSize: "12px", color: "#a0a0a0", minWidth: "35px" }}>{formatTime(duration)}</span>
+                <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, #ffffff ${progressPercent}%, #4d4d4d ${progressPercent}%)` }} />
+                <span style={{ fontSize: "12px", color: "#a0a0a0", minWidth: "35px", textAlign: "right" }}>{formatTime(duration)}</span>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "24px", marginTop: "20px" }}>
-                <button className="hover-effect" onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><SkipBack size={22} /></button>
-                <button className="hover-effect" onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "52px", height: "52px", borderRadius: "50%", border: "none", backgroundColor: "#1DB954", color: "#000", cursor: "pointer" }}>
-                  {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+              {/* PLAYBACK CONTROLS */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "16px" }}>
+                <button className="hover-effect" onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {renderModeIcon()}
                 </button>
-                <button className="hover-effect" onClick={handleNext} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><SkipForward size={22} /></button>
-                <button className="hover-effect" onClick={cyclePlayMode} style={{ background: "#282828", border: "none", borderRadius: "8px", padding: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>{renderModeIcon()}</button>
-              </div>
+                
+                <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+                  <button className="hover-effect" onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><SkipBack size={28} fill="currentColor" /></button>
+                  <button className="hover-effect" onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "64px", height: "64px", borderRadius: "50%", border: "none", backgroundColor: "#1DB954", color: "#000", cursor: "pointer" }}>
+                    {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
+                  </button>
+                  <button className="hover-effect" onClick={handleNext} style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer" }}><SkipForward size={28} fill="currentColor" /></button>
+                </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "20px", paddingTop: "14px", borderTop: "1px solid #2d2d2d" }}>
                 <button className="hover-effect" onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#a0a0a0", cursor: "pointer", display: "flex", alignItems: "center" }}>
-                  {isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                  {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
                 </button>
-                <input type="range" min={0} max={1} step={0.01} value={isMuted ? 0 : volume} onChange={handleVolumeChange} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, #1DB954 ${volumePercent}%, #333 ${volumePercent}%)` }} />
               </div>
             </div>
 
-            <h3 style={{ fontSize: "16px", color: "#a0a0a0", marginBottom: "12px" }}>Playlist ({playlist.length} tracks)</h3>
+            {/* PLAYLIST SECTION */}
+            <h3 style={{ fontSize: "16px", color: "#ffffff", marginBottom: "16px", fontWeight: "bold" }}>Global Library ({playlist.length})</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {playlist.map((track, index) => {
                 const isSelected = index === currentTrackIndex;
                 return (
-                  <div key={track.id} className="playlist-track" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ padding: "12px 16px", borderRadius: "8px", background: isSelected ? "#2a2a2a" : "#181818", cursor: "pointer", borderLeft: isSelected ? "4px solid #1DB954" : "4px solid transparent", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ fontSize: "14px", fontWeight: isSelected ? "bold" : "normal", color: isSelected ? "#1DB954" : "#ffffff" }}>{track.title}</div>
-                      <div style={{ fontSize: "12px", color: "#777", marginTop: "2px" }}>{track.artist}</div>
+                  <div key={track.id} className="playlist-track" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ padding: "8px 12px", borderRadius: "8px", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: "12px" }}>
+                    
+                    {/* Small thumbnail in playlist */}
+                    <div style={{ width: "48px", height: "48px", borderRadius: "4px", backgroundColor: "#282828", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                       {track.poster_url ? (
+                         <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                       ) : (
+                         <ImageIcon size={20} color="#555" />
+                       )}
                     </div>
-                    {isSelected && isPlaying && <span style={{ fontSize: "11px", color: "#1DB954" }}>Playing</span>}
+
+                    <div style={{ flex: 1, overflow: "hidden" }}>
+                      <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "normal", color: isSelected ? "#1DB954" : "#ffffff", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>
+                        {track.title}
+                      </div>
+                      <div style={{ fontSize: "14px", color: "#a0a0a0", marginTop: "2px", textOverflow: "ellipsis", whiteSpace: "nowrap", overflow: "hidden" }}>
+                        {track.artist}
+                      </div>
+                    </div>
+                    {isSelected && isPlaying && <span style={{ fontSize: "12px", color: "#1DB954" }}><Loader2 size={16} className="animate-spin" /></span>}
                   </div>
                 );
               })}
             </div>
           </>
         ) : (
-          <div style={{ textAlign: "center", padding: "40px 0", color: "#a0a0a0" }}>
-            <p>No tracks found! Click "Add Song" above to upload your first track.</p>
+          <div style={{ textAlign: "center", padding: "60px 0", color: "#a0a0a0", background: "#1e1e1e", borderRadius: "16px" }}>
+            <ImageIcon size={48} color="#333" style={{ marginBottom: "16px" }} />
+            <p style={{ margin: 0, fontSize: "16px" }}>Your library is empty.</p>
+            <p style={{ margin: "8px 0 0 0", fontSize: "14px", color: "#777" }}>Click "Add Song" to upload your first track.</p>
           </div>
         )}
       </div>
