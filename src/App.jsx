@@ -134,6 +134,30 @@ export default function App() {
   const otherRef = useRef(null);
   const isFirstRender = useRef(true);
 
+  // Derived tracks defined early to prevent TDZ errors
+  const activeTrackList = selectedPlaylistId === null ? playlist : playlistSongs;
+  const currentTrack = queueCurrentTrack || activeTrackList[currentTrackIndex] || activeTrackList[0];
+  const activePlaylistObj = userPlaylists.find(p => p.id === selectedPlaylistId);
+
+  // Background Lock Screen Playback Integration (MediaSession API)
+  useEffect(() => {
+    if ('mediaSession' in navigator && currentTrack) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentTrack.title,
+        artist: currentTrack.artist,
+        album: currentTrack.album || 'Euphony',
+        artwork: [
+          { src: currentTrack.poster_url || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
+      navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
+      navigator.mediaSession.setActionHandler('previoustrack', () => handlePrev());
+      navigator.mediaSession.setActionHandler('nexttrack', () => handleNext());
+    }
+  }, [currentTrack, activeTrackList, playMode, userQueue]);
+
   useEffect(() => {
     if (!sleepTimerTarget) return;
     const interval = setInterval(() => {
@@ -253,10 +277,6 @@ export default function App() {
     fetchPlaylistSongs();
   }, [selectedPlaylistId]);
 
-  const activeTrackList = selectedPlaylistId === null ? playlist : playlistSongs;
-  const currentTrack = queueCurrentTrack || activeTrackList[currentTrackIndex] || activeTrackList[0];
-  const activePlaylistObj = userPlaylists.find(p => p.id === selectedPlaylistId);
-
   useEffect(() => {
     setShowLyrics(false);
     setActiveLyricIndex(-1);
@@ -273,10 +293,10 @@ export default function App() {
     if (audioRef.current) {
       audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
     }
-    if (vocalsRef.current) vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals) : 0;
-    if (drumsRef.current) drumsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.drums) : 0;
-    if (bassRef.current) bassRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.bass) : 0;
-    if (otherRef.current) otherRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.other) : 0;
+    if (vocalsRef.current) vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
+    if (drumsRef.current) drumsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0;
+    if (bassRef.current) bassRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0;
+    if (otherRef.current) otherRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0;
   }, [volume, isMuted, showMixer, stemVolumes, currentTrack]);
 
   useEffect(() => {
@@ -389,7 +409,6 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  // --- AI STEM SEPARATION: PRIVATE COLAB GPU BACKEND ---
   const handleGenerateStems = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
@@ -616,6 +635,21 @@ export default function App() {
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
+  const toggleStemMixer = (e) => {
+    if (e) e.stopPropagation();
+    const willShow = !showMixer;
+    setShowMixer(willShow);
+
+    // Auto pause/play on toggle
+    if (willShow) {
+      setIsPlaying(false);
+      setShowLyrics(false);
+      setShowQueue(false);
+    } else {
+      setIsPlaying(true);
+    }
+  };
+
   const renderModeIcon = (iconColor = COLORS.primary) => {
     switch (playMode) {
       case "repeat-all": return <Repeat size={20} color={iconColor} />;
@@ -648,27 +682,30 @@ export default function App() {
            </div>
        ) : (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0px", flex: 1, padding: "24px 0 16px 0", alignItems: "center" }}>
+               {/* Fixed flexible layout to prevent 'Other' stem from overflowing */}
+               <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "24px 0 16px 0", alignItems: "center", overflow: "hidden" }}>
                    {["vocals", "drums", "bass", "other"].map((stemType) => (
-                       <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
-                           <input 
-                              type="range" 
-                              min="0" max="1" step="0.01" 
-                              value={stemVolumes[stemType]}
-                              onChange={(e) => setStemVolumes({...stemVolumes, [stemType]: parseFloat(e.target.value)})}
-                              style={{
-                                  appearance: "none",
-                                  width: isMobile ? "65px" : "75px",
-                                  height: "4px",
-                                  background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType]*100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType]*100}%)`,
-                                  transform: "rotate(-90deg)",
-                                  transformOrigin: "center",
-                                  margin: "35px 0",
-                                  borderRadius: "4px"
-                              }}
-                              className="glow-slider"
-                           />
-                           <span style={{ fontSize: "11px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff" }}>{stemType}</span>
+                       <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%", flex: 1 }}>
+                           <div style={{ position: "relative", width: "30px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                             <input 
+                                type="range" 
+                                min="0" max="1" step="0.01" 
+                                value={stemVolumes[stemType]}
+                                onChange={(e) => setStemVolumes({...stemVolumes, [stemType]: parseFloat(e.target.value)})}
+                                style={{
+                                    position: "absolute",
+                                    appearance: "none",
+                                    width: isMobile ? "75px" : "85px",
+                                    height: "4px",
+                                    background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType]*100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType]*100}%)`,
+                                    transform: "rotate(-90deg)",
+                                    transformOrigin: "center",
+                                    borderRadius: "4px"
+                                }}
+                                className="glow-slider"
+                             />
+                           </div>
+                           <span style={{ fontSize: "10px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px" }}>{stemType}</span>
                        </div>
                    ))}
                </div>
@@ -912,14 +949,12 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
       `}</style>
 
-      {/* MASTER AUDIO TRACK */}
-      <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} crossorigin="anonymous" />
-      
-      {/* HIDDEN STEM TRACKS */}
-      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} crossorigin="anonymous" />
-      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} crossorigin="anonymous" />
-      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} crossorigin="anonymous" />
-      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} crossorigin="anonymous" />
+      {/* MASTER AUDIO TRACK AND STEMS (Without crossOrigin to prevent CORS blocking) */}
+      <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} preload="auto" />
+      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" />
+      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} preload="auto" />
+      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} preload="auto" />
+      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} preload="auto" />
 
       {/* QUEUE TOAST NOTIFICATION */}
       {queueToast && (
@@ -945,7 +980,7 @@ export default function App() {
 
       {/* UPLOAD MODAL */}
       {showUploadModal && (
-        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000, padding: "20px" }}>
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
             <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><UploadCloud color={COLORS.primary} /> Add Song Globally</h2>
@@ -972,7 +1007,7 @@ export default function App() {
 
       {/* CREATE PLAYLIST MODAL */}
       {showPlaylistModal && (
-        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3000, padding: "20px" }}>
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }}>
           <div className="pop-enter" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
             <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Create Private Playlist</h2>
@@ -984,9 +1019,9 @@ export default function App() {
         </div>
       )}
 
-      {/* SLEEP TIMER MODAL */}
+      {/* SLEEP TIMER MODAL - Elevated z-index */}
       {showSleepTimerModal && (
-        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3500, padding: "20px" }}>
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
             <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
@@ -1017,7 +1052,7 @@ export default function App() {
 
       {/* ADD TO PLAYLIST MODAL */}
       {songForPlaylistModal && (
-        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3500, padding: "20px" }}>
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
             <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Add to Playlist</h2>
@@ -1249,22 +1284,17 @@ export default function App() {
                 </div>
                 
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
-                  {/* SLEEP TIMER */}
                   <button onClick={() => setShowSleepTimerModal(true)} title="Sleep Timer" style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <Moon size={15} />
                   </button>
-                  {/* STEM MIXER */}
-                  <button onClick={() => { setShowMixer(!showMixer); if (!showMixer) { setShowLyrics(false); setShowQueue(false); } }} title="Stem Mixer" style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                  <button onClick={toggleStemMixer} title="Stem Mixer" style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <SlidersHorizontal size={15} />
                   </button>
-                  {/* LYRICS */}
                   <button onClick={() => { setShowLyrics(!showLyrics); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} title="Toggle Lyrics" style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <Mic2 size={15} />
                   </button>
-                  {/* QUEUE */}
                   <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} title="Queue" style={{ background: showQueue ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <ListMusic size={15} />
-                    {userQueue.length > 0 && <span style={{ fontSize: "10px", background: "#FFFFFF", color: COLORS.primary, borderRadius: "50%", padding: "1px 5px" }}>{userQueue.length}</span>}
                   </button>
                 </div>
               </div>
@@ -1375,7 +1405,7 @@ export default function App() {
               </div>
               
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
-                <button onClick={() => { setShowMixer(!showMixer); if (!showMixer) { setShowLyrics(false); setShowQueue(false); } }} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                <button onClick={toggleStemMixer} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                   <SlidersHorizontal size={17} />
                 </button>
                 <button onClick={() => setShowSleepTimerModal(true)} style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
