@@ -963,31 +963,25 @@ export default function App() {
                           </div>
                           
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-                            {/* QUEUE & PLAYLIST ACTION DROPDOWN */}
-                            <select 
-                              onClick={(e) => e.stopPropagation()} 
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === "__QUEUE__") {
-                                  addToQueue(track);
-                                } else if (val) {
-                                  handleAddSongToPlaylist(val, track.id);
-                                }
-                                e.target.value = "";
-                              }}
-                              defaultValue=""
-                              style={{ background: "#FFFFFF", color: COLORS.primary, border: `1px solid ${COLORS.border}`, borderRadius: "6px", padding: "8px 12px", fontSize: "13px", cursor: "pointer", maxWidth: isDesktop ? "170px" : "130px", textOverflow: "ellipsis", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", fontWeight: "500", transition: "border-color 0.2s ease" }}
-                            >
-                              <option value="" disabled>Add to...</option>
-                              <option value="__QUEUE__">➕ Add to Queue</option>
-                              {userPlaylists.length > 0 && (
-                                <optgroup label="Playlists">
-                                  {userPlaylists.map(pl => (
-                                    <option key={pl.id} value={pl.id}>{pl.name}</option>
-                                  ))}
-                                </optgroup>
-                              )}
-                            </select>
+                            <button title="Add to Queue" onClick={(e) => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
+                              <ListPlus size={18} />
+                            </button>
+                            {userPlaylists.length > 0 && (
+                              <select 
+                                onClick={(e) => e.stopPropagation()} 
+                                onChange={(e) => {
+                                  if (e.target.value) handleAddSongToPlaylist(e.target.value, track.id);
+                                  e.target.value = "";
+                                }}
+                                defaultValue=""
+                                style={{ background: "#FFFFFF", color: COLORS.primary, border: `1px solid ${COLORS.border}`, borderRadius: "6px", padding: "6px 10px", fontSize: "13px", cursor: "pointer", maxWidth: isDesktop ? "130px" : "100px", textOverflow: "ellipsis", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", fontWeight: "500", transition: "border-color 0.2s ease" }}
+                              >
+                                <option value="" disabled>Add to playlist...</option>
+                                {userPlaylists.map(pl => (
+                                  <option key={pl.id} value={pl.id}>{pl.name}</option>
+                                ))}
+                              </select>
+                            )}
                             {isSelected && isPlaying && <Loader2 size={18} className="animate-spin" color={COLORS.primary} />}
                           </div>
                         </div>
@@ -1016,7 +1010,6 @@ export default function App() {
               <div style={{ width: "100%", marginBottom: "20px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   
-                  {/* DYNAMIC VIEW: QUEUE / LYRICS / ALBUM ART */}
                   <div key={showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                     {showQueue ? (
                       renderQueueBlock(false)
@@ -1030,7 +1023,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* CONTROLS BAR: TITLE, LYRICS & QUEUE TOGGLES */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
