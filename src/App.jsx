@@ -398,7 +398,6 @@ export default function App() {
       setGenerationStatus("Connecting to your Colab GPU...");
       let app;
       try {
-        // ✨ Connected directly to your active Colab Gradio Live Link
         app = await client("https://385d76667cae53f420.gradio.live"); 
       } catch (err) {
         throw new Error("COLAB_DOWN");
@@ -406,7 +405,6 @@ export default function App() {
       
       setGenerationStatus("Colab processing track (~30 secs)...");
       
-      // Fetch audio as blob to send to custom Colab endpoint
       const audioRes = await fetch(currentTrack.url);
       const audioBlob = await audioRes.blob();
       
@@ -416,7 +414,6 @@ export default function App() {
       const stemFiles = result.data; 
       
       const uploadStem = async (fileObj, type) => {
-        // Gradio file objects contain either a url or path property depending on version
         const fileUrl = fileObj.url || fileObj.path;
         const res = await fetch(fileUrl);
         const stemblob = await res.blob();
@@ -630,7 +627,7 @@ export default function App() {
 
   const renderMixerBlock = (isMobile) => (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
-       <h4 style={{ margin: "0 0 20px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
+       <h4 style={{ margin: "0 0 16px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
        
        {!currentTrack.stem_vocals ? (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
@@ -651,7 +648,7 @@ export default function App() {
            </div>
        ) : (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-               <div style={{ display: "flex", justifyContent: "space-around", flex: 1, padding: "10px 0 20px 0", marginTop: "10px" }}>
+               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "2px", flex: 1, padding: "10px 0 20px 0", alignItems: "center" }}>
                    {["vocals", "drums", "bass", "other"].map((stemType) => (
                        <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end" }}>
                            <input 
@@ -661,17 +658,17 @@ export default function App() {
                               onChange={(e) => setStemVolumes({...stemVolumes, [stemType]: parseFloat(e.target.value)})}
                               style={{
                                   appearance: "none",
-                                  width: isMobile ? "90px" : "110px",
+                                  width: isMobile ? "75px" : "85px",
                                   height: "4px",
                                   background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType]*100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType]*100}%)`,
                                   transform: "rotate(-90deg)",
                                   transformOrigin: "center",
-                                  marginBottom: isMobile ? "50px" : "60px",
+                                  marginBottom: isMobile ? "45px" : "55px",
                                   borderRadius: "4px"
                               }}
                               className="glow-slider"
                            />
-                           <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff" }}>{stemType}</span>
+                           <span style={{ fontSize: "11px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff" }}>{stemType}</span>
                        </div>
                    ))}
                </div>
