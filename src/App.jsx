@@ -134,12 +134,10 @@ export default function App() {
   const otherRef = useRef(null);
   const isFirstRender = useRef(true);
 
-  // Derived tracks defined early to prevent TDZ errors
   const activeTrackList = selectedPlaylistId === null ? playlist : playlistSongs;
   const currentTrack = queueCurrentTrack || activeTrackList[currentTrackIndex] || activeTrackList[0];
   const activePlaylistObj = userPlaylists.find(p => p.id === selectedPlaylistId);
 
-  // Background Lock Screen Playback Integration (MediaSession API)
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -409,7 +407,6 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  // --- AI STEM SEPARATION: PROPER GRADIO handle_file FILE TRANSFER ---
   const handleGenerateStems = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
@@ -425,7 +422,6 @@ export default function App() {
       
       setGenerationStatus("Colab processing track (~30 secs)...");
       
-      // ✅ We use handle_file() to correctly route the URL to the Gradio Python backend 
       const result = await app.predict(0, [handle_file(currentTrack.url)]);
       
       setGenerationStatus("Saving stems to Supabase...");
@@ -607,13 +603,39 @@ export default function App() {
   };
 
   const handleTrackEnded = () => {
-    if (playMode === "repeat-one") { audioRef.current.currentTime = 0; audioRef.current.play(); return; }
-    if (userQueue.length > 0) {
-      handleNext();
-      return;
+    if (playMode === "repeat-one") { 
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+      }
+      return; 
     }
-    if (playMode === "order" && currentTrackIndex === activeTrackList.length - 1) { setIsPlaying(false); return; }
-    handleNext();
+
+    let nextSong = null;
+    let nextIdx = currentTrackIndex;
+
+    if (userQueue.length > 0) {
+      nextSong = userQueue[0];
+      setUserQueue(prev => prev.slice(1));
+      setQueueCurrentTrack(nextSong);
+      const inListIdx = activeTrackList.findIndex(s => s.id === nextSong.id);
+      if (inListIdx !== -1) setCurrentTrackIndex(inListIdx);
+    } else {
+      if (playMode === "order" && currentTrackIndex === activeTrackList.length - 1) { 
+        setIsPlaying(false); 
+        return; 
+      }
+      nextIdx = getNextTrackIndex();
+      nextSong = activeTrackList[nextIdx];
+      setQueueCurrentTrack(null);
+      setCurrentTrackIndex(nextIdx);
+    }
+
+    if (nextSong && audioRef.current) {
+      audioRef.current.src = nextSong.url;
+      audioRef.current.play().catch(() => {});
+      setIsPlaying(true);
+    }
   };
 
   const toggleMute = () => {
@@ -661,7 +683,7 @@ export default function App() {
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
        <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
        
-       {!currentTrack.stem_vocals ? (
+       {!currentTrack?.stem_vocals ? (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
                {isGeneratingStems ? (
                    <>
@@ -679,8 +701,8 @@ export default function App() {
                )}
            </div>
        ) : (
-           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", overflow: "hidden" }}>
-               <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "24px 0 16px 0", alignItems: "center" }}>
+           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}>
+               <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "24px 0 16px 0", alignItems: "center", overflow: "hidden" }}>
                    {["vocals", "drums", "bass", "other"].map((stemType) => (
                        <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%", flex: 1 }}>
                            <div style={{ position: "relative", width: "30px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -705,12 +727,6 @@ export default function App() {
                            <span style={{ fontSize: "10px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px" }}>{stemType}</span>
                        </div>
                    ))}
-               </div>
-               
-               <div style={{ padding: "0 10px 4px 10px" }}>
-                   <button onClick={() => setStemVolumes({ vocals: 0, drums: 1, bass: 1, other: 1 })} style={{ width: "100%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "10px", borderRadius: "8px", fontWeight: "bold", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }} className="hover-effect">
-                       🎤 Karaoke Mode (Mute Vocals)
-                   </button>
                </div>
            </div>
        )}
@@ -946,7 +962,7 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
       `}</style>
 
-      {/* AUDIO TRACKS: Cleaned of strict crossOrigin tags to prevent browser CORS media blocking */}
+      {/* AUDIO TRACKS */}
       <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} preload="auto" />
       <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" />
       <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} preload="auto" />
@@ -1016,7 +1032,7 @@ export default function App() {
         </div>
       )}
 
-      {/* SLEEP TIMER MODAL - Elevated z-index */}
+      {/* SLEEP TIMER MODAL */}
       {showSleepTimerModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={(e) => e.stopPropagation()}>
@@ -1343,13 +1359,13 @@ export default function App() {
             </div>
             
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-              <button onClick={(e) => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
                 <SkipBack size={22} fill="currentColor" />
               </button>
-              <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
                 {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
               </button>
-              <button onClick={(e) => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
                 <SkipForward size={22} fill="currentColor" />
               </button>
             </div>
