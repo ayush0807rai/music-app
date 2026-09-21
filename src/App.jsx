@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -83,7 +83,7 @@ export default function App() {
   
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
-  const [songForPlaylistModal, setSongForPlaylistModal] = useState(null); // NEW: Track selected for "Add to Playlist"
+  const [songForPlaylistModal, setSongForPlaylistModal] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   
   const [session, setSession] = useState(null);
@@ -113,11 +113,13 @@ export default function App() {
   const lyricRefs = useRef([]);
   const [isMobilePlayerOpen, setIsMobilePlayerOpen] = useState(false);
 
-  // QUEUE SYSTEM STATES
+  // QUEUE & SLEEP TIMER STATES
   const [userQueue, setUserQueue] = useState([]);
   const [queueCurrentTrack, setQueueCurrentTrack] = useState(null);
   const [showQueue, setShowQueue] = useState(false);
   const [queueToast, setQueueToast] = useState("");
+  const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
+  const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
   // APP NAVIGATION & EXIT STATES
   const [showExitToast, setShowExitToast] = useState(false);
@@ -127,16 +129,41 @@ export default function App() {
   const audioRef = useRef(null);
   const isFirstRender = useRef(true);
 
+  // SLEEP TIMER ENGINE
+  useEffect(() => {
+    if (!sleepTimerTarget) return;
+    const interval = setInterval(() => {
+      if (Date.now() >= sleepTimerTarget) {
+        if (audioRef.current) audioRef.current.pause();
+        setIsPlaying(false);
+        setSleepTimerTarget(null);
+        triggerToast("Sleep timer ended. Playback paused.");
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [sleepTimerTarget]);
+
+  const handleSetSleepTimer = (mins) => {
+    if (mins === 0) {
+      setSleepTimerTarget(null);
+      triggerToast("Sleep timer turned off");
+    } else {
+      setSleepTimerTarget(Date.now() + mins * 60000);
+      triggerToast(`Sleep timer set for ${mins} minutes`);
+    }
+    setShowSleepTimerModal(false);
+  };
+
   // NATIVE BACK BUTTON ROUTER INTERCEPT
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue };
-  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue]);
+    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, selectedPlaylistId, showQueue };
+  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, selectedPlaylistId, showQueue]);
 
   useEffect(() => {
     window.history.pushState({ page: 'euphony' }, '', window.location.href);
 
     const handlePopState = () => {
-      const { showUploadModal, showPlaylistModal, songForPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue } = stateRefs.current;
+      const { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, selectedPlaylistId, showQueue } = stateRefs.current;
       let handled = false;
 
       if (showUploadModal) {
@@ -147,6 +174,9 @@ export default function App() {
         handled = true;
       } else if (songForPlaylistModal) {
         setSongForPlaylistModal(null);
+        handled = true;
+      } else if (showSleepTimerModal) {
+        setShowSleepTimerModal(false);
         handled = true;
       } else if (showQueue) {
         setShowQueue(false);
@@ -761,14 +791,14 @@ export default function App() {
 
       {/* QUEUE TOAST NOTIFICATION */}
       {queueToast && (
-        <div className="toast-enter" style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none" }}>
+        <div className="toast-enter" style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           {queueToast}
         </div>
       )}
 
       {/* GLOBAL EXIT WARNING TOAST */}
       {showExitToast && (
-        <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none" }}>
+        <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           Press back again to exit
         </div>
       )}
@@ -818,6 +848,37 @@ export default function App() {
               <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={(e) => setNewPlaylistName(e.target.value)} className="upload-input" />
               <button type="submit" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: "pointer", transition: "opacity 0.2s ease" }} className="hover-effect">Save Playlist</button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* SLEEP TIMER MODAL */}
+      {showSleepTimerModal && (
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3500, padding: "20px" }}>
+          <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
+            <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[5, 10, 20, 30, 60, 120].map((mins) => (
+                <button 
+                  key={mins}
+                  onClick={() => handleSetSleepTimer(mins)}
+                  className="hover-effect"
+                  style={{ width: "100%", padding: "14px", borderRadius: "8px", background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}
+                >
+                  {mins === 60 ? "1 hour" : mins === 120 ? "2 hours" : `${mins} minutes`}
+                </button>
+              ))}
+              <div style={{ margin: "8px 0", height: "1px", background: COLORS.border }} />
+              <button 
+                onClick={() => handleSetSleepTimer(0)}
+                className="hover-effect"
+                style={{ width: "100%", padding: "14px", borderRadius: "8px", background: sleepTimerTarget ? "#ffebee" : "transparent", border: `1px solid ${sleepTimerTarget ? "#ffcdd2" : COLORS.border}`, color: sleepTimerTarget ? "#d32f2f" : COLORS.textMuted, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}
+              >
+                Turn off timer
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1054,6 +1115,10 @@ export default function App() {
                 </div>
                 
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
+                  {/* SLEEP TIMER BUTTON */}
+                  <button onClick={() => setShowSleepTimerModal(true)} title="Sleep Timer" style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                    <Moon size={15} />
+                  </button>
                   <button onClick={() => { setShowLyrics(!showLyrics); if (!showLyrics) setShowQueue(false); }} title="Toggle Lyrics" style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <Mic2 size={15} />
                   </button>
@@ -1088,7 +1153,7 @@ export default function App() {
         )}
       </div>
 
-      {/* MINIMIZED MOBILE BOTTOM BAR WITH CONTROLS AND PROGRESS BAR */}
+      {/* MINIMIZED MOBILE BOTTOM BAR */}
       {!isDesktop && currentTrack && !isMobilePlayerOpen && (
         <div 
           onClick={() => setIsMobilePlayerOpen(true)} 
@@ -1145,7 +1210,6 @@ export default function App() {
               <div style={{ width: "40px" }} />
             </div>
 
-            {/* ART / LYRICS / QUEUE CONTAINER */}
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
               <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics || showQueue ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
                 
@@ -1162,7 +1226,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* TITLE & LYRICS/QUEUE QUICK TOGGLES */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h2>
@@ -1170,6 +1233,10 @@ export default function App() {
               </div>
               
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
+                {/* SLEEP TIMER BUTTON MOBILE */}
+                <button onClick={() => setShowSleepTimerModal(true)} style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                  <Moon size={17} />
+                </button>
                 <button onClick={() => { setShowLyrics(!showLyrics); if (!showLyrics) setShowQueue(false); }} style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                   <Mic2 size={17} />
                 </button>
@@ -1184,7 +1251,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* MAIN CONTROLS + SPOTIFY-STYLE QUEUE ICON AT BOTTOM RIGHT */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", transition: "opacity 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               
@@ -1196,7 +1262,6 @@ export default function App() {
                 <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
               </div>
 
-              {/* SPOTIFY MOBILE BOTTOM-RIGHT QUEUE ICON */}
               <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) setShowLyrics(false); }} style={{ background: "transparent", border: "none", color: showQueue ? COLORS.spotifyGreen : "#FFFFFF", cursor: "pointer", padding: "8px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", position: "relative" }} className="hover-effect">
                 <ListMusic size={26} />
                 {userQueue.length > 0 && (
