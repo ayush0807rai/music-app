@@ -749,7 +749,7 @@ export default function App() {
            </div>
        ) : (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}>
-               <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "14px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
+               <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "24px 0 16px 0", alignItems: "center", overflow: "hidden" }}>
                    {["vocals", "drums", "bass", "other"].map((stemType) => (
                        <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", height: "100%", flex: 1 }}>
                            <input 
@@ -978,6 +978,46 @@ export default function App() {
           transform-origin: bottom;
         }
 
+        /* --- THE GLOWING COMET FLARE SLIDER (For Music Timeline) --- */
+        .glow-slider { 
+          -webkit-appearance: none; 
+          appearance: none; 
+          height: 6px; 
+          border-radius: 6px; 
+          outline: none; 
+          cursor: pointer; 
+        }
+        
+        .glow-slider::-webkit-slider-thumb { 
+          -webkit-appearance: none; 
+          appearance: none; 
+          width: 14px; 
+          height: 14px; 
+          border-radius: 50%;
+          background: #FFFFFF;
+          cursor: pointer;
+          box-shadow: 
+            0 0 12px 5px rgba(255, 255, 255, 0.9),
+            -15px 0 15px 4px rgba(255, 255, 255, 0.7),
+            -30px 0 20px 4px rgba(255, 255, 255, 0.3);
+          transition: transform 0.2s ease;
+        }
+        
+        .glow-slider::-moz-range-thumb {
+          width: 14px; 
+          height: 14px; 
+          border: none;
+          border-radius: 50%;
+          background: #FFFFFF;
+          cursor: pointer;
+          box-shadow: 
+            0 0 12px 5px rgba(255, 255, 255, 0.9),
+            -15px 0 15px 4px rgba(255, 255, 255, 0.7),
+            -30px 0 20px 4px rgba(255, 255, 255, 0.3);
+          transition: transform 0.2s ease;
+        }
+
+        /* --- THE CLEAN VERTICAL SLIDER (For AI Stem Mixer) --- */
         .stem-fader { 
           -webkit-appearance: none; 
           appearance: none; 
@@ -1360,15 +1400,19 @@ export default function App() {
                 </div>
                 
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
+                  {/* SLEEP TIMER */}
                   <button onClick={(e) => { e.stopPropagation(); setShowSleepTimerModal(true); }} title="Sleep Timer" style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <Moon size={15} />
                   </button>
+                  {/* STEM MIXER */}
                   <button onClick={toggleStemMixer} title="Stem Mixer" style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <SlidersHorizontal size={15} />
                   </button>
+                  {/* LYRICS */}
                   <button onClick={() => { setShowLyrics(!showLyrics); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} title="Toggle Lyrics" style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <Mic2 size={15} />
                   </button>
+                  {/* QUEUE */}
                   <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} title="Queue" style={{ background: showQueue ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <ListMusic size={15} />
                   </button>
@@ -1378,7 +1422,7 @@ export default function App() {
               <div style={{ marginTop: "auto", paddingBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
-                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, boxShadow: "0 1px 4px rgba(0,0,0,0.3)" }} />
+                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)` }} />
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
                 </div>
 
@@ -1494,7 +1538,7 @@ export default function App() {
             </div>
 
             <div style={{ marginBottom: "24px" }}>
-              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, marginBottom: "8px", boxShadow: "0 1px 4px rgba(0,0,0,0.3)", borderRadius: "6px" }} />
+              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)` }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
