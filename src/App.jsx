@@ -5,11 +5,10 @@ import {
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
-import { client } from "@gradio/client"; // AI Connector
+import { client } from "@gradio/client"; 
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 
-// --- COLOR PALETTE CONSTANTS ---
 const COLORS = {
   bgBase: "#F3F0E6",       
   bgPanel: "#FAFAF7",      
@@ -21,7 +20,6 @@ const COLORS = {
   spotifyGreen: "#1DB954"
 };
 
-// --- UPGRADED LRC PARSER ---
 const parseLyrics = (lrcString) => {
   if (!lrcString) return [];
   
@@ -106,7 +104,6 @@ export default function App() {
   const [previousVolume, setPreviousVolume] = useState(0.8);
   const [playMode, setPlayMode] = useState("repeat-all");
   
-  // LYRICS & PLAYER STATES
   const [showLyrics, setShowLyrics] = useState(false);
   const [parsedLyrics, setParsedLyrics] = useState([]);
   const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
@@ -114,7 +111,6 @@ export default function App() {
   const lyricRefs = useRef([]);
   const [isMobilePlayerOpen, setIsMobilePlayerOpen] = useState(false);
 
-  // QUEUE & SLEEP TIMER STATES
   const [userQueue, setUserQueue] = useState([]);
   const [queueCurrentTrack, setQueueCurrentTrack] = useState(null);
   const [showQueue, setShowQueue] = useState(false);
@@ -122,13 +118,11 @@ export default function App() {
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
-  // AI STEM MIXER STATES
   const [showMixer, setShowMixer] = useState(false);
   const [isGeneratingStems, setIsGeneratingStems] = useState(false);
   const [generationStatus, setGenerationStatus] = useState("");
   const [stemVolumes, setStemVolumes] = useState({ vocals: 1, drums: 1, bass: 1, other: 1 });
 
-  // REFS
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
   const stateRefs = useRef({});
@@ -140,7 +134,6 @@ export default function App() {
   const otherRef = useRef(null);
   const isFirstRender = useRef(true);
 
-  // SLEEP TIMER ENGINE
   useEffect(() => {
     if (!sleepTimerTarget) return;
     const interval = setInterval(() => {
@@ -165,7 +158,6 @@ export default function App() {
     setShowSleepTimerModal(false);
   };
 
-  // NATIVE BACK BUTTON ROUTER INTERCEPT
   useEffect(() => {
     stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, selectedPlaylistId, showQueue, showMixer };
   }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, selectedPlaylistId, showQueue, showMixer]);
@@ -276,23 +268,17 @@ export default function App() {
     }
   }, [currentTrack]);
 
-  // --- AUDIO ROUTING & VOLUME SYNC FOR STEMS ---
   useEffect(() => {
     const isMixerActive = showMixer && currentTrack?.stem_vocals;
-    
-    // If mixer is active, mute the master track. If inactive, play master at normal volume.
     if (audioRef.current) {
       audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
     }
-    
-    // Stem volumes
     if (vocalsRef.current) vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals) : 0;
     if (drumsRef.current) drumsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.drums) : 0;
     if (bassRef.current) bassRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.bass) : 0;
     if (otherRef.current) otherRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.other) : 0;
   }, [volume, isMuted, showMixer, stemVolumes, currentTrack]);
 
-  // Snap stems to master clock when mixer is opened
   useEffect(() => {
     if (showMixer && currentTrack?.stem_vocals && audioRef.current) {
        const t = audioRef.current.currentTime;
@@ -335,7 +321,6 @@ export default function App() {
     }
   }, [currentTrack]);
 
-  // MASTER CLOCK SYNC
   const handleTimeUpdate = () => {
     if (!audioRef.current) return;
     const time = audioRef.current.currentTime;
@@ -343,7 +328,6 @@ export default function App() {
     
     if (Math.floor(time) % 2 === 0) localStorage.setItem("euphony_current_time", time);
 
-    // Keep Stems perfectly synced with master track to prevent drift
     if (showMixer && currentTrack?.stem_vocals) {
        const syncStem = (ref) => {
            if (ref.current && Math.abs(ref.current.currentTime - time) > 0.3) {
@@ -380,8 +364,6 @@ export default function App() {
     if (audioRef.current) { 
       audioRef.current.currentTime = seekTime; 
       setCurrentTime(seekTime); 
-      
-      // Update stems instantly on scrub
       if (vocalsRef.current) vocalsRef.current.currentTime = seekTime;
       if (drumsRef.current) drumsRef.current.currentTime = seekTime;
       if (bassRef.current) bassRef.current.currentTime = seekTime;
@@ -394,9 +376,7 @@ export default function App() {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
       setCurrentTime(time);
-      if (!isPlaying) {
-        setIsPlaying(true);
-      }
+      if (!isPlaying) setIsPlaying(true);
     }
   };
 
@@ -409,35 +389,37 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  // --- AI STEM SEPARATION CLOUD WORKER ---
+  // --- UPGRADED AI STEM SEPARATION ENGINE (CORS BYPASSED) ---
   const handleGenerateStems = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
-    setGenerationStatus("Connecting to AI Cloud GPU...");
+    setGenerationStatus("Downloading track safely...");
     
     try {
-      // 1. Fetch File
-      setGenerationStatus("Downloading original track...");
-      const response = await fetch(currentTrack.url);
+      // 1. Bypass CORS using corsproxy.io
+      const proxiedUrl = "https://corsproxy.io/?" + encodeURIComponent(currentTrack.url);
+      const response = await fetch(proxiedUrl);
+      if (!response.ok) throw new Error("Could not download the file.");
       const blob = await response.blob();
       
-      // 2. Process through public Hugging Face Demucs space
-      setGenerationStatus("Running AI Separation (~1 minute)...");
+      setGenerationStatus("Connecting to AI Cloud GPU...");
+      let app;
+      try {
+        app = await client("aimuzik/demucs"); 
+      } catch (err) {
+        throw new Error("HF_DOWN");
+      }
       
-      /* 
-       * Note: Public Gradio spaces occasionally sleep or rate-limit. 
-       * In full production, replace this string with your own private HF Space or Replicate endpoint.
-       */
-      const app = await client("https://hf.space/ytzhao/Demucs"); 
+      setGenerationStatus("Running AI Separation (~1-2 mins)...");
       const result = await app.predict("/predict", [blob]);
       
-      // 3. Extract generated audio URLs (Demucs returns 4 audio file objects)
       setGenerationStatus("Saving stems to Supabase...");
-      const stemFiles = result.data; // Array of { url: "..." }
+      const stemFiles = result.data; 
       
-      // Helper to upload blob to Supabase Stems bucket
+      // Upload stems using the proxy again just in case Hugging Face enforces CORS
       const uploadStem = async (tempUrl, type) => {
-        const res = await fetch(tempUrl);
+        const proxiedTemp = "https://corsproxy.io/?" + encodeURIComponent(tempUrl);
+        const res = await fetch(proxiedTemp);
         const stemblob = await res.blob();
         const fileName = `${currentTrack.id}_${type}_${Date.now()}.mp3`;
         await supabase.storage.from("stems").upload(fileName, stemblob, { cacheControl: "3600" });
@@ -445,11 +427,10 @@ export default function App() {
       };
 
       const vocalsUrl = await uploadStem(stemFiles[0].url, "vocals");
-      const drumsUrl = await uploadStem(stemFiles[1].url, "drums");
-      const bassUrl = await uploadStem(stemFiles[2].url, "bass");
-      const otherUrl = await uploadStem(stemFiles[3].url, "other");
+      const drumsUrl = await uploadStem(stemFiles[1]?.url || stemFiles[0].url, "drums");
+      const bassUrl = await uploadStem(stemFiles[2]?.url || stemFiles[0].url, "bass");
+      const otherUrl = await uploadStem(stemFiles[3]?.url || stemFiles[0].url, "other");
 
-      // 4. Update Database
       const { data, error } = await supabase
         .from("songs")
         .update({ stem_vocals: vocalsUrl, stem_drums: drumsUrl, stem_bass: bassUrl, stem_other: otherUrl })
@@ -458,7 +439,6 @@ export default function App() {
 
       if (error) throw error;
       
-      // 5. Update local playlist state instantly
       const updatedPlaylist = playlist.map(s => s.id === currentTrack.id ? data[0] : s);
       setPlaylist(updatedPlaylist);
       if (queueCurrentTrack?.id === currentTrack.id) setQueueCurrentTrack(data[0]);
@@ -466,14 +446,16 @@ export default function App() {
       triggerToast("AI Stems generated successfully!");
     } catch (err) {
       console.error(err);
-      alert("AI Cloud Error: Could not reach processing server.\n\n" + err.message);
+      if (err.message === "HF_DOWN") {
+        alert("AI Cloud Error: The free Hugging Face GPU space is currently asleep or unreachable. Please try again later.");
+      } else {
+        alert("Generation Error:\n" + err.message);
+      }
     } finally {
       setIsGeneratingStems(false);
     }
   };
 
-
-  // QUEUE MANAGEMENT FUNCTIONS
   const triggerToast = (msg) => {
     setQueueToast(msg);
     setTimeout(() => setQueueToast(""), 2200);
@@ -801,7 +783,7 @@ export default function App() {
               {userQueue.map((song, qIndex) => (
                 <div key={`queue-${song.id}-${qIndex}`} onClick={(e) => playFromQueue(qIndex, e)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.04)", cursor: "pointer" }} className="hover-effect">
                   <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222" }}>
-                    {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
+                    {song.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
@@ -934,17 +916,14 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
       `}</style>
 
-      {/* 
-        MASTER AUDIO TRACK 
-        If Mixer is active, this is muted, but it acts as the unbreakable master clock.
-      */}
-      <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} />
+      {/* MASTER AUDIO TRACK */}
+      <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} crossorigin="anonymous" />
       
       {/* HIDDEN STEM TRACKS */}
-      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} />
-      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} />
-      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} />
-      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} />
+      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} crossorigin="anonymous" />
+      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} crossorigin="anonymous" />
+      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} crossorigin="anonymous" />
+      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} crossorigin="anonymous" />
 
       {/* QUEUE TOAST NOTIFICATION */}
       {queueToast && (
@@ -1317,7 +1296,7 @@ export default function App() {
         )}
       </div>
 
-      {/* MINIMIZED MOBILE BOTTOM BAR WITH CONTROLS AND PROGRESS BAR */}
+      {/* MINIMIZED MOBILE BOTTOM BAR */}
       {!isDesktop && currentTrack && !isMobilePlayerOpen && (
         <div 
           onClick={() => setIsMobilePlayerOpen(true)} 
@@ -1374,7 +1353,6 @@ export default function App() {
               <div style={{ width: "40px" }} />
             </div>
 
-            {/* ART / LYRICS / MIXER / QUEUE CONTAINER */}
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
               <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics || showQueue || showMixer ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
                 
@@ -1393,7 +1371,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* TITLE & LYRICS/QUEUE/MIXER QUICK TOGGLES */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h2>
@@ -1401,11 +1378,9 @@ export default function App() {
               </div>
               
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
-                {/* STEM MIXER MOBILE */}
                 <button onClick={() => { setShowMixer(!showMixer); if (!showMixer) { setShowLyrics(false); setShowQueue(false); } }} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                   <SlidersHorizontal size={17} />
                 </button>
-                {/* SLEEP TIMER BUTTON MOBILE */}
                 <button onClick={() => setShowSleepTimerModal(true)} style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                   <Moon size={17} />
                 </button>
@@ -1423,7 +1398,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* MAIN CONTROLS + SPOTIFY-STYLE QUEUE ICON AT BOTTOM RIGHT */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", transition: "opacity 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               
@@ -1435,7 +1409,6 @@ export default function App() {
                 <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
               </div>
 
-              {/* SPOTIFY MOBILE BOTTOM-RIGHT QUEUE ICON */}
               <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} style={{ background: "transparent", border: "none", color: showQueue ? COLORS.spotifyGreen : "#FFFFFF", cursor: "pointer", padding: "8px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", position: "relative" }} className="hover-effect">
                 <ListMusic size={26} />
                 {userQueue.length > 0 && (
