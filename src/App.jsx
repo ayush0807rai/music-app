@@ -23,7 +23,7 @@ const COLORS = {
 // --- STEM GENERATION API HELPERS ---
 const STEM_APIS = [
   import.meta.env.VITE_STEM_API_URL,
-  "https://93fa08770f1727258d.gradio.live",
+  "https://d4f86641b2adc92bf1.gradio.live",
 ].filter((value, index, arr) => value && arr.indexOf(value) === index);
 
 function resolveFileUrl(item, baseUrl) {
