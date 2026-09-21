@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -17,6 +17,7 @@ const COLORS = {
   textMuted: "#64748B",    
   border: "rgba(26, 43, 76, 0.12)", 
   hover: "rgba(26, 43, 76, 0.06)",  
+  spotifyGreen: "#1DB954"
 };
 
 // --- UPGRADED LRC PARSER ---
@@ -111,6 +112,12 @@ export default function App() {
   const lyricRefs = useRef([]);
   const [isMobilePlayerOpen, setIsMobilePlayerOpen] = useState(false);
 
+  // QUEUE SYSTEM STATES
+  const [userQueue, setUserQueue] = useState([]);
+  const [queueCurrentTrack, setQueueCurrentTrack] = useState(null);
+  const [showQueue, setShowQueue] = useState(false);
+  const [queueToast, setQueueToast] = useState("");
+
   // APP NAVIGATION & EXIT STATES
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
@@ -119,16 +126,16 @@ export default function App() {
   const audioRef = useRef(null);
   const isFirstRender = useRef(true);
 
-  // --- NATIVE BACK BUTTON ROUTER INTERCEPT ---
+  // NATIVE BACK BUTTON ROUTER INTERCEPT
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId };
-  }, [showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId]);
+    stateRefs.current = { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue };
+  }, [showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue]);
 
   useEffect(() => {
     window.history.pushState({ page: 'euphony' }, '', window.location.href);
 
-    const handlePopState = (e) => {
-      const { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId } = stateRefs.current;
+    const handlePopState = () => {
+      const { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue } = stateRefs.current;
       let handled = false;
 
       if (showUploadModal) {
@@ -136,6 +143,9 @@ export default function App() {
         handled = true;
       } else if (showPlaylistModal) {
         setShowPlaylistModal(false);
+        handled = true;
+      } else if (showQueue) {
+        setShowQueue(false);
         handled = true;
       } else if (isMobilePlayerOpen) {
         setIsMobilePlayerOpen(false);
@@ -225,7 +235,7 @@ export default function App() {
   }, [selectedPlaylistId]);
 
   const activeTrackList = selectedPlaylistId === null ? playlist : playlistSongs;
-  const currentTrack = activeTrackList[currentTrackIndex] || activeTrackList[0];
+  const currentTrack = queueCurrentTrack || activeTrackList[currentTrackIndex] || activeTrackList[0];
   const activePlaylistObj = userPlaylists.find(p => p.id === selectedPlaylistId);
 
   useEffect(() => {
@@ -334,6 +344,44 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
+  // QUEUE MANAGEMENT FUNCTIONS
+  const triggerToast = (msg) => {
+    setQueueToast(msg);
+    setTimeout(() => setQueueToast(""), 2200);
+  };
+
+  const addToQueue = (song, e) => {
+    if (e) e.stopPropagation();
+    setUserQueue((prev) => [...prev, song]);
+    triggerToast(`Added "${song.title}" to Queue`);
+  };
+
+  const removeFromQueue = (index, e) => {
+    if (e) e.stopPropagation();
+    setUserQueue((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const clearQueue = (e) => {
+    if (e) e.stopPropagation();
+    setUserQueue([]);
+  };
+
+  const playFromQueue = (index, e) => {
+    if (e) e.stopPropagation();
+    const song = userQueue[index];
+    setUserQueue((prev) => prev.filter((_, i) => i !== index));
+    setQueueCurrentTrack(song);
+    const inListIdx = activeTrackList.findIndex(s => s.id === song.id);
+    if (inListIdx !== -1) setCurrentTrackIndex(inListIdx);
+    setIsPlaying(true);
+  };
+
+  const playDirectly = (index) => {
+    setQueueCurrentTrack(null);
+    setCurrentTrackIndex(index);
+    setIsPlaying(true);
+  };
+
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist) return alert("Please fill in required fields.");
@@ -409,7 +457,17 @@ export default function App() {
 
   const handleNext = (e) => {
     if (e) e.stopPropagation();
+    if (userQueue.length > 0) {
+      const nextSong = userQueue[0];
+      setUserQueue(prev => prev.slice(1));
+      setQueueCurrentTrack(nextSong);
+      const inListIdx = activeTrackList.findIndex(s => s.id === nextSong.id);
+      if (inListIdx !== -1) setCurrentTrackIndex(inListIdx);
+      setIsPlaying(true);
+      return;
+    }
     if (activeTrackList.length === 0) return;
+    setQueueCurrentTrack(null);
     setCurrentTrackIndex(getNextTrackIndex());
   };
 
@@ -417,11 +475,16 @@ export default function App() {
     if (e) e.stopPropagation();
     if (activeTrackList.length === 0) return;
     if (audioRef.current && audioRef.current.currentTime > 3) { audioRef.current.currentTime = 0; return; }
+    setQueueCurrentTrack(null);
     setCurrentTrackIndex((prevIndex) => prevIndex === 0 ? activeTrackList.length - 1 : prevIndex - 1);
   };
 
   const handleTrackEnded = () => {
     if (playMode === "repeat-one") { audioRef.current.currentTime = 0; audioRef.current.play(); return; }
+    if (userQueue.length > 0) {
+      handleNext();
+      return;
+    }
     if (playMode === "order" && currentTrackIndex === activeTrackList.length - 1) { setIsPlaying(false); return; }
     handleNext();
   };
@@ -516,6 +579,91 @@ export default function App() {
     </div>
   );
 
+  // SPOTIFY-STYLE QUEUE COMPONENT
+  const renderQueueBlock = (isMobile) => {
+    const upcomingList = activeTrackList.slice(currentTrackIndex + 1);
+    const sourceName = selectedPlaylistId !== null ? (activePlaylistObj?.name || "Playlist") : "Global Library";
+
+    return (
+      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", overflowY: "auto", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
+        
+        {/* NOW PLAYING SECTION */}
+        <div style={{ marginBottom: "22px" }}>
+          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Now Playing</h4>
+          {currentTrack ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "8px", background: "rgba(255,255,255,0.08)" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222" }}>
+                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color="#888" />}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.artist}</div>
+              </div>
+              <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: COLORS.spotifyGreen }} />
+            </div>
+          ) : null}
+        </div>
+
+        {/* CUSTOM QUEUE SECTION */}
+        <div style={{ marginBottom: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next In Queue</h4>
+            {userQueue.length > 0 && (
+              <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear Queue</button>
+            )}
+          </div>
+          
+          {userQueue.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {userQueue.map((song, qIndex) => (
+                <div key={`queue-${song.id}-${qIndex}`} onClick={(e) => playFromQueue(qIndex, e)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.04)", cursor: "pointer" }} className="hover-effect">
+                  <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222" }}>
+                    {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
+                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
+                  </div>
+                  <button onClick={(e) => removeFromQueue(qIndex, e)} title="Remove from queue" style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", padding: "4px" }}>
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontStyle: "italic", padding: "4px 0" }}>No custom songs in queue. Add songs from your library.</div>
+          )}
+        </div>
+
+        {/* NEXT FROM SOURCE SECTION */}
+        <div>
+          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next From: {sourceName}</h4>
+          {upcomingList.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+              {upcomingList.map((song, uIdx) => {
+                const actualIndex = currentTrackIndex + 1 + uIdx;
+                return (
+                  <div key={`next-${song.id}-${uIdx}`} onClick={() => playDirectly(actualIndex)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "transparent", cursor: "pointer" }} className="hover-effect">
+                    <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222" }}>
+                      {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
+                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>End of playlist.</div>
+          )}
+        </div>
+
+      </div>
+    );
+  };
+
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   if (!isSessionLoaded) return <div style={{ background: COLORS.bgBase, width: '100vw', height: '100vh' }} />; 
@@ -542,7 +690,6 @@ export default function App() {
           -webkit-user-select: auto; -moz-user-select: auto; -ms-user-select: auto; user-select: auto;
         }
 
-        /* --- UI ANIMATIONS --- */
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
@@ -560,7 +707,6 @@ export default function App() {
         .sidebar-item { transition: color 0.2s ease; cursor: pointer; }
         .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
         
-        /* --- SPARKLING GLOW SLIDER --- */
         .glow-slider { 
           -webkit-appearance: none; 
           appearance: none; 
@@ -606,6 +752,13 @@ export default function App() {
       `}</style>
 
       <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} />
+
+      {/* QUEUE TOAST NOTIFICATION */}
+      {queueToast && (
+        <div className="toast-enter" style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none" }}>
+          {queueToast}
+        </div>
+      )}
 
       {/* GLOBAL EXIT WARNING TOAST */}
       {showExitToast && (
@@ -667,7 +820,6 @@ export default function App() {
       <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", borderBottom: `1px solid ${COLORS.border}`, zIndex: 10 }}>
         <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px" }}>Euphony</h1>
         <div style={{ display: "flex", gap: isDesktop ? "12px" : "8px", alignItems: "center" }}>
-          {/* New Refresh Button */}
           <button className="hover-effect" onClick={() => window.location.reload()} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <RefreshCw size={16} /> {isDesktop && "Refresh"}
           </button>
@@ -691,7 +843,7 @@ export default function App() {
         {isDesktop && (
           <div style={{ width: "260px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); setIsPlaying(false); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px" }}>
+              <div onClick={() => { setSelectedPlaylistId(null); setQueueCurrentTrack(null); setCurrentTrackIndex(0); setIsPlaying(false); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px" }}>
                 <Home size={24} color={selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted} /> Global Library
               </div>
             </div>
@@ -699,7 +851,7 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
               <span style={{ fontSize: "12px", fontWeight: "bold", color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Playlists</span>
               {userPlaylists.map(pl => (
-                <div key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setCurrentTrackIndex(0); setIsPlaying(false); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: selectedPlaylistId === pl.id ? "bold" : "normal" }}>
+                <div key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setQueueCurrentTrack(null); setCurrentTrackIndex(0); setIsPlaying(false); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: selectedPlaylistId === pl.id ? "bold" : "normal" }}>
                   <ListMusic size={20} color={selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted} /> 
                   <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pl.name}</span>
                 </div>
@@ -713,11 +865,11 @@ export default function App() {
           
           {!isDesktop && (
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", flexShrink: 0 }} className="custom-scrollbar">
-              <button onClick={() => { setSelectedPlaylistId(null); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === null ? COLORS.primary : "transparent", color: selectedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
+              <button onClick={() => { setSelectedPlaylistId(null); setQueueCurrentTrack(null); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === null ? COLORS.primary : "transparent", color: selectedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                 Global Library
               </button>
               {userPlaylists.map((pl) => (
-                <button key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === pl.id ? COLORS.primary : "transparent", color: selectedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
+                <button key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setQueueCurrentTrack(null); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === pl.id ? COLORS.primary : "transparent", color: selectedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                   🔒 {pl.name}
                 </button>
               ))}
@@ -743,13 +895,13 @@ export default function App() {
               <div style={{ width: "100%" }}>
                 {playlistSongs.length > 0 && (
                   <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px", justifyContent: isDesktop ? "flex-start" : "center" }}>
-                    <button onClick={() => { setCurrentTrackIndex(0); setIsPlaying(true); }} className="hover-effect" style={{ width: "64px", height: "64px", borderRadius: "50%", background: COLORS.primary, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)" }}>
+                    <button onClick={() => playDirectly(0)} className="hover-effect" style={{ width: "64px", height: "64px", borderRadius: "50%", background: COLORS.primary, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)" }}>
                       <Play size={28} fill={COLORS.bgPanel} color={COLORS.bgPanel} style={{ marginLeft: "4px" }} />
                     </button>
                   </div>
                 )}
 
-                <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 50px" : "40px 1fr 40px", padding: "0 16px 12px 16px", borderBottom: `1px solid ${COLORS.border}`, color: COLORS.textMuted, fontSize: "13px", fontWeight: "bold" }}>
+                <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "40px 1fr 70px", padding: "0 16px 12px 16px", borderBottom: `1px solid ${COLORS.border}`, color: COLORS.textMuted, fontSize: "13px", fontWeight: "bold" }}>
                   <span>#</span>
                   <span>Title</span>
                   {isDesktop && <span>Album</span>}
@@ -760,22 +912,25 @@ export default function App() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "12px" }}>
                   {playlistSongs.length > 0 ? (
                     playlistSongs.map((track, index) => {
-                      const isSelected = index === currentTrackIndex;
+                      const isSelected = (!queueCurrentTrack && index === currentTrackIndex) || (queueCurrentTrack?.id === track.id);
                       return (
-                        <div key={track.id} className="playlist-row" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 50px" : "40px 1fr 40px", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
+                        <div key={track.id} className="playlist-row" onClick={() => playDirectly(index)} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "40px 1fr 70px", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
                           <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "16px", minWidth: 0 }}>
                             <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                             </div>
                             <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontSize: "15px", fontWeight: isSelected ? "bold" : "600", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
+                              <div style={{ fontSize: "15px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
                               <div style={{ fontSize: "13px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
                             </div>
                           </div>
                           {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || "—"}</span>}
                           {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at)}</span>}
-                          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+                          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "8px" }}>
+                            <button title="Add to Queue" onClick={(e) => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
+                              <ListPlus size={18} />
+                            </button>
                             <button title="Remove from playlist" onClick={(e) => handleRemoveSongFromPlaylist(selectedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect">
                               <Trash2 size={18} />
                             </button>
@@ -796,34 +951,43 @@ export default function App() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {playlist.length > 0 ? (
                     playlist.map((track, index) => {
-                      const isSelected = index === currentTrackIndex;
+                      const isSelected = (!queueCurrentTrack && index === currentTrackIndex) || (queueCurrentTrack?.id === track.id);
                       return (
-                        <div key={track.id} className="playlist-row" onClick={() => { setCurrentTrackIndex(index); setIsPlaying(true); }} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: isDesktop ? "16px" : "12px" }}>
+                        <div key={track.id} className="playlist-row" onClick={() => playDirectly(index)} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: isDesktop ? "16px" : "12px" }}>
                           <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                              {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                           </div>
                           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                            <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "600", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
+                            <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
                             <div style={{ fontSize: "14px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
                           </div>
                           
-                          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
-                            {userPlaylists.length > 0 && (
-                              <select 
-                                onClick={(e) => e.stopPropagation()} 
-                                onChange={(e) => {
-                                  if (e.target.value) handleAddSongToPlaylist(e.target.value, track.id);
-                                  e.target.value = "";
-                                }}
-                                defaultValue=""
-                                style={{ background: "#FFFFFF", color: COLORS.primary, border: `1px solid ${COLORS.border}`, borderRadius: "6px", padding: "8px 12px", fontSize: "13px", cursor: "pointer", maxWidth: isDesktop ? "160px" : "120px", textOverflow: "ellipsis", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", fontWeight: "500", transition: "border-color 0.2s ease" }}
-                              >
-                                <option value="" disabled>Add to playlist...</option>
-                                {userPlaylists.map(pl => (
-                                  <option key={pl.id} value={pl.id}>{pl.name}</option>
-                                ))}
-                              </select>
-                            )}
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+                            {/* QUEUE & PLAYLIST ACTION DROPDOWN */}
+                            <select 
+                              onClick={(e) => e.stopPropagation()} 
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === "__QUEUE__") {
+                                  addToQueue(track);
+                                } else if (val) {
+                                  handleAddSongToPlaylist(val, track.id);
+                                }
+                                e.target.value = "";
+                              }}
+                              defaultValue=""
+                              style={{ background: "#FFFFFF", color: COLORS.primary, border: `1px solid ${COLORS.border}`, borderRadius: "6px", padding: "8px 12px", fontSize: "13px", cursor: "pointer", maxWidth: isDesktop ? "170px" : "130px", textOverflow: "ellipsis", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", fontWeight: "500", transition: "border-color 0.2s ease" }}
+                            >
+                              <option value="" disabled>Add to...</option>
+                              <option value="__QUEUE__">➕ Add to Queue</option>
+                              {userPlaylists.length > 0 && (
+                                <optgroup label="Playlists">
+                                  {userPlaylists.map(pl => (
+                                    <option key={pl.id} value={pl.id}>{pl.name}</option>
+                                  ))}
+                                </optgroup>
+                              )}
+                            </select>
                             {isSelected && isPlaying && <Loader2 size={18} className="animate-spin" color={COLORS.primary} />}
                           </div>
                         </div>
@@ -849,11 +1013,16 @@ export default function App() {
             )}
 
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
-              <div style={{ width: "100%", marginBottom: "24px", flexShrink: 0 }}>
+              <div style={{ width: "100%", marginBottom: "20px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   
-                  <div key={showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
-                    {showLyrics ? renderLyricsBlock(false) : (
+                  {/* DYNAMIC VIEW: QUEUE / LYRICS / ALBUM ART */}
+                  <div key={showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
+                    {showQueue ? (
+                      renderQueueBlock(false)
+                    ) : showLyrics ? (
+                      renderLyricsBlock(false)
+                    ) : (
                       currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>
                     )}
                   </div>
@@ -861,14 +1030,22 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              {/* CONTROLS BAR: TITLE, LYRICS & QUEUE TOGGLES */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <h3 style={{ margin: "0 0 4px 0", fontSize: "20px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
-                  <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "15px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
+                  <h3 style={{ margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
+                  <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
                 </div>
-                <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "8px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", flexShrink: 0, marginLeft: "12px", transition: "all 0.3s ease", backdropFilter: "blur(4px)", textShadow: showLyrics ? "none" : "0 1px 4px rgba(0,0,0,0.5)" }}>
-                  <Mic2 size={16} /> {showLyrics ? "Hide" : "Lyrics"}
-                </button>
+                
+                <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
+                  <button onClick={() => { setShowLyrics(!showLyrics); if (!showLyrics) setShowQueue(false); }} title="Toggle Lyrics" style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                    <Mic2 size={15} />
+                  </button>
+                  <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) setShowLyrics(false); }} title="Queue" style={{ background: showQueue ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                    <ListMusic size={15} />
+                    {userQueue.length > 0 && <span style={{ fontSize: "10px", background: "#FFFFFF", color: COLORS.primary, borderRadius: "50%", padding: "1px 5px" }}>{userQueue.length}</span>}
+                  </button>
+                </div>
               </div>
 
               <div style={{ marginTop: "auto", paddingBottom: "16px" }}>
@@ -946,15 +1123,22 @@ export default function App() {
               <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", transition: "transform 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">
                 <ChevronDown size={32} />
               </button>
-              <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>Now Playing</span>
+              <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
+                {showQueue ? "Current Queue" : showLyrics ? "Lyrics" : "Now Playing"}
+              </span>
               <div style={{ width: "40px" }} />
             </div>
 
+            {/* ART / LYRICS / QUEUE CONTAINER */}
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
-              <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
+              <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics || showQueue ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
                 
-                <div key={showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
-                  {showLyrics ? renderLyricsBlock(true) : (
+                <div key={showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
+                  {showQueue ? (
+                    renderQueueBlock(true)
+                  ) : showLyrics ? (
+                    renderLyricsBlock(true)
+                  ) : (
                     currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}><ImageIcon size={100} color={COLORS.textMuted} /></div>
                   )}
                 </div>
@@ -962,14 +1146,18 @@ export default function App() {
               </div>
             </div>
 
+            {/* TITLE & LYRICS/QUEUE QUICK TOGGLES */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h2>
                 <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
               </div>
-              <button onClick={() => setShowLyrics(!showLyrics)} style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", fontWeight: "bold", flexShrink: 0, marginLeft: "16px", transition: "all 0.3s ease", backdropFilter: "blur(4px)", textShadow: showLyrics ? "none" : "0 1px 4px rgba(0,0,0,0.5)" }}>
-                <Mic2 size={18} /> {showLyrics ? "Hide" : "Lyrics"}
-              </button>
+              
+              <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
+                <button onClick={() => { setShowLyrics(!showLyrics); if (!showLyrics) setShowQueue(false); }} style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                  <Mic2 size={17} />
+                </button>
+              </div>
             </div>
 
             <div style={{ marginBottom: "24px" }}>
@@ -980,6 +1168,7 @@ export default function App() {
               </div>
             </div>
 
+            {/* MAIN CONTROLS + SPOTIFY-STYLE QUEUE ICON AT BOTTOM RIGHT */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", transition: "opacity 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               
@@ -991,7 +1180,15 @@ export default function App() {
                 <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
               </div>
 
-              <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "8px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={24} /> : <Volume2 size={24} />}</button>
+              {/* SPOTIFY MOBILE BOTTOM-RIGHT QUEUE ICON */}
+              <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) setShowLyrics(false); }} style={{ background: "transparent", border: "none", color: showQueue ? COLORS.spotifyGreen : "#FFFFFF", cursor: "pointer", padding: "8px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", position: "relative" }} className="hover-effect">
+                <ListMusic size={26} />
+                {userQueue.length > 0 && (
+                  <span style={{ position: "absolute", top: "2px", right: "2px", background: COLORS.spotifyGreen, color: "#FFFFFF", fontSize: "10px", fontWeight: "bold", borderRadius: "50%", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {userQueue.length}
+                  </span>
+                )}
+              </button>
             </div>
             
           </div>
