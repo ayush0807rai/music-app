@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
-import { client, handle_file } from "@gradio/client"; 
+import { Client, handle_file } from "@gradio/client"; 
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 
@@ -20,9 +20,69 @@ const COLORS = {
   spotifyGreen: "#1DB954"
 };
 
+// --- STEM GENERATION API HELPERS ---
+const STEM_APIS = [
+  import.meta.env.VITE_STEM_API_URL,
+  "https://93fa08770f1727258d.gradio.live",
+].filter((value, index, arr) => value && arr.indexOf(value) === index);
+
+function resolveFileUrl(item, baseUrl) {
+  if (!item) return null;
+  if (Array.isArray(item)) return resolveFileUrl(item[0], baseUrl);
+  if (typeof item === "string") {
+    if (item.startsWith("http")) return item;
+    const origin = String(baseUrl || "").replace(/\/$/, "");
+    return item.startsWith("/") ? `${origin}${item}` : `${origin}/${item}`;
+  }
+  const raw = item.url || item.path;
+  return resolveFileUrl(raw, baseUrl);
+}
+
+async function connectStemApi(onStatus) {
+  let lastError;
+  for (const src of STEM_APIS) {
+    try {
+      onStatus?.("Connecting to Colab GPU / AI backend...");
+      const app = await Client.connect(src);
+      return { app, src };
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  const error = new Error("COLAB_DOWN");
+  error.cause = lastError;
+  throw error;
+}
+
+async function predictStems(app, audioBlob) {
+  const file = handle_file(audioBlob);
+  try {
+    return await app.predict("/separate_audio", { audio_path: file });
+  } catch {
+    return await app.predict(0, [file]);
+  }
+}
+
+async function uploadStemBlob(trackId, type, remoteUrl) {
+  const res = await fetch(remoteUrl);
+  if (!res.ok) throw new Error(`Failed to download the ${type} stem from the AI backend.`);
+  const blob = await res.blob();
+  if (!blob || blob.size < 1024) throw new Error(`The ${type} stem was empty. Re-run the Colab cell and try again.`);
+
+  const ext = (blob.type || "").includes("wav") || remoteUrl.includes(".wav") ? "wav" : "mp3";
+  const fileName = `stems/${trackId}_${type}_${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from("stems").upload(fileName, blob, {
+    cacheControl: "3600",
+    contentType: blob.type || (ext === "wav" ? "audio/wav" : "audio/mpeg"),
+    upsert: true,
+  });
+  if (error) throw new Error(`Supabase upload failed for ${type}: ${error.message}`);
+  return supabase.storage.from("stems").getPublicUrl(fileName).data.publicUrl;
+}
+
+// --- LYRICS PARSER ---
 const parseLyrics = (lrcString) => {
   if (!lrcString) return [];
-  
   const lines = lrcString.split('\n');
   const lineRegex = /\[(\d{2}):(\d{2}(?:\.\d{2,3})?)\](.*)/;
   const wordRegex = /<(\d{2}):(\d{2}(?:\.\d{2,3})?)>([^<]*)/g;
@@ -35,7 +95,6 @@ const parseLyrics = (lrcString) => {
       const seconds = parseFloat(match[2]);
       const time = minutes * 60 + seconds;
       const rawText = match[3].trim();
-
       const words = [];
       let wordMatch;
       let hasWords = false;
@@ -45,10 +104,7 @@ const parseLyrics = (lrcString) => {
         hasWords = true;
         const wMins = parseInt(wordMatch[1], 10);
         const wSecs = parseFloat(wordMatch[2]);
-        words.push({
-          time: wMins * 60 + wSecs,
-          text: wordMatch[3].trim()
-        });
+        words.push({ time: wMins * 60 + wSecs, text: wordMatch[3].trim() });
       }
 
       parsed.push({ 
@@ -58,7 +114,6 @@ const parseLyrics = (lrcString) => {
       });
     }
   });
-
   return parsed;
 };
 
@@ -122,6 +177,7 @@ export default function App() {
   const [isGeneratingStems, setIsGeneratingStems] = useState(false);
   const [generationStatus, setGenerationStatus] = useState("");
   const [stemVolumes, setStemVolumes] = useState({ vocals: 1, drums: 1, bass: 1, other: 1 });
+  const [stemsBroken, setStemsBroken] = useState(false);
 
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
@@ -276,6 +332,7 @@ export default function App() {
   }, [selectedPlaylistId]);
 
   useEffect(() => {
+    setStemsBroken(false);
     setShowLyrics(false);
     setActiveLyricIndex(-1);
     setActiveWordIndex(-1);
@@ -287,7 +344,7 @@ export default function App() {
   }, [currentTrack]);
 
   useEffect(() => {
-    const isMixerActive = showMixer && currentTrack?.stem_vocals;
+    const isMixerActive = showMixer && currentTrack?.stem_vocals && !stemsBroken;
     if (audioRef.current) {
       audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
     }
@@ -295,23 +352,23 @@ export default function App() {
     if (drumsRef.current) drumsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0;
     if (bassRef.current) bassRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0;
     if (otherRef.current) otherRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0;
-  }, [volume, isMuted, showMixer, stemVolumes, currentTrack]);
+  }, [volume, isMuted, showMixer, stemVolumes, currentTrack, stemsBroken]);
 
   useEffect(() => {
-    if (showMixer && currentTrack?.stem_vocals && audioRef.current) {
+    if (showMixer && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
        const t = audioRef.current.currentTime;
        if (vocalsRef.current) vocalsRef.current.currentTime = t;
        if (drumsRef.current) drumsRef.current.currentTime = t;
        if (bassRef.current) bassRef.current.currentTime = t;
        if (otherRef.current) otherRef.current.currentTime = t;
     }
-  }, [showMixer, currentTrack]);
+  }, [showMixer, currentTrack, stemsBroken]);
 
   useEffect(() => {
     const syncPlayState = async () => {
       if (isPlaying && currentTrack) {
         if (audioRef.current?.paused) await audioRef.current.play().catch(e => console.log(e));
-        if (showMixer && currentTrack?.stem_vocals) {
+        if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
           if (vocalsRef.current?.paused) vocalsRef.current.play().catch(e=>e);
           if (drumsRef.current?.paused) drumsRef.current.play().catch(e=>e);
           if (bassRef.current?.paused) bassRef.current.play().catch(e=>e);
@@ -326,7 +383,7 @@ export default function App() {
       }
     };
     syncPlayState();
-  }, [isPlaying, showMixer, currentTrack, currentTrackIndex]);
+  }, [isPlaying, showMixer, currentTrack, currentTrackIndex, stemsBroken]);
 
   useEffect(() => {
     if (isFirstRender.current && audioRef.current && currentTrack) {
@@ -346,7 +403,7 @@ export default function App() {
     
     if (Math.floor(time) % 2 === 0) localStorage.setItem("euphony_current_time", time);
 
-    if (showMixer && currentTrack?.stem_vocals) {
+    if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
        const syncStem = (ref) => {
            if (ref.current && Math.abs(ref.current.currentTime - time) > 0.3) {
                ref.current.currentTime = time;
@@ -407,60 +464,50 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  const handleGenerateStems = async () => {
+  const handleGenerateStemsClick = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
-    
     try {
-      setGenerationStatus("Connecting to your Colab GPU...");
-      let app;
-      try {
-        app = await client("https://93fa08770f1727258d.gradio.live"); 
-      } catch (err) {
-        throw new Error("COLAB_DOWN");
+      const { app, src } = await connectStemApi(setGenerationStatus);
+      
+      setGenerationStatus("Downloading track...");
+      const audioRes = await fetch(currentTrack.url);
+      if (!audioRes.ok) throw new Error("Could not download track from database.");
+      const audioBlob = await audioRes.blob();
+
+      setGenerationStatus("Processing stems (~30s)...");
+      const result = await predictStems(app, audioBlob);
+      const files = Array.isArray(result?.data) ? result.data : [];
+      
+      const vocals = resolveFileUrl(files[0], src);
+      const drums = resolveFileUrl(files[1], src);
+      const bass = resolveFileUrl(files[2], src);
+      const other = resolveFileUrl(files[3], src);
+
+      if (!vocals || !drums || !bass || !other) {
+        throw new Error("AI did not return all stems.");
       }
-      
-      setGenerationStatus("Colab processing track (~30 secs)...");
-      
-      const result = await app.predict(0, [handle_file(currentTrack.url)]);
-      
-      setGenerationStatus("Saving stems to Supabase...");
-      const stemFiles = result.data; 
-      
-      const uploadStem = async (fileObj, type) => {
-        const fileUrl = fileObj.url || fileObj.path;
-        const res = await fetch(fileUrl);
-        const stemblob = await res.blob();
-        const fileName = `${currentTrack.id}_${type}_${Date.now()}.mp3`;
-        await supabase.storage.from("stems").upload(fileName, stemblob, { cacheControl: "3600" });
-        return supabase.storage.from("stems").getPublicUrl(fileName).data.publicUrl;
+
+      setGenerationStatus("Uploading stems...");
+      const urls = {
+        stem_vocals: await uploadStemBlob(currentTrack.id, "vocals", vocals),
+        stem_drums: await uploadStemBlob(currentTrack.id, "drums", drums),
+        stem_bass: await uploadStemBlob(currentTrack.id, "bass", bass),
+        stem_other: await uploadStemBlob(currentTrack.id, "other", other),
       };
 
-      const vocalsUrl = await uploadStem(stemFiles[0], "vocals");
-      const drumsUrl = await uploadStem(stemFiles[1] || stemFiles[0], "drums");
-      const bassUrl = await uploadStem(stemFiles[2] || stemFiles[0], "bass");
-      const otherUrl = await uploadStem(stemFiles[3] || stemFiles[0], "other");
-
-      const { data, error } = await supabase
-        .from("songs")
-        .update({ stem_vocals: vocalsUrl, stem_drums: drumsUrl, stem_bass: bassUrl, stem_other: otherUrl })
-        .eq("id", currentTrack.id)
-        .select();
-
+      const { data, error } = await supabase.from("songs").update(urls).eq("id", currentTrack.id).select();
       if (error) throw error;
       
       const updatedPlaylist = playlist.map(s => s.id === currentTrack.id ? data[0] : s);
       setPlaylist(updatedPlaylist);
       if (queueCurrentTrack?.id === currentTrack.id) setQueueCurrentTrack(data[0]);
-
+      
+      setStemsBroken(false);
       triggerToast("AI Stems generated successfully!");
     } catch (err) {
       console.error(err);
-      if (err.message === "COLAB_DOWN") {
-        alert("Colab Error: Could not connect to your Colab link. Make sure your Google Colab notebook cell is still running and active!");
-      } else {
-        alert("Generation Error:\n" + err.message);
-      }
+      alert("Generation Error:\n" + err.message);
     } finally {
       setIsGeneratingStems(false);
     }
@@ -683,7 +730,7 @@ export default function App() {
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
        <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
        
-       {!currentTrack?.stem_vocals ? (
+       {!currentTrack?.stem_vocals || stemsBroken ? (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
                {isGeneratingStems ? (
                    <>
@@ -694,36 +741,33 @@ export default function App() {
                    <>
                       <SlidersHorizontal size={40} color="rgba(255,255,255,0.4)" style={{ marginBottom: "16px" }} />
                       <p style={{ fontSize: "14px", marginBottom: "20px", padding: "0 20px", color: "rgba(255,255,255,0.7)" }}>Unlock individual instruments and vocals using Cloud AI.</p>
-                      <button onClick={handleGenerateStems} style={{ background: COLORS.spotifyGreen, color: "#fff", border: "none", padding: "12px 24px", borderRadius: "24px", fontWeight: "bold", fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }} className="hover-effect">
-                         Generate Stems
+                      <button onClick={handleGenerateStemsClick} style={{ background: COLORS.spotifyGreen, color: "#fff", border: "none", padding: "12px 24px", borderRadius: "24px", fontWeight: "bold", fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }} className="hover-effect">
+                         {stemsBroken ? "Re-generate Stems" : "Generate Stems"}
                       </button>
                    </>
                )}
            </div>
        ) : (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}>
-               <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "24px 0 16px 0", alignItems: "center", overflow: "hidden" }}>
+               <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "14px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
                    {["vocals", "drums", "bass", "other"].map((stemType) => (
-                       <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%", flex: 1 }}>
-                           <div style={{ position: "relative", width: "30px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                             <input 
-                                type="range" 
-                                min="0" max="1" step="0.01" 
-                                value={stemVolumes[stemType]}
-                                onChange={(e) => setStemVolumes({...stemVolumes, [stemType]: parseFloat(e.target.value)})}
-                                style={{
-                                    position: "absolute",
-                                    appearance: "none",
-                                    width: isMobile ? "75px" : "85px",
-                                    height: "4px",
-                                    background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType]*100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType]*100}%)`,
-                                    transform: "rotate(-90deg)",
-                                    transformOrigin: "center",
-                                    borderRadius: "4px"
-                                }}
-                                className="glow-slider"
-                             />
-                           </div>
+                       <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", height: "100%", flex: 1 }}>
+                           <input 
+                              type="range" 
+                              min="0" max="1" step="0.01" 
+                              value={stemVolumes[stemType]}
+                              onChange={(e) => setStemVolumes({...stemVolumes, [stemType]: parseFloat(e.target.value)})}
+                              style={{
+                                  appearance: "none",
+                                  width: "6px",
+                                  height: isMobile ? "90px" : "110px",
+                                  writingMode: "vertical-lr",
+                                  direction: "rtl",
+                                  background: `linear-gradient(to top, ${COLORS.spotifyGreen} ${stemVolumes[stemType]*100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType]*100}%)`,
+                                  borderRadius: "4px"
+                              }}
+                              className="stem-fader"
+                           />
                            <span style={{ fontSize: "10px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px" }}>{stemType}</span>
                        </div>
                    ))}
@@ -810,7 +854,13 @@ export default function App() {
                 <div style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</div>
                 <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.artist}</div>
               </div>
-              <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: COLORS.spotifyGreen }} />
+              {isPlaying && (
+                <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px" }}>
+                  <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
+                  <div className="eq-bar" style={{ animationDelay: "0.2s" }}></div>
+                  <div className="eq-bar" style={{ animationDelay: "0.4s" }}></div>
+                </div>
+              )}
             </div>
           ) : null}
         </div>
@@ -928,42 +978,32 @@ export default function App() {
           transform-origin: bottom;
         }
 
-        .glow-slider { 
+        .stem-fader { 
           -webkit-appearance: none; 
           appearance: none; 
-          height: 6px; 
-          border-radius: 6px; 
           outline: none; 
           cursor: pointer; 
         }
         
-        .glow-slider::-webkit-slider-thumb { 
+        .stem-fader::-webkit-slider-thumb { 
           -webkit-appearance: none; 
           appearance: none; 
-          width: 4px; 
-          height: 6px; 
-          border-radius: 4px;
+          width: 14px; 
+          height: 14px; 
+          border-radius: 50%;
           background: #FFFFFF;
+          box-shadow: 0 0 10px 3px #FFFFFF;
           cursor: pointer;
-          box-shadow: 
-            0 0 8px 3px #FFFFFF,
-            -15px 0 10px 4px rgba(255, 255, 255, 0.8),
-            -30px 0 15px 2px rgba(255, 255, 255, 0.4);
-          transition: transform 0.2s ease;
         }
         
-        .glow-slider::-moz-range-thumb {
-          width: 4px; 
-          height: 6px; 
+        .stem-fader::-moz-range-thumb {
+          width: 14px; 
+          height: 14px; 
           border: none;
-          border-radius: 4px;
+          border-radius: 50%;
           background: #FFFFFF;
+          box-shadow: 0 0 10px 3px #FFFFFF;
           cursor: pointer;
-          box-shadow: 
-            0 0 8px 3px #FFFFFF,
-            -15px 0 10px 4px rgba(255, 255, 255, 0.8),
-            -30px 0 15px 2px rgba(255, 255, 255, 0.4);
-          transition: transform 0.2s ease;
         }
 
         .upload-input { width: 100%; padding: 12px; background: #FFFFFF; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.primary}; margin-bottom: 16px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: border-color 0.2s ease; }
@@ -974,10 +1014,10 @@ export default function App() {
 
       {/* AUDIO TRACKS */}
       <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} preload="auto" />
-      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" />
-      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} preload="auto" />
-      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} preload="auto" />
-      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} preload="auto" />
+      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} />
+      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} preload="auto" onError={() => currentTrack?.stem_drums && setStemsBroken(true)} />
+      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} preload="auto" onError={() => currentTrack?.stem_bass && setStemsBroken(true)} />
+      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} preload="auto" onError={() => currentTrack?.stem_other && setStemsBroken(true)} />
 
       {/* QUEUE TOAST NOTIFICATION */}
       {queueToast && (
@@ -1320,19 +1360,15 @@ export default function App() {
                 </div>
                 
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
-                  {/* SLEEP TIMER */}
                   <button onClick={(e) => { e.stopPropagation(); setShowSleepTimerModal(true); }} title="Sleep Timer" style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <Moon size={15} />
                   </button>
-                  {/* STEM MIXER */}
                   <button onClick={toggleStemMixer} title="Stem Mixer" style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <SlidersHorizontal size={15} />
                   </button>
-                  {/* LYRICS */}
                   <button onClick={() => { setShowLyrics(!showLyrics); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} title="Toggle Lyrics" style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <Mic2 size={15} />
                   </button>
-                  {/* QUEUE */}
                   <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} title="Queue" style={{ background: showQueue ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <ListMusic size={15} />
                   </button>
