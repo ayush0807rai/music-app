@@ -468,6 +468,25 @@ export default function App() {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
     try {
+      setGenerationStatus("Checking database...");
+      const { data: songRecord, error: fetchError } = await supabase
+        .from('songs')
+        .select('stem_vocals, stem_drums, stem_bass, stem_other')
+        .eq('id', currentTrack.id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+
+      if (songRecord?.stem_vocals && songRecord?.stem_drums && songRecord?.stem_bass && songRecord?.stem_other) {
+        const updatedPlaylist = playlist.map(s => s.id === currentTrack.id ? { ...s, ...songRecord } : s);
+        setPlaylist(updatedPlaylist);
+        if (queueCurrentTrack?.id === currentTrack.id) setQueueCurrentTrack({ ...queueCurrentTrack, ...songRecord });
+        setStemsBroken(false);
+        triggerToast("Stems loaded from database instantly!");
+        setIsGeneratingStems(false);
+        return; 
+      }
+
       const { app, src } = await connectStemApi(setGenerationStatus);
       
       setGenerationStatus("Downloading track...");
@@ -499,8 +518,8 @@ export default function App() {
       const { data, error } = await supabase.from("songs").update(urls).eq("id", currentTrack.id).select();
       if (error) throw error;
       
-      const updatedPlaylist = playlist.map(s => s.id === currentTrack.id ? data[0] : s);
-      setPlaylist(updatedPlaylist);
+      const updatedPlaylistDb = playlist.map(s => s.id === currentTrack.id ? data[0] : s);
+      setPlaylist(updatedPlaylistDb);
       if (queueCurrentTrack?.id === currentTrack.id) setQueueCurrentTrack(data[0]);
       
       setStemsBroken(false);
