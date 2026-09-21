@@ -389,40 +389,46 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  // --- AI STEM SEPARATION: DEFAULT FUNCTION INDEX ROUTING ---
+  // --- AI STEM SEPARATION: PRIVATE COLAB GPU BACKEND ---
   const handleGenerateStems = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
     
     try {
-      setGenerationStatus("Connecting to AI Cloud GPU...");
+      setGenerationStatus("Connecting to your Colab GPU...");
       let app;
       try {
-        app = await client("ahmetmalkoc/demucs"); 
+        // ✨ Connected directly to your active Colab Gradio Live Link
+        app = await client("https://385d76667cae53f420.gradio.live"); 
       } catch (err) {
-        throw new Error("HF_DOWN");
+        throw new Error("COLAB_DOWN");
       }
       
-      setGenerationStatus("Server processing track (~1-2 mins)...");
+      setGenerationStatus("Colab processing track (~30 secs)...");
       
-      // ✨ Using function index 0 for universal compatibility with Gradio Spaces
-      const result = await app.predict(0, [currentTrack.url]);
+      // Fetch audio as blob to send to custom Colab endpoint
+      const audioRes = await fetch(currentTrack.url);
+      const audioBlob = await audioRes.blob();
+      
+      const result = await app.predict(0, [audioBlob]);
       
       setGenerationStatus("Saving stems to Supabase...");
       const stemFiles = result.data; 
       
-      const uploadStem = async (tempUrl, type) => {
-        const res = await fetch(tempUrl);
+      const uploadStem = async (fileObj, type) => {
+        // Gradio file objects contain either a url or path property depending on version
+        const fileUrl = fileObj.url || fileObj.path;
+        const res = await fetch(fileUrl);
         const stemblob = await res.blob();
         const fileName = `${currentTrack.id}_${type}_${Date.now()}.mp3`;
         await supabase.storage.from("stems").upload(fileName, stemblob, { cacheControl: "3600" });
         return supabase.storage.from("stems").getPublicUrl(fileName).data.publicUrl;
       };
 
-      const vocalsUrl = await uploadStem(stemFiles[0].url, "vocals");
-      const drumsUrl = await uploadStem(stemFiles[1]?.url || stemFiles[0].url, "drums");
-      const bassUrl = await uploadStem(stemFiles[2]?.url || stemFiles[0].url, "bass");
-      const otherUrl = await uploadStem(stemFiles[3]?.url || stemFiles[0].url, "other");
+      const vocalsUrl = await uploadStem(stemFiles[0], "vocals");
+      const drumsUrl = await uploadStem(stemFiles[1] || stemFiles[0], "drums");
+      const bassUrl = await uploadStem(stemFiles[2] || stemFiles[0], "bass");
+      const otherUrl = await uploadStem(stemFiles[3] || stemFiles[0], "other");
 
       const { data, error } = await supabase
         .from("songs")
@@ -439,8 +445,8 @@ export default function App() {
       triggerToast("AI Stems generated successfully!");
     } catch (err) {
       console.error(err);
-      if (err.message === "HF_DOWN") {
-        alert("AI Cloud Error: The free Hugging Face GPU space is currently asleep or unreachable. Please try again later.");
+      if (err.message === "COLAB_DOWN") {
+        alert("Colab Error: Could not connect to your Colab link. Make sure your Google Colab notebook cell is still running and active!");
       } else {
         alert("Generation Error:\n" + err.message);
       }
@@ -1280,7 +1286,7 @@ export default function App() {
                     <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
-                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
+                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
                   </div>
                   <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
                 </div>
