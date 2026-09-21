@@ -389,19 +389,12 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  // --- UPGRADED AI STEM SEPARATION ENGINE (CORS BYPASSED) ---
+  // --- AI STEM SEPARATION: SERVER-TO-SERVER CONNECTION ---
   const handleGenerateStems = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
-    setGenerationStatus("Downloading track safely...");
     
     try {
-      // 1. Bypass CORS using corsproxy.io
-      const proxiedUrl = "https://corsproxy.io/?" + encodeURIComponent(currentTrack.url);
-      const response = await fetch(proxiedUrl);
-      if (!response.ok) throw new Error("Could not download the file.");
-      const blob = await response.blob();
-      
       setGenerationStatus("Connecting to AI Cloud GPU...");
       let app;
       try {
@@ -410,16 +403,17 @@ export default function App() {
         throw new Error("HF_DOWN");
       }
       
-      setGenerationStatus("Running AI Separation (~1-2 mins)...");
-      const result = await app.predict("/predict", [blob]);
+      setGenerationStatus("Server processing track (~1-2 mins)...");
+      
+      // ✨ THE FIX: We pass the URL directly instead of a blob!
+      // This bypasses the browser completely. HuggingFace downloads it directly from Supabase.
+      const result = await app.predict("/predict", [currentTrack.url]);
       
       setGenerationStatus("Saving stems to Supabase...");
       const stemFiles = result.data; 
       
-      // Upload stems using the proxy again just in case Hugging Face enforces CORS
       const uploadStem = async (tempUrl, type) => {
-        const proxiedTemp = "https://corsproxy.io/?" + encodeURIComponent(tempUrl);
-        const res = await fetch(proxiedTemp);
+        const res = await fetch(tempUrl);
         const stemblob = await res.blob();
         const fileName = `${currentTrack.id}_${type}_${Date.now()}.mp3`;
         await supabase.storage.from("stems").upload(fileName, stemblob, { cacheControl: "3600" });
@@ -1268,6 +1262,7 @@ export default function App() {
                   {/* QUEUE */}
                   <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} title="Queue" style={{ background: showQueue ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <ListMusic size={15} />
+                    {userQueue.length > 0 && <span style={{ fontSize: "10px", background: "#FFFFFF", color: COLORS.primary, borderRadius: "50%", padding: "1px 5px" }}>{userQueue.length}</span>}
                   </button>
                 </div>
               </div>
