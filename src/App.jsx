@@ -83,6 +83,7 @@ export default function App() {
   
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [songForPlaylistModal, setSongForPlaylistModal] = useState(null); // NEW: Track selected for "Add to Playlist"
   const [isUploading, setIsUploading] = useState(false);
   
   const [session, setSession] = useState(null);
@@ -128,14 +129,14 @@ export default function App() {
 
   // NATIVE BACK BUTTON ROUTER INTERCEPT
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue };
-  }, [showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue]);
+    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue };
+  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue]);
 
   useEffect(() => {
     window.history.pushState({ page: 'euphony' }, '', window.location.href);
 
     const handlePopState = () => {
-      const { showUploadModal, showPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue } = stateRefs.current;
+      const { showUploadModal, showPlaylistModal, songForPlaylistModal, isMobilePlayerOpen, selectedPlaylistId, showQueue } = stateRefs.current;
       let handled = false;
 
       if (showUploadModal) {
@@ -143,6 +144,9 @@ export default function App() {
         handled = true;
       } else if (showPlaylistModal) {
         setShowPlaylistModal(false);
+        handled = true;
+      } else if (songForPlaylistModal) {
+        setSongForPlaylistModal(null);
         handled = true;
       } else if (showQueue) {
         setShowQueue(false);
@@ -424,7 +428,9 @@ export default function App() {
     if (error) {
       if (error.code === "23505") alert("Song is already in this playlist.");
       else alert("Error adding song: " + error.message);
-    } else alert("Added to playlist successfully!");
+    } else {
+      triggerToast("Added to playlist successfully!");
+    }
   };
 
   const handleRemoveSongFromPlaylist = async (playlistId, songId, e) => {
@@ -816,6 +822,35 @@ export default function App() {
         </div>
       )}
 
+      {/* ADD TO PLAYLIST MODAL */}
+      {songForPlaylistModal && (
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3500, padding: "20px" }}>
+          <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }}>
+            <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Add to Playlist</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {userPlaylists.length > 0 ? (
+                userPlaylists.map(pl => (
+                  <button 
+                    key={pl.id} 
+                    onClick={() => {
+                      handleAddSongToPlaylist(pl.id, songForPlaylistModal.id);
+                      setSongForPlaylistModal(null);
+                    }}
+                    className="hover-effect"
+                    style={{ width: "100%", padding: "14px", borderRadius: "8px", background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}
+                  >
+                    <ListMusic size={18} /> {pl.name}
+                  </button>
+                ))
+              ) : (
+                <p style={{ color: COLORS.textMuted, fontSize: "14px", margin: 0 }}>You don't have any playlists yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TOP HEADER BAR */}
       <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", borderBottom: `1px solid ${COLORS.border}`, zIndex: 10 }}>
         <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px" }}>Euphony</h1>
@@ -967,20 +1002,9 @@ export default function App() {
                               <ListPlus size={18} />
                             </button>
                             {userPlaylists.length > 0 && (
-                              <select 
-                                onClick={(e) => e.stopPropagation()} 
-                                onChange={(e) => {
-                                  if (e.target.value) handleAddSongToPlaylist(e.target.value, track.id);
-                                  e.target.value = "";
-                                }}
-                                defaultValue=""
-                                style={{ background: "#FFFFFF", color: COLORS.primary, border: `1px solid ${COLORS.border}`, borderRadius: "6px", padding: "6px 10px", fontSize: "13px", cursor: "pointer", maxWidth: isDesktop ? "130px" : "100px", textOverflow: "ellipsis", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", fontWeight: "500", transition: "border-color 0.2s ease" }}
-                              >
-                                <option value="" disabled>Add to playlist...</option>
-                                {userPlaylists.map(pl => (
-                                  <option key={pl.id} value={pl.id}>{pl.name}</option>
-                                ))}
-                              </select>
+                              <button title="Add to Playlist" onClick={(e) => { e.stopPropagation(); setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
+                                <FolderPlus size={18} />
+                              </button>
                             )}
                             {isSelected && isPlaying && <Loader2 size={18} className="animate-spin" color={COLORS.primary} />}
                           </div>
