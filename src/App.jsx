@@ -905,6 +905,7 @@ export default function App() {
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes toastUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        @keyframes bounceEq { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
         
         .fade-enter { animation: fadeIn 0.35s ease-out forwards; }
         .slide-up-enter { animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -918,6 +919,15 @@ export default function App() {
         .sidebar-item { transition: color 0.2s ease; cursor: pointer; }
         .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
         
+        .eq-bar {
+          width: 3px;
+          height: 14px;
+          background-color: ${COLORS.spotifyGreen};
+          border-radius: 3px;
+          animation: bounceEq 1s infinite ease-in-out;
+          transform-origin: bottom;
+        }
+
         .glow-slider { 
           -webkit-appearance: none; 
           appearance: none; 
@@ -1210,6 +1220,13 @@ export default function App() {
                             <button title="Remove from playlist" onClick={(e) => handleRemoveSongFromPlaylist(selectedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect">
                               <Trash2 size={18} />
                             </button>
+                            {isSelected && isPlaying && (
+                              <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
+                                <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
+                                <div className="eq-bar" style={{ animationDelay: "0.2s" }}></div>
+                                <div className="eq-bar" style={{ animationDelay: "0.4s" }}></div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1247,7 +1264,13 @@ export default function App() {
                                 <FolderPlus size={18} />
                               </button>
                             )}
-                            {isSelected && isPlaying && <Loader2 size={18} className="animate-spin" color={COLORS.primary} />}
+                            {isSelected && isPlaying && (
+                              <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
+                                <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
+                                <div className="eq-bar" style={{ animationDelay: "0.2s" }}></div>
+                                <div className="eq-bar" style={{ animationDelay: "0.4s" }}></div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -1359,13 +1382,13 @@ export default function App() {
             </div>
             
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-              <button onClick={(e) => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
                 <SkipBack size={22} fill="currentColor" />
               </button>
-              <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
                 {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
               </button>
-              <button onClick={(e) => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
                 <SkipForward size={22} fill="currentColor" />
               </button>
             </div>
