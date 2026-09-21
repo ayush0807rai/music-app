@@ -389,7 +389,7 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  // --- AI STEM SEPARATION: SERVER-TO-SERVER CONNECTION ---
+  // --- AI STEM SEPARATION: DEFAULT FUNCTION INDEX ROUTING ---
   const handleGenerateStems = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
@@ -398,16 +398,15 @@ export default function App() {
       setGenerationStatus("Connecting to AI Cloud GPU...");
       let app;
       try {
-        app = await client("aimuzik/demucs"); 
+        app = await client("ahmetmalkoc/demucs"); 
       } catch (err) {
         throw new Error("HF_DOWN");
       }
       
       setGenerationStatus("Server processing track (~1-2 mins)...");
       
-      // ✨ THE FIX: We pass the URL directly instead of a blob!
-      // This bypasses the browser completely. HuggingFace downloads it directly from Supabase.
-      const result = await app.predict("/predict", [currentTrack.url]);
+      // ✨ Using function index 0 for universal compatibility with Gradio Spaces
+      const result = await app.predict(0, [currentTrack.url]);
       
       setGenerationStatus("Saving stems to Supabase...");
       const stemFiles = result.data; 
@@ -1281,7 +1280,7 @@ export default function App() {
                     <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
-                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
+                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
                   </div>
                   <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
                 </div>
