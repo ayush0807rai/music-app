@@ -627,7 +627,7 @@ export default function App() {
 
   const renderMixerBlock = (isMobile) => (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
-       <h4 style={{ margin: "0 0 16px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
+       <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
        
        {!currentTrack.stem_vocals ? (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
@@ -648,9 +648,9 @@ export default function App() {
            </div>
        ) : (
            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "2px", flex: 1, padding: "10px 0 20px 0", alignItems: "center" }}>
+               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0px", flex: 1, padding: "24px 0 16px 0", alignItems: "center" }}>
                    {["vocals", "drums", "bass", "other"].map((stemType) => (
-                       <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end" }}>
+                       <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%" }}>
                            <input 
                               type="range" 
                               min="0" max="1" step="0.01" 
@@ -658,12 +658,12 @@ export default function App() {
                               onChange={(e) => setStemVolumes({...stemVolumes, [stemType]: parseFloat(e.target.value)})}
                               style={{
                                   appearance: "none",
-                                  width: isMobile ? "75px" : "85px",
+                                  width: isMobile ? "65px" : "75px",
                                   height: "4px",
                                   background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType]*100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType]*100}%)`,
                                   transform: "rotate(-90deg)",
                                   transformOrigin: "center",
-                                  marginBottom: isMobile ? "45px" : "55px",
+                                  margin: "35px 0",
                                   borderRadius: "4px"
                               }}
                               className="glow-slider"
@@ -673,8 +673,8 @@ export default function App() {
                    ))}
                </div>
                
-               <div style={{ padding: "0 10px 10px 10px" }}>
-                   <button onClick={() => setStemVolumes({ vocals: 0, drums: 1, bass: 1, other: 1 })} style={{ width: "100%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "12px", borderRadius: "8px", fontWeight: "bold", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }} className="hover-effect">
+               <div style={{ padding: "0 10px 4px 10px" }}>
+                   <button onClick={() => setStemVolumes({ vocals: 0, drums: 1, bass: 1, other: 1 })} style={{ width: "100%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "10px", borderRadius: "8px", fontWeight: "bold", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }} className="hover-effect">
                        🎤 Karaoke Mode (Mute Vocals)
                    </button>
                </div>
