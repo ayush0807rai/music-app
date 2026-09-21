@@ -464,31 +464,70 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
+  // -----------------------------------------------------------------------
+  // INTEGRATED STEM GENERATION
+  //
+  // Flow:
+  //   1. Query Supabase `songs` table for existing stem URLs (DB cache check).
+  //   2. CACHE HIT  → load stems into React state, skip GPU entirely.
+  //   3. CACHE MISS → connect to AI backend, generate stems via Gradio.
+  //   4. Upload each generated blob to the `stems` storage bucket.
+  //   5. Persist all 4 public URLs back to the `songs` table so this AI
+  //      call never needs to run again for this track.
+  //   6. Update playlist / playlistSongs / queueCurrentTrack state so the
+  //      audio <audio> refs immediately pick up the new stem URLs.
+  // -----------------------------------------------------------------------
   const handleGenerateStemsClick = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
+
     try {
-      setGenerationStatus("Checking database...");
+      // ── STEP 1: Check DB cache ──────────────────────────────────────────
+      setGenerationStatus("Checking for existing stems...");
       const { data: songRecord, error: fetchError } = await supabase
-        .from('songs')
-        .select('stem_vocals, stem_drums, stem_bass, stem_other')
-        .eq('id', currentTrack.id)
+        .from("songs")
+        .select("stem_vocals, stem_drums, stem_bass, stem_other")
+        .eq("id", currentTrack.id)
         .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+      if (fetchError && fetchError.code !== "PGRST116") throw fetchError;
 
-      if (songRecord?.stem_vocals && songRecord?.stem_drums && songRecord?.stem_bass && songRecord?.stem_other) {
-        const updatedPlaylist = playlist.map(s => s.id === currentTrack.id ? { ...s, ...songRecord } : s);
-        setPlaylist(updatedPlaylist);
-        if (queueCurrentTrack?.id === currentTrack.id) setQueueCurrentTrack({ ...queueCurrentTrack, ...songRecord });
+      // ── STEP 2: Cache hit — load from DB, skip GPU ──────────────────────
+      if (
+        songRecord?.stem_vocals &&
+        songRecord?.stem_drums &&
+        songRecord?.stem_bass &&
+        songRecord?.stem_other
+      ) {
+        setGenerationStatus("Loading stems from database...");
+
+        const updatedTrack = {
+          ...currentTrack,
+          stem_vocals: songRecord.stem_vocals,
+          stem_drums:  songRecord.stem_drums,
+          stem_bass:   songRecord.stem_bass,
+          stem_other:  songRecord.stem_other,
+        };
+
+        // Sync into every list that might be rendering this track
+        setPlaylist(prev =>
+          prev.map(s => s.id === currentTrack.id ? updatedTrack : s)
+        );
+        setPlaylistSongs(prev =>
+          prev.map(s => s.id === currentTrack.id ? updatedTrack : s)
+        );
+        if (queueCurrentTrack?.id === currentTrack.id) {
+          setQueueCurrentTrack(updatedTrack);
+        }
+
         setStemsBroken(false);
-        triggerToast("Stems loaded from database instantly!");
-        setIsGeneratingStems(false);
-        return; 
+        triggerToast("Stems loaded from database — no AI call needed! 🎉");
+        return; // ← Exit early, GPU never touched
       }
 
+      // ── STEP 3: Cache miss — connect to AI backend ───────────────────────
       const { app, src } = await connectStemApi(setGenerationStatus);
-      
+
       setGenerationStatus("Downloading track...");
       const audioRes = await fetch(currentTrack.url);
       if (!audioRes.ok) throw new Error("Could not download track from database.");
@@ -497,38 +536,56 @@ export default function App() {
       setGenerationStatus("Processing stems (~30s)...");
       const result = await predictStems(app, audioBlob);
       const files = Array.isArray(result?.data) ? result.data : [];
-      
-      const vocals = resolveFileUrl(files[0], src);
-      const drums = resolveFileUrl(files[1], src);
-      const bass = resolveFileUrl(files[2], src);
-      const other = resolveFileUrl(files[3], src);
 
-      if (!vocals || !drums || !bass || !other) {
-        throw new Error("AI did not return all stems.");
+      const vocalsUrl = resolveFileUrl(files[0], src);
+      const drumsUrl  = resolveFileUrl(files[1], src);
+      const bassUrl   = resolveFileUrl(files[2], src);
+      const otherUrl  = resolveFileUrl(files[3], src);
+
+      if (!vocalsUrl || !drumsUrl || !bassUrl || !otherUrl) {
+        throw new Error("AI did not return all 4 stems. Please re-run the Colab cell and try again.");
       }
 
+      // ── STEP 4: Upload each stem blob to Supabase Storage ────────────────
       setGenerationStatus("Uploading stems...");
-      const urls = {
-        stem_vocals: await uploadStemBlob(currentTrack.id, "vocals", vocals),
-        stem_drums: await uploadStemBlob(currentTrack.id, "drums", drums),
-        stem_bass: await uploadStemBlob(currentTrack.id, "bass", bass),
-        stem_other: await uploadStemBlob(currentTrack.id, "other", other),
+      const newStemUrls = {
+        stem_vocals: await uploadStemBlob(currentTrack.id, "vocals", vocalsUrl),
+        stem_drums:  await uploadStemBlob(currentTrack.id, "drums",  drumsUrl),
+        stem_bass:   await uploadStemBlob(currentTrack.id, "bass",   bassUrl),
+        stem_other:  await uploadStemBlob(currentTrack.id, "other",  otherUrl),
       };
 
-      const { data, error } = await supabase.from("songs").update(urls).eq("id", currentTrack.id).select();
-      if (error) throw error;
-      
-      const updatedPlaylistDb = playlist.map(s => s.id === currentTrack.id ? data[0] : s);
-      setPlaylist(updatedPlaylistDb);
-      if (queueCurrentTrack?.id === currentTrack.id) setQueueCurrentTrack(data[0]);
-      
+      // ── STEP 5: Persist URLs to songs table (never call AI again) ────────
+      const { data: updatedRows, error: updateError } = await supabase
+        .from("songs")
+        .update(newStemUrls)
+        .eq("id", currentTrack.id)
+        .select();
+
+      if (updateError) throw updateError;
+
+      const savedTrack = updatedRows?.[0] ?? { ...currentTrack, ...newStemUrls };
+
+      // ── STEP 6: Update React state so audio refs pick up new URLs ─────────
+      setPlaylist(prev =>
+        prev.map(s => s.id === currentTrack.id ? savedTrack : s)
+      );
+      setPlaylistSongs(prev =>
+        prev.map(s => s.id === currentTrack.id ? savedTrack : s)
+      );
+      if (queueCurrentTrack?.id === currentTrack.id) {
+        setQueueCurrentTrack(savedTrack);
+      }
+
       setStemsBroken(false);
-      triggerToast("AI Stems generated successfully!");
+      triggerToast("AI Stems generated and saved successfully!");
+
     } catch (err) {
-      console.error(err);
+      console.error("Stem generation error:", err);
       alert("Generation Error:\n" + err.message);
     } finally {
       setIsGeneratingStems(false);
+      setGenerationStatus(""); // Always clear the status message
     }
   };
 
@@ -759,7 +816,14 @@ export default function App() {
                ) : (
                    <>
                       <SlidersHorizontal size={40} color="rgba(255,255,255,0.4)" style={{ marginBottom: "16px" }} />
-                      <p style={{ fontSize: "14px", marginBottom: "20px", padding: "0 20px", color: "rgba(255,255,255,0.7)" }}>Unlock individual instruments and vocals using Cloud AI.</p>
+                      <p style={{ fontSize: "14px", marginBottom: "20px", padding: "0 20px", color: "rgba(255,255,255,0.7)" }}>
+                        Unlock individual instruments and vocals using Cloud AI.
+                        {stemsBroken && (
+                          <span style={{ display: "block", marginTop: "8px", color: "#ff6b6b", fontSize: "12px" }}>
+                            Stems failed to load. Try re-generating.
+                          </span>
+                        )}
+                      </p>
                       <button onClick={handleGenerateStemsClick} style={{ background: COLORS.spotifyGreen, color: "#fff", border: "none", padding: "12px 24px", borderRadius: "24px", fontWeight: "bold", fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }} className="hover-effect">
                          {stemsBroken ? "Re-generate Stems" : "Generate Stems"}
                       </button>
@@ -901,7 +965,7 @@ export default function App() {
               {userQueue.map((song, qIndex) => (
                 <div key={`queue-${song.id}-${qIndex}`} onClick={(e) => playFromQueue(qIndex, e)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.04)", cursor: "pointer" }} className="hover-effect">
                   <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222" }}>
-                    {song.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
+                    {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
@@ -1013,12 +1077,11 @@ export default function App() {
         .glow-slider::-webkit-slider-thumb { 
           -webkit-appearance: none; 
           appearance: none; 
-          width: 4px; /* Thin edge instead of circle */
-          height: 6px; /* Matched to track height */
+          width: 4px;
+          height: 6px;
           border-radius: 4px;
           background: #FFFFFF;
           cursor: pointer;
-          /* Flaring comet style glow */
           box-shadow: 
             0 0 10px 4px rgba(255, 255, 255, 1),
             -12px 0 12px 4px rgba(255, 255, 255, 0.8),
