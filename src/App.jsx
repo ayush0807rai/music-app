@@ -351,12 +351,19 @@ export default function App() {
   }, [isPlaying, currentTrack, stemsBroken]);
 
   const handleTimeUpdateRef = useRef();
+  const lastSavedTimeRef = useRef(-1);
+  
   useEffect(() => {
     handleTimeUpdateRef.current = () => {
       if (!audioRef.current) return;
       const time = audioRef.current.currentTime;
       setCurrentTime(time);
-      if (Math.floor(time) % 2 === 0) localStorage.setItem("euphony_current_time", time);
+      
+      const currentInt = Math.floor(time);
+      if (currentInt % 2 === 0 && currentInt !== lastSavedTimeRef.current) {
+        localStorage.setItem("euphony_current_time", time);
+        lastSavedTimeRef.current = currentInt;
+      }
 
       if (currentTrack?.stem_vocals && !stemsBroken) {
         const syncStem = (ref) => {
@@ -390,7 +397,7 @@ export default function App() {
     if (isPlaying) {
       interval = setInterval(() => {
         handleTimeUpdateRef.current();
-      }, 100); 
+      }, 200); 
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
