@@ -308,7 +308,7 @@ export default function App() {
     const fetchData = async () => {
       const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true });
       if (songsData) setPlaylist(songsData);
-      const { data: playlistData } = await supabase.from("playlists").select("*").eq("user_id", session.user.id).order("created_at", { ascending: true });
+      const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) setUserPlaylists(playlistData);
       setIsInitialLoad(false);
     };
@@ -637,19 +637,33 @@ export default function App() {
     if (!newPlaylistName.trim()) return;
     const { data, error } = await supabase.from("playlists").insert([{ name: newPlaylistName, user_id: session.user.id }]).select();
     if (error) alert("Error creating playlist: " + error.message);
-    else if (data) { setUserPlaylists(prev => [...prev, data[0]]); setNewPlaylistName(""); setShowPlaylistModal(false); }
+    else if (data) { setUserPlaylists(prev => [...prev, { ...data[0], playlist_songs: [] }]); setNewPlaylistName(""); setShowPlaylistModal(false); }
   };
 
   const handleAddSongToPlaylist = async (playlistId, songId) => {
     const { error } = await supabase.from("playlist_songs").insert([{ playlist_id: playlistId, song_id: songId }]);
     if (error) { if (error.code === "23505") alert("Song is already in this playlist."); else alert("Error adding song: " + error.message); }
-    else triggerToast("Added to playlist successfully!");
+    else {
+      triggerToast("Added to playlist successfully!");
+      const addedSong = playlist.find(s => s.id === songId);
+      if (addedSong) {
+        setUserPlaylists(prev => prev.map(pl => {
+          if (pl.id === playlistId) return { ...pl, playlist_songs: [...(pl.playlist_songs || []), { songs: { poster_url: addedSong.poster_url } }] };
+          return pl;
+        }));
+      }
+    }
   };
 
   const handleRemoveSongFromPlaylist = async (playlistId, songId, e) => {
     e.stopPropagation();
     const { error } = await supabase.from("playlist_songs").delete().eq("playlist_id", playlistId).eq("song_id", songId);
-    if (!error) setPlaylistSongs(prev => prev.filter(s => s.id !== songId));
+    if (!error) {
+      setPlaylistSongs(prev => prev.filter(s => s.id !== songId));
+      supabase.from("playlists").select("*, playlist_songs(songs(poster_url))").eq("id", playlistId).single().then(({ data }) => {
+        if (data) setUserPlaylists(prev => prev.map(pl => pl.id === playlistId ? data : pl));
+      });
+    }
   };
 
   const handlePlayPause = (e) => {
@@ -968,6 +982,26 @@ export default function App() {
     );
   };
 
+  const renderMiniPlaylistCover = (pl, size = 24) => {
+    const validPosters = (pl.playlist_songs || []).map(ps => ps.songs?.poster_url).filter(Boolean);
+    if (validPosters.length === 0) return (
+      <div style={{ width: size, height: size, backgroundColor: COLORS.primary, borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <FolderPlus size={size * 0.55} color={COLORS.bgPanel} />
+      </div>
+    );
+    if (validPosters.length < 4) return (
+      <div style={{ width: size, height: size, borderRadius: "4px", overflow: "hidden", flexShrink: 0 }}>
+        <img src={validPosters[0]} alt="Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      </div>
+    );
+    return (
+      <div style={{ width: size, height: size, display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: "1px", borderRadius: "4px", overflow: "hidden", backgroundColor: COLORS.imageBg, padding: "1px", flexShrink: 0 }}>
+        {validPosters.slice(0, 4).map((url, i) => (
+          <img key={i} src={url} alt={`Cover ${i}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "2px" }} />
+        ))}
+      </div>
+    );
+  };
   const renderPlaylistCover = () => {
     const size = isDesktop ? 180 : 140;
     const validPosters = playlistSongs.map(s => s.poster_url).filter(Boolean);
@@ -1081,7 +1115,7 @@ export default function App() {
         <div className="toast-enter" style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>{queueToast}</div>
       )}
       {showExitToast && (
-        <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>Press back again to exit</div>
+        <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>Press back again to exit</div>
       )}
 
       {isInitialLoad && (
@@ -1216,7 +1250,7 @@ export default function App() {
               <span style={{ fontSize: "12px", fontWeight: "bold", color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>Playlists</span>
               {userPlaylists.map(pl => (
                 <div key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: viewedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: viewedPlaylistId === pl.id ? "bold" : "normal" }}>
-                  <ListMusic size={20} color={viewedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted} />
+                  {renderMiniPlaylistCover(pl, 24)}
                   <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pl.name}</span>
                 </div>
               ))}
