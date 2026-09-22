@@ -62,7 +62,7 @@ const parseLyrics = (lrcString) => {
 export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
 
-  // VIEW CONTEXT (What the user is currently looking at)
+  // VIEW CONTEXT
   const [viewedPlaylistId, setViewedPlaylistId] = useState(() => {
     const saved = localStorage.getItem("euphony_playlist_id");
     return saved && saved !== "null" ? saved : null;
@@ -71,7 +71,7 @@ export default function App() {
   // SORT STATE (Independent per playlist ID)
   const [sortOrders, setSortOrders] = useState({});
 
-  // PLAYBACK CONTEXT (Decoupled from View Context)
+  // PLAYBACK CONTEXT
   const [playbackQueue, setPlaybackQueue] = useState([]);
   const [playbackIndex, setPlaybackIndex] = useState(0);
   const [playbackSourceName, setPlaybackSourceName] = useState("Global Library");
@@ -146,15 +146,14 @@ export default function App() {
   const currentSortKey = sortOrders[viewedPlaylistId ?? "global"] ?? null;
   const displayedSongs = [...rawViewedSongs].sort((a, b) => {
     if (!currentSortKey) return 0;
-    return (a[currentSortKey] || "").localeCompare(b[currentSortKey] || "");
+    const valA = (a[currentSortKey] || "").toString();
+    const valB = (b[currentSortKey] || "").toString();
+    return valA.localeCompare(valB);
   });
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
-
-  // CURRENT PLAYBACK TRACK DERIVATION
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : playlist[0]);
 
-  // Handle switching UI views without stopping playback
   const handleSwitchPlaylist = (playlistId) => {
     setViewedPlaylistId(playlistId);
   };
@@ -167,7 +166,6 @@ export default function App() {
     setSortOrders(prev => ({ ...prev, [key]: next }));
   };
 
-  // Media Session
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -185,7 +183,6 @@ export default function App() {
     }
   }, [currentTrack, playMode, userQueue]);
 
-  // Sleep timer
   useEffect(() => {
     if (!sleepTimerTarget) return;
     const interval = setInterval(() => {
@@ -313,7 +310,6 @@ export default function App() {
     }
   }, [currentTrack]);
 
-  // Volume / mute sync with audio elements
   useEffect(() => {
     const isMixerActive = showMixer && currentTrack?.stem_vocals && !stemsBroken;
     if (audioRef.current) {
@@ -325,7 +321,6 @@ export default function App() {
     if (otherRef.current) otherRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0;
   }, [volume, isMuted, showMixer, stemVolumes, currentTrack, stemsBroken]);
 
-  // Stem position sync when mixer opens
   useEffect(() => {
     if (showMixer && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime;
@@ -336,7 +331,6 @@ export default function App() {
     }
   }, [showMixer, currentTrack, stemsBroken]);
 
-  // Sync isPlaying state to media elements natively
   useEffect(() => {
     const syncPlayState = async () => {
       if (isPlaying && currentTrack) {
@@ -358,11 +352,10 @@ export default function App() {
     syncPlayState();
   }, [isPlaying, showMixer, currentTrack, stemsBroken]);
 
-  // Restore saved time on first load
   useEffect(() => {
     if (isFirstRender.current && audioRef.current && currentTrack) {
       const savedTime = localStorage.getItem("euphony_current_time");
-      if (savedTime) {
+      if (savedTime && !isNaN(parseFloat(savedTime))) {
         audioRef.current.currentTime = parseFloat(savedTime);
         setCurrentTime(parseFloat(savedTime));
       }
@@ -438,9 +431,6 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  // -----------------------------------------------------------------------
-  // ASYNCHRONOUS WORKER QUEUE - STEM GENERATION
-  // -----------------------------------------------------------------------
   const handleGenerateStemsClick = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
@@ -557,7 +547,6 @@ export default function App() {
     setIsPlaying(true);
   };
 
-  // Main playback trigger
   const handlePlaySong = (index, listToSet, sourceName) => {
     setPlaybackQueue(listToSet);
     setPlaybackIndex(index);
@@ -752,6 +741,36 @@ export default function App() {
       case "shuffle": return <Shuffle size={20} color={iconColor} />;
       case "order": default: return <ArrowRight size={20} color={iconColor} />;
     }
+  };
+
+  const SortButton = ({ isMobile }) => {
+    const key = viewedPlaylistId ?? "global";
+    const currentSort = sortOrders[key] ?? null;
+    return (
+      <button
+        onClick={cycleSortKey}
+        className="hover-effect"
+        title={`Sort: ${SORT_LABELS[currentSort || "default"]}`}
+        style={{
+          background: currentSort ? COLORS.primary : "transparent",
+          color: currentSort ? COLORS.bgPanel : COLORS.primary,
+          border: `1px solid ${COLORS.primary}`,
+          borderRadius: "20px",
+          padding: isMobile ? "6px 12px" : "6px 14px",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          fontSize: "12px",
+          fontWeight: "bold",
+          transition: "all 0.2s ease",
+          flexShrink: 0
+        }}
+      >
+        <ListMusic size={14} />
+        {!isMobile && <span>{currentSort ? `By ${SORT_LABELS[currentSort]}` : "Sort"}</span>}
+      </button>
+    );
   };
 
   const renderMixerBlock = (isMobile) => (
@@ -1314,10 +1333,7 @@ export default function App() {
                       <Play size={28} fill={COLORS.bgPanel} color={COLORS.bgPanel} style={{ marginLeft: "4px" }} />
                     </button>
                     
-                    <button onClick={cycleSortKey} className="hover-effect" style={{ background: currentSortKey ? COLORS.primary : "transparent", color: currentSortKey ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: !isDesktop ? "6px 12px" : "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", transition: "all 0.2s ease", flexShrink: 0 }}>
-                      <ListMusic size={14} />
-                      {isDesktop && <span>{currentSortKey ? `By ${SORT_LABELS[currentSortKey || "default"]}` : "Sort"}</span>}
-                    </button>
+                    <SortButton isMobile={!isDesktop} />
 
                     {currentSortKey && (
                       <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
@@ -1384,10 +1400,7 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
                   <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : "0", color: COLORS.primary }}>Global Library ({playlist.length})</h2>
                   
-                  <button onClick={cycleSortKey} className="hover-effect" style={{ background: currentSortKey ? COLORS.primary : "transparent", color: currentSortKey ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: !isDesktop ? "6px 12px" : "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", transition: "all 0.2s ease", flexShrink: 0 }}>
-                    <ListMusic size={14} />
-                    {isDesktop && <span>{currentSortKey ? `By ${SORT_LABELS[currentSortKey || "default"]}` : "Sort"}</span>}
-                  </button>
+                  <SortButton isMobile={!isDesktop} />
 
                   {currentSortKey && (
                     <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
