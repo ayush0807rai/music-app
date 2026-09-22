@@ -818,7 +818,9 @@ export default function App() {
     );
   };
 
-  const renderMixerBlock = (isMobile) => (
+  const renderMixerBlock = (isMobile) => {
+    const sliderHeight = isMobile ? 180 : 220;
+    return (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
       <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
       {!currentTrack?.stem_vocals || stemsBroken ? (
@@ -841,10 +843,10 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "14px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
             {["vocals", "drums", "bass", "other"].map((stemType) => (
               <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", height: "100%", flex: 1 }}>
-                <div style={{ position: "relative", width: "30px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "relative", width: "30px", height: `${sliderHeight}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
                     onChange={(e) => setStemVolumes({ ...stemVolumes, [stemType]: parseFloat(e.target.value) })}
-                    style={{ position: "absolute", appearance: "none", width: isMobile ? "75px" : "85px", height: "4px", background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`, transform: "rotate(-90deg)", transformOrigin: "center", borderRadius: "4px" }}
+                    style={{ position: "absolute", appearance: "none", width: `${sliderHeight}px`, height: "4px", background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`, transform: "rotate(-90deg)", transformOrigin: "center", borderRadius: "4px" }}
                     className="stem-fader" />
                 </div>
                 <span style={{ fontSize: "10px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px" }}>{stemType}</span>
@@ -854,23 +856,24 @@ export default function App() {
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   const renderLyricsBlock = (isMobile) => (
-    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: COLORS.primary, textAlign: "center", borderRadius: "12px" }}>
+    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: "transparent", textAlign: "center", borderRadius: "12px" }}>
       {parsedLyrics.length > 0 ? (
         <div style={{ padding: isMobile ? "80px 0" : "120px 0" }}>
           {parsedLyrics.map((lyric, index) => {
             const isActiveLine = index === activeLyricIndex;
             return (
               <div key={index} ref={el => lyricRefs.current[index] = el} onClick={(e) => handleLyricClick(lyric.time, e)}
-                style={{ fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), fontWeight: isActiveLine ? "800" : "600", color: isActiveLine ? COLORS.bgBase : COLORS.invertedMuted, textShadow: isActiveLine && !lyric.words ? `0 0 16px ${COLORS.invertedShadow}` : "none", padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.05)" : "scale(1)", lineHeight: "1.4", cursor: "pointer" }}>
+                style={{ fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), fontWeight: isActiveLine ? "800" : "600", color: isActiveLine ? COLORS.primary : COLORS.textMuted, textShadow: isActiveLine && !lyric.words ? `0 0 16px ${COLORS.primary}80` : "none", padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.05)" : "scale(1)", lineHeight: "1.4", cursor: "pointer" }}>
                 {lyric.words ? lyric.words.map((wordObj, wIndex) => {
                   const isActiveWord = isActiveLine && wIndex === activeWordIndex;
                   const isPastWord = isActiveLine && wIndex < activeWordIndex;
                   return (
                     <span key={wIndex} onClick={(e) => handleLyricClick(wordObj.time, e)}
-                      style={{ color: (isActiveWord || isPastWord) ? COLORS.bgBase : COLORS.invertedMuted, textShadow: isActiveWord ? `0 0 16px ${COLORS.invertedShadowStrong}` : "none", transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer" }}>
+                      style={{ color: (isActiveWord || isPastWord) ? COLORS.primary : COLORS.textMuted, textShadow: isActiveWord ? `0 0 16px ${COLORS.primary}80` : "none", transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer" }}>
                       {wordObj.text}
                     </span>
                   );
@@ -880,7 +883,7 @@ export default function App() {
           })}
         </div>
       ) : (
-        <div style={{ color: COLORS.bgBase, opacity: 0.6, fontSize: "15px", fontWeight: "500", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ color: COLORS.textMuted, opacity: 0.8, fontSize: "15px", fontWeight: "500", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {currentTrack?.lyrics ? currentTrack.lyrics : "No synchronized lyrics available."}
         </div>
       )}
