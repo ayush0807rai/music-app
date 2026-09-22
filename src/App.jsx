@@ -344,13 +344,19 @@ export default function App() {
     };
     fetchData();
 
-    // Future-proofing: Realtime Sync for New Songs globally
+    // Future-proofing: Realtime Sync for New Songs & Stem Generation globally
     const channel = supabase.channel('public:songs')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'songs' }, (payload) => {
         setPlaylist(prev => {
           if (prev.find(s => s.id === payload.new.id)) return prev;
           return [...prev, payload.new];
         });
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'songs' }, (payload) => {
+        setPlaylist(prev => prev.map(s => s.id === payload.new.id ? payload.new : s));
+        setPlaylistSongs(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
+        setPlaybackQueue(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
+        setQueueCurrentTrack(prev => prev?.id === payload.new.id ? { ...prev, ...payload.new } : prev);
       })
       .subscribe();
 
@@ -386,11 +392,26 @@ export default function App() {
     // Decouple from showMixer! Stems should stay active even if user minimizes the mixer to view lyrics (karaoke mode)
     const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
     
-    if (audioRef.current) audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
-    if (vocalsRef.current) vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
-    if (drumsRef.current)  drumsRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.drums  * (volume || 1)) : 0;
-    if (bassRef.current)   bassRef.current.volume   = isMixerActive ? (isMuted ? 0 : stemVolumes.bass   * (volume || 1)) : 0;
-    if (otherRef.current)  otherRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.other  * (volume || 1)) : 0;
+    if (audioRef.current) {
+      audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
+      audioRef.current.muted = isMixerActive || isMuted;
+    }
+    if (vocalsRef.current) {
+      vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
+      vocalsRef.current.muted = !isMixerActive || isMuted || stemVolumes.vocals === 0;
+    }
+    if (drumsRef.current) {
+      drumsRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.drums  * (volume || 1)) : 0;
+      drumsRef.current.muted = !isMixerActive || isMuted || stemVolumes.drums === 0;
+    }
+    if (bassRef.current) {
+      bassRef.current.volume   = isMixerActive ? (isMuted ? 0 : stemVolumes.bass   * (volume || 1)) : 0;
+      bassRef.current.muted = !isMixerActive || isMuted || stemVolumes.bass === 0;
+    }
+    if (otherRef.current) {
+      otherRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.other  * (volume || 1)) : 0;
+      otherRef.current.muted = !isMixerActive || isMuted || stemVolumes.other === 0;
+    }
   }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken]);
 
   useEffect(() => {
