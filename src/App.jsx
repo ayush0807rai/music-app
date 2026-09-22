@@ -968,6 +968,35 @@ export default function App() {
     );
   };
 
+  const renderPlaylistCover = () => {
+    const size = isDesktop ? 180 : 140;
+    const validPosters = playlistSongs.map(s => s.poster_url).filter(Boolean);
+
+    if (playlistSongs.length === 0 || validPosters.length === 0) {
+      return (
+        <div style={{ width: size, height: size, backgroundColor: COLORS.primary, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
+          <FolderPlus size={isDesktop ? 72 : 56} color={COLORS.bgPanel} />
+        </div>
+      );
+    }
+
+    if (playlistSongs.length < 4 || validPosters.length < 4) {
+      return (
+        <div style={{ width: size, height: size, borderRadius: "12px", overflow: "hidden", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
+          <img src={validPosters[0]} alt="Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ width: size, height: size, display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: "4px", borderRadius: "12px", overflow: "hidden", backgroundColor: COLORS.imageBg, padding: "4px", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
+        {validPosters.slice(0, 4).map((url, i) => (
+          <img key={i} src={url} alt={`Cover ${i}`} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }} />
+        ))}
+      </div>
+    );
+  };
+
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   if (!isSessionLoaded) return <div style={{ background: COLORS.bgBase, width: '100vw', height: '100vh' }} />;
@@ -1217,9 +1246,7 @@ export default function App() {
             {/* PLAYLIST HERO */}
             {viewedPlaylistId !== null && activePlaylistObj && (
               <div style={{ background: `linear-gradient(180deg, ${COLORS.heroTop} 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
-                <div style={{ width: isDesktop ? "180px" : "140px", height: isDesktop ? "180px" : "140px", backgroundColor: COLORS.primary, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
-                  <FolderPlus size={isDesktop ? 72 : 56} color={COLORS.bgPanel} />
-                </div>
+                {renderPlaylistCover()}
                 <div style={{ flex: 1, minWidth: 0, textAlign: isDesktop ? "left" : "center" }}>
                   <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: COLORS.textMuted }}>Private Playlist</span>
                   <h2 style={{ margin: "8px 0 16px 0", fontSize: isDesktop ? "48px" : "32px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{activePlaylistObj.name}</h2>
