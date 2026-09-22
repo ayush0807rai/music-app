@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, SlidersHorizontal, ArrowUpDown, Search, GripVertical
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -9,17 +9,6 @@ import Auth from "./Auth";
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 const SORT_CYCLE = [null, "title", "artist", "album"];
 const SORT_LABELS = { default: "Default", title: "Title", artist: "Artist", album: "Album" };
-
-const COLORS = {
-  bgBase: "#F3F0E6",
-  bgPanel: "#FAFAF7",
-  primary: "#1A2B4C",
-  textMain: "#1A2B4C",
-  textMuted: "#64748B",
-  border: "rgba(26, 43, 76, 0.12)",
-  hover: "rgba(26, 43, 76, 0.06)",
-  spotifyGreen: "#1DB954"
-};
 
 // --- LYRICS PARSER ---
 const parseLyrics = (lrcString) => {
@@ -54,6 +43,42 @@ const parseLyrics = (lrcString) => {
 };
 
 export default function App() {
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("euphony_dark_mode") === "true");
+
+  useEffect(() => {
+    localStorage.setItem("euphony_dark_mode", isDarkMode);
+  }, [isDarkMode]);
+
+  const COLORS = isDarkMode ? {
+    bgBase: "#121A2F",
+    bgPanel: "#1A2B4C",
+    primary: "#F3F0E6",
+    textMain: "#F3F0E6",
+    textMuted: "rgba(243, 240, 230, 0.6)",
+    border: "rgba(243, 240, 230, 0.12)",
+    hover: "rgba(243, 240, 230, 0.06)",
+    spotifyGreen: "#1DB954",
+    invertedMuted: "rgba(18, 26, 47, 0.4)",
+    invertedShadow: "rgba(18, 26, 47, 0.6)",
+    invertedShadowStrong: "rgba(18, 26, 47, 0.8)",
+    heroTop: "#2A3B5C",
+    imageBg: "rgba(255,255,255,0.1)"
+  } : {
+    bgBase: "#F3F0E6",
+    bgPanel: "#FAFAF7",
+    primary: "#1A2B4C",
+    textMain: "#1A2B4C",
+    textMuted: "#64748B",
+    border: "rgba(26, 43, 76, 0.12)",
+    hover: "rgba(26, 43, 76, 0.06)",
+    spotifyGreen: "#1DB954",
+    invertedMuted: "rgba(243, 240, 230, 0.4)",
+    invertedShadow: "rgba(243, 240, 230, 0.6)",
+    invertedShadowStrong: "rgba(243, 240, 230, 0.8)",
+    heroTop: "#E2D9C5",
+    imageBg: "#EAE2CF"
+  };
+
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
 
   const [viewedPlaylistId, setViewedPlaylistId] = useState(() => {
@@ -825,13 +850,13 @@ export default function App() {
             const isActiveLine = index === activeLyricIndex;
             return (
               <div key={index} ref={el => lyricRefs.current[index] = el} onClick={(e) => handleLyricClick(lyric.time, e)}
-                style={{ fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), fontWeight: isActiveLine ? "800" : "600", color: isActiveLine ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)", textShadow: isActiveLine && !lyric.words ? `0 0 16px rgba(243, 240, 230, 0.6)` : "none", padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.05)" : "scale(1)", lineHeight: "1.4", cursor: "pointer" }}>
+                style={{ fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), fontWeight: isActiveLine ? "800" : "600", color: isActiveLine ? COLORS.bgBase : COLORS.invertedMuted, textShadow: isActiveLine && !lyric.words ? `0 0 16px ${COLORS.invertedShadow}` : "none", padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.05)" : "scale(1)", lineHeight: "1.4", cursor: "pointer" }}>
                 {lyric.words ? lyric.words.map((wordObj, wIndex) => {
                   const isActiveWord = isActiveLine && wIndex === activeWordIndex;
                   const isPastWord = isActiveLine && wIndex < activeWordIndex;
                   return (
                     <span key={wIndex} onClick={(e) => handleLyricClick(wordObj.time, e)}
-                      style={{ color: (isActiveWord || isPastWord) ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)", textShadow: isActiveWord ? `0 0 16px rgba(243, 240, 230, 0.8)` : "none", transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer" }}>
+                      style={{ color: (isActiveWord || isPastWord) ? COLORS.bgBase : COLORS.invertedMuted, textShadow: isActiveWord ? `0 0 16px ${COLORS.invertedShadowStrong}` : "none", transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer" }}>
                       {wordObj.text}
                     </span>
                   );
@@ -1130,6 +1155,10 @@ export default function App() {
           <button className="hover-effect" onClick={() => window.location.reload()} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <RefreshCw size={16} />{isDesktop && " Refresh"}
           </button>
+          <button className="hover-effect" onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+            {isDesktop && (isDarkMode ? " Light" : " Dark")}
+          </button>
           <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <Plus size={16} color={COLORS.bgPanel} />{isDesktop && " Add Globally"}
           </button>
@@ -1187,7 +1216,7 @@ export default function App() {
 
             {/* PLAYLIST HERO */}
             {viewedPlaylistId !== null && activePlaylistObj && (
-              <div style={{ background: `linear-gradient(180deg, #E2D9C5 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
+              <div style={{ background: `linear-gradient(180deg, ${COLORS.heroTop} 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
                 <div style={{ width: isDesktop ? "180px" : "140px", height: isDesktop ? "180px" : "140px", backgroundColor: COLORS.primary, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
                   <FolderPlus size={isDesktop ? 72 : 56} color={COLORS.bgPanel} />
                 </div>
@@ -1210,7 +1239,7 @@ export default function App() {
                       </button>
                     )}
                     
-                    <div style={{ display: "flex", alignItems: "center", background: "rgba(26,43,76,0.05)", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.border}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", background: COLORS.hover, borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.border}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
                       <Search size={16} color={COLORS.textMuted} style={{ flexShrink: 0 }} />
                       <input type="text" placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} />
                       {searchQuery && <X size={14} color={COLORS.textMuted} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
@@ -1243,7 +1272,7 @@ export default function App() {
                           <div key={track.id} className="playlist-row" onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
                             <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                             <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
-                              <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                               </div>
                               <div style={{ minWidth: 0, flex: 1 }}>
@@ -1280,7 +1309,7 @@ export default function App() {
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
                   <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : 0, color: COLORS.primary }}>Global Library ({playlist.length})</h2>
-                  <div style={{ display: "flex", alignItems: "center", background: "rgba(26,43,76,0.05)", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.border}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", background: COLORS.hover, borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.border}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
                     <Search size={16} color={COLORS.textMuted} style={{ flexShrink: 0 }} />
                     <input type="text" placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} />
                     {searchQuery && <X size={14} color={COLORS.textMuted} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
@@ -1299,7 +1328,7 @@ export default function App() {
                       <div key={track.id} className="playlist-row" onClick={() => handlePlaySong(index, displayedSongs, "Global Library")} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
                         <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
-                          <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                             {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1352,7 +1381,7 @@ export default function App() {
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
               {/* ARTWORK / DYNAMIC PLAYER VIEW */}
               <div style={{ width: "100%", flex: 1, minHeight: 0, marginBottom: "20px", display: "flex", flexDirection: "column" }}>
-                <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
+                <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: COLORS.hover, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                     {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : (currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>)}
                   </div>
@@ -1408,7 +1437,7 @@ export default function App() {
         <div onClick={() => setIsMobilePlayerOpen(true)} className="slide-up-enter" style={{ position: "fixed", bottom: "16px", left: "12px", right: "12px", background: COLORS.bgPanel, borderRadius: "12px", display: "flex", flexDirection: "column", boxShadow: "0 8px 24px rgba(26,43,76,0.15)", zIndex: 2000, border: `1px solid ${COLORS.border}`, cursor: "pointer", overflow: "hidden" }}>
           <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px", overflow: "hidden", flex: 1, minWidth: 0 }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
               </div>
               <div style={{ overflow: "hidden", flex: 1, minWidth: 0 }}>
@@ -1446,7 +1475,7 @@ export default function App() {
             </div>
 
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px" }}>
-              <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: (showLyrics || showQueue || showMixer) ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
+              <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.hover, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: (showLyrics || showQueue || showMixer) ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
                 <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                   {showMixer ? renderMixerBlock(true) : showQueue ? renderQueueBlock(true) : showLyrics ? renderLyricsBlock(true) : (currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={100} color={COLORS.textMuted} /></div>)}
                 </div>
