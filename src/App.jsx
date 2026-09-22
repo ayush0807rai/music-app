@@ -362,17 +362,22 @@ export default function App() {
     setShowLyrics(false);
     setActiveLyricIndex(-1);
     setActiveWordIndex(-1);
+    setStemVolumes({ vocals: 1, drums: 1, bass: 1, other: 1 });
     setParsedLyrics(currentTrack?.lyrics ? parseLyrics(currentTrack.lyrics) : []);
   }, [currentTrack]);
 
   useEffect(() => {
-    const isMixerActive = showMixer && currentTrack?.stem_vocals && !stemsBroken;
+    // If any slider is less than 1, stems are modified.
+    const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
+    // Decouple from showMixer! Stems should stay active even if user minimizes the mixer to view lyrics (karaoke mode)
+    const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
+    
     if (audioRef.current) audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
     if (vocalsRef.current) vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
     if (drumsRef.current)  drumsRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.drums  * (volume || 1)) : 0;
     if (bassRef.current)   bassRef.current.volume   = isMixerActive ? (isMuted ? 0 : stemVolumes.bass   * (volume || 1)) : 0;
     if (otherRef.current)  otherRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.other  * (volume || 1)) : 0;
-  }, [volume, isMuted, showMixer, stemVolumes, currentTrack, stemsBroken]);
+  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken]);
 
   useEffect(() => {
     if (showMixer && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
