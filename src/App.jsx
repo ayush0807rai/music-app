@@ -639,16 +639,25 @@ export default function App() {
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist) return alert("Please fill in required fields.");
+    
+    // Future-proofing: File size & type validation
+    if (uploadFile.size > 50 * 1024 * 1024) return alert("Audio file is too large! Maximum size is 50MB.");
+    if (uploadPoster && uploadPoster.size > 5 * 1024 * 1024) return alert("Poster image is too large! Maximum size is 5MB.");
+    
     setIsUploading(true);
     try {
-      const fileExt = uploadFile.name.split('.').pop();
-      const fileName = `${Date.now()}-audio.${fileExt}`;
+      const fileExt = uploadFile.name.split('.').pop().toLowerCase();
+      // Future-proofing: Sanitize filenames to prevent URL encoding issues
+      const cleanTitle = uploadTitle.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      const fileName = `${Date.now()}-${cleanTitle}.${fileExt}`;
+      
       const { error: audioError } = await supabase.storage.from("songs").upload(fileName, uploadFile, { cacheControl: "3600" });
       if (audioError) throw audioError;
       const { data: { publicUrl: audioUrl } } = supabase.storage.from("songs").getPublicUrl(fileName);
+      
       let posterUrl = null;
       if (uploadPoster) {
-        const posterExt = uploadPoster.name.split('.').pop();
+        const posterExt = uploadPoster.name.split('.').pop().toLowerCase();
         const posterName = `${Date.now()}-poster.${posterExt}`;
         const { error: posterError } = await supabase.storage.from("songs").upload(posterName, uploadPoster, { cacheControl: "3600" });
         if (posterError) throw posterError;
@@ -1158,6 +1167,12 @@ export default function App() {
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onEnded={handleTrackEnded}
         onCanPlay={handleCanPlay}
+        onError={() => {
+          if (currentTrack) {
+            triggerToast(`Error playing "${currentTrack.title}". Skipping to next track...`);
+            setTimeout(() => handleNext(), 2000);
+          }
+        }}
         preload="auto"
         playsInline
       />
