@@ -1299,7 +1299,7 @@ export default function App() {
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", justifyContent: isDesktop ? "flex-start" : "center", flexWrap: "wrap" }}>
                     {displayedSongs.length > 0 && (
                       <button onClick={() => handlePlaySong(0, displayedSongs, activePlaylistObj?.name || "Playlist")} className="hover-effect" style={{ width: "56px", height: "56px", borderRadius: "50%", background: COLORS.primary, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)", flexShrink: 0 }}>
-                        <Play size={24} fill={COLORS.bgPanel} color={COLORS.bgPanel} style={{ marginLeft: "3px" }} />
+                        <Play size={24} fill={COLORS.bgBase} color={COLORS.bgBase} style={{ marginLeft: "3px" }} />
                       </button>
                     )}
                     
@@ -1483,7 +1483,7 @@ export default function App() {
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                     <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
+                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgBase, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
                     <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
@@ -1570,7 +1570,7 @@ export default function App() {
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
                 <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
-                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease" }} className="hover-effect">
+                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgBase, cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease" }} className="hover-effect">
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
                 </button>
                 <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
