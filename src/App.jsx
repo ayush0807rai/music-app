@@ -421,7 +421,9 @@ export default function App() {
 
       if (currentTrack?.stem_vocals && !stemsBroken) {
         const syncStem = (ref) => {
-          if (ref.current && Math.abs(ref.current.currentTime - time) > 0.3) ref.current.currentTime = time;
+          if (ref.current && ref.current.readyState >= 3 && Math.abs(ref.current.currentTime - time) > 0.4) {
+            ref.current.currentTime = time;
+          }
         };
         syncStem(vocalsRef); syncStem(drumsRef); syncStem(bassRef); syncStem(otherRef);
       }
@@ -451,7 +453,7 @@ export default function App() {
     if (isPlaying) {
       interval = setInterval(() => {
         handleTimeUpdateRef.current();
-      }, 100); 
+      }, 200); 
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
