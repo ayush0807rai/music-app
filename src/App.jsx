@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, SlidersHorizontal, ArrowUpDown, Search, GripVertical
@@ -56,28 +56,23 @@ const parseLyrics = (lrcString) => {
 export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
 
-  // VIEW CONTEXT – only controls what's displayed, never touches playback
   const [viewedPlaylistId, setViewedPlaylistId] = useState(() => {
     const saved = localStorage.getItem("euphony_playlist_id");
     return saved && saved !== "null" ? saved : null;
   });
 
-  // SORT & SEARCH STATE (independent per playlist id key)
   const [sortOrders, setSortOrders] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
 
-  // PLAYBACK CONTEXT – the actual playing queue is stored here
   const [playbackQueue, setPlaybackQueue] = useState([]);
   const [playbackIndex, setPlaybackIndex] = useState(0);
   const [playbackSourceName, setPlaybackSourceName] = useState("Global Library");
 
-  // DATA
   const [playlist, setPlaylist] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // MODALS & AUTH
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [songForPlaylistModal, setSongForPlaylistModal] = useState(null);
@@ -85,7 +80,6 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
 
-  // UPLOAD FORM
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadArtist, setUploadArtist] = useState("");
   const [uploadAlbum, setUploadAlbum] = useState("");
@@ -94,7 +88,6 @@ export default function App() {
   const [uploadPoster, setUploadPoster] = useState(null);
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
-  // PLAYER CONTROLS
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -117,7 +110,6 @@ export default function App() {
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
-  // AI STEM MIXER
   const [showMixer, setShowMixer] = useState(false);
   const [isGeneratingStems, setIsGeneratingStems] = useState(false);
   const [generationStatus, setGenerationStatus] = useState("");
@@ -130,13 +122,11 @@ export default function App() {
 
   const pendingAutoPlayRef = useRef(false);
 
-  // QUEUE DRAG-TO-REORDER STATE
   const [draggedQueueIndex, setDraggedQueueIndex] = useState(-1);
   const [dragOverQueueIndex, setDragOverQueueIndex] = useState(-1);
   const queueDragState = useRef({ active: false, startIdx: -1, overIdx: -1 });
   const queueItemEls = useRef([]);
 
-  // AUDIO REFS
   const audioRef = useRef(null);
   const vocalsRef = useRef(null);
   const drumsRef = useRef(null);
@@ -166,6 +156,35 @@ export default function App() {
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
+  // ── DYNAMIC QUEUE LIST (Responds to Play Mode) ────────────────────────────
+  const [upcomingSourceList, setUpcomingSourceList] = useState([]);
+
+  useEffect(() => {
+    if (!playbackQueue || playbackQueue.length === 0) {
+      setUpcomingSourceList([]);
+      return;
+    }
+
+    if (playMode === 'order') {
+      const list = playbackQueue.map((track, i) => ({ track, originalIndex: i })).slice(playbackIndex + 1);
+      setUpcomingSourceList(list);
+    } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
+      const list = [
+        ...playbackQueue.map((track, i) => ({ track, originalIndex: i })).slice(playbackIndex + 1),
+        ...playbackQueue.map((track, i) => ({ track, originalIndex: i })).slice(0, playbackIndex)
+      ];
+      setUpcomingSourceList(list);
+    } else if (playMode === 'shuffle') {
+      const others = playbackQueue.map((track, i) => ({ track, originalIndex: i })).filter(obj => obj.originalIndex !== playbackIndex);
+      // Stable Fisher-Yates shuffle
+      for (let i = others.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [others[i], others[j]] = [others[j], others[i]];
+      }
+      setUpcomingSourceList(others);
+    }
+  }, [playbackQueue, playbackIndex, playMode]);
+
   // ── HELPERS ───────────────────────────────────────────────────────────────
   const handleSwitchPlaylist = (playlistId) => {
     setViewedPlaylistId(playlistId);
@@ -179,7 +198,6 @@ export default function App() {
     setSortOrders(prev => ({ ...prev, [key]: SORT_CYCLE[(idx + 1) % SORT_CYCLE.length] }));
   };
 
-  // ── MEDIA SESSION ─────────────────────────────────────────────────────────
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -195,7 +213,6 @@ export default function App() {
     }
   }, [currentTrack, playMode, userQueue]);
 
-  // ── SLEEP TIMER ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!sleepTimerTarget) return;
     const interval = setInterval(() => {
@@ -215,7 +232,6 @@ export default function App() {
     setShowSleepTimerModal(false);
   };
 
-  // ── BACK-BUTTON STATE SYNC ────────────────────────────────────────────────
   useEffect(() => {
     stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer };
   }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer]);
@@ -251,7 +267,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // ── SESSION & RESIZE ──────────────────────────────────────────────────────
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
     window.addEventListener("resize", handleResize);
@@ -268,7 +283,6 @@ export default function App() {
     else localStorage.removeItem("euphony_playlist_id");
   }, [viewedPlaylistId]);
 
-  // ── DATA FETCH ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!session?.user?.id) return;
     const fetchData = async () => {
@@ -293,7 +307,6 @@ export default function App() {
     fetchPlaylistSongs();
   }, [viewedPlaylistId]);
 
-  // ── TRACK CHANGE SIDE-EFFECTS ─────────────────────────────────────────────
   useEffect(() => {
     setStemsBroken(false);
     setShowLyrics(false);
@@ -302,7 +315,6 @@ export default function App() {
     setParsedLyrics(currentTrack?.lyrics ? parseLyrics(currentTrack.lyrics) : []);
   }, [currentTrack]);
 
-  // ── VOLUME SYNC ───────────────────────────────────────────────────────────
   useEffect(() => {
     const isMixerActive = showMixer && currentTrack?.stem_vocals && !stemsBroken;
     if (audioRef.current) audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
@@ -322,7 +334,6 @@ export default function App() {
     }
   }, [showMixer, currentTrack, stemsBroken]);
 
-  // ── PLAY / PAUSE SYNC ─────────────────────────────────────────────────────
   useEffect(() => {
     const syncPlayState = async () => {
       if (isPlaying && currentTrack) {
@@ -344,7 +355,6 @@ export default function App() {
     syncPlayState();
   }, [isPlaying, showMixer, currentTrack, stemsBroken]);
 
-  // ── SMOOTH HIGH-FPS TIME UPDATE ───────────────────────────────────────────
   const handleTimeUpdateRef = useRef();
   useEffect(() => {
     handleTimeUpdateRef.current = () => {
@@ -634,15 +644,11 @@ export default function App() {
     setPlayMode(PLAY_MODES[(idx + 1) % PLAY_MODES.length]);
   };
 
-  const getShuffleIndex = (len, currentIdx) => {
-    if (len <= 1) return 0;
-    let r = currentIdx;
-    while (r === currentIdx) r = Math.floor(Math.random() * len);
-    return r;
-  };
-
+  // ── ALIGNED PLAYBACK ADVANCEMENT ──────────────────────────────────────────
   const handleNext = (e) => {
     if (e) e.stopPropagation();
+    
+    // Play user queue first
     if (userQueue.length > 0) {
       const nextSong = userQueue[0];
       setUserQueue(prev => prev.slice(1));
@@ -655,36 +661,45 @@ export default function App() {
       }
       return;
     }
-    const activeQueue = playbackQueue.length > 0 ? playbackQueue : playlist;
-    if (activeQueue.length === 0) return;
-    let nextIdx = playMode === "shuffle" ? getShuffleIndex(activeQueue.length, playbackIndex) : (playbackIndex + 1) % activeQueue.length;
-    setQueueCurrentTrack(null);
-    if (playbackQueue.length === 0) setPlaybackQueue(playlist);
-    setPlaybackIndex(nextIdx);
-    resetPlaybackTime();
-    setIsPlaying(true);
-    const nextSong = activeQueue[nextIdx];
-    if (audioRef.current && nextSong) {
-      audioRef.current.src = nextSong.url;
-      audioRef.current.play().catch(err => console.log(err));
+    
+    // Play upcoming source queue 
+    if (upcomingSourceList.length > 0) {
+      const nextIdx = upcomingSourceList[0].originalIndex;
+      setQueueCurrentTrack(null);
+      setPlaybackIndex(nextIdx);
+      resetPlaybackTime();
+      setIsPlaying(true);
+      if (audioRef.current && playbackQueue[nextIdx]) {
+        audioRef.current.src = playbackQueue[nextIdx].url;
+        audioRef.current.play().catch(err => console.log(err));
+      }
+    } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
+      // Loop single song if it's the only one left and loop is on
+      if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); }
+    } else {
+      setIsPlaying(false);
     }
   };
 
   const handlePrev = (e) => {
     if (e) e.stopPropagation();
-    const activeQueue = playbackQueue.length > 0 ? playbackQueue : playlist;
-    if (activeQueue.length === 0) return;
+    if (playbackQueue.length === 0) return;
+    
+    // Restart song if played more than 3 seconds
     if (audioRef.current && audioRef.current.currentTime > 3) { 
         audioRef.current.currentTime = 0; 
         return; 
     }
+    
+    let prevIdx = playbackIndex - 1;
+    if (prevIdx < 0) prevIdx = playbackQueue.length - 1; // Wrap around for previous
+    
     setQueueCurrentTrack(null);
-    const prevIndex = playbackIndex === 0 ? activeQueue.length - 1 : playbackIndex - 1;
-    setPlaybackIndex(prevIndex);
-    if (playbackQueue.length === 0) setPlaybackQueue(playlist);
+    setPlaybackIndex(prevIdx);
     resetPlaybackTime();
     setIsPlaying(true);
-    const prevSong = activeQueue[prevIndex];
+    
+    const prevSong = playbackQueue[prevIdx];
     if (audioRef.current && prevSong) {
       audioRef.current.src = prevSong.url;
       audioRef.current.play().catch(err => console.log(err));
@@ -699,6 +714,7 @@ export default function App() {
       }
       return;
     }
+    
     if (userQueue.length > 0) {
       const nextSong = userQueue[0];
       setUserQueue(prev => prev.slice(1));
@@ -711,21 +727,19 @@ export default function App() {
       }
       return;
     }
-    const activeQueue = playbackQueue.length > 0 ? playbackQueue : playlist;
-    if (playMode === "order" && playbackIndex === activeQueue.length - 1) {
+    
+    if (upcomingSourceList.length > 0) {
+      const nextIdx = upcomingSourceList[0].originalIndex;
+      setQueueCurrentTrack(null);
+      setPlaybackIndex(nextIdx);
+      resetPlaybackTime();
+      setIsPlaying(true);
+      if (audioRef.current && playbackQueue[nextIdx]) {
+        audioRef.current.src = playbackQueue[nextIdx].url;
+        audioRef.current.play().catch(err => console.log(err));
+      }
+    } else {
       setIsPlaying(false);
-      return;
-    }
-    let nextIdx = playMode === "shuffle" ? getShuffleIndex(activeQueue.length, playbackIndex) : (playbackIndex + 1) % activeQueue.length;
-    setQueueCurrentTrack(null);
-    setPlaybackIndex(nextIdx);
-    if (playbackQueue.length === 0) setPlaybackQueue(playlist);
-    resetPlaybackTime();
-    setIsPlaying(true);
-    const nextSong = activeQueue[nextIdx];
-    if (audioRef.current && nextSong) {
-      audioRef.current.src = nextSong.url;
-      audioRef.current.play().catch(err => console.log(err));
     }
   };
 
@@ -843,7 +857,6 @@ export default function App() {
 
   // ── QUEUE BLOCK ───────────────────────────────────────────────────────────
   const renderQueueBlock = (isMobile) => {
-    const upcomingList = playbackQueue.slice(playbackIndex + 1);
     return (
       <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", overflowY: "auto", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
 
@@ -913,13 +926,14 @@ export default function App() {
           )}
         </div>
 
-        {/* NEXT FROM SOURCE */}
+        {/* NEXT FROM SOURCE - Refined via upcomingSourceList */}
         <div>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next From: {playbackSourceName}</h4>
-          {upcomingList.length > 0 ? (
+          {upcomingSourceList.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {upcomingList.map((song, uIdx) => {
-                const actualIndex = playbackIndex + 1 + uIdx;
+              {upcomingSourceList.map((item, uIdx) => {
+                const song = item.track;
+                const actualIndex = item.originalIndex;
                 return (
                   <div key={`next-${song.id}-${uIdx}`} onClick={() => handlePlaySong(actualIndex, playbackQueue, playbackSourceName)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "transparent", cursor: "pointer" }} className="hover-effect">
                     <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -981,28 +995,28 @@ export default function App() {
         .glow-slider::-webkit-slider-thumb { 
           -webkit-appearance: none; 
           appearance: none; 
-          width: 4px;
+          width: 2px;
           height: 6px;
-          border-radius: 4px;
+          border-radius: 0;
           background: #FFFFFF;
           cursor: pointer;
           box-shadow: 
-            0 0 10px 4px rgba(255, 255, 255, 1),
-            -12px 0 12px 4px rgba(255, 255, 255, 0.8),
-            -24px 0 16px 4px rgba(255, 255, 255, 0.4);
+            -2px 0 6px 2px rgba(255, 255, 255, 1),
+            -10px 0 10px 3px rgba(255, 255, 255, 0.8),
+            -20px 0 15px 4px rgba(255, 255, 255, 0.4);
           transition: transform 0.1s ease;
         }
         .glow-slider::-moz-range-thumb { 
-          width: 4px; 
+          width: 2px; 
           height: 6px; 
           border: none;
-          border-radius: 4px;
+          border-radius: 0;
           background: #FFFFFF;
           cursor: pointer;
           box-shadow: 
-            0 0 10px 4px rgba(255, 255, 255, 1),
-            -12px 0 12px 4px rgba(255, 255, 255, 0.8),
-            -24px 0 16px 4px rgba(255, 255, 255, 0.4);
+            -2px 0 6px 2px rgba(255, 255, 255, 1),
+            -10px 0 10px 3px rgba(255, 255, 255, 0.8),
+            -20px 0 15px 4px rgba(255, 255, 255, 0.4);
           transition: transform 0.1s ease;
         }
         
