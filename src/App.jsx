@@ -43,7 +43,6 @@ const parseLyrics = (lrcString) => {
 };
 
 // --- ANIMATION PRESENCE HOOK ---
-// Delays component unmount to allow CSS exit animations to finish
 function useAnimatedPresence(isOpen, data, delay = 300) {
   const [render, setRender] = useState(isOpen);
   const [renderData, setRenderData] = useState(data);
@@ -180,7 +179,6 @@ export default function App() {
   const otherRef = useRef(null);
   const isFirstRender = useRef(true);
 
-  // --- ANIMATED PRESENCE INSTANCES ---
   const { render: renderLoader, isClosing: loaderClosing } = useAnimatedPresence(isInitialLoad, null, 300);
   const { render: renderUpload, isClosing: uploadClosing } = useAnimatedPresence(showUploadModal, null, 300);
   const { render: renderPlaylistModal, isClosing: playlistModalClosing } = useAnimatedPresence(showPlaylistModal, null, 300);
@@ -339,7 +337,8 @@ export default function App() {
     const fetchData = async () => {
       const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true });
       if (songsData) setPlaylist(songsData);
-      const { data: playlistData } = await supabase.from("playlists").select("*").eq("user_id", session.user.id).order("created_at", { ascending: true });
+      // FIX: Properly fetch nested poster URLs for the playlist sidebars
+      const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) setUserPlaylists(playlistData);
       setIsInitialLoad(false);
     };
@@ -453,7 +452,7 @@ export default function App() {
     if (isPlaying) {
       interval = setInterval(() => {
         handleTimeUpdateRef.current();
-      }, 200); 
+      }, 100); 
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
@@ -711,13 +710,6 @@ export default function App() {
   const cyclePlayMode = () => {
     const idx = PLAY_MODES.indexOf(playMode);
     setPlayMode(PLAY_MODES[(idx + 1) % PLAY_MODES.length]);
-  };
-
-  const getShuffleIndex = (len, currentIdx) => {
-    if (len <= 1) return 0;
-    let r = currentIdx;
-    while (r === currentIdx) r = Math.floor(Math.random() * len);
-    return r;
   };
 
   const handleNext = (e) => {
@@ -991,9 +983,7 @@ export default function App() {
             </div>
           )}
           {userQueue.length > 0 && (
-            <p style={{ margin: "8px 0 0 0", fontSize: "11px", color: "rgba(255,255,255,0.3)", fontStyle: "italic" }}>
-              Drag <GripVertical size={10} style={{ verticalAlign: "middle" }} /> to reorder · Tap a song to play it now
-            </p>
+            <p style={{ margin: "8px 0 0 0", fontSize: "11px", color: "rgba(255,255,255,0.3)", fontStyle: "italic" }}>Drag <GripVertical size={10} style={{ verticalAlign: "middle" }} /> to reorder · Tap a song to play it now</p>
           )}
         </div>
 
@@ -1512,14 +1502,18 @@ export default function App() {
             {currentTrack.poster_url && (
               <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(50px) brightness(1) saturate(100%)", opacity: 0.35, zIndex: 0, pointerEvents: "none" }} />
             )}
+            
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
+              {/* ARTWORK / DYNAMIC PLAYER VIEW */}
               <div style={{ width: "100%", flex: 1, minHeight: 0, marginBottom: "20px", display: "flex", flexDirection: "column" }}>
-                <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)" }}>
+                <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                     {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : (currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>)}
                   </div>
                 </div>
               </div>
+              
+              {/* TRACK INFO & SECONDARY ACTIONS */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexShrink: 0 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
@@ -1538,6 +1532,8 @@ export default function App() {
                   ))}
                 </div>
               </div>
+              
+              {/* PRIMARY CONTROLS & PROGRESS */}
               <div style={{ marginTop: "auto", paddingBottom: "0px", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
