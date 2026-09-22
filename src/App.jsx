@@ -347,8 +347,6 @@ export default function App() {
   }, [isPlaying, showMixer, currentTrack, stemsBroken]);
 
   // ── SMOOTH HIGH-FPS TIME UPDATE ───────────────────────────────────────────
-  // Use a fast interval to grab currentTime instead of relying on the slow HTML5 onTimeUpdate
-  // This completely eliminates the "jumpy" progress bar visually.
   const handleTimeUpdateRef = useRef();
   useEffect(() => {
     handleTimeUpdateRef.current = () => {
@@ -389,7 +387,7 @@ export default function App() {
     if (isPlaying) {
       interval = setInterval(() => {
         handleTimeUpdateRef.current();
-      }, 100); // 100ms interval for ultra-smooth rendering
+      }, 100); 
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
@@ -778,7 +776,7 @@ export default function App() {
     );
   };
 
-  // ── MIXER BLOCK (unchanged) ───────────────────────────────────────────────
+  // ── MIXER BLOCK ───────────────────────────────────────────────
   const renderMixerBlock = (isMobile) => (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
       <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
@@ -978,8 +976,8 @@ export default function App() {
         .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
         .eq-bar { width: 3px; height: 14px; background-color: ${COLORS.spotifyGreen}; border-radius: 3px; animation: bounceEq 1s infinite ease-in-out; transform-origin: bottom; }
         .glow-slider { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 6px; outline: none; cursor: pointer; }
-        .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 8px; height: 8px; border-radius: 50%; background: #FFFFFF; cursor: pointer; box-shadow: 0 0 12px 6px rgba(255, 255, 255, 0.6); transition: transform 0.1s ease; }
-        .glow-slider::-moz-range-thumb { width: 8px; height: 8px; border: none; border-radius: 50%; background: #FFFFFF; cursor: pointer; box-shadow: 0 0 12px 6px rgba(255, 255, 255, 0.6); transition: transform 0.1s ease; }
+        .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 4px; height: 6px; border-radius: 4px; background: #FFFFFF; cursor: pointer; box-shadow: 0 0 10px 4px rgba(255, 255, 255, 1), -12px 0 12px 4px rgba(255, 255, 255, 0.8), -24px 0 16px 4px rgba(255, 255, 255, 0.4); }
+        .glow-slider::-moz-range-thumb { width: 4px; height: 6px; border: none; border-radius: 4px; background: #FFFFFF; cursor: pointer; box-shadow: 0 0 10px 4px rgba(255, 255, 255, 1), -12px 0 12px 4px rgba(255, 255, 255, 0.8), -24px 0 16px 4px rgba(255, 255, 255, 0.4); }
         .stem-fader { -webkit-appearance: none; appearance: none; outline: none; cursor: pointer; }
         .stem-fader::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
         .stem-fader::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
@@ -1245,8 +1243,8 @@ export default function App() {
                             {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || "—"}</span>}
                             {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at)}</span>}
                             <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "4px", flexShrink: 0 }}>
-                              <button title="Add to Queue" onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><ListPlus size={18} /></button>
-                              <button title="Remove from playlist" onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect"><Trash2 size={18} /></button>
+                              <button title="Add to Queue" onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} /></button>
+                              <button title="Remove from playlist" onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} /></button>
                               {isSelected && isPlaying && (
                                 <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
                                   <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
