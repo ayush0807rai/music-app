@@ -843,6 +843,7 @@ export default function App() {
                 <div
                   key={`queue-${song.id}-${qIndex}`}
                   ref={el => { queueItemEls.current[qIndex] = el; }}
+                  /* ── Desktop HTML5 drag-and-drop ── */
                   draggable
                   onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDraggedQueueIndex(qIndex); }}
                   onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverQueueIndex(qIndex); }}
@@ -877,8 +878,8 @@ export default function App() {
                     {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
                   </div>
 
-                  {/* Title / Artist – tap to play now */}
-                  <div onClick={(e) => playFromQueue(qIndex, e)} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
+                  {/* Title / Artist */}
+                  <div style={{ minWidth: 0, flex: 1 }} onClick={(e) => playFromQueue(qIndex, e)} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
                     <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
                     <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
                   </div>
@@ -1119,7 +1120,7 @@ export default function App() {
       {/* MAIN BODY */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", padding: isDesktop ? "12px" : "4px", gap: isDesktop ? "12px" : "0" }}>
 
-        {/* LEFT SIDEBAR */}
+        {/* LEFT SIDEBAR – switching playlist only changes the VIEW, not playback */}
         {isDesktop && (
           <div style={{ width: "260px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
             <div>
@@ -1275,7 +1276,7 @@ export default function App() {
                         {/* ACTION BUTTONS — always visible regardless of playlist count or screen size */}
                         <div style={{ display: "flex", alignItems: "center", gap: isDesktop ? "12px" : "8px", flexShrink: 0 }}>
                           <button title="Add to Queue" onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><ListPlus size={18} /></button>
-                          {/* FIX: Always rendered — modal handles empty-playlist case gracefully */}
+                          {/* FIX: FolderPlus always rendered; modal handles the empty-playlist case gracefully */}
                           <button title="Add to Playlist" onClick={e => { e.stopPropagation(); setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><FolderPlus size={18} /></button>
                           {isSelected && isPlaying && (
                             <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px" }}>
