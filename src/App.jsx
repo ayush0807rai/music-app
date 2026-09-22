@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, SlidersHorizontal, ArrowUpDown
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, SlidersHorizontal
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -9,7 +9,7 @@ import Auth from "./Auth";
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 
 const SORT_CYCLE = [null, "title", "artist", "album"];
-const SORT_LABELS = { null: "Default", title: "Title", artist: "Artist", album: "Album" };
+const SORT_LABELS = { default: "Default", title: "Title", artist: "Artist", album: "Album" };
 
 const COLORS = {
   bgBase: "#F3F0E6",
@@ -439,7 +439,7 @@ export default function App() {
   }, [activeLyricIndex]);
 
   // -----------------------------------------------------------------------
-  // ASYNCHRONOUS WORKER QUEUE - STEM GENERATION (Untouched)
+  // ASYNCHRONOUS WORKER QUEUE - STEM GENERATION
   // -----------------------------------------------------------------------
   const handleGenerateStemsClick = async () => {
     if (!currentTrack) return;
@@ -462,7 +462,6 @@ export default function App() {
         setPlaylistSongs(prev => prev.map(s => s.id === currentTrack.id ? updatedTrack : s));
         if (queueCurrentTrack?.id === currentTrack.id) setQueueCurrentTrack(updatedTrack);
         
-        // Also update playbackQueue to seamlessly inject stems without stopping
         setPlaybackQueue(prev => prev.map(s => s.id === currentTrack.id ? updatedTrack : s));
         
         setStemsBroken(false);
@@ -556,27 +555,15 @@ export default function App() {
     setUserQueue((prev) => prev.filter((_, i) => i !== index));
     setQueueCurrentTrack(song);
     setIsPlaying(true);
-    
-    // Auto-sync src to ensure background play works immediately
-    if (audioRef.current) {
-        audioRef.current.src = song.url;
-        audioRef.current.play().catch(e => console.log(e));
-    }
   };
 
-  // Main playback trigger: Decouples view logic from playback queue
+  // Main playback trigger
   const handlePlaySong = (index, listToSet, sourceName) => {
     setPlaybackQueue(listToSet);
     setPlaybackIndex(index);
     setPlaybackSourceName(sourceName);
     setQueueCurrentTrack(null);
     setIsPlaying(true);
-    
-    // Auto-sync src to ensure immediate playback and trusted browser context
-    if (audioRef.current && listToSet[index]) {
-        audioRef.current.src = listToSet[index].url;
-        audioRef.current.play().catch(e => console.log(e));
-    }
   };
 
   const handleUploadSubmit = async (e) => {
@@ -647,64 +634,48 @@ export default function App() {
   const handleNext = (e) => {
     if (e) e.stopPropagation();
     
-    // 1. Play from manual user queue first
     if (userQueue.length > 0) {
       const nextSong = userQueue[0];
       setUserQueue(prev => prev.slice(1));
       setQueueCurrentTrack(nextSong);
       setIsPlaying(true);
-      
-      if (audioRef.current) {
-          audioRef.current.src = nextSong.url;
-          audioRef.current.play().catch(e => console.log(e));
-      }
       return;
     }
     
-    if (playbackQueue.length === 0) return;
+    const activeQueue = playbackQueue.length > 0 ? playbackQueue : playlist;
+    if (activeQueue.length === 0) return;
     
-    // 2. Play from auto queue
     let nextIdx;
     if (playMode === "shuffle") {
-      nextIdx = Math.floor(Math.random() * playbackQueue.length);
+      nextIdx = Math.floor(Math.random() * activeQueue.length);
     } else {
-      nextIdx = (playbackIndex + 1) % playbackQueue.length;
+      nextIdx = (playbackIndex + 1) % activeQueue.length;
     }
 
     setQueueCurrentTrack(null);
     setPlaybackIndex(nextIdx);
+    if (playbackQueue.length === 0) setPlaybackQueue(playlist);
     setIsPlaying(true);
-    
-    const nextTrack = playbackQueue[nextIdx];
-    if (audioRef.current && nextTrack) {
-        audioRef.current.src = nextTrack.url;
-        audioRef.current.play().catch(e => console.log(e));
-    }
   };
 
   const handlePrev = (e) => {
     if (e) e.stopPropagation();
-    if (playbackQueue.length === 0) return;
     
-    // Restart song if > 3 seconds in
+    const activeQueue = playbackQueue.length > 0 ? playbackQueue : playlist;
+    if (activeQueue.length === 0) return;
+    
     if (audioRef.current && audioRef.current.currentTime > 3) { 
         audioRef.current.currentTime = 0; 
         return; 
     }
     
     setQueueCurrentTrack(null);
-    const prevIndex = playbackIndex === 0 ? playbackQueue.length - 1 : playbackIndex - 1;
+    const prevIndex = playbackIndex === 0 ? activeQueue.length - 1 : playbackIndex - 1;
     setPlaybackIndex(prevIndex);
+    if (playbackQueue.length === 0) setPlaybackQueue(playlist);
     setIsPlaying(true);
-    
-    const nextTrack = playbackQueue[prevIndex];
-    if (audioRef.current && nextTrack) {
-        audioRef.current.src = nextTrack.url;
-        audioRef.current.play().catch(e => console.log(e));
-    }
   };
 
-  // SYNCHRONOUS ONENDED HANDLER FOR BACKGROUND PLAY CONTINUITY
   const handleTrackEnded = () => {
     if (playMode === "repeat-one") {
       if (audioRef.current) {
@@ -719,34 +690,27 @@ export default function App() {
       setUserQueue(prev => prev.slice(1));
       setQueueCurrentTrack(nextSong);
       setIsPlaying(true);
-      if (audioRef.current) {
-          audioRef.current.src = nextSong.url;
-          audioRef.current.play().catch(e => console.log(e));
-      }
       return;
     }
 
-    if (playMode === "order" && playbackIndex === playbackQueue.length - 1) {
+    const activeQueue = playbackQueue.length > 0 ? playbackQueue : playlist;
+    
+    if (playMode === "order" && playbackIndex === activeQueue.length - 1) {
       setIsPlaying(false);
       return;
     }
 
     let nextIdx;
     if (playMode === "shuffle") {
-      nextIdx = Math.floor(Math.random() * playbackQueue.length);
+      nextIdx = Math.floor(Math.random() * activeQueue.length);
     } else {
-      nextIdx = (playbackIndex + 1) % playbackQueue.length;
+      nextIdx = (playbackIndex + 1) % activeQueue.length;
     }
 
     setQueueCurrentTrack(null);
     setPlaybackIndex(nextIdx);
+    if (playbackQueue.length === 0) setPlaybackQueue(playlist);
     setIsPlaying(true);
-
-    const nextTrack = playbackQueue[nextIdx];
-    if (audioRef.current && nextTrack) {
-        audioRef.current.src = nextTrack.url;
-        audioRef.current.play().catch(e => console.log(e));
-    }
   };
 
   const toggleMute = () => {
@@ -789,32 +753,6 @@ export default function App() {
       case "order": default: return <ArrowRight size={20} color={iconColor} />;
     }
   };
-
-  const SortButton = ({ isMobile }) => (
-    <button
-      onClick={cycleSortKey}
-      className="hover-effect"
-      title={`Sort: ${SORT_LABELS[currentSortKey] ?? "Default"}`}
-      style={{
-        background: currentSortKey ? COLORS.primary : "transparent",
-        color: currentSortKey ? COLORS.bgPanel : COLORS.primary,
-        border: `1px solid ${COLORS.primary}`,
-        borderRadius: "20px",
-        padding: isMobile ? "6px 12px" : "6px 14px",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        fontSize: "12px",
-        fontWeight: "bold",
-        transition: "all 0.2s ease",
-        flexShrink: 0
-      }}
-    >
-      <ArrowUpDown size={14} />
-      {!isMobile && <span>{currentSortKey ? `By ${SORT_LABELS[currentSortKey]}` : "Sort"}</span>}
-    </button>
-  );
 
   const renderMixerBlock = (isMobile) => (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
@@ -936,13 +874,11 @@ export default function App() {
   );
 
   const renderQueueBlock = (isMobile) => {
-    // Upcoming list strictly tied to the playback array, completely ignoring viewed lists
     const upcomingList = playbackQueue.slice(playbackIndex + 1);
 
     return (
       <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", overflowY: "auto", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
         
-        {/* NOW PLAYING SECTION */}
         <div style={{ marginBottom: "22px" }}>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Now Playing</h4>
           {currentTrack ? (
@@ -965,7 +901,6 @@ export default function App() {
           ) : null}
         </div>
 
-        {/* CUSTOM QUEUE SECTION */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
             <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>
@@ -1000,7 +935,6 @@ export default function App() {
           )}
         </div>
 
-        {/* NEXT FROM SOURCE SECTION */}
         <div>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next From: {playbackSourceName}</h4>
           {upcomingList.length > 0 ? (
@@ -1012,10 +946,6 @@ export default function App() {
                       setQueueCurrentTrack(null);
                       setPlaybackIndex(actualIndex);
                       setIsPlaying(true);
-                      if (audioRef.current) {
-                          audioRef.current.src = playbackQueue[actualIndex].url;
-                          audioRef.current.play().catch(e => console.log(e));
-                      }
                   }} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "transparent", cursor: "pointer" }} className="hover-effect">
                     <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
@@ -1162,29 +1092,30 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
       `}</style>
 
-      {/* BACKGROUND AUDIO TAGS */}
+      {/* AUDIO TAGS */}
       <audio
         ref={audioRef}
         src={currentTrack?.url || undefined}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onEnded={handleTrackEnded}
+        autoPlay={isPlaying}
         preload="auto"
         playsInline
       />
-      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} />
-      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_drums && setStemsBroken(true)} />
-      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_bass && setStemsBroken(true)} />
-      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_other && setStemsBroken(true)} />
+      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} autoPlay={isPlaying && showMixer && !stemsBroken} playsInline preload="auto" onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} />
+      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} autoPlay={isPlaying && showMixer && !stemsBroken} playsInline preload="auto" onError={() => currentTrack?.stem_drums && setStemsBroken(true)} />
+      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} autoPlay={isPlaying && showMixer && !stemsBroken} playsInline preload="auto" onError={() => currentTrack?.stem_bass && setStemsBroken(true)} />
+      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} autoPlay={isPlaying && showMixer && !stemsBroken} playsInline preload="auto" onError={() => currentTrack?.stem_other && setStemsBroken(true)} />
 
-      {/* QUEUE TOAST NOTIFICATION */}
+      {/* QUEUE TOAST */}
       {queueToast && (
         <div className="toast-enter" style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           {queueToast}
         </div>
       )}
 
-      {/* GLOBAL EXIT WARNING TOAST */}
+      {/* EXIT TOAST */}
       {showExitToast && (
         <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           Press back again to exit
@@ -1382,10 +1313,15 @@ export default function App() {
                     <button onClick={() => handlePlaySong(0, displayedSongs, activePlaylistObj?.name || "Playlist")} className="hover-effect" style={{ width: "64px", height: "64px", borderRadius: "50%", background: COLORS.primary, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)" }}>
                       <Play size={28} fill={COLORS.bgPanel} color={COLORS.bgPanel} style={{ marginLeft: "4px" }} />
                     </button>
-                    <SortButton isMobile={!isDesktop} />
+                    
+                    <button onClick={cycleSortKey} className="hover-effect" style={{ background: currentSortKey ? COLORS.primary : "transparent", color: currentSortKey ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: !isDesktop ? "6px 12px" : "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", transition: "all 0.2s ease", flexShrink: 0 }}>
+                      <ListMusic size={14} />
+                      {isDesktop && <span>{currentSortKey ? `By ${SORT_LABELS[currentSortKey || "default"]}` : "Sort"}</span>}
+                    </button>
+
                     {currentSortKey && (
                       <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
-                        Sorted by {SORT_LABELS[currentSortKey]} · <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, [viewedPlaylistId]: null }))}>Clear</span>
+                        Sorted by {SORT_LABELS[currentSortKey || "default"]} · <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, [viewedPlaylistId]: null }))}>Clear</span>
                       </span>
                     )}
                   </div>
@@ -1447,10 +1383,15 @@ export default function App() {
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
                   <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : "0", color: COLORS.primary }}>Global Library ({playlist.length})</h2>
-                  <SortButton isMobile={!isDesktop} />
+                  
+                  <button onClick={cycleSortKey} className="hover-effect" style={{ background: currentSortKey ? COLORS.primary : "transparent", color: currentSortKey ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: !isDesktop ? "6px 12px" : "6px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: "bold", transition: "all 0.2s ease", flexShrink: 0 }}>
+                    <ListMusic size={14} />
+                    {isDesktop && <span>{currentSortKey ? `By ${SORT_LABELS[currentSortKey || "default"]}` : "Sort"}</span>}
+                  </button>
+
                   {currentSortKey && (
                     <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
-                      Sorted by {SORT_LABELS[currentSortKey]} · <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
+                      Sorted by {SORT_LABELS[currentSortKey || "default"]} · <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
                     </span>
                   )}
                 </div>
