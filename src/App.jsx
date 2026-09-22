@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, SlidersHorizontal, ArrowUpDown, Search, GripVertical
@@ -134,7 +134,6 @@ export default function App() {
   const otherRef = useRef(null);
   const isFirstRender = useRef(true);
 
-  // ── DERIVED DATA ──────────────────────────────────────────────────────────
   const rawViewedSongs = viewedPlaylistId === null ? playlist : playlistSongs;
   const currentSortKey = sortOrders[viewedPlaylistId ?? "global"] ?? null;
 
@@ -156,7 +155,6 @@ export default function App() {
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
-  // ── DYNAMIC QUEUE LIST (Responds to Play Mode) ────────────────────────────
   const [upcomingSourceList, setUpcomingSourceList] = useState([]);
 
   useEffect(() => {
@@ -164,7 +162,6 @@ export default function App() {
       setUpcomingSourceList([]);
       return;
     }
-
     if (playMode === 'order') {
       const list = playbackQueue.map((track, i) => ({ track, originalIndex: i })).slice(playbackIndex + 1);
       setUpcomingSourceList(list);
@@ -176,7 +173,6 @@ export default function App() {
       setUpcomingSourceList(list);
     } else if (playMode === 'shuffle') {
       const others = playbackQueue.map((track, i) => ({ track, originalIndex: i })).filter(obj => obj.originalIndex !== playbackIndex);
-      // Stable Fisher-Yates shuffle
       for (let i = others.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [others[i], others[j]] = [others[j], others[i]];
@@ -185,7 +181,6 @@ export default function App() {
     }
   }, [playbackQueue, playbackIndex, playMode]);
 
-  // ── HELPERS ───────────────────────────────────────────────────────────────
   const handleSwitchPlaylist = (playlistId) => {
     setViewedPlaylistId(playlistId);
     setSearchQuery("");
@@ -338,7 +333,7 @@ export default function App() {
     const syncPlayState = async () => {
       if (isPlaying && currentTrack) {
         if (audioRef.current?.paused) audioRef.current.play().catch(e => console.log("play err:", e));
-        if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
+        if (currentTrack?.stem_vocals && !stemsBroken) {
           vocalsRef.current?.play().catch(e => e);
           drumsRef.current?.play().catch(e => e);
           bassRef.current?.play().catch(e => e);
@@ -353,7 +348,7 @@ export default function App() {
       }
     };
     syncPlayState();
-  }, [isPlaying, showMixer, currentTrack, stemsBroken]);
+  }, [isPlaying, currentTrack, stemsBroken]);
 
   const handleTimeUpdateRef = useRef();
   useEffect(() => {
@@ -363,7 +358,7 @@ export default function App() {
       setCurrentTime(time);
       if (Math.floor(time) % 2 === 0) localStorage.setItem("euphony_current_time", time);
 
-      if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
+      if (currentTrack?.stem_vocals && !stemsBroken) {
         const syncStem = (ref) => {
           if (ref.current && Math.abs(ref.current.currentTime - time) > 0.3) ref.current.currentTime = time;
         };
@@ -415,7 +410,7 @@ export default function App() {
     if (pendingAutoPlayRef.current) {
       pendingAutoPlayRef.current = false;
       audioRef.current?.play().catch(e => console.log("canplay-play err:", e));
-      if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
+      if (currentTrack?.stem_vocals && !stemsBroken) {
         vocalsRef.current?.play().catch(e => e);
         drumsRef.current?.play().catch(e => e);
         bassRef.current?.play().catch(e => e);
@@ -447,7 +442,6 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
-  // ── STEM GENERATION ────────────────────────────────────
   const handleGenerateStemsClick = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
@@ -497,7 +491,6 @@ export default function App() {
 
   const triggerToast = (msg) => { setQueueToast(msg); setTimeout(() => setQueueToast(""), 2200); };
 
-  // ── QUEUE HANDLERS ────────────────────────────────────────────────────────
   const addToQueue = (song, e) => { if (e) e.stopPropagation(); setUserQueue(prev => [...prev, song]); triggerToast(`Added "${song.title}" to Queue`); };
   const removeFromQueue = (index, e) => { if (e) e.stopPropagation(); setUserQueue(prev => prev.filter((_, i) => i !== index)); };
   const clearQueue = (e) => { if (e) e.stopPropagation(); setUserQueue([]); };
@@ -580,7 +573,6 @@ export default function App() {
     }
   };
 
-  // ── UPLOAD & PLAYLIST CRUD ────────────────────────────────────────────────
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist) return alert("Please fill in required fields.");
@@ -644,11 +636,9 @@ export default function App() {
     setPlayMode(PLAY_MODES[(idx + 1) % PLAY_MODES.length]);
   };
 
-  // ── ALIGNED PLAYBACK ADVANCEMENT ──────────────────────────────────────────
   const handleNext = (e) => {
     if (e) e.stopPropagation();
     
-    // Play user queue first
     if (userQueue.length > 0) {
       const nextSong = userQueue[0];
       setUserQueue(prev => prev.slice(1));
@@ -662,7 +652,6 @@ export default function App() {
       return;
     }
     
-    // Play upcoming source queue 
     if (upcomingSourceList.length > 0) {
       const nextIdx = upcomingSourceList[0].originalIndex;
       setQueueCurrentTrack(null);
@@ -674,7 +663,6 @@ export default function App() {
         audioRef.current.play().catch(err => console.log(err));
       }
     } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
-      // Loop single song if it's the only one left and loop is on
       if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); }
     } else {
       setIsPlaying(false);
@@ -685,14 +673,13 @@ export default function App() {
     if (e) e.stopPropagation();
     if (playbackQueue.length === 0) return;
     
-    // Restart song if played more than 3 seconds
     if (audioRef.current && audioRef.current.currentTime > 3) { 
         audioRef.current.currentTime = 0; 
         return; 
     }
     
     let prevIdx = playbackIndex - 1;
-    if (prevIdx < 0) prevIdx = playbackQueue.length - 1; // Wrap around for previous
+    if (prevIdx < 0) prevIdx = playbackQueue.length - 1; 
     
     setQueueCurrentTrack(null);
     setPlaybackIndex(prevIdx);
@@ -785,7 +772,6 @@ export default function App() {
     );
   };
 
-  // ── MIXER BLOCK ───────────────────────────────────────────────
   const renderMixerBlock = (isMobile) => (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
       <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
@@ -855,12 +841,9 @@ export default function App() {
     </div>
   );
 
-  // ── QUEUE BLOCK ───────────────────────────────────────────────────────────
   const renderQueueBlock = (isMobile) => {
     return (
       <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", overflowY: "auto", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
-
-        {/* NOW PLAYING */}
         <div style={{ marginBottom: "22px" }}>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Now Playing</h4>
           {currentTrack && (
@@ -883,7 +866,6 @@ export default function App() {
           )}
         </div>
 
-        {/* USER QUEUE – drag-to-reorder */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
             <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>
@@ -926,7 +908,6 @@ export default function App() {
           )}
         </div>
 
-        {/* NEXT FROM SOURCE - Refined via upcomingSourceList */}
         <div>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next From: {playbackSourceName}</h4>
           {upcomingSourceList.length > 0 ? (
@@ -1029,34 +1010,19 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
       `}</style>
 
-      {/* ── AUDIO ELEMENTS ── */}
-      <audio
-        ref={audioRef}
-        src={currentTrack?.url || undefined}
-        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
-        onEnded={handleTrackEnded}
-        onCanPlay={handleCanPlay}
-        preload="auto"
-        playsInline
-      />
+      <audio ref={audioRef} src={currentTrack?.url || undefined} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} onCanPlay={handleCanPlay} preload="auto" playsInline />
       <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} />
       <audio ref={drumsRef}  src={currentTrack?.stem_drums  || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} />
       <audio ref={bassRef}   src={currentTrack?.stem_bass   || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} />
       <audio ref={otherRef}  src={currentTrack?.stem_other  || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_other  && setStemsBroken(true)} />
 
-      {/* TOASTS */}
       {queueToast && (
-        <div className="toast-enter" style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
-          {queueToast}
-        </div>
+        <div className="toast-enter" style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>{queueToast}</div>
       )}
       {showExitToast && (
-        <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>
-          Press back again to exit
-        </div>
+        <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>Press back again to exit</div>
       )}
 
-      {/* OVERLAY LOADER */}
       {isInitialLoad && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, zIndex: 9999, background: COLORS.bgBase, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: COLORS.primary }}>
           <Loader2 className="animate-spin" size={48} />
@@ -1064,7 +1030,6 @@ export default function App() {
         </div>
       )}
 
-      {/* UPLOAD MODAL */}
       {showUploadModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowUploadModal(false)}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={e => e.stopPropagation()}>
@@ -1091,7 +1056,6 @@ export default function App() {
         </div>
       )}
 
-      {/* CREATE PLAYLIST MODAL */}
       {showPlaylistModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowPlaylistModal(false)}>
           <div className="pop-enter" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={e => e.stopPropagation()}>
@@ -1105,7 +1069,6 @@ export default function App() {
         </div>
       )}
 
-      {/* SLEEP TIMER MODAL */}
       {showSleepTimerModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={e => e.stopPropagation()}>
@@ -1126,7 +1089,6 @@ export default function App() {
         </div>
       )}
 
-      {/* ADD TO PLAYLIST MODAL */}
       {songForPlaylistModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={e => e.stopPropagation()}>
@@ -1379,15 +1341,19 @@ export default function App() {
             {currentTrack.poster_url && (
               <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(50px) brightness(1) saturate(100%)", opacity: 0.35, zIndex: 0, pointerEvents: "none" }} />
             )}
+            
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
-              <div style={{ width: "100%", marginBottom: "20px", flexShrink: 0 }}>
-                <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)" }}>
+              {/* ARTWORK / DYNAMIC PLAYER VIEW */}
+              <div style={{ width: "100%", flex: 1, minHeight: 0, marginBottom: "20px", display: "flex", flexDirection: "column" }}>
+                <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
                   <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                     {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : (currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>)}
                   </div>
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              
+              {/* TRACK INFO & SECONDARY ACTIONS */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexShrink: 0 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
                   <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
@@ -1405,7 +1371,9 @@ export default function App() {
                   ))}
                 </div>
               </div>
-              <div style={{ marginTop: "auto", paddingBottom: "16px" }}>
+              
+              {/* PRIMARY CONTROLS & PROGRESS */}
+              <div style={{ marginTop: "auto", paddingBottom: "0px", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
                   <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)` }} />
