@@ -27,11 +27,24 @@ export default function Auth() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#121212", color: "#fff", fontFamily: "sans-serif" }}>
       <div style={{ background: "#181818", padding: "40px", borderRadius: "16px", width: "100%", maxWidth: "350px", boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
         
-        {/* New App Branding */}
         <h1 style={{ textAlign: "center", margin: "0 0 8px 0", color: "#1DB954", fontSize: "28px" }}>Euphony</h1>
         <h2 style={{ textAlign: "center", marginBottom: "24px", fontSize: "16px", color: "#a0a0a0", fontWeight: "normal" }}>
           {isLogin ? "Welcome Back" : "Create Account"}
@@ -59,6 +72,21 @@ export default function Auth() {
             {isLogin ? "Log In" : "Sign Up"}
           </button>
         </form>
+
+        <div style={{ display: "flex", alignItems: "center", margin: "20px 0" }}>
+          <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
+          <span style={{ margin: "0 10px", color: "#666", fontSize: "12px" }}>OR</span>
+          <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
+        </div>
+
+        <button 
+          onClick={handleGoogleLogin} 
+          style={{ width: "100%", padding: "12px", borderRadius: "8px", background: "white", color: "#000", fontWeight: "bold", border: "none", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "10px" }}
+        >
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: "18px", height: "18px" }} />
+          Continue with Google
+        </button>
+
         <p style={{ textAlign: "center", marginTop: "20px", color: "#a0a0a0", fontSize: "14px", cursor: "pointer" }} onClick={() => setIsLogin(!isLogin)}>
           {isLogin ? "Need an account? Sign up" : "Already have an account? Log in"}
         </p>
