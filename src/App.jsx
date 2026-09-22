@@ -335,7 +335,8 @@ export default function App() {
   useEffect(() => {
     if (!session?.user?.id) return;
     const fetchData = async () => {
-      const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true });
+      // Future-proofing: Limit to 1000 songs so a massive influx of user uploads doesn't crash the browser
+      const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
       if (songsData) setPlaylist(songsData);
       const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) setUserPlaylists(playlistData);
@@ -647,9 +648,9 @@ export default function App() {
     setIsUploading(true);
     try {
       const fileExt = uploadFile.name.split('.').pop().toLowerCase();
-      // Future-proofing: Sanitize filenames to prevent URL encoding issues
+      // Future-proofing: Sanitize filenames and prepend unique user ID to prevent global file collisions
       const cleanTitle = uploadTitle.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-      const fileName = `${Date.now()}-${cleanTitle}.${fileExt}`;
+      const fileName = `${session.user.id}-${Date.now()}-${cleanTitle}.${fileExt}`;
       
       const { error: audioError } = await supabase.storage.from("songs").upload(fileName, uploadFile, { cacheControl: "3600" });
       if (audioError) throw audioError;
@@ -658,7 +659,7 @@ export default function App() {
       let posterUrl = null;
       if (uploadPoster) {
         const posterExt = uploadPoster.name.split('.').pop().toLowerCase();
-        const posterName = `${Date.now()}-poster.${posterExt}`;
+        const posterName = `${session.user.id}-${Date.now()}-poster.${posterExt}`;
         const { error: posterError } = await supabase.storage.from("songs").upload(posterName, uploadPoster, { cacheControl: "3600" });
         if (posterError) throw posterError;
         posterUrl = supabase.storage.from("songs").getPublicUrl(posterName).data.publicUrl;
@@ -1308,7 +1309,7 @@ export default function App() {
           <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <FolderPlus size={16} color={COLORS.bgPanel} />{isDesktop && " New Playlist"}
           </button>
-          <button className="hover-effect" onClick={() => { localStorage.clear(); supabase.auth.signOut(); }} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+          <button className="hover-effect" onClick={() => { localStorage.removeItem("euphony_playlist_id"); localStorage.removeItem("euphony_current_time"); setViewedPlaylistId(null); setCurrentTime(0); supabase.auth.signOut(); }} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
             {isDesktop ? "Log Out" : <LogOut size={16} />}
           </button>
         </div>
