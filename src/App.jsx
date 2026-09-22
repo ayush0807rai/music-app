@@ -1,21 +1,24 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, SlidersHorizontal
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, SlidersHorizontal, ArrowUpDown
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 
+const SORT_CYCLE = [null, "title", "artist", "album"];
+const SORT_LABELS = { null: "Default", title: "Title", artist: "Artist", album: "Album" };
+
 const COLORS = {
-  bgBase: "#F3F0E6",       
-  bgPanel: "#FAFAF7",      
-  primary: "#1A2B4C",      
-  textMain: "#1A2B4C",     
-  textMuted: "#64748B",    
-  border: "rgba(26, 43, 76, 0.12)", 
-  hover: "rgba(26, 43, 76, 0.06)",  
+  bgBase: "#F3F0E6",
+  bgPanel: "#FAFAF7",
+  primary: "#1A2B4C",
+  textMain: "#1A2B4C",
+  textMuted: "#64748B",
+  border: "rgba(26, 43, 76, 0.12)",
+  hover: "rgba(26, 43, 76, 0.06)",
   spotifyGreen: "#1DB954"
 };
 
@@ -38,7 +41,7 @@ const parseLyrics = (lrcString) => {
       let wordMatch;
       let hasWords = false;
       wordRegex.lastIndex = 0;
-      
+
       while ((wordMatch = wordRegex.exec(rawText)) !== null) {
         hasWords = true;
         const wMins = parseInt(wordMatch[1], 10);
@@ -46,10 +49,10 @@ const parseLyrics = (lrcString) => {
         words.push({ time: wMins * 60 + wSecs, text: wordMatch[3].trim() });
       }
 
-      parsed.push({ 
-        time, 
-        text: rawText.replace(/<\d{2}:\d{2}(?:\.\d{2,3})?>/g, '').trim(), 
-        words: hasWords ? words : null 
+      parsed.push({
+        time,
+        text: rawText.replace(/<\d{2}:\d{2}(?:\.\d{2,3})?>/g, '').trim(),
+        words: hasWords ? words : null
       });
     }
   });
@@ -58,12 +61,12 @@ const parseLyrics = (lrcString) => {
 
 export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
-  
+
   const [currentTrackIndex, setCurrentTrackIndex] = useState(() => {
     const saved = localStorage.getItem("euphony_track_index");
     return saved ? parseInt(saved, 10) : 0;
   });
-  
+
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(() => {
     const saved = localStorage.getItem("euphony_playlist_id");
     return saved && saved !== "null" ? saved : null;
@@ -73,12 +76,12 @@ export default function App() {
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  
+
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [songForPlaylistModal, setSongForPlaylistModal] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  
+
   const [session, setSession] = useState(null);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
 
@@ -97,7 +100,7 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(0.8);
   const [playMode, setPlayMode] = useState("repeat-all");
-  
+
   const [showLyrics, setShowLyrics] = useState(false);
   const [parsedLyrics, setParsedLyrics] = useState([]);
   const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
@@ -112,6 +115,9 @@ export default function App() {
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
+  // FIX #6 – Sort state is keyed per playlist. Key = selectedPlaylistId ?? "global"
+  const [sortOrders, setSortOrders] = useState({});
+
   const [showMixer, setShowMixer] = useState(false);
   const [isGeneratingStems, setIsGeneratingStems] = useState(false);
   const [generationStatus, setGenerationStatus] = useState("");
@@ -121,6 +127,9 @@ export default function App() {
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
   const stateRefs = useRef({});
+
+  // FIX #1 – ref to signal onCanPlay that it should auto-start playback
+  const pendingAutoPlayRef = useRef(false);
 
   const audioRef = useRef(null);
   const vocalsRef = useRef(null);
@@ -133,6 +142,44 @@ export default function App() {
   const currentTrack = queueCurrentTrack || activeTrackList[currentTrackIndex] || activeTrackList[0];
   const activePlaylistObj = userPlaylists.find(p => p.id === selectedPlaylistId);
 
+  // -----------------------------------------------------------------------
+  // FIX #5 – Helper to switch the playlist VIEW without stopping playback.
+  // Preserves the currently playing song via queueCurrentTrack so the audio
+  // src doesn't change (React only changes src when currentTrack changes).
+  // -----------------------------------------------------------------------
+  const handleSwitchPlaylist = (playlistId) => {
+    // If a real song is playing and we're not already in queue mode, lock it
+    // so the src doesn't change when activeTrackList changes.
+    if (currentTrack && !queueCurrentTrack) {
+      setQueueCurrentTrack(currentTrack);
+    }
+    setSelectedPlaylistId(playlistId);
+    setCurrentTrackIndex(0);
+    // isPlaying is intentionally NOT changed – music keeps playing.
+  };
+
+  // -----------------------------------------------------------------------
+  // FIX #6 – Sorted display list helper. Returns items with their ORIGINAL
+  // index so that clicking plays from the correct position.
+  // -----------------------------------------------------------------------
+  const getSortedDisplayList = (list, sortKey) => {
+    const indexed = list.map((track, originalIndex) => ({ track, originalIndex }));
+    if (!sortKey) return indexed;
+    return [...indexed].sort((a, b) =>
+      (a.track[sortKey] || "").localeCompare(b.track[sortKey] || "")
+    );
+  };
+
+  const currentSortKey = sortOrders[selectedPlaylistId ?? "global"] ?? null;
+  const cycleSortKey = () => {
+    const key = selectedPlaylistId ?? "global";
+    const current = sortOrders[key] ?? null;
+    const idx = SORT_CYCLE.indexOf(current);
+    const next = SORT_CYCLE[(idx + 1) % SORT_CYCLE.length];
+    setSortOrders(prev => ({ ...prev, [key]: next }));
+  };
+
+  // Media Session
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -143,7 +190,6 @@ export default function App() {
           { src: currentTrack.poster_url || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }
         ]
       });
-
       navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
       navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
       navigator.mediaSession.setActionHandler('previoustrack', () => handlePrev());
@@ -151,6 +197,7 @@ export default function App() {
     }
   }, [currentTrack, activeTrackList, playMode, userQueue]);
 
+  // Sleep timer
   useEffect(() => {
     if (!sleepTimerTarget) return;
     const interval = setInterval(() => {
@@ -186,13 +233,13 @@ export default function App() {
       const { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, selectedPlaylistId, showQueue, showMixer } = stateRefs.current;
       let handled = false;
 
-      if (showUploadModal) { setShowUploadModal(false); handled = true; } 
-      else if (showPlaylistModal) { setShowPlaylistModal(false); handled = true; } 
-      else if (songForPlaylistModal) { setSongForPlaylistModal(null); handled = true; } 
-      else if (showSleepTimerModal) { setShowSleepTimerModal(false); handled = true; } 
+      if (showUploadModal) { setShowUploadModal(false); handled = true; }
+      else if (showPlaylistModal) { setShowPlaylistModal(false); handled = true; }
+      else if (songForPlaylistModal) { setSongForPlaylistModal(null); handled = true; }
+      else if (showSleepTimerModal) { setShowSleepTimerModal(false); handled = true; }
       else if (showMixer) { setShowMixer(false); handled = true; }
-      else if (showQueue) { setShowQueue(false); handled = true; } 
-      else if (isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; } 
+      else if (showQueue) { setShowQueue(false); handled = true; }
+      else if (isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; }
       else if (selectedPlaylistId !== null) { setSelectedPlaylistId(null); handled = true; }
 
       if (handled) {
@@ -204,7 +251,7 @@ export default function App() {
           exitWarningRef.current = true;
           setShowExitToast(true);
           window.history.pushState({ page: 'euphony' }, '', window.location.href);
-          setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500); 
+          setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500);
         } else {
           window.history.back();
         }
@@ -218,7 +265,7 @@ export default function App() {
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
     window.addEventListener("resize", handleResize);
-    
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsSessionLoaded(true);
@@ -228,7 +275,7 @@ export default function App() {
       if (event === 'SIGNED_OUT') setSession(null);
       else if (session) setSession(session);
     });
-    
+
     return () => {
       window.removeEventListener("resize", handleResize);
       subscription.unsubscribe();
@@ -238,7 +285,7 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("euphony_track_index", currentTrackIndex);
   }, [currentTrackIndex]);
-  
+
   useEffect(() => {
     if (selectedPlaylistId) localStorage.setItem("euphony_playlist_id", selectedPlaylistId);
     else localStorage.removeItem("euphony_playlist_id");
@@ -252,11 +299,11 @@ export default function App() {
 
       const { data: playlistData } = await supabase.from("playlists").select("*").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) setUserPlaylists(playlistData);
-      
+
       setIsInitialLoad(false);
     };
     fetchData();
-  }, [session?.user?.id]); 
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (selectedPlaylistId === null) return;
@@ -282,6 +329,7 @@ export default function App() {
     }
   }, [currentTrack]);
 
+  // Volume / mute sync with audio elements
   useEffect(() => {
     const isMixerActive = showMixer && currentTrack?.stem_vocals && !stemsBroken;
     if (audioRef.current) {
@@ -293,25 +341,29 @@ export default function App() {
     if (otherRef.current) otherRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0;
   }, [volume, isMuted, showMixer, stemVolumes, currentTrack, stemsBroken]);
 
+  // Stem position sync when mixer opens
   useEffect(() => {
     if (showMixer && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
-       const t = audioRef.current.currentTime;
-       if (vocalsRef.current) vocalsRef.current.currentTime = t;
-       if (drumsRef.current) drumsRef.current.currentTime = t;
-       if (bassRef.current) bassRef.current.currentTime = t;
-       if (otherRef.current) otherRef.current.currentTime = t;
+      const t = audioRef.current.currentTime;
+      if (vocalsRef.current) vocalsRef.current.currentTime = t;
+      if (drumsRef.current) drumsRef.current.currentTime = t;
+      if (bassRef.current) bassRef.current.currentTime = t;
+      if (otherRef.current) otherRef.current.currentTime = t;
     }
   }, [showMixer, currentTrack, stemsBroken]);
 
+  // FIX #3 – play/pause sync effect. Audio continues playing independently
+  // once play() is called; this effect only syncs when user explicitly changes
+  // isPlaying. We do NOT pause on background/screen-off events.
   useEffect(() => {
     const syncPlayState = async () => {
       if (isPlaying && currentTrack) {
         if (audioRef.current?.paused) await audioRef.current.play().catch(e => console.log(e));
         if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
-          if (vocalsRef.current?.paused) vocalsRef.current.play().catch(e=>e);
-          if (drumsRef.current?.paused) drumsRef.current.play().catch(e=>e);
-          if (bassRef.current?.paused) bassRef.current.play().catch(e=>e);
-          if (otherRef.current?.paused) otherRef.current.play().catch(e=>e);
+          if (vocalsRef.current?.paused) vocalsRef.current.play().catch(e => e);
+          if (drumsRef.current?.paused) drumsRef.current.play().catch(e => e);
+          if (bassRef.current?.paused) bassRef.current.play().catch(e => e);
+          if (otherRef.current?.paused) otherRef.current.play().catch(e => e);
         }
       } else {
         if (audioRef.current) audioRef.current.pause();
@@ -324,6 +376,7 @@ export default function App() {
     syncPlayState();
   }, [isPlaying, showMixer, currentTrack, currentTrackIndex, stemsBroken]);
 
+  // Restore saved time on first load
   useEffect(() => {
     if (isFirstRender.current && audioRef.current && currentTrack) {
       const savedTime = localStorage.getItem("euphony_current_time");
@@ -335,20 +388,38 @@ export default function App() {
     }
   }, [currentTrack]);
 
+  // FIX #1 – onCanPlay handler. When the new track's audio is ready to play,
+  // and pendingAutoPlayRef is set (by handleTrackEnded), we trigger play().
+  // This avoids the race condition between manually setting src and React
+  // updating the controlled src prop.
+  const handleCanPlay = () => {
+    if (pendingAutoPlayRef.current) {
+      pendingAutoPlayRef.current = false;
+      audioRef.current?.play().catch(e => console.log("auto-play failed:", e));
+      // Sync stems if mixer is active
+      if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
+        vocalsRef.current?.play().catch(e => e);
+        drumsRef.current?.play().catch(e => e);
+        bassRef.current?.play().catch(e => e);
+        otherRef.current?.play().catch(e => e);
+      }
+    }
+  };
+
   const handleTimeUpdate = () => {
     if (!audioRef.current) return;
     const time = audioRef.current.currentTime;
     setCurrentTime(time);
-    
+
     if (Math.floor(time) % 2 === 0) localStorage.setItem("euphony_current_time", time);
 
     if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
-       const syncStem = (ref) => {
-           if (ref.current && Math.abs(ref.current.currentTime - time) > 0.3) {
-               ref.current.currentTime = time;
-           }
-       };
-       syncStem(vocalsRef); syncStem(drumsRef); syncStem(bassRef); syncStem(otherRef);
+      const syncStem = (ref) => {
+        if (ref.current && Math.abs(ref.current.currentTime - time) > 0.3) {
+          ref.current.currentTime = time;
+        }
+      };
+      syncStem(vocalsRef); syncStem(drumsRef); syncStem(bassRef); syncStem(otherRef);
     }
 
     if (parsedLyrics.length > 0) {
@@ -375,9 +446,9 @@ export default function App() {
 
   const handleSeek = (e) => {
     const seekTime = Number(e.target.value);
-    if (audioRef.current) { 
-      audioRef.current.currentTime = seekTime; 
-      setCurrentTime(seekTime); 
+    if (audioRef.current) {
+      audioRef.current.currentTime = seekTime;
+      setCurrentTime(seekTime);
       if (vocalsRef.current) vocalsRef.current.currentTime = seekTime;
       if (drumsRef.current) drumsRef.current.currentTime = seekTime;
       if (bassRef.current) bassRef.current.currentTime = seekTime;
@@ -404,7 +475,7 @@ export default function App() {
   }, [activeLyricIndex]);
 
   // -----------------------------------------------------------------------
-  // ASYNCHRONOUS WORKER QUEUE - STEM GENERATION
+  // ASYNCHRONOUS WORKER QUEUE - STEM GENERATION (unchanged)
   // -----------------------------------------------------------------------
   const handleGenerateStemsClick = async () => {
     if (!currentTrack) return;
@@ -413,7 +484,6 @@ export default function App() {
     try {
       setGenerationStatus("Checking database...");
 
-      // 1. Check if stems already exist
       const { data: songRecord, error: fetchError } = await supabase
         .from("songs")
         .select("stem_vocals, stem_drums, stem_bass, stem_other")
@@ -423,7 +493,6 @@ export default function App() {
       if (fetchError && fetchError.code !== "PGRST116") throw fetchError;
 
       if (songRecord?.stem_vocals && songRecord?.stem_drums && songRecord?.stem_bass && songRecord?.stem_other) {
-        // Cache Hit: Instantly load them
         const updatedTrack = { ...currentTrack, ...songRecord };
         setPlaylist(prev => prev.map(s => s.id === currentTrack.id ? updatedTrack : s));
         setPlaylistSongs(prev => prev.map(s => s.id === currentTrack.id ? updatedTrack : s));
@@ -434,7 +503,6 @@ export default function App() {
         return;
       }
 
-      // 2. Cache Miss: Tell the DB this song needs processing
       setGenerationStatus("Sending job to Colab Worker...");
       const { error: updateError } = await supabase
         .from("songs")
@@ -445,7 +513,6 @@ export default function App() {
 
       setGenerationStatus("Waiting for Colab (~1 min)...");
 
-      // 3. Start Polling: Check Supabase every 5 seconds
       const pollInterval = setInterval(async () => {
         const { data: pollData } = await supabase
           .from("songs")
@@ -453,22 +520,19 @@ export default function App() {
           .eq("id", currentTrack.id)
           .single();
 
-        // If Colab successfully uploaded the stems:
         if (pollData?.stem_vocals && pollData?.stem_drums) {
-          clearInterval(pollInterval); // Stop polling
-          
+          clearInterval(pollInterval);
+
           const finishedTrack = { ...currentTrack, ...pollData };
           setPlaylist(prev => prev.map(s => s.id === currentTrack.id ? finishedTrack : s));
           setPlaylistSongs(prev => prev.map(s => s.id === currentTrack.id ? finishedTrack : s));
           if (queueCurrentTrack?.id === currentTrack.id) setQueueCurrentTrack(finishedTrack);
-          
+
           setStemsBroken(false);
           setIsGeneratingStems(false);
           setGenerationStatus("");
           triggerToast("AI Stems generated successfully!");
-        } 
-        // If Colab encountered an error and reset the flag:
-        else if (pollData?.needs_stems === false) {
+        } else if (pollData?.needs_stems === false) {
           clearInterval(pollInterval);
           setIsGeneratingStems(false);
           setGenerationStatus("");
@@ -476,7 +540,6 @@ export default function App() {
         }
       }, 5000);
 
-      // Optional Safety Timeout: Stop polling after 5 minutes
       setTimeout(() => {
         clearInterval(pollInterval);
         setGenerationStatus((prev) => {
@@ -589,8 +652,7 @@ export default function App() {
   const handlePlayPause = (e) => {
     if (e) e.stopPropagation();
     if (!audioRef.current || !currentTrack) return;
-    if (isPlaying) { setIsPlaying(false); }
-    else { setIsPlaying(true); }
+    setIsPlaying(prev => !prev);
   };
 
   const cyclePlayMode = () => {
@@ -622,6 +684,7 @@ export default function App() {
     if (activeTrackList.length === 0) return;
     setQueueCurrentTrack(null);
     setCurrentTrackIndex(getNextTrackIndex());
+    setIsPlaying(true);
   };
 
   const handlePrev = (e) => {
@@ -630,42 +693,46 @@ export default function App() {
     if (audioRef.current && audioRef.current.currentTime > 3) { audioRef.current.currentTime = 0; return; }
     setQueueCurrentTrack(null);
     setCurrentTrackIndex((prevIndex) => prevIndex === 0 ? activeTrackList.length - 1 : prevIndex - 1);
+    setIsPlaying(true);
   };
 
+  // -----------------------------------------------------------------------
+  // FIX #1 – handleTrackEnded: do NOT manually set audioRef.current.src or
+  // call .play() here. Instead, set pendingAutoPlayRef so the onCanPlay
+  // handler triggers play() once the new track's audio is ready. This
+  // prevents the race condition between React's src update and manual play().
+  // -----------------------------------------------------------------------
   const handleTrackEnded = () => {
-    if (playMode === "repeat-one") { 
+    if (playMode === "repeat-one") {
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
         audioRef.current.play().catch(() => {});
       }
-      return; 
+      return;
     }
 
-    let nextSong = null;
-    let nextIdx = currentTrackIndex;
-
     if (userQueue.length > 0) {
-      nextSong = userQueue[0];
+      const nextSong = userQueue[0];
       setUserQueue(prev => prev.slice(1));
       setQueueCurrentTrack(nextSong);
       const inListIdx = activeTrackList.findIndex(s => s.id === nextSong.id);
       if (inListIdx !== -1) setCurrentTrackIndex(inListIdx);
-    } else {
-      if (playMode === "order" && currentTrackIndex === activeTrackList.length - 1) { 
-        setIsPlaying(false); 
-        return; 
-      }
-      nextIdx = getNextTrackIndex();
-      nextSong = activeTrackList[nextIdx];
-      setQueueCurrentTrack(null);
-      setCurrentTrackIndex(nextIdx);
+      pendingAutoPlayRef.current = true;
+      setIsPlaying(true);
+      return;
     }
 
-    if (nextSong && audioRef.current) {
-      audioRef.current.src = nextSong.url;
-      audioRef.current.play().catch(() => {});
-      setIsPlaying(true);
+    if (playMode === "order" && currentTrackIndex === activeTrackList.length - 1) {
+      setIsPlaying(false);
+      return;
     }
+
+    const nextIdx = getNextTrackIndex();
+    setQueueCurrentTrack(null);
+    setCurrentTrackIndex(nextIdx);
+    // Signal onCanPlay to start playback once new src is loaded
+    pendingAutoPlayRef.current = true;
+    setIsPlaying(true);
   };
 
   const toggleMute = () => {
@@ -690,7 +757,6 @@ export default function App() {
     if (e) e.stopPropagation();
     const willShow = !showMixer;
     setShowMixer(willShow);
-
     if (willShow) {
       setIsPlaying(false);
       setShowLyrics(false);
@@ -709,67 +775,100 @@ export default function App() {
     }
   };
 
+  // Sort button UI component (reused in both desktop and mobile)
+  const SortButton = ({ isMobile }) => (
+    <button
+      onClick={cycleSortKey}
+      className="hover-effect"
+      title={`Sort: ${SORT_LABELS[currentSortKey] ?? "Default"}`}
+      style={{
+        background: currentSortKey ? COLORS.primary : "transparent",
+        color: currentSortKey ? COLORS.bgPanel : COLORS.primary,
+        border: `1px solid ${COLORS.primary}`,
+        borderRadius: "20px",
+        padding: isMobile ? "6px 12px" : "6px 14px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        fontSize: "12px",
+        fontWeight: "bold",
+        transition: "all 0.2s ease",
+        flexShrink: 0
+      }}
+    >
+      <ArrowUpDown size={14} />
+      {!isMobile && <span>{currentSortKey ? `By ${SORT_LABELS[currentSortKey]}` : "Sort"}</span>}
+    </button>
+  );
+
+  // -----------------------------------------------------------------------
+  // RENDERER: AI STEM MIXER (unchanged)
+  // -----------------------------------------------------------------------
   const renderMixerBlock = (isMobile) => (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
-       <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
-       
-       {!currentTrack?.stem_vocals || stemsBroken ? (
-           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-               {isGeneratingStems ? (
-                   <>
-                      <Loader2 className="animate-spin" size={40} color={COLORS.spotifyGreen} style={{ marginBottom: "16px" }} />
-                      <p style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen }}>{generationStatus}</p>
-                   </>
-               ) : (
-                   <>
-                      <SlidersHorizontal size={40} color="rgba(255,255,255,0.4)" style={{ marginBottom: "16px" }} />
-                      <p style={{ fontSize: "14px", marginBottom: "20px", padding: "0 20px", color: "rgba(255,255,255,0.7)" }}>
-                        Unlock individual instruments and vocals using Cloud AI.
-                        {stemsBroken && (
-                          <span style={{ display: "block", marginTop: "8px", color: "#ff6b6b", fontSize: "12px" }}>
-                            Stems failed to load. Try re-generating.
-                          </span>
-                        )}
-                      </p>
-                      <button onClick={handleGenerateStemsClick} style={{ background: COLORS.spotifyGreen, color: "#fff", border: "none", padding: "12px 24px", borderRadius: "24px", fontWeight: "bold", fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }} className="hover-effect">
-                         {stemsBroken ? "Re-generate Stems" : "Generate Stems"}
-                      </button>
-                   </>
-               )}
-           </div>
-       ) : (
-           <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}>
-               <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "14px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
-                   {["vocals", "drums", "bass", "other"].map((stemType) => (
-                       <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", height: "100%", flex: 1 }}>
-                           <div style={{ position: "relative", width: "30px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                             <input 
-                                type="range" 
-                                min="0" max="1" step="0.01" 
-                                value={stemVolumes[stemType]}
-                                onChange={(e) => setStemVolumes({...stemVolumes, [stemType]: parseFloat(e.target.value)})}
-                                style={{
-                                    position: "absolute",
-                                    appearance: "none",
-                                    width: isMobile ? "75px" : "85px",
-                                    height: "4px",
-                                    background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType]*100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType]*100}%)`,
-                                    transform: "rotate(-90deg)",
-                                    transformOrigin: "center",
-                                    borderRadius: "4px"
-                                }}
-                                className="stem-fader"
-                             />
-                           </div>
-                           <span style={{ fontSize: "10px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px" }}>{stemType}</span>
-                       </div>
-                   ))}
-               </div>
-           </div>
-       )}
+      <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
+
+      {!currentTrack?.stem_vocals || stemsBroken ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+          {isGeneratingStems ? (
+            <>
+              <Loader2 className="animate-spin" size={40} color={COLORS.spotifyGreen} style={{ marginBottom: "16px" }} />
+              <p style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen }}>{generationStatus}</p>
+            </>
+          ) : (
+            <>
+              <SlidersHorizontal size={40} color="rgba(255,255,255,0.4)" style={{ marginBottom: "16px" }} />
+              <p style={{ fontSize: "14px", marginBottom: "20px", padding: "0 20px", color: "rgba(255,255,255,0.7)" }}>
+                Unlock individual instruments and vocals using Cloud AI.
+                {stemsBroken && (
+                  <span style={{ display: "block", marginTop: "8px", color: "#ff6b6b", fontSize: "12px" }}>
+                    Stems failed to load. Try re-generating.
+                  </span>
+                )}
+              </p>
+              <button onClick={handleGenerateStemsClick} style={{ background: COLORS.spotifyGreen, color: "#fff", border: "none", padding: "12px 24px", borderRadius: "24px", fontWeight: "bold", fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }} className="hover-effect">
+                {stemsBroken ? "Re-generate Stems" : "Generate Stems"}
+              </button>
+            </>
+          )}
+        </div>
+      ) : (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}>
+          <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "14px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
+            {["vocals", "drums", "bass", "other"].map((stemType) => (
+              <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", height: "100%", flex: 1 }}>
+                <div style={{ position: "relative", width: "30px", height: "90px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <input
+                    type="range"
+                    min="0" max="1" step="0.01"
+                    value={stemVolumes[stemType]}
+                    onChange={(e) => setStemVolumes({ ...stemVolumes, [stemType]: parseFloat(e.target.value) })}
+                    style={{
+                      position: "absolute",
+                      appearance: "none",
+                      width: isMobile ? "75px" : "85px",
+                      height: "4px",
+                      background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`,
+                      transform: "rotate(-90deg)",
+                      transformOrigin: "center",
+                      borderRadius: "4px"
+                    }}
+                    className="stem-fader"
+                  />
+                </div>
+                <span style={{ fontSize: "10px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px" }}>{stemType}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 
+  // -----------------------------------------------------------------------
+  // RENDERER: LYRICS
+  // -----------------------------------------------------------------------
   const renderLyricsBlock = (isMobile) => (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: COLORS.primary, textAlign: "center", borderRadius: "12px" }}>
       {parsedLyrics.length > 0 ? (
@@ -777,14 +876,14 @@ export default function App() {
           {parsedLyrics.map((lyric, index) => {
             const isActiveLine = index === activeLyricIndex;
             return (
-              <div 
+              <div
                 key={index}
                 ref={el => lyricRefs.current[index] = el}
                 onClick={(e) => handleLyricClick(lyric.time, e)}
-                style={{ 
-                  fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), 
-                  fontWeight: isActiveLine ? "800" : "600", 
-                  color: isActiveLine ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)", 
+                style={{
+                  fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"),
+                  fontWeight: isActiveLine ? "800" : "600",
+                  color: isActiveLine ? COLORS.bgBase : "rgba(243, 240, 230, 0.4)",
                   textShadow: isActiveLine && !lyric.words ? `0 0 16px rgba(243, 240, 230, 0.6)` : "none",
                   padding: "10px 0",
                   transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -798,7 +897,7 @@ export default function App() {
                     const isActiveWord = isActiveLine && wIndex === activeWordIndex;
                     const isPastWord = isActiveLine && wIndex < activeWordIndex;
                     return (
-                      <span 
+                      <span
                         key={wIndex}
                         onClick={(e) => handleLyricClick(wordObj.time, e)}
                         style={{
@@ -809,7 +908,7 @@ export default function App() {
                           cursor: "pointer"
                         }}
                       >
-                        {wordObj.text} 
+                        {wordObj.text}
                       </span>
                     );
                   })
@@ -828,19 +927,26 @@ export default function App() {
     </div>
   );
 
+  // -----------------------------------------------------------------------
+  // RENDERER: QUEUE
+  // FIX #2 – "Next In Queue" and "Next From Source" are clearly separated.
+  //           userQueue is NEVER auto-populated; it's only user-controlled.
+  // FIX #4 – Fixed poster_url: was incorrectly using currentTrack.poster_url
+  //           for queue item thumbnails; now correctly uses song.poster_url.
+  // -----------------------------------------------------------------------
   const renderQueueBlock = (isMobile) => {
     const upcomingList = activeTrackList.slice(currentTrackIndex + 1);
     const sourceName = selectedPlaylistId !== null ? (activePlaylistObj?.name || "Playlist") : "Global Library";
 
     return (
       <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", overflowY: "auto", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
-        
-        {/* NOW PLAYING SECTION */}
+
+        {/* NOW PLAYING */}
         <div style={{ marginBottom: "22px" }}>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Now Playing</h4>
           {currentTrack ? (
             <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "8px", background: "rgba(255,255,255,0.08)" }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color="#888" />}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -858,21 +964,24 @@ export default function App() {
           ) : null}
         </div>
 
-        {/* CUSTOM QUEUE SECTION */}
+        {/* CUSTOM QUEUE – user-added songs only, never auto-populated */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-            <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next In Queue</h4>
+            <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>
+              Next In Queue {userQueue.length > 0 && <span style={{ background: COLORS.spotifyGreen, color: "#fff", borderRadius: "10px", padding: "1px 7px", fontSize: "11px", marginLeft: "6px" }}>{userQueue.length}</span>}
+            </h4>
             {userQueue.length > 0 && (
-              <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear Queue</button>
+              <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear</button>
             )}
           </div>
-          
+
           {userQueue.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
               {userQueue.map((song, qIndex) => (
                 <div key={`queue-${song.id}-${qIndex}`} onClick={(e) => playFromQueue(qIndex, e)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "rgba(255,255,255,0.04)", cursor: "pointer" }} className="hover-effect">
-                  <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222" }}>
-                    {song.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
+                  {/* FIX #4 – use song.poster_url, not currentTrack.poster_url */}
+                  <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
@@ -885,11 +994,13 @@ export default function App() {
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontStyle: "italic", padding: "4px 0" }}>No custom songs in queue. Add songs from your library.</div>
+            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontStyle: "italic", padding: "4px 0" }}>
+              No songs queued. Tap <ListPlus size={12} style={{ verticalAlign: "middle", margin: "0 2px" }} /> next to any song to add it.
+            </div>
           )}
         </div>
 
-        {/* NEXT FROM SOURCE SECTION */}
+        {/* NEXT FROM SOURCE – auto-advancing playlist, read-only display */}
         <div>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next From: {sourceName}</h4>
           {upcomingList.length > 0 ? (
@@ -898,7 +1009,7 @@ export default function App() {
                 const actualIndex = currentTrackIndex + 1 + uIdx;
                 return (
                   <div key={`next-${song.id}-${uIdx}`} onClick={() => playDirectly(actualIndex)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "transparent", cursor: "pointer" }} className="hover-effect">
-                    <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222" }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
                     </div>
                     <div style={{ minWidth: 0, flex: 1 }}>
@@ -913,14 +1024,13 @@ export default function App() {
             <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>End of playlist.</div>
           )}
         </div>
-
       </div>
     );
   };
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  if (!isSessionLoaded) return <div style={{ background: COLORS.bgBase, width: '100vw', height: '100vh' }} />; 
+  if (!isSessionLoaded) return <div style={{ background: COLORS.bgBase, width: '100vw', height: '100vh' }} />;
   if (!session) return <Auth />;
 
   return (
@@ -971,7 +1081,6 @@ export default function App() {
           transform-origin: bottom;
         }
 
-        /* --- THE GLOWING COMET FLARE SLIDER (For Music Timeline) --- */
         .glow-slider { 
           -webkit-appearance: none; 
           appearance: none; 
@@ -1010,7 +1119,6 @@ export default function App() {
           transition: transform 0.2s ease;
         }
 
-        /* --- THE CLEAN VERTICAL SLIDER (For AI Stem Mixer) --- */
         .stem-fader { 
           -webkit-appearance: none; 
           appearance: none; 
@@ -1045,21 +1153,32 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
       `}</style>
 
-      {/* AUDIO TRACKS */}
-      <audio ref={audioRef} src={currentTrack?.url || undefined} onTimeUpdate={handleTimeUpdate} onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)} onEnded={handleTrackEnded} preload="auto" />
-      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} />
-      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} preload="auto" onError={() => currentTrack?.stem_drums && setStemsBroken(true)} />
-      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} preload="auto" onError={() => currentTrack?.stem_bass && setStemsBroken(true)} />
-      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} preload="auto" onError={() => currentTrack?.stem_other && setStemsBroken(true)} />
+      {/* FIX #3 – playsInline ensures iOS keeps audio playing when screen dims.
+          FIX #1 – onCanPlay triggers pendingAutoPlayRef-based auto-advance.
+          All manual src/play logic removed from handleTrackEnded.            */}
+      <audio
+        ref={audioRef}
+        src={currentTrack?.url || undefined}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+        onEnded={handleTrackEnded}
+        onCanPlay={handleCanPlay}
+        preload="auto"
+        playsInline
+      />
+      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} />
+      <audio ref={drumsRef} src={currentTrack?.stem_drums || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_drums && setStemsBroken(true)} />
+      <audio ref={bassRef} src={currentTrack?.stem_bass || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_bass && setStemsBroken(true)} />
+      <audio ref={otherRef} src={currentTrack?.stem_other || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_other && setStemsBroken(true)} />
 
-      {/* QUEUE TOAST NOTIFICATION */}
+      {/* QUEUE TOAST */}
       {queueToast && (
         <div className="toast-enter" style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           {queueToast}
         </div>
       )}
 
-      {/* GLOBAL EXIT WARNING TOAST */}
+      {/* EXIT TOAST */}
       {showExitToast && (
         <div className="toast-enter" style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           Press back again to exit
@@ -1078,7 +1197,7 @@ export default function App() {
       {showUploadModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowUploadModal(false)}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
+            <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><UploadCloud color={COLORS.primary} /> Add Song Globally</h2>
             <form onSubmit={handleUploadSubmit}>
               <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={(e) => setUploadTitle(e.target.value)} className="upload-input" />
@@ -1093,7 +1212,7 @@ export default function App() {
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
                 <input type="file" accept="audio/*" required onChange={(e) => setUploadFile(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
               </div>
-              <button type="submit" disabled={isUploading} style={{ width: "100%", padding: "14px", borderRadius: "8px", background: isUploading ? COLORS.textMuted : COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "background 0.2s ease" }}>
+              <button type="submit" disabled={isUploading} style={{ width: "100%", padding: "14px", borderRadius: "8px", background: isUploading ? COLORS.textMuted : COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                 {isUploading ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Upload to Cloud"}
               </button>
             </form>
@@ -1105,11 +1224,11 @@ export default function App() {
       {showPlaylistModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowPlaylistModal(false)}>
           <div className="pop-enter" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
+            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Create Private Playlist</h2>
             <form onSubmit={handleCreatePlaylist}>
               <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={(e) => setNewPlaylistName(e.target.value)} className="upload-input" />
-              <button type="submit" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: "pointer", transition: "opacity 0.2s ease" }} className="hover-effect">Save Playlist</button>
+              <button type="submit" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: "pointer" }} className="hover-effect">Save Playlist</button>
             </form>
           </div>
         </div>
@@ -1119,26 +1238,16 @@ export default function App() {
       {showSleepTimerModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
+            <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
-            
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[5, 10, 20, 30, 60, 120].map((mins) => (
-                <button 
-                  key={mins}
-                  onClick={() => handleSetSleepTimer(mins)}
-                  className="hover-effect"
-                  style={{ width: "100%", padding: "14px", borderRadius: "8px", background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}
-                >
+                <button key={mins} onClick={() => handleSetSleepTimer(mins)} className="hover-effect" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
                   {mins === 60 ? "1 hour" : mins === 120 ? "2 hours" : `${mins} minutes`}
                 </button>
               ))}
               <div style={{ margin: "8px 0", height: "1px", background: COLORS.border }} />
-              <button 
-                onClick={() => handleSetSleepTimer(0)}
-                className="hover-effect"
-                style={{ width: "100%", padding: "14px", borderRadius: "8px", background: sleepTimerTarget ? "#ffebee" : "transparent", border: `1px solid ${sleepTimerTarget ? "#ffcdd2" : COLORS.border}`, color: sleepTimerTarget ? "#d32f2f" : COLORS.textMuted, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}
-              >
+              <button onClick={() => handleSetSleepTimer(0)} className="hover-effect" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: sleepTimerTarget ? "#ffebee" : "transparent", border: `1px solid ${sleepTimerTarget ? "#ffcdd2" : COLORS.border}`, color: sleepTimerTarget ? "#d32f2f" : COLORS.textMuted, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
                 Turn off timer
               </button>
             </div>
@@ -1150,20 +1259,12 @@ export default function App() {
       {songForPlaylistModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
           <div className="pop-enter custom-scrollbar" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer", transition: "color 0.2s ease" }} className="hover-effect"><X size={24} /></button>
+            <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Add to Playlist</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {userPlaylists.length > 0 ? (
                 userPlaylists.map(pl => (
-                  <button 
-                    key={pl.id} 
-                    onClick={() => {
-                      handleAddSongToPlaylist(pl.id, songForPlaylistModal.id);
-                      setSongForPlaylistModal(null);
-                    }}
-                    className="hover-effect"
-                    style={{ width: "100%", padding: "14px", borderRadius: "8px", background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}
-                  >
+                  <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, songForPlaylistModal.id); setSongForPlaylistModal(null); }} className="hover-effect" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                     <ListMusic size={18} /> {pl.name}
                   </button>
                 ))
@@ -1175,14 +1276,13 @@ export default function App() {
         </div>
       )}
 
-      {/* TOP HEADER BAR */}
+      {/* TOP HEADER */}
       <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", borderBottom: `1px solid ${COLORS.border}`, zIndex: 10 }}>
         <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px" }}>Euphony</h1>
         <div style={{ display: "flex", gap: isDesktop ? "12px" : "8px", alignItems: "center" }}>
           <button className="hover-effect" onClick={() => window.location.reload()} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <RefreshCw size={16} /> {isDesktop && "Refresh"}
           </button>
-          
           <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <Plus size={16} color={COLORS.bgPanel} /> {isDesktop && "Add Globally"}
           </button>
@@ -1195,14 +1295,18 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN BODY LAYOUT */}
+      {/* MAIN BODY */}
       <div style={{ display: "flex", flex: 1, overflow: "hidden", padding: isDesktop ? "12px" : "4px", gap: isDesktop ? "12px" : "0" }}>
-        
-        {/* LEFT SIDEBAR NAVIGATION */}
+
+        {/* LEFT SIDEBAR – FIX #5: onClick uses handleSwitchPlaylist so music keeps playing */}
         {isDesktop && (
           <div style={{ width: "260px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div onClick={() => { setSelectedPlaylistId(null); setQueueCurrentTrack(null); setCurrentTrackIndex(0); setIsPlaying(false); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px" }}>
+              <div
+                onClick={() => handleSwitchPlaylist(null)}
+                className="sidebar-item"
+                style={{ display: "flex", alignItems: "center", gap: "16px", color: selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px" }}
+              >
                 <Home size={24} color={selectedPlaylistId === null ? COLORS.primary : COLORS.textMuted} /> Global Library
               </div>
             </div>
@@ -1210,8 +1314,13 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
               <span style={{ fontSize: "12px", fontWeight: "bold", color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Playlists</span>
               {userPlaylists.map(pl => (
-                <div key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setQueueCurrentTrack(null); setCurrentTrackIndex(0); setIsPlaying(false); }} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: selectedPlaylistId === pl.id ? "bold" : "normal" }}>
-                  <ListMusic size={20} color={selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted} /> 
+                <div
+                  key={pl.id}
+                  onClick={() => handleSwitchPlaylist(pl.id)}
+                  className="sidebar-item"
+                  style={{ display: "flex", alignItems: "center", gap: "12px", color: selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: selectedPlaylistId === pl.id ? "bold" : "normal" }}
+                >
+                  <ListMusic size={20} color={selectedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted} />
                   <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pl.name}</span>
                 </div>
               ))}
@@ -1219,16 +1328,24 @@ export default function App() {
           </div>
         )}
 
-        {/* CENTER MAIN CONTENT AREA */}
+        {/* CENTER MAIN CONTENT */}
         <div style={{ flex: 1, minWidth: 0, background: COLORS.bgPanel, borderRadius: isDesktop ? "12px" : "0", padding: isDesktop ? "32px" : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "100px" : "32px", border: isDesktop ? `1px solid ${COLORS.border}` : "none" }} className="custom-scrollbar">
-          
+
+          {/* MOBILE PLAYLIST TABS – FIX #5: use handleSwitchPlaylist */}
           {!isDesktop && (
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", flexShrink: 0 }} className="custom-scrollbar">
-              <button onClick={() => { setSelectedPlaylistId(null); setQueueCurrentTrack(null); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === null ? COLORS.primary : "transparent", color: selectedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
+              <button
+                onClick={() => handleSwitchPlaylist(null)}
+                style={{ background: selectedPlaylistId === null ? COLORS.primary : "transparent", color: selectedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}
+              >
                 Global Library
               </button>
               {userPlaylists.map((pl) => (
-                <button key={pl.id} onClick={() => { setSelectedPlaylistId(pl.id); setQueueCurrentTrack(null); setCurrentTrackIndex(0); setIsPlaying(false); }} style={{ background: selectedPlaylistId === pl.id ? COLORS.primary : "transparent", color: selectedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
+                <button
+                  key={pl.id}
+                  onClick={() => handleSwitchPlaylist(pl.id)}
+                  style={{ background: selectedPlaylistId === pl.id ? COLORS.primary : "transparent", color: selectedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}
+                >
                   🔒 {pl.name}
                 </button>
               ))}
@@ -1236,7 +1353,8 @@ export default function App() {
           )}
 
           <div key={selectedPlaylistId || 'global'} className="fade-enter" style={{ width: "100%" }}>
-            
+
+            {/* PLAYLIST HERO */}
             {selectedPlaylistId !== null && activePlaylistObj && (
               <div style={{ background: `linear-gradient(180deg, #E2D9C5 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
                 <div style={{ width: isDesktop ? "180px" : "140px", height: isDesktop ? "180px" : "140px", backgroundColor: COLORS.primary, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
@@ -1250,13 +1368,21 @@ export default function App() {
               </div>
             )}
 
+            {/* PLAYLIST VIEW */}
             {selectedPlaylistId !== null ? (
               <div style={{ width: "100%" }}>
                 {playlistSongs.length > 0 && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "24px", justifyContent: isDesktop ? "flex-start" : "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px", justifyContent: isDesktop ? "flex-start" : "center", flexWrap: "wrap" }}>
                     <button onClick={() => playDirectly(0)} className="hover-effect" style={{ width: "64px", height: "64px", borderRadius: "50%", background: COLORS.primary, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)" }}>
                       <Play size={28} fill={COLORS.bgPanel} color={COLORS.bgPanel} style={{ marginLeft: "4px" }} />
                     </button>
+                    {/* FIX #6 – Sort button, state is independent per playlist */}
+                    <SortButton isMobile={!isDesktop} />
+                    {currentSortKey && (
+                      <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
+                        Sorted by {SORT_LABELS[currentSortKey]} · <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, [selectedPlaylistId ?? "global"]: null }))}>Clear</span>
+                      </span>
+                    )}
                   </div>
                 )}
 
@@ -1270,11 +1396,11 @@ export default function App() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "12px" }}>
                   {playlistSongs.length > 0 ? (
-                    playlistSongs.map((track, index) => {
-                      const isSelected = (!queueCurrentTrack && index === currentTrackIndex) || (queueCurrentTrack?.id === track.id);
+                    getSortedDisplayList(playlistSongs, currentSortKey).map(({ track, originalIndex }, displayIndex) => {
+                      const isSelected = (!queueCurrentTrack && originalIndex === currentTrackIndex) || (queueCurrentTrack?.id === track.id);
                       return (
-                        <div key={track.id} className="playlist-row" onClick={() => playDirectly(index)} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "40px 1fr 70px", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
-                          <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
+                        <div key={track.id} className="playlist-row" onClick={() => playDirectly(originalIndex)} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "40px 1fr 70px", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
+                          <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{displayIndex + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "16px", minWidth: 0 }}>
                             <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
@@ -1312,22 +1438,31 @@ export default function App() {
                 </div>
               </div>
             ) : (
+              /* GLOBAL LIBRARY VIEW */
               <div>
-                <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0", textAlign: isDesktop ? "left" : "center", color: COLORS.primary }}>Global Library ({playlist.length})</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
+                  <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : "0", color: COLORS.primary }}>Global Library ({playlist.length})</h2>
+                  {/* FIX #6 – Sort button for global library, independent state */}
+                  <SortButton isMobile={!isDesktop} />
+                  {currentSortKey && (
+                    <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
+                      Sorted by {SORT_LABELS[currentSortKey]} · <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
+                    </span>
+                  )}
+                </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {playlist.length > 0 ? (
-                    playlist.map((track, index) => {
-                      const isSelected = (!queueCurrentTrack && index === currentTrackIndex) || (queueCurrentTrack?.id === track.id);
+                    getSortedDisplayList(playlist, currentSortKey).map(({ track, originalIndex }) => {
+                      const isSelected = (!queueCurrentTrack && originalIndex === currentTrackIndex) || (queueCurrentTrack?.id === track.id);
                       return (
-                        <div key={track.id} className="playlist-row" onClick={() => playDirectly(index)} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: isDesktop ? "16px" : "12px" }}>
+                        <div key={track.id} className="playlist-row" onClick={() => playDirectly(originalIndex)} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: isDesktop ? "16px" : "12px" }}>
                           <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                             {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
+                            {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                           </div>
                           <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
                             <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
                             <div style={{ fontSize: "14px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
                           </div>
-                          
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
                             <button title="Add to Queue" onClick={(e) => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
                               <ListPlus size={18} />
@@ -1360,7 +1495,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR / ACTIVE PLAYER PANEL (DESKTOP) */}
+        {/* RIGHT DESKTOP PLAYER PANEL */}
         {isDesktop && currentTrack && (
           <div style={{ width: "320px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", boxSizing: "border-box", position: "relative", overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
             {currentTrack.poster_url && (
@@ -1370,19 +1505,15 @@ export default function App() {
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
               <div style={{ width: "100%", marginBottom: "20px", flexShrink: 0 }}>
                 <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
-                  
                   <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
-                    {showMixer ? (
-                      renderMixerBlock(false)
-                    ) : showQueue ? (
-                      renderQueueBlock(false)
-                    ) : showLyrics ? (
-                      renderLyricsBlock(false)
-                    ) : (
-                      currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>
-                    )}
+                    {showMixer ? renderMixerBlock(false)
+                      : showQueue ? renderQueueBlock(false)
+                        : showLyrics ? renderLyricsBlock(false)
+                          : (currentTrack.poster_url
+                            ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>)
+                    }
                   </div>
-
                 </div>
               </div>
 
@@ -1391,7 +1522,6 @@ export default function App() {
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
                   <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
                 </div>
-                
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
                   <button onClick={(e) => { e.stopPropagation(); setShowSleepTimerModal(true); }} title="Sleep Timer" style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                     <Moon size={15} />
@@ -1414,9 +1544,8 @@ export default function App() {
                   <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)` }} />
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
                 </div>
-
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", transition: "opacity 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
+                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                     <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
                     <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
@@ -1434,8 +1563,8 @@ export default function App() {
 
       {/* MINIMIZED MOBILE BOTTOM BAR */}
       {!isDesktop && currentTrack && !isMobilePlayerOpen && (
-        <div 
-          onClick={() => setIsMobilePlayerOpen(true)} 
+        <div
+          onClick={() => setIsMobilePlayerOpen(true)}
           className="slide-up-enter"
           style={{ position: "fixed", bottom: "16px", left: "12px", right: "12px", background: COLORS.bgPanel, borderRadius: "12px", display: "flex", flexDirection: "column", boxShadow: "0 8px 24px rgba(26,43,76,0.15)", zIndex: 2000, border: `1px solid ${COLORS.border}`, cursor: "pointer", overflow: "hidden" }}
         >
@@ -1449,36 +1578,32 @@ export default function App() {
                 <div style={{ fontSize: "13px", color: COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</div>
               </div>
             </div>
-            
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-              <button onClick={(e) => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
                 <SkipBack size={22} fill="currentColor" />
               </button>
-              <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
                 {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
               </button>
-              <button onClick={(e) => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", transition: "transform 0.2s ease" }} className="hover-effect">
+              <button onClick={(e) => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
                 <SkipForward size={22} fill="currentColor" />
               </button>
             </div>
           </div>
-          
           <div style={{ width: "100%", height: "3px", background: "rgba(26,43,76,0.1)" }}>
             <div style={{ width: `${progressPercent}%`, height: "100%", background: COLORS.primary, transition: "width 0.1s linear" }} />
           </div>
         </div>
       )}
 
-      {/* FULL-SCREEN MOBILE PLAYER MODAL */}
+      {/* FULL-SCREEN MOBILE PLAYER */}
       {!isDesktop && currentTrack && isMobilePlayerOpen && (
         <div className="slide-up-enter" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 4000, background: COLORS.bgBase, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          
           {currentTrack.poster_url && (
             <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(60px) brightness(1.2) saturate(80%)", opacity: 0.3, zIndex: 0, pointerEvents: "none" }} />
           )}
 
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
-            
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
               <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">
                 <ChevronDown size={32} />
@@ -1491,19 +1616,15 @@ export default function App() {
 
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
               <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: showLyrics || showQueue || showMixer ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
-                
                 <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
-                  {showMixer ? (
-                    renderMixerBlock(true)
-                  ) : showQueue ? (
-                    renderQueueBlock(true)
-                  ) : showLyrics ? (
-                    renderLyricsBlock(true)
-                  ) : (
-                    currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center"}}><ImageIcon size={100} color={COLORS.textMuted} /></div>
-                  )}
+                  {showMixer ? renderMixerBlock(true)
+                    : showQueue ? renderQueueBlock(true)
+                      : showLyrics ? renderLyricsBlock(true)
+                        : (currentTrack.poster_url
+                          ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={100} color={COLORS.textMuted} /></div>)
+                  }
                 </div>
-
               </div>
             </div>
 
@@ -1512,7 +1633,6 @@ export default function App() {
                 <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h2>
                 <p style={{ margin: 0, color: "rgba(255,255,255,0.8)", fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
               </div>
-              
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
                 <button onClick={toggleStemMixer} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                   <SlidersHorizontal size={17} />
@@ -1535,16 +1655,14 @@ export default function App() {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
-              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", transition: "opacity 0.2s ease", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
-              
+              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
                 <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
-                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease" }} className="hover-effect">
+                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)" }} className="hover-effect">
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
                 </button>
                 <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
               </div>
-
               <button onClick={() => { setShowQueue(!showQueue); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} style={{ background: "transparent", border: "none", color: showQueue ? COLORS.spotifyGreen : "#FFFFFF", cursor: "pointer", padding: "8px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", position: "relative" }} className="hover-effect">
                 <ListMusic size={26} />
                 {userQueue.length > 0 && (
@@ -1554,7 +1672,6 @@ export default function App() {
                 )}
               </button>
             </div>
-            
           </div>
         </div>
       )}
