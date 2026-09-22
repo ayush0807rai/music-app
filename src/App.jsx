@@ -56,23 +56,28 @@ const parseLyrics = (lrcString) => {
 export default function App() {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
 
+  // VIEW CONTEXT – only controls what's displayed, never touches playback
   const [viewedPlaylistId, setViewedPlaylistId] = useState(() => {
     const saved = localStorage.getItem("euphony_playlist_id");
     return saved && saved !== "null" ? saved : null;
   });
 
+  // SORT & SEARCH STATE (independent per playlist id key)
   const [sortOrders, setSortOrders] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
 
+  // PLAYBACK CONTEXT – the actual playing queue is stored here
   const [playbackQueue, setPlaybackQueue] = useState([]);
   const [playbackIndex, setPlaybackIndex] = useState(0);
   const [playbackSourceName, setPlaybackSourceName] = useState("Global Library");
 
+  // DATA
   const [playlist, setPlaylist] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  // MODALS & AUTH
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [songForPlaylistModal, setSongForPlaylistModal] = useState(null);
@@ -80,6 +85,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
 
+  // UPLOAD FORM
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadArtist, setUploadArtist] = useState("");
   const [uploadAlbum, setUploadAlbum] = useState("");
@@ -88,6 +94,7 @@ export default function App() {
   const [uploadPoster, setUploadPoster] = useState(null);
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
+  // PLAYER CONTROLS
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -110,6 +117,7 @@ export default function App() {
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
+  // AI STEM MIXER
   const [showMixer, setShowMixer] = useState(false);
   const [isGeneratingStems, setIsGeneratingStems] = useState(false);
   const [generationStatus, setGenerationStatus] = useState("");
@@ -122,11 +130,13 @@ export default function App() {
 
   const pendingAutoPlayRef = useRef(false);
 
+  // QUEUE DRAG-TO-REORDER STATE
   const [draggedQueueIndex, setDraggedQueueIndex] = useState(-1);
   const [dragOverQueueIndex, setDragOverQueueIndex] = useState(-1);
   const queueDragState = useRef({ active: false, startIdx: -1, overIdx: -1 });
   const queueItemEls = useRef([]);
 
+  // AUDIO REFS
   const audioRef = useRef(null);
   const vocalsRef = useRef(null);
   const drumsRef = useRef(null);
@@ -134,6 +144,7 @@ export default function App() {
   const otherRef = useRef(null);
   const isFirstRender = useRef(true);
 
+  // ── DERIVED DATA ──────────────────────────────────────────────────────────
   const rawViewedSongs = viewedPlaylistId === null ? playlist : playlistSongs;
   const currentSortKey = sortOrders[viewedPlaylistId ?? "global"] ?? null;
 
@@ -155,6 +166,7 @@ export default function App() {
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
+  // ── HELPERS ───────────────────────────────────────────────────────────────
   const handleSwitchPlaylist = (playlistId) => {
     setViewedPlaylistId(playlistId);
     setSearchQuery("");
@@ -167,6 +179,7 @@ export default function App() {
     setSortOrders(prev => ({ ...prev, [key]: SORT_CYCLE[(idx + 1) % SORT_CYCLE.length] }));
   };
 
+  // ── MEDIA SESSION ─────────────────────────────────────────────────────────
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -182,6 +195,7 @@ export default function App() {
     }
   }, [currentTrack, playMode, userQueue]);
 
+  // ── SLEEP TIMER ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!sleepTimerTarget) return;
     const interval = setInterval(() => {
@@ -201,6 +215,7 @@ export default function App() {
     setShowSleepTimerModal(false);
   };
 
+  // ── BACK-BUTTON STATE SYNC ────────────────────────────────────────────────
   useEffect(() => {
     stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer };
   }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer]);
@@ -236,6 +251,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // ── SESSION & RESIZE ──────────────────────────────────────────────────────
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
     window.addEventListener("resize", handleResize);
@@ -252,6 +268,7 @@ export default function App() {
     else localStorage.removeItem("euphony_playlist_id");
   }, [viewedPlaylistId]);
 
+  // ── DATA FETCH ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!session?.user?.id) return;
     const fetchData = async () => {
@@ -276,6 +293,7 @@ export default function App() {
     fetchPlaylistSongs();
   }, [viewedPlaylistId]);
 
+  // ── TRACK CHANGE SIDE-EFFECTS ─────────────────────────────────────────────
   useEffect(() => {
     setStemsBroken(false);
     setShowLyrics(false);
@@ -284,33 +302,32 @@ export default function App() {
     setParsedLyrics(currentTrack?.lyrics ? parseLyrics(currentTrack.lyrics) : []);
   }, [currentTrack]);
 
-  // FIX: Tie stem audio volumes to the existence of stems on the current track, NOT whether the mixer UI is open
+  // ── VOLUME SYNC ───────────────────────────────────────────────────────────
   useEffect(() => {
-    const hasStems = currentTrack?.stem_vocals && !stemsBroken;
-    if (audioRef.current) audioRef.current.volume = hasStems ? 0 : (isMuted ? 0 : volume);
-    if (vocalsRef.current) vocalsRef.current.volume = hasStems ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
-    if (drumsRef.current)  drumsRef.current.volume  = hasStems ? (isMuted ? 0 : stemVolumes.drums  * (volume || 1)) : 0;
-    if (bassRef.current)   bassRef.current.volume   = hasStems ? (isMuted ? 0 : stemVolumes.bass   * (volume || 1)) : 0;
-    if (otherRef.current)  otherRef.current.volume  = hasStems ? (isMuted ? 0 : stemVolumes.other  * (volume || 1)) : 0;
-  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken]);
+    const isMixerActive = showMixer && currentTrack?.stem_vocals && !stemsBroken;
+    if (audioRef.current) audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
+    if (vocalsRef.current) vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
+    if (drumsRef.current)  drumsRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.drums  * (volume || 1)) : 0;
+    if (bassRef.current)   bassRef.current.volume   = isMixerActive ? (isMuted ? 0 : stemVolumes.bass   * (volume || 1)) : 0;
+    if (otherRef.current)  otherRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.other  * (volume || 1)) : 0;
+  }, [volume, isMuted, showMixer, stemVolumes, currentTrack, stemsBroken]);
 
-  // Sync stem positions when audio unpauses or tracks change
   useEffect(() => {
-    if (currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
+    if (showMixer && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime;
       if (vocalsRef.current) vocalsRef.current.currentTime = t;
       if (drumsRef.current)  drumsRef.current.currentTime  = t;
       if (bassRef.current)   bassRef.current.currentTime   = t;
       if (otherRef.current)  otherRef.current.currentTime  = t;
     }
-  }, [currentTrack, stemsBroken]);
+  }, [showMixer, currentTrack, stemsBroken]);
 
-  // FIX: Play/Pause sync logic completely decoupled from showMixer
+  // ── PLAY / PAUSE SYNC ─────────────────────────────────────────────────────
   useEffect(() => {
     const syncPlayState = async () => {
       if (isPlaying && currentTrack) {
         if (audioRef.current?.paused) audioRef.current.play().catch(e => console.log("play err:", e));
-        if (currentTrack?.stem_vocals && !stemsBroken) {
+        if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
           vocalsRef.current?.play().catch(e => e);
           drumsRef.current?.play().catch(e => e);
           bassRef.current?.play().catch(e => e);
@@ -325,8 +342,9 @@ export default function App() {
       }
     };
     syncPlayState();
-  }, [isPlaying, currentTrack, stemsBroken]);
+  }, [isPlaying, showMixer, currentTrack, stemsBroken]);
 
+  // ── SMOOTH HIGH-FPS TIME UPDATE ───────────────────────────────────────────
   const handleTimeUpdateRef = useRef();
   useEffect(() => {
     handleTimeUpdateRef.current = () => {
@@ -335,7 +353,7 @@ export default function App() {
       setCurrentTime(time);
       if (Math.floor(time) % 2 === 0) localStorage.setItem("euphony_current_time", time);
 
-      if (currentTrack?.stem_vocals && !stemsBroken) {
+      if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
         const syncStem = (ref) => {
           if (ref.current && Math.abs(ref.current.currentTime - time) > 0.3) ref.current.currentTime = time;
         };
@@ -383,12 +401,11 @@ export default function App() {
     }
   }, [currentTrack]);
 
-  // FIX: handleCanPlay now starts stems based purely on track availability, not UI visibility
   const handleCanPlay = () => {
     if (pendingAutoPlayRef.current) {
       pendingAutoPlayRef.current = false;
       audioRef.current?.play().catch(e => console.log("canplay-play err:", e));
-      if (currentTrack?.stem_vocals && !stemsBroken) {
+      if (showMixer && currentTrack?.stem_vocals && !stemsBroken) {
         vocalsRef.current?.play().catch(e => e);
         drumsRef.current?.play().catch(e => e);
         bassRef.current?.play().catch(e => e);
@@ -420,6 +437,7 @@ export default function App() {
     }
   }, [activeLyricIndex]);
 
+  // ── STEM GENERATION ────────────────────────────────────
   const handleGenerateStemsClick = async () => {
     if (!currentTrack) return;
     setIsGeneratingStems(true);
@@ -469,6 +487,7 @@ export default function App() {
 
   const triggerToast = (msg) => { setQueueToast(msg); setTimeout(() => setQueueToast(""), 2200); };
 
+  // ── QUEUE HANDLERS ────────────────────────────────────────────────────────
   const addToQueue = (song, e) => { if (e) e.stopPropagation(); setUserQueue(prev => [...prev, song]); triggerToast(`Added "${song.title}" to Queue`); };
   const removeFromQueue = (index, e) => { if (e) e.stopPropagation(); setUserQueue(prev => prev.filter((_, i) => i !== index)); };
   const clearQueue = (e) => { if (e) e.stopPropagation(); setUserQueue([]); };
@@ -551,6 +570,7 @@ export default function App() {
     }
   };
 
+  // ── UPLOAD & PLAYLIST CRUD ────────────────────────────────────────────────
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist) return alert("Please fill in required fields.");
@@ -714,7 +734,6 @@ export default function App() {
     else { setPreviousVolume(volume); setIsMuted(true); setVolume(0); }
   };
 
-  // FIX: Toggling the mixer UI purely manages visibility. It no longer touches setIsPlaying.
   const toggleStemMixer = (e) => {
     if (e) e.stopPropagation();
     const willShow = !showMixer;
@@ -752,6 +771,7 @@ export default function App() {
     );
   };
 
+  // ── MIXER BLOCK ───────────────────────────────────────────────
   const renderMixerBlock = (isMobile) => (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
       <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
@@ -821,11 +841,13 @@ export default function App() {
     </div>
   );
 
+  // ── QUEUE BLOCK ───────────────────────────────────────────────────────────
   const renderQueueBlock = (isMobile) => {
     const upcomingList = playbackQueue.slice(playbackIndex + 1);
     return (
       <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", overflowY: "auto", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
 
+        {/* NOW PLAYING */}
         <div style={{ marginBottom: "22px" }}>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Now Playing</h4>
           {currentTrack && (
@@ -848,6 +870,7 @@ export default function App() {
           )}
         </div>
 
+        {/* USER QUEUE – drag-to-reorder */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
             <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>
@@ -890,6 +913,7 @@ export default function App() {
           )}
         </div>
 
+        {/* NEXT FROM SOURCE */}
         <div>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next From: {playbackSourceName}</h4>
           {upcomingList.length > 0 ? (
@@ -945,9 +969,43 @@ export default function App() {
         .sidebar-item { transition: color 0.2s ease; cursor: pointer; }
         .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
         .eq-bar { width: 3px; height: 14px; background-color: ${COLORS.spotifyGreen}; border-radius: 3px; animation: bounceEq 1s infinite ease-in-out; transform-origin: bottom; }
-        .glow-slider { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 6px; outline: none; cursor: pointer; }
-        .glow-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 8px; height: 8px; border-radius: 50%; background: #FFFFFF; cursor: pointer; transition: transform 0.1s ease; }
-        .glow-slider::-moz-range-thumb { width: 8px; height: 8px; border: none; border-radius: 50%; background: #FFFFFF; cursor: pointer; transition: transform 0.1s ease; }
+        
+        .glow-slider { 
+          -webkit-appearance: none; 
+          appearance: none; 
+          height: 6px; 
+          border-radius: 6px; 
+          outline: none; 
+          cursor: pointer; 
+        }
+        .glow-slider::-webkit-slider-thumb { 
+          -webkit-appearance: none; 
+          appearance: none; 
+          width: 4px;
+          height: 6px;
+          border-radius: 4px;
+          background: #FFFFFF;
+          cursor: pointer;
+          box-shadow: 
+            0 0 10px 4px rgba(255, 255, 255, 1),
+            -12px 0 12px 4px rgba(255, 255, 255, 0.8),
+            -24px 0 16px 4px rgba(255, 255, 255, 0.4);
+          transition: transform 0.1s ease;
+        }
+        .glow-slider::-moz-range-thumb { 
+          width: 4px; 
+          height: 6px; 
+          border: none;
+          border-radius: 4px;
+          background: #FFFFFF;
+          cursor: pointer;
+          box-shadow: 
+            0 0 10px 4px rgba(255, 255, 255, 1),
+            -12px 0 12px 4px rgba(255, 255, 255, 0.8),
+            -24px 0 16px 4px rgba(255, 255, 255, 0.4);
+          transition: transform 0.1s ease;
+        }
+        
         .stem-fader { -webkit-appearance: none; appearance: none; outline: none; cursor: pointer; }
         .stem-fader::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
         .stem-fader::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
