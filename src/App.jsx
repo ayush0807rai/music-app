@@ -337,7 +337,6 @@ export default function App() {
     const fetchData = async () => {
       const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true });
       if (songsData) setPlaylist(songsData);
-      // FIX: Properly fetch nested poster URLs for the playlist sidebars
       const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) setUserPlaylists(playlistData);
       setIsInitialLoad(false);
@@ -1144,7 +1143,7 @@ export default function App() {
         .stem-fader { -webkit-appearance: none; appearance: none; outline: none; cursor: pointer; }
         .stem-fader::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
         .stem-fader::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
-        .upload-input { width: 100%; padding: 12px; background: #FFFFFF; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.primary}; margin-bottom: 16px; outline: none; transition: border-color 0.2s ease; }
+        .upload-input { width: 100%; padding: 12px; background: ${isDarkMode ? "rgba(255,255,255,0.05)" : "#FFFFFF"}; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.textMain}; margin-bottom: 16px; outline: none; transition: border-color 0.2s ease; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
@@ -1167,12 +1166,12 @@ export default function App() {
 
       {/* TOASTS */}
       {renderQueueToast && (
-        <div className={queueToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgBase, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
+        <div className={queueToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           {safeQueueToast}
         </div>
       )}
       {renderExitToast && (
-        <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: "rgba(26, 43, 76, 0.85)", color: COLORS.bgBase, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>
+        <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           Press back again to exit
         </div>
       )}
@@ -1359,8 +1358,8 @@ export default function App() {
                 {playlistSongs.length > 0 && (
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", justifyContent: isDesktop ? "flex-start" : "center", flexWrap: "wrap" }}>
                     {displayedSongs.length > 0 && (
-                      <button onClick={() => handlePlaySong(0, displayedSongs, activePlaylistObj?.name || "Playlist")} className="hover-effect" style={{ width: "56px", height: "56px", borderRadius: "50%", background: COLORS.primary, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)", flexShrink: 0 }}>
-                        <Play size={24} fill={COLORS.bgBase} color={COLORS.bgBase} style={{ marginLeft: "3px" }} />
+                      <button onClick={() => handlePlaySong(0, displayedSongs, activePlaylistObj?.name || "Playlist")} className="hover-effect" style={{ width: "56px", height: "56px", borderRadius: "50%", background: COLORS.primary, color: COLORS.bgPanel, border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 8px 16px rgba(26,43,76,0.2)", flexShrink: 0 }}>
+                        <Play size={24} fill="currentColor" style={{ marginLeft: "3px" }} />
                       </button>
                     )}
                     
@@ -1502,18 +1501,14 @@ export default function App() {
             {currentTrack.poster_url && (
               <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(50px) brightness(1) saturate(100%)", opacity: 0.35, zIndex: 0, pointerEvents: "none" }} />
             )}
-            
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
-              {/* ARTWORK / DYNAMIC PLAYER VIEW */}
               <div style={{ width: "100%", flex: 1, minHeight: 0, marginBottom: "20px", display: "flex", flexDirection: "column" }}>
-                <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
+                <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)" }}>
                   <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                     {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : (currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>)}
                   </div>
                 </div>
               </div>
-              
-              {/* TRACK INFO & SECONDARY ACTIONS */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexShrink: 0 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <h3 style={{ margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
@@ -1532,8 +1527,6 @@ export default function App() {
                   ))}
                 </div>
               </div>
-              
-              {/* PRIMARY CONTROLS & PROGRESS */}
               <div style={{ marginTop: "auto", paddingBottom: "0px", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
@@ -1544,7 +1537,7 @@ export default function App() {
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                     <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
+                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
                     <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
@@ -1602,7 +1595,7 @@ export default function App() {
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
               <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: (showLyrics || showQueue || showMixer) ? "none" : "0 20px 40px rgba(26,43,76,0.2)", transition: "box-shadow 0.3s ease" }}>
                 <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
-                  {showMixer ? renderMixerBlock(true) : showQueue ? renderQueueBlock(true) : showLyrics ? renderLyricsBlock(true) : (currentTrack?.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={100} color={COLORS.textMuted} /></div>)}
+                  {showMixer ? renderMixerBlock(true) : showQueue ? renderQueueBlock(true) : showLyrics ? renderLyricsBlock(true) : (currentTrack?.poster_url ? <img src={currentTrack?.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={100} color={COLORS.textMuted} /></div>)}
                 </div>
               </div>
             </div>
@@ -1631,7 +1624,7 @@ export default function App() {
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
                 <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
-                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease" }} className="hover-effect">
+                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease" }} className="hover-effect">
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
                 </button>
                 <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
