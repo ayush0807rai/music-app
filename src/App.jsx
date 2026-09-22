@@ -343,6 +343,20 @@ export default function App() {
       setIsInitialLoad(false);
     };
     fetchData();
+
+    // Future-proofing: Realtime Sync for New Songs globally
+    const channel = supabase.channel('public:songs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'songs' }, (payload) => {
+        setPlaylist(prev => {
+          if (prev.find(s => s.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -1173,6 +1187,16 @@ export default function App() {
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onEnded={handleTrackEnded}
         onCanPlay={handleCanPlay}
+        onWaiting={() => {
+          // Future-proofing: If main track buffers on a slow network, pause stems so they don't get out of sync
+          vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
+        }}
+        onPlaying={() => {
+          // Future-proofing: Resume stems when main track finishes buffering
+          if (currentTrack?.stem_vocals && !stemsBroken) {
+            vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
+          }
+        }}
         onError={() => {
           if (currentTrack) {
             triggerToast(`Error playing "${currentTrack.title}". Skipping to next track...`);
