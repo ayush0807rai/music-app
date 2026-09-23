@@ -892,36 +892,43 @@ export default function App() {
     );
   };
 
-  const renderLyricsBlock = (isMobile) => (
-    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: "transparent", textAlign: "center", borderRadius: "12px" }}>
-      {parsedLyrics.length > 0 ? (
-        <div style={{ padding: isMobile ? "80px 0" : "120px 0" }}>
-          {parsedLyrics.map((lyric, index) => {
-            const isActiveLine = index === activeLyricIndex;
-            return (
-              <div key={index} ref={el => lyricRefs.current[index] = el} onClick={(e) => handleLyricClick(lyric.time, e)}
-                style={{ fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), fontWeight: isActiveLine ? "800" : "600", color: isActiveLine ? COLORS.primary : COLORS.textMuted, textShadow: isActiveLine && !lyric.words ? `0 0 16px ${COLORS.primary}80` : "none", padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.05)" : "scale(1)", lineHeight: "1.4", cursor: "pointer" }}>
-                {lyric.words ? lyric.words.map((wordObj, wIndex) => {
-                  const isActiveWord = isActiveLine && wIndex === activeWordIndex;
-                  const isPastWord = isActiveLine && wIndex < activeWordIndex;
-                  return (
-                    <span key={wIndex} onClick={(e) => handleLyricClick(wordObj.time, e)}
-                      style={{ color: (isActiveWord || isPastWord) ? COLORS.primary : COLORS.textMuted, textShadow: isActiveWord ? `0 0 16px ${COLORS.primary}80` : "none", transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer" }}>
-                      {wordObj.text}
-                    </span>
-                  );
-                }) : lyric.text}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div style={{ color: COLORS.textMuted, opacity: 0.8, fontSize: "15px", fontWeight: "500", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {currentTrack?.lyrics ? currentTrack.lyrics : "No synchronized lyrics available."}
-        </div>
-      )}
-    </div>
-  );
+  const renderLyricsBlock = (isMobile) => {
+    const activeColor = isDarkMode ? COLORS.primary : "#FFFFFF";
+    const inactiveColor = isDarkMode ? COLORS.textMuted : "rgba(255, 255, 255, 0.7)";
+    const activeShadow = isDarkMode ? `0 0 16px ${COLORS.primary}80` : "0 2px 12px rgba(0,0,0,0.9)";
+    const inactiveShadow = isDarkMode ? "none" : "0 1px 6px rgba(0,0,0,0.8)";
+
+    return (
+      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: "transparent", textAlign: "center", borderRadius: "12px" }}>
+        {parsedLyrics.length > 0 ? (
+          <div style={{ padding: isMobile ? "80px 0" : "120px 0" }}>
+            {parsedLyrics.map((lyric, index) => {
+              const isActiveLine = index === activeLyricIndex;
+              return (
+                <div key={index} ref={el => lyricRefs.current[index] = el} onClick={(e) => handleLyricClick(lyric.time, e)}
+                  style={{ fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), fontWeight: isActiveLine ? "800" : "600", color: isActiveLine ? activeColor : inactiveColor, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.05)" : "scale(1)", lineHeight: "1.4", cursor: "pointer" }}>
+                  {lyric.words ? lyric.words.map((wordObj, wIndex) => {
+                    const isActiveWord = isActiveLine && wIndex === activeWordIndex;
+                    const isPastWord = isActiveLine && wIndex < activeWordIndex;
+                    return (
+                      <span key={wIndex} onClick={(e) => handleLyricClick(wordObj.time, e)}
+                        style={{ color: (isActiveWord || isPastWord) ? activeColor : inactiveColor, textShadow: isActiveWord ? activeShadow : inactiveShadow, transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer" }}>
+                        {wordObj.text}
+                      </span>
+                    );
+                  }) : lyric.text}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ color: inactiveColor, textShadow: inactiveShadow, opacity: 0.8, fontSize: "15px", fontWeight: "600", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {currentTrack?.lyrics ? currentTrack.lyrics : "No synchronized lyrics available."}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const renderQueueBlock = (isMobile) => {
     return (
@@ -1374,14 +1381,11 @@ export default function App() {
                     <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
                       <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
                       <input 
-                        type="search" 
+                        type="text" 
                         placeholder="Search..." 
                         value={searchQuery} 
                         onChange={e => setSearchQuery(e.target.value)} 
-                        autoComplete="off"
-                        spellCheck="false"
-                        autoCorrect="off"
-                        style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0, WebkitUserSelect: "auto", userSelect: "auto" }} 
+                        style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
                       />
                       {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
                     </div>
@@ -1454,14 +1458,11 @@ export default function App() {
                   <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
                     <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
                     <input 
-                      type="search" 
+                      type="text" 
                       placeholder="Search..." 
                       value={searchQuery} 
                       onChange={e => setSearchQuery(e.target.value)} 
-                      autoComplete="off"
-                      spellCheck="false"
-                      autoCorrect="off"
-                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0, WebkitUserSelect: "auto", userSelect: "auto" }} 
+                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
                     />
                     {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
                   </div>
