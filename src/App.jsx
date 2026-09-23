@@ -335,13 +335,32 @@ export default function App() {
   useEffect(() => {
     if (!session?.user?.id) return;
     const fetchData = async () => {
-      const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true });
+      const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
       if (songsData) setPlaylist(songsData);
       const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) setUserPlaylists(playlistData);
       setIsInitialLoad(false);
     };
     fetchData();
+
+    const channel = supabase.channel('public:songs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'songs' }, (payload) => {
+        setPlaylist(prev => {
+          if (prev.find(s => s.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        });
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'songs' }, (payload) => {
+        setPlaylist(prev => prev.map(s => s.id === payload.new.id ? payload.new : s));
+        setPlaylistSongs(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
+        setPlaybackQueue(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
+        setQueueCurrentTrack(prev => prev?.id === payload.new.id ? { ...prev, ...payload.new } : prev);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -361,17 +380,35 @@ export default function App() {
     setShowLyrics(false);
     setActiveLyricIndex(-1);
     setActiveWordIndex(-1);
+    setStemVolumes({ vocals: 1, drums: 1, bass: 1, other: 1 });
     setParsedLyrics(currentTrack?.lyrics ? parseLyrics(currentTrack.lyrics) : []);
   }, [currentTrack]);
 
   useEffect(() => {
-    const isMixerActive = showMixer && currentTrack?.stem_vocals && !stemsBroken;
-    if (audioRef.current) audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
-    if (vocalsRef.current) vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
-    if (drumsRef.current)  drumsRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.drums  * (volume || 1)) : 0;
-    if (bassRef.current)   bassRef.current.volume   = isMixerActive ? (isMuted ? 0 : stemVolumes.bass   * (volume || 1)) : 0;
-    if (otherRef.current)  otherRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.other  * (volume || 1)) : 0;
-  }, [volume, isMuted, showMixer, stemVolumes, currentTrack, stemsBroken]);
+    const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
+    const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
+    
+    if (audioRef.current) {
+      audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
+      audioRef.current.muted = isMixerActive || isMuted;
+    }
+    if (vocalsRef.current) {
+      vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
+      vocalsRef.current.muted = !isMixerActive || isMuted || stemVolumes.vocals === 0;
+    }
+    if (drumsRef.current) {
+      drumsRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.drums  * (volume || 1)) : 0;
+      drumsRef.current.muted = !isMixerActive || isMuted || stemVolumes.drums === 0;
+    }
+    if (bassRef.current) {
+      bassRef.current.volume   = isMixerActive ? (isMuted ? 0 : stemVolumes.bass   * (volume || 1)) : 0;
+      bassRef.current.muted = !isMixerActive || isMuted || stemVolumes.bass === 0;
+    }
+    if (otherRef.current) {
+      otherRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.other  * (volume || 1)) : 0;
+      otherRef.current.muted = !isMixerActive || isMuted || stemVolumes.other === 0;
+    }
+  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken]);
 
   useEffect(() => {
     if (showMixer && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
@@ -421,7 +458,9 @@ export default function App() {
 
       if (currentTrack?.stem_vocals && !stemsBroken) {
         const syncStem = (ref) => {
-          if (ref.current && Math.abs(ref.current.currentTime - time) > 0.3) ref.current.currentTime = time;
+          if (ref.current && ref.current.readyState >= 3 && Math.abs(ref.current.currentTime - time) > 0.4) {
+            ref.current.currentTime = time;
+          }
         };
         syncStem(vocalsRef); syncStem(drumsRef); syncStem(bassRef); syncStem(otherRef);
       }
@@ -637,17 +676,24 @@ export default function App() {
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist) return alert("Please fill in required fields.");
+    
+    if (uploadFile.size > 50 * 1024 * 1024) return alert("Audio file is too large! Maximum size is 50MB.");
+    if (uploadPoster && uploadPoster.size > 5 * 1024 * 1024) return alert("Poster image is too large! Maximum size is 5MB.");
+    
     setIsUploading(true);
     try {
-      const fileExt = uploadFile.name.split('.').pop();
-      const fileName = `${Date.now()}-audio.${fileExt}`;
+      const fileExt = uploadFile.name.split('.').pop().toLowerCase();
+      const cleanTitle = uploadTitle.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+      const fileName = `${session.user.id}-${Date.now()}-${cleanTitle}.${fileExt}`;
+      
       const { error: audioError } = await supabase.storage.from("songs").upload(fileName, uploadFile, { cacheControl: "3600" });
       if (audioError) throw audioError;
       const { data: { publicUrl: audioUrl } } = supabase.storage.from("songs").getPublicUrl(fileName);
+      
       let posterUrl = null;
       if (uploadPoster) {
-        const posterExt = uploadPoster.name.split('.').pop();
-        const posterName = `${Date.now()}-poster.${posterExt}`;
+        const posterExt = uploadPoster.name.split('.').pop().toLowerCase();
+        const posterName = `${session.user.id}-${Date.now()}-poster.${posterExt}`;
         const { error: posterError } = await supabase.storage.from("songs").upload(posterName, uploadPoster, { cacheControl: "3600" });
         if (posterError) throw posterError;
         posterUrl = supabase.storage.from("songs").getPublicUrl(posterName).data.publicUrl;
@@ -894,8 +940,8 @@ export default function App() {
 
   const renderLyricsBlock = (isMobile) => {
     const activeColor = isDarkMode ? COLORS.primary : "#FFFFFF";
-    const inactiveColor = isDarkMode ? COLORS.textMuted : "rgba(255, 255, 255, 0.7)";
-    const activeShadow = isDarkMode ? `0 0 16px ${COLORS.primary}80` : "0 2px 12px rgba(0,0,0,0.9)";
+    const inactiveColor = isDarkMode ? COLORS.textMuted : "rgba(255, 255, 255, 0.65)";
+    const activeShadow = isDarkMode ? `0 0 16px ${COLORS.primary}80` : "0 0 16px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.9)";
     const inactiveShadow = isDarkMode ? "none" : "0 1px 6px rgba(0,0,0,0.8)";
 
     return (
