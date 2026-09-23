@@ -388,26 +388,17 @@ export default function App() {
     const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
     const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
     
-    if (audioRef.current) {
-      audioRef.current.volume = isMixerActive ? 0 : (isMuted ? 0 : volume);
-      audioRef.current.muted = isMixerActive || isMuted;
-    }
-    if (vocalsRef.current) {
-      vocalsRef.current.volume = isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0;
-      vocalsRef.current.muted = !isMixerActive || isMuted || stemVolumes.vocals === 0;
-    }
-    if (drumsRef.current) {
-      drumsRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.drums  * (volume || 1)) : 0;
-      drumsRef.current.muted = !isMixerActive || isMuted || stemVolumes.drums === 0;
-    }
-    if (bassRef.current) {
-      bassRef.current.volume   = isMixerActive ? (isMuted ? 0 : stemVolumes.bass   * (volume || 1)) : 0;
-      bassRef.current.muted = !isMixerActive || isMuted || stemVolumes.bass === 0;
-    }
-    if (otherRef.current) {
-      otherRef.current.volume  = isMixerActive ? (isMuted ? 0 : stemVolumes.other  * (volume || 1)) : 0;
-      otherRef.current.muted = !isMixerActive || isMuted || stemVolumes.other === 0;
-    }
+    const setVol = (ref, targetVol, targetMuted) => {
+      if (!ref.current) return;
+      if (Math.abs(ref.current.volume - targetVol) > 0.01) ref.current.volume = targetVol;
+      if (ref.current.muted !== targetMuted) ref.current.muted = targetMuted;
+    };
+
+    setVol(audioRef, isMixerActive ? 0 : (isMuted ? 0 : volume), isMixerActive || isMuted);
+    setVol(vocalsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.vocals === 0);
+    setVol(drumsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.drums === 0);
+    setVol(bassRef, isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.bass === 0);
+    setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.other === 0);
   }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken]);
 
   useEffect(() => {
@@ -458,7 +449,7 @@ export default function App() {
 
       if (currentTrack?.stem_vocals && !stemsBroken) {
         const syncStem = (ref) => {
-          if (ref.current && ref.current.readyState >= 3 && Math.abs(ref.current.currentTime - time) > 0.4) {
+          if (ref.current && ref.current.readyState >= 3 && Math.abs(ref.current.currentTime - time) > 0.5) {
             ref.current.currentTime = time;
           }
         };
@@ -490,7 +481,7 @@ export default function App() {
     if (isPlaying) {
       interval = setInterval(() => {
         handleTimeUpdateRef.current();
-      }, 100); 
+      }, 200); 
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
@@ -1217,6 +1208,16 @@ export default function App() {
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onEnded={handleTrackEnded}
         onCanPlay={handleCanPlay}
+        onWaiting={() => {
+          if (currentTrack?.stem_vocals && !stemsBroken) {
+            vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
+          }
+        }}
+        onPlaying={() => {
+          if (isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
+            vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
+          }
+        }}
         preload="auto"
         playsInline
         loop={playMode === 'repeat-one'}
