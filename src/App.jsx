@@ -945,7 +945,7 @@ export default function App() {
               const isActiveLine = index === activeLyricIndex;
               return (
                 <div key={index} ref={el => lyricRefs.current[index] = el} onClick={(e) => handleLyricClick(lyric.time, e)}
-                  style={{ fontSize: isActiveLine ? (isMobile ? "24px" : "22px") : (isMobile ? "18px" : "16px"), fontWeight: isActiveLine ? "800" : "600", color: isActiveLine ? activeColor : inactiveColor, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.05)" : "scale(1)", lineHeight: "1.4", cursor: "pointer" }}>
+                  style={{ fontSize: isMobile ? "20px" : "18px", fontWeight: "700", color: isActiveLine ? activeColor : inactiveColor, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.15)" : "scale(1)", transformOrigin: "center", lineHeight: "1.4", cursor: "pointer" }}>
                   {lyric.words ? lyric.words.map((wordObj, wIndex) => {
                     const isActiveWord = isActiveLine && wIndex === activeWordIndex;
                     const isPastWord = isActiveLine && wIndex < activeWordIndex;
