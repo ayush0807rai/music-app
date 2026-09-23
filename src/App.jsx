@@ -770,13 +770,9 @@ export default function App() {
 
   const handleTrackEnded = () => {
     if (playMode === "repeat-one") {
-      resetPlaybackTime();
-      audioRef.current?.play().catch(() => {});
-      if (currentTrack?.stem_vocals && !stemsBroken) {
-        vocalsRef.current?.play().catch(() => {});
-        drumsRef.current?.play().catch(() => {});
-        bassRef.current?.play().catch(() => {});
-        otherRef.current?.play().catch(() => {});
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
       }
       return;
     }
@@ -1374,11 +1370,14 @@ export default function App() {
                     <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
                       <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
                       <input 
-                        type="text" 
+                        type="search" 
                         placeholder="Search..." 
                         value={searchQuery} 
                         onChange={e => setSearchQuery(e.target.value)} 
-                        style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
+                        autoComplete="off"
+                        spellCheck="false"
+                        autoCorrect="off"
+                        style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0, WebkitUserSelect: "auto", userSelect: "auto" }} 
                       />
                       {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
                     </div>
@@ -1451,11 +1450,14 @@ export default function App() {
                   <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
                     <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
                     <input 
-                      type="text" 
+                      type="search" 
                       placeholder="Search..." 
                       value={searchQuery} 
                       onChange={e => setSearchQuery(e.target.value)} 
-                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
+                      autoComplete="off"
+                      spellCheck="false"
+                      autoCorrect="off"
+                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0, WebkitUserSelect: "auto", userSelect: "auto" }} 
                     />
                     {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
                   </div>
@@ -1545,10 +1547,10 @@ export default function App() {
                   {[
                     { label: "Sleep Timer", active: !!sleepTimerTarget, icon: <Moon size={15} />, action: (e) => { e.stopPropagation(); setShowSleepTimerModal(true); } },
                     { label: "Stem Mixer", active: showMixer, icon: <SlidersHorizontal size={15} />, action: toggleStemMixer },
-                    { label: "Lyrics", active: showLyrics, icon: <Mic2 size={15} />, action: () => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }, white: showLyrics },
+                    { label: "Lyrics", active: showLyrics, icon: <Mic2 size={15} />, action: () => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } } },
                     { label: "Queue", active: showQueue, icon: <ListMusic size={15} />, action: () => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } } }
-                  ].map(({ label, active, icon, action, white }) => (
-                    <button key={label} onClick={action} title={label} style={{ background: active ? (white ? "#FFFFFF" : COLORS.spotifyGreen) : "rgba(255,255,255,0.15)", color: (active && white) ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                  ].map(({ label, active, icon, action }) => (
+                    <button key={label} onClick={action} title={label} style={{ background: active ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                       {icon}
                     </button>
                   ))}
@@ -1566,7 +1568,7 @@ export default function App() {
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                     <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgBase, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
+                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: COLORS.primary, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
                     <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
@@ -1637,7 +1639,7 @@ export default function App() {
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
                 <button onClick={toggleStemMixer} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><SlidersHorizontal size={17} /></button>
                 <button onClick={e => { e.stopPropagation(); setShowSleepTimerModal(true); }} style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Moon size={17} /></button>
-                <button onClick={() => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} style={{ background: showLyrics ? "#FFFFFF" : "rgba(255,255,255,0.15)", color: showLyrics ? COLORS.primary : "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Mic2 size={17} /></button>
+                <button onClick={() => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} style={{ background: showLyrics ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Mic2 size={17} /></button>
               </div>
             </div>
 
