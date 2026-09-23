@@ -70,19 +70,19 @@ export default function App() {
   }, [isDarkMode]);
 
   const COLORS = isDarkMode ? {
-    bgBase: "#121A2F",
-    bgPanel: "#1A2B4C",
-    primary: "#F3F0E6",
-    textMain: "#F3F0E6",
-    textMuted: "rgba(243, 240, 230, 0.6)",
-    border: "rgba(243, 240, 230, 0.12)",
-    hover: "rgba(243, 240, 230, 0.06)",
+    bgBase: "#241020",
+    bgPanel: "#381932",
+    primary: "#FFF3E6",
+    textMain: "#FFF3E6",
+    textMuted: "rgba(255, 243, 230, 0.6)",
+    border: "rgba(255, 243, 230, 0.12)",
+    hover: "rgba(255, 243, 230, 0.06)",
     spotifyGreen: "#1DB954",
-    invertedMuted: "rgba(18, 26, 47, 0.4)",
-    invertedShadow: "rgba(18, 26, 47, 0.6)",
-    invertedShadowStrong: "rgba(18, 26, 47, 0.8)",
-    heroTop: "#2A3B5C",
-    imageBg: "rgba(255,255,255,0.1)"
+    invertedMuted: "rgba(36, 16, 32, 0.4)",
+    invertedShadow: "rgba(36, 16, 32, 0.6)",
+    invertedShadowStrong: "rgba(36, 16, 32, 0.8)",
+    heroTop: "#4B2243",
+    imageBg: "rgba(255, 255, 255, 0.1)"
   } : {
     bgBase: "#F3F0E6",
     bgPanel: "#FAFAF7",
