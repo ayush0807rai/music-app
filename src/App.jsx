@@ -938,7 +938,7 @@ export default function App() {
     const inactiveShadow = isDarkMode ? "none" : "0 0 8px rgba(255,255,255,0.7)";
 
     return (
-      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: "transparent", textAlign: "center", borderRadius: "12px" }}>
+      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", overflowX: "hidden", background: "transparent", textAlign: "center", borderRadius: "12px" }}>
         {parsedLyrics.length > 0 ? (
           <div style={{ padding: isMobile ? "80px 0" : "120px 0" }}>
             {parsedLyrics.map((lyric, index) => {
