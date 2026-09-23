@@ -939,12 +939,12 @@ export default function App() {
   };
 
   const renderLyricsBlock = (isMobile) => {
-    const activeColor = COLORS.primary;
+    const activeColor = isDarkMode ? COLORS.primary : "#FFFFFF";
     const inactiveColor = COLORS.textMuted;
     const activeShadow = isDarkMode 
       ? `0 0 16px ${COLORS.primary}80` 
-      : `0 0 12px ${COLORS.primary}80, 0 0 20px ${COLORS.primary}40`;
-    const inactiveShadow = "none";
+      : `0 0 12px #FFFFFF, 0 0 22px #FFFFFF, 0 0 35px rgba(0,0,0,0.7), 0 4px 15px rgba(0,0,0,0.6)`;
+    const inactiveShadow = isDarkMode ? "none" : "0 0 8px rgba(255,255,255,0.7)";
 
     return (
       <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", background: "transparent", textAlign: "center", borderRadius: "12px" }}>
