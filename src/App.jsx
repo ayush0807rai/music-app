@@ -770,9 +770,13 @@ export default function App() {
 
   const handleTrackEnded = () => {
     if (playMode === "repeat-one") {
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
+      resetPlaybackTime();
+      audioRef.current?.play().catch(() => {});
+      if (currentTrack?.stem_vocals && !stemsBroken) {
+        vocalsRef.current?.play().catch(() => {});
+        drumsRef.current?.play().catch(() => {});
+        bassRef.current?.play().catch(() => {});
+        otherRef.current?.play().catch(() => {});
       }
       return;
     }
@@ -1147,6 +1151,8 @@ export default function App() {
         .upload-input:focus { border-color: ${COLORS.primary}; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
+        
+        .loop-audio-fix { pointer-events: none; }
       `}</style>
 
       {/* ── AUDIO ELEMENTS ── */}
@@ -1158,11 +1164,13 @@ export default function App() {
         onCanPlay={handleCanPlay}
         preload="auto"
         playsInline
+        loop={playMode === 'repeat-one'}
+        className="loop-audio-fix"
       />
-      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} />
-      <audio ref={drumsRef}  src={currentTrack?.stem_drums  || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} />
-      <audio ref={bassRef}   src={currentTrack?.stem_bass   || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} />
-      <audio ref={otherRef}  src={currentTrack?.stem_other  || undefined} preload="auto" playsInline onError={() => currentTrack?.stem_other  && setStemsBroken(true)} />
+      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={drumsRef}  src={currentTrack?.stem_drums  || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={bassRef}   src={currentTrack?.stem_bass   || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={otherRef}  src={currentTrack?.stem_other  || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_other  && setStemsBroken(true)} className="loop-audio-fix" />
 
       {/* TOASTS */}
       {renderQueueToast && (
@@ -1366,14 +1374,11 @@ export default function App() {
                     <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
                       <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
                       <input 
-                        type="search" 
+                        type="text" 
                         placeholder="Search..." 
                         value={searchQuery} 
                         onChange={e => setSearchQuery(e.target.value)} 
-                        autoComplete="off"
-                        spellCheck="false"
-                        autoCorrect="off"
-                        style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0, WebkitUserSelect: "auto", userSelect: "auto" }} 
+                        style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
                       />
                       {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
                     </div>
@@ -1446,14 +1451,11 @@ export default function App() {
                   <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
                     <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
                     <input 
-                      type="search" 
+                      type="text" 
                       placeholder="Search..." 
                       value={searchQuery} 
                       onChange={e => setSearchQuery(e.target.value)} 
-                      autoComplete="off"
-                      spellCheck="false"
-                      autoCorrect="off"
-                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0, WebkitUserSelect: "auto", userSelect: "auto" }} 
+                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
                     />
                     {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
                   </div>
@@ -1564,7 +1566,7 @@ export default function App() {
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                     <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgPanel, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
+                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: COLORS.primary, color: COLORS.bgBase, cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
                     <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
