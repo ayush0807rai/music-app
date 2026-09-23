@@ -1196,7 +1196,7 @@ export default function App() {
         .upload-input { width: 100%; padding: 12px; background: ${isDarkMode ? "rgba(255,255,255,0.05)" : "#FFFFFF"}; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.textMain}; margin-bottom: 16px; outline: none; transition: border-color 0.2s ease; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(26,43,76,0.2); border-radius: 10px; border: 2px solid transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: ${isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}; border-radius: 10px; border: 2px solid transparent; }
         
         .loop-audio-fix { pointer-events: none; }
       `}</style>
