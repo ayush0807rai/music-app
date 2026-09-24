@@ -1755,25 +1755,24 @@ export default function App() {
         .loop-audio-fix { pointer-events: none; }
         
         .glass-row {
-          background: ${isDarkMode ? "rgba(255, 255, 255, 0.07)" : "linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 100%)"};
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.07)" : "rgba(0, 0, 0, 0.03)"};
           backdrop-filter: blur(24px) saturate(150%);
           -webkit-backdrop-filter: blur(24px) saturate(150%);
-          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.9)"};
-          border-right: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.4)"};
-          border-bottom: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.4)"};
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.06)"};
           border-radius: 12px;
-          box-shadow: ${isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "0 8px 32px rgba(31, 38, 135, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1)"};
+          box-shadow: ${isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "0 4px 12px rgba(0, 0, 0, 0.04)"};
           transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
         .glass-row:hover {
-          background: ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.25) 100%)"};
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.06)"};
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.09)"};
           transform: translateY(-1px);
-          box-shadow: ${isDarkMode ? "0 6px 16px rgba(0, 0, 0, 0.3)" : "0 8px 32px rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1)"};
+          box-shadow: ${isDarkMode ? "0 6px 16px rgba(0, 0, 0, 0.3)" : "0 6px 16px rgba(0, 0, 0, 0.08)"};
         }
         .glass-row.active {
-          background: ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.4) 100%)"};
-          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 255, 255, 1)"};
-          box-shadow: ${isDarkMode ? "0 8px 24px rgba(0, 0, 0, 0.4)" : "0 12px 36px rgba(31, 38, 135, 0.1), inset 0 1px 0 rgba(255, 255, 255, 1)"};
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.09)"};
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.25)" : "rgba(0, 0, 0, 0.12)"};
+          box-shadow: ${isDarkMode ? "0 8px 24px rgba(0, 0, 0, 0.4)" : "0 8px 24px rgba(0, 0, 0, 0.12)"};
         }
       `}</style>
 
