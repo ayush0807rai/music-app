@@ -1622,30 +1622,6 @@ export default function App() {
             ) : (
               /* GLOBAL LIBRARY VIEW */
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
-                  <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : 0, color: COLORS.primary }}>Global Library ({playlist.length})</h2>
-                  
-                  <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
-                    <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
-                    <input 
-                      type="text" 
-                      placeholder="Search..." 
-                      value={searchQuery} 
-                      onChange={e => setSearchQuery(e.target.value)} 
-                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
-                    />
-                    {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
-                  </div>
-
-                  {renderSortButton(!isDesktop)}
-                  
-                  {currentSortKey && (
-                    <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
-                      By {SORT_LABELS[currentSortKey]} · <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
-                    </span>
-                  )}
-                </div>
-
                 {topArtists.length > 0 && !searchQuery && (
                   <div style={{ marginBottom: "32px", paddingLeft: isDesktop ? "16px" : "0" }}>
                     <h3 style={{ fontSize: "20px", fontWeight: "bold", color: COLORS.primary, marginBottom: "16px" }}>Top Artists</h3>
@@ -1665,6 +1641,30 @@ export default function App() {
                     </div>
                   </div>
                 )}
+
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
+                  <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : 0, color: COLORS.primary }}>Global Library ({playlist.length})</h2>
+                  
+                  <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
+                    <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
+                    <input 
+                      type="text" 
+                      placeholder="Search..." 
+                      value={searchQuery} 
+                      onChange={e => setSearchQuery(e.target.value)} 
+                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
+                    />
+                    {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
+                  </div>
+
+                  {renderSortButton(!isDesktop)}
+                  
+                  {currentSortKey && (
+                    <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
+                      By {SORT_LABELS[currentSortKey]} &middot; <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
+                    </span>
+                  )}
+                </div>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {displayedSongs.length > 0 ? displayedSongs.map((track, index) => {
