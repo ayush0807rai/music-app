@@ -114,6 +114,7 @@ export default function App() {
   const [playbackSourceName, setPlaybackSourceName] = useState("Global Library");
 
   const [playlist, setPlaylist] = useState([]);
+  const [topArtists, setTopArtists] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [playlistSongs, setPlaylistSongs] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -216,18 +217,7 @@ export default function App() {
       return (a[currentSortKey] || "").toString().localeCompare((b[currentSortKey] || "").toString());
     });
 
-  const topArtists = [
-    { name: "Arijit Singh", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Arijit_Singh_performance_at_Chandigarh_2025.jpg/500px-Arijit_Singh_performance_at_Chandigarh_2025.jpg" },
-    { name: "Armaan Malik", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Armaan_Malik_2016.jpg/500px-Armaan_Malik_2016.jpg" },
-    { name: "AR Rahman", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg/500px-AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg" },
-    { name: "Neeti Mohan", image: "https://upload.wikimedia.org/wikipedia/commons/1/13/Neeti_Mohan_attends_Shakti_Mohan%E2%80%99s_Nritya_Shakti_celebrations_for_World_Dance_Day_%2804%29_%28cropped%29.jpg" },
-    { name: "Darshan Raval", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Darshan-Raval-grace-the-12th-radio-mirchi-music-awards-2020.jpg/500px-Darshan-Raval-grace-the-12th-radio-mirchi-music-awards-2020.jpg" },
-    { name: "Taylor Swift", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png/500px-Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png" },
-    { name: "Sonu Nigam", image: "https://upload.wikimedia.org/wikipedia/commons/7/76/Sonu_Nigam123.jpg" },
-    { name: "Shawn Mendes", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png/500px-191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png" },
-    { name: "Shreya Ghoshal", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg/500px-Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg" },
-    { name: "Atif Aslam", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Atif_Aslam_at_Badlapur_%28cropped%29.jpg/500px-Atif_Aslam_at_Badlapur_%28cropped%29.jpg" }
-  ];
+
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
@@ -398,6 +388,10 @@ export default function App() {
     const fetchData = async () => {
       const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
       if (songsData) setPlaylist(songsData);
+      
+      const { data: artistsData } = await supabase.from("artists").select("*").order("created_at", { ascending: true });
+      if (artistsData) setTopArtists(artistsData);
+
       const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(song_id, songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) {
         let hasLiked = playlistData.some(p => p.name === "Liked Songs");
@@ -1619,8 +1613,8 @@ export default function App() {
                       {topArtists.map(artist => (
                         <div key={artist.name} onClick={() => setSearchQuery(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
                           <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.imageBg, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
-                            {artist.image ? (
-                               <img src={artist.image} alt={artist.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            {artist.image_url ? (
+                               <img src={artist.image_url} alt={artist.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                             ) : (
                                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.textMuted }}><ImageIcon size={32} /></div>
                             )}
