@@ -216,28 +216,18 @@ export default function App() {
       return (a[currentSortKey] || "").toString().localeCompare((b[currentSortKey] || "").toString());
     });
 
-  const topArtists = useMemo(() => {
-    const artistCounts = {};
-    const artistImages = {};
-    playlist.forEach(song => {
-      if (!song.artist) return;
-      const artists = song.artist.split(',').map(a => a.trim()).filter(Boolean);
-      artists.forEach(a => {
-        if (!artistCounts[a]) {
-          artistCounts[a] = 0;
-          artistImages[a] = song.poster_url;
-        }
-        artistCounts[a]++;
-        if (!artistImages[a] && song.poster_url) {
-          artistImages[a] = song.poster_url;
-        }
-      });
-    });
-    return Object.keys(artistCounts)
-      .sort((a, b) => artistCounts[b] - artistCounts[a])
-      .slice(0, 10)
-      .map(name => ({ name, image: artistImages[name] }));
-  }, [playlist]);
+  const topArtists = [
+    { name: "Arijit Singh", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Arijit_Singh_performance_at_Chandigarh_2025.jpg/500px-Arijit_Singh_performance_at_Chandigarh_2025.jpg" },
+    { name: "Armaan Malik", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Armaan_Malik_2016.jpg/500px-Armaan_Malik_2016.jpg" },
+    { name: "AR Rahman", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg/500px-AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg" },
+    { name: "Neeti Mohan", image: "https://upload.wikimedia.org/wikipedia/commons/1/13/Neeti_Mohan_attends_Shakti_Mohan%E2%80%99s_Nritya_Shakti_celebrations_for_World_Dance_Day_%2804%29_%28cropped%29.jpg" },
+    { name: "Darshan Raval", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Darshan-Raval-grace-the-12th-radio-mirchi-music-awards-2020.jpg/500px-Darshan-Raval-grace-the-12th-radio-mirchi-music-awards-2020.jpg" },
+    { name: "Taylor Swift", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png/500px-Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png" },
+    { name: "Sonu Nigam", image: "https://upload.wikimedia.org/wikipedia/commons/7/76/Sonu_Nigam123.jpg" },
+    { name: "Shawn Mendes", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png/500px-191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png" },
+    { name: "Shreya Ghoshal", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg/500px-Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg" },
+    { name: "Atif Aslam", image: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Atif_Aslam_at_Badlapur_%28cropped%29.jpg/500px-Atif_Aslam_at_Badlapur_%28cropped%29.jpg" }
+  ];
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
