@@ -1,5 +1,21 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart
 } from "lucide-react";
@@ -9,6 +25,56 @@ import Auth from "./Auth";
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 const SORT_CYCLE = [null, "title", "created_at", "duration"];
 const SORT_LABELS = { default: "Default", title: "Name (A-Z)", created_at: "Date Added", duration: "Duration" };
+
+const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQueue }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: song.queue_id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : 1,
+    position: 'relative',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+    >
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px",
+          borderRadius: "6px",
+          background: isDragging ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.04)",
+          cursor: "default",
+          boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none"
+        }}
+      >
+        <div {...attributes} {...listeners} style={{ flexShrink: 0, cursor: "grab", padding: "4px 2px", touchAction: "none", color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center" }}>
+          <GripVertical size={14} />
+        </div>
+        <div onClick={() => playFromQueue(index)} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
+        </div>
+        <div onClick={() => playFromQueue(index)} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
+          <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
+          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
+        </div>
+        <button onClick={(e) => removeFromQueue(index, e)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "4px", flexShrink: 0 }} className="hover-effect">
+          <X size={14} />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, iconColor }) => {
   const containerRef = useRef(null);
@@ -174,6 +240,17 @@ function useAnimatedPresence(isOpen, data, delay = 300) {
 
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("euphony_dark_mode") === "true");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     localStorage.setItem("euphony_dark_mode", isDarkMode);
@@ -980,7 +1057,7 @@ export default function App() {
 
   const triggerToast = (msg) => { setQueueToast(msg); setTimeout(() => setQueueToast(""), 2200); };
 
-  const addToQueue = (song, e) => { if (e) e.stopPropagation(); setUserQueue(prev => [...prev, song]); triggerToast(`Added "${song.title}" to Queue`); };
+  const addToQueue = (song, e) => { if (e) e.stopPropagation(); setUserQueue(prev => [...prev, { ...song, queue_id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) }]); triggerToast(`Added "${song.title}" to Queue`); };
   const removeFromQueue = (index, e) => { if (e) e.stopPropagation(); setUserQueue(prev => prev.filter((_, i) => i !== index)); };
   const clearQueue = (e) => { if (e) e.stopPropagation(); setUserQueue([]); };
   
@@ -992,6 +1069,19 @@ export default function App() {
       next.splice(toIdx, 0, removed);
       return next;
     });
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setUserQueue((items) => {
+        const oldIndex = items.findIndex(item => item.queue_id === active.id);
+        const newIndex = items.findIndex(item => item.queue_id === over.id);
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
   };
 
   const handleQueueTouchStart = (e, index) => {
@@ -1437,30 +1527,28 @@ export default function App() {
             {userQueue.length > 0 && <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
           </div>
           {userQueue.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-              {userQueue.map((song, qIndex) => (
-                <div
-                  key={`queue-${song.id}-${qIndex}`}
-                  ref={el => { queueItemEls.current[qIndex] = el; }}
-                  draggable
-                  onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; setDraggedQueueIndex(qIndex); }}
-                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverQueueIndex(qIndex); }}
-                  onDrop={(e) => { e.preventDefault(); reorderQueue(draggedQueueIndex, qIndex); setDraggedQueueIndex(-1); setDragOverQueueIndex(-1); }}
-                  onDragEnd={() => { setDraggedQueueIndex(-1); setDragOverQueueIndex(-1); }}
-                  style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px", borderRadius: "6px", background: dragOverQueueIndex === qIndex && draggedQueueIndex !== qIndex ? "rgba(29,185,84,0.18)" : "rgba(255,255,255,0.04)", opacity: draggedQueueIndex === qIndex ? 0.4 : 1, transition: "background 0.15s, opacity 0.15s", cursor: "default", borderTop: dragOverQueueIndex === qIndex && draggedQueueIndex !== qIndex && draggedQueueIndex > qIndex ? `2px solid ${COLORS.spotifyGreen}` : "2px solid transparent", borderBottom: dragOverQueueIndex === qIndex && draggedQueueIndex !== qIndex && draggedQueueIndex < qIndex ? `2px solid ${COLORS.spotifyGreen}` : "2px solid transparent" }}
-                >
-                  <div onTouchStart={(e) => handleQueueTouchStart(e, qIndex)} onTouchMove={handleQueueTouchMove} onTouchEnd={handleQueueTouchEnd} style={{ flexShrink: 0, cursor: "grab", padding: "4px 2px", touchAction: "none", color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center" }}><GripVertical size={14} /></div>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
-                  </div>
-                  <div onClick={(e) => playFromQueue(qIndex, e)} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
-                    <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
-                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
-                  </div>
-                  <button onClick={(e) => removeFromQueue(qIndex, e)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", padding: "4px", flexShrink: 0 }}><X size={16} /></button>
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext 
+                items={userQueue.map(s => s.queue_id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {userQueue.map((song, qIndex) => (
+                    <SortableQueueItem
+                      key={song.queue_id}
+                      song={song}
+                      index={qIndex}
+                      playFromQueue={playFromQueue}
+                      removeFromQueue={removeFromQueue}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           ) : (
             <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontStyle: "italic", padding: "4px 0" }}>
               No songs queued. Tap <ListPlus size={12} style={{ verticalAlign: "middle", margin: "0 2px" }} /> next to any song to add it.
