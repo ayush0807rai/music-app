@@ -176,24 +176,7 @@ export default function App() {
     }
   }, [playbackQueue, playbackIndex, playbackSourceName]);
 
-  useEffect(() => {
-    // Clear out the actual downloaded audio cache memory after 1 minute of starting the app
-    // to ensure no memory bloat builds up over long periods.
-    const cleanupTimer = setTimeout(async () => {
-      try {
-        const cache = await caches.open(CACHE_NAME);
-        const keys = await cache.keys();
-        // If a song is actively playing, keep only that one, delete the rest to free memory
-        const keepUrl = activeAudioSrc; 
-        for (let request of keys) {
-          if (request.url !== keepUrl) {
-            await cache.delete(request);
-          }
-        }
-      } catch(e) {}
-    }, 60000);
-    return () => clearTimeout(cleanupTimer);
-  }, [activeAudioSrc]);
+
 
   const [showLyrics, setShowLyrics] = useState(false);
   const [parsedLyrics, setParsedLyrics] = useState([]);
@@ -448,21 +431,38 @@ export default function App() {
   }, [viewedPlaylistId]);
 
   useEffect(() => {
-    const tracksToProcess = [...playlist, ...playlistSongs];
-    tracksToProcess.forEach(track => {
-      if (!track.duration && !songDurations[track.id] && !fetchingDurationsRef.current.has(track.id) && track.url) {
-        fetchingDurationsRef.current.add(track.id);
-        const audio = new Audio();
-        audio.preload = "metadata";
-        audio.onloadedmetadata = () => {
-          setSongDurations(prev => ({ ...prev, [track.id]: audio.duration }));
-        };
-        audio.onerror = () => {
-          setSongDurations(prev => ({ ...prev, [track.id]: 0 }));
-        };
-        audio.src = track.url;
+    let isActive = true;
+    
+    const fetchDurationsSequentially = async () => {
+      // Delay fetching by 10 seconds to ensure initial songs load perfectly
+      await new Promise(resolve => setTimeout(resolve, 10000));
+      
+      const tracksToProcess = [...playlist, ...playlistSongs];
+      for (let track of tracksToProcess) {
+        if (!isActive) break;
+        if (!track.duration && !songDurations[track.id] && !fetchingDurationsRef.current.has(track.id) && track.url) {
+          fetchingDurationsRef.current.add(track.id);
+          
+          await new Promise((resolve) => {
+            const audio = new Audio();
+            audio.preload = "metadata";
+            audio.onloadedmetadata = () => {
+              if (isActive) setSongDurations(prev => ({ ...prev, [track.id]: audio.duration }));
+              resolve();
+            };
+            audio.onerror = resolve; // Continue even if one fails
+            audio.src = track.url;
+            
+            // Timeout in case metadata gets stuck loading
+            setTimeout(resolve, 2000); 
+          });
+        }
       }
-    });
+    };
+    
+    fetchDurationsSequentially();
+    
+    return () => { isActive = false; };
   }, [playlist, playlistSongs]);
 
   useEffect(() => {
@@ -586,8 +586,7 @@ export default function App() {
     let isMounted = true;
     let objectUrl = null;
 
-    const loadAndPrefetch = async () => {
-      // 1. Try to load current track from cache
+    const loadSrc = async () => {
       try {
         const cache = await caches.open(CACHE_NAME);
         const match = await cache.match(currentTrack.url);
@@ -601,40 +600,52 @@ export default function App() {
       } catch (e) {
         if (isMounted) setActiveAudioSrc(currentTrack.url);
       }
-
-      // 2. Prefetch the next few tracks (e.g. 3) in the queue
-      if (playbackQueue && playbackQueue.length > 0) {
-        const urlsToKeep = [currentTrack.url];
-        for (let i = 1; i <= 3; i++) {
-          const nextIndex = playbackIndex + i;
-          if (nextIndex < playbackQueue.length) {
-            const nextTrack = playbackQueue[nextIndex];
-            if (nextTrack?.url) {
-              urlsToKeep.push(nextTrack.url);
-              prefetchAudio(nextTrack.url);
-            }
-          }
-        }
-        // Cleanup old cached files so we don't hog phone storage
-        try {
-          const cache = await caches.open(CACHE_NAME);
-          const keys = await cache.keys();
-          for (let request of keys) {
-            if (!urlsToKeep.includes(request.url)) {
-              await cache.delete(request);
-            }
-          }
-        } catch (e) {}
-      }
     };
 
-    loadAndPrefetch();
+    loadSrc();
 
     return () => {
       isMounted = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [currentTrack, playbackQueue, playbackIndex]);
+  }, [currentTrack?.url]);
+
+  useEffect(() => {
+    let prefetchTimeout;
+    const doPrefetch = async () => {
+      if (playbackQueue && playbackQueue.length > 0 && currentTrack?.url) {
+        // Wait 5 seconds to ensure the current track has fully buffered and started playing without stuttering
+        prefetchTimeout = setTimeout(async () => {
+          const urlsToKeep = [currentTrack.url];
+          
+          // Only fetch next 2 tracks instead of 3 to save bandwidth, sequentially
+          for (let i = 1; i <= 2; i++) {
+            const nextIndex = playbackIndex + i;
+            if (nextIndex < playbackQueue.length) {
+              const nextTrack = playbackQueue[nextIndex];
+              if (nextTrack?.url) {
+                urlsToKeep.push(nextTrack.url);
+                await prefetchAudio(nextTrack.url); // await sequential download
+              }
+            }
+          }
+          
+          try {
+            const cache = await caches.open(CACHE_NAME);
+            const keys = await cache.keys();
+            for (let request of keys) {
+              if (!urlsToKeep.includes(request.url)) {
+                await cache.delete(request);
+              }
+            }
+          } catch (e) {}
+        }, 5000);
+      }
+    };
+    doPrefetch();
+    
+    return () => clearTimeout(prefetchTimeout);
+  }, [playbackQueue, playbackIndex, currentTrack?.url]);
 
   useEffect(() => {
     const syncPlayState = async () => {
