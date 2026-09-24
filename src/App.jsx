@@ -771,6 +771,7 @@ export default function App() {
           if (audioRef.current) {
             audioRef.current.currentTime = parseFloat(savedTime);
             setCurrentTime(parseFloat(savedTime));
+            updateProgressVisuals();
           }
         }, 100);
       }
@@ -1530,7 +1531,10 @@ export default function App() {
       <audio
         ref={audioRef}
         src={activeAudioSrc || undefined}
-        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+        onLoadedMetadata={() => {
+          setDuration(audioRef.current?.duration || 0);
+          updateProgressVisuals();
+        }}
         onEnded={handleTrackEnded}
         onCanPlay={handleCanPlay}
         onWaiting={() => {
