@@ -10,7 +10,7 @@ const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 const SORT_CYCLE = [null, "title", "created_at", "duration"];
 const SORT_LABELS = { default: "Default", title: "Name (A-Z)", created_at: "Date Added", duration: "Duration" };
 
-const SwipeableTrack = ({ track, onAddQueue, children, baseColor }) => {
+const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, iconColor }) => {
   const containerRef = useRef(null);
   const trackRef = useRef(null);
   const startX = useRef(0);
@@ -107,10 +107,10 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor }) => {
     >
       <div style={{
         position: 'absolute', top: 0, left: 0, bottom: 0, width: '100%',
-        backgroundColor: '#1DB954',
+        backgroundColor: actionColor || '#1DB954',
         display: 'flex', alignItems: 'center', paddingLeft: '24px', zIndex: 0
       }}>
-        <ListPlus color="#fff" size={24} />
+        <ListPlus color={iconColor || "#fff"} size={24} />
       </div>
 
       <div ref={trackRef} style={{ position: 'relative', zIndex: 1, backgroundColor: baseColor }}>
@@ -1916,7 +1916,7 @@ export default function App() {
                       {displayedSongs.map((track, index) => {
                         const isSelected = currentTrack?.id === track.id;
                         return (
-                          <SwipeableTrack key={track.id} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase}>
+                          <SwipeableTrack key={track.id} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
                             <div className="playlist-row" onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
                               <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                               <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
@@ -2038,7 +2038,7 @@ export default function App() {
                   {displayedSongs.length > 0 ? displayedSongs.map((track, index) => {
                     const isSelected = currentTrack?.id === track.id;
                     return (
-                      <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase}>
+                      <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
                         <div className="playlist-row" onClick={() => handlePlaySong(index, displayedSongs, "Global Library")} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
                           <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
