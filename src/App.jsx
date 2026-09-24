@@ -222,7 +222,10 @@ export default function App() {
       if (currentSortKey === "duration") {
         return (b.duration || 0) - (a.duration || 0);
       }
-      return (a[currentSortKey] || "").toString().localeCompare((b[currentSortKey] || "").toString());
+      
+      const valA = (a[currentSortKey] || "").toString().trim().toLowerCase();
+      const valB = (b[currentSortKey] || "").toString().trim().toLowerCase();
+      return valA.localeCompare(valB);
     });
 
 
