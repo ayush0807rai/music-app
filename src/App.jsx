@@ -113,9 +113,14 @@ export default function App() {
   const [songDurations, setSongDurations] = useState({});
   const fetchingDurationsRef = useRef(new Set());
 
-  const [playbackQueue, setPlaybackQueue] = useState([]);
-  const [playbackIndex, setPlaybackIndex] = useState(0);
-  const [playbackSourceName, setPlaybackSourceName] = useState("Global Library");
+  const [playbackQueue, setPlaybackQueue] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_playback_queue");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+  const [playbackIndex, setPlaybackIndex] = useState(() => parseInt(localStorage.getItem("euphony_playback_index")) || 0);
+  const [playbackSourceName, setPlaybackSourceName] = useState(() => localStorage.getItem("euphony_playback_source") || "Global Library");
   const [activeAudioSrc, setActiveAudioSrc] = useState(null);
 
   const CACHE_NAME = 'euphony-audio-cache';
@@ -162,6 +167,33 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("euphony_play_mode", playMode);
   }, [playMode]);
+
+  useEffect(() => {
+    if (playbackQueue.length > 0) {
+      localStorage.setItem("euphony_playback_queue", JSON.stringify(playbackQueue));
+      localStorage.setItem("euphony_playback_index", playbackIndex);
+      localStorage.setItem("euphony_playback_source", playbackSourceName);
+    }
+  }, [playbackQueue, playbackIndex, playbackSourceName]);
+
+  useEffect(() => {
+    // Clear out the actual downloaded audio cache memory after 1 minute of starting the app
+    // to ensure no memory bloat builds up over long periods.
+    const cleanupTimer = setTimeout(async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        const keys = await cache.keys();
+        // If a song is actively playing, keep only that one, delete the rest to free memory
+        const keepUrl = activeAudioSrc; 
+        for (let request of keys) {
+          if (request.url !== keepUrl) {
+            await cache.delete(request);
+          }
+        }
+      } catch(e) {}
+    }, 60000);
+    return () => clearTimeout(cleanupTimer);
+  }, [activeAudioSrc]);
 
   const [showLyrics, setShowLyrics] = useState(false);
   const [parsedLyrics, setParsedLyrics] = useState([]);
@@ -680,15 +712,20 @@ export default function App() {
   }, [isPlaying]);
 
   useEffect(() => {
-    if (isFirstRender.current && audioRef.current && currentTrack) {
+    if (isFirstRender.current && audioRef.current && activeAudioSrc) {
       const savedTime = localStorage.getItem("euphony_current_time");
       if (savedTime && !isNaN(parseFloat(savedTime))) {
-        audioRef.current.currentTime = parseFloat(savedTime);
-        setCurrentTime(parseFloat(savedTime));
+        // Use a slight timeout to ensure the audio element has processed the src
+        setTimeout(() => {
+          if (audioRef.current) {
+            audioRef.current.currentTime = parseFloat(savedTime);
+            setCurrentTime(parseFloat(savedTime));
+          }
+        }, 100);
       }
       isFirstRender.current = false;
     }
-  }, [currentTrack]);
+  }, [activeAudioSrc]);
 
   const handleCanPlay = () => {
     if (pendingAutoPlayRef.current) {
