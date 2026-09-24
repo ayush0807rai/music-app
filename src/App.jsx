@@ -1185,7 +1185,22 @@ export default function App() {
                 <div style={{ position: "relative", width: "30px", height: `${sliderHeight}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
                     onChange={(e) => setStemVolumes({ ...stemVolumes, [stemType]: parseFloat(e.target.value) })}
-                    style={{ position: "absolute", appearance: "none", width: `${sliderHeight}px`, height: "4px", background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`, transform: "rotate(-90deg)", transformOrigin: "center", borderRadius: "4px" }}
+                    style={{ 
+                      position: "absolute", 
+                      appearance: "none", 
+                      WebkitAppearance: "none",
+                      width: `${sliderHeight}px`, 
+                      height: "30px", /* Expanded bounding box to prevent clipping and transform-origin shift */
+                      background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`, 
+                      backgroundSize: "100% 4px",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
+                      transform: "rotate(-90deg)", 
+                      transformOrigin: "center", 
+                      borderRadius: "12px",
+                      margin: 0,
+                      padding: 0
+                    }}
                     className="stem-fader" />
                 </div>
                 <span style={{ fontSize: "10px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px" }}>{stemType}</span>
