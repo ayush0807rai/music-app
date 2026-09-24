@@ -474,8 +474,8 @@ export default function App() {
     let isActive = true;
     
     const fetchDurationsSequentially = async () => {
-      // Delay fetching by 10 seconds to ensure initial songs load perfectly
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      // Delay fetching by 40 seconds to ensure initial songs load perfectly on mobile bandwidth
+      await new Promise(resolve => setTimeout(resolve, 40000));
       
       const tracksToProcess = [...playlist, ...playlistSongs];
       for (let track of tracksToProcess) {
@@ -654,7 +654,7 @@ export default function App() {
     let prefetchTimeout;
     const doPrefetch = async () => {
       if (playbackQueue && playbackQueue.length > 0 && currentTrack?.url) {
-        // Wait 5 seconds to ensure the current track has fully buffered and started playing without stuttering
+        // Wait 25 seconds to ensure the current track has fully buffered and started playing without stuttering on mobile
         prefetchTimeout = setTimeout(async () => {
           const urlsToKeep = [currentTrack.url];
           
@@ -679,7 +679,7 @@ export default function App() {
               }
             }
           } catch (e) {}
-        }, 5000);
+        }, 25000);
       }
     };
     doPrefetch();
