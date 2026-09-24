@@ -17,10 +17,12 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor }) => {
   const startY = useRef(0);
   const currentX = useRef(0);
   const isDragging = useRef(false);
+  const wasSwiped = useRef(false);
 
   const handlePointerDown = (e) => {
     if (e.button !== 0 && e.type !== 'touchstart') return;
     isDragging.current = true;
+    wasSwiped.current = false;
     startX.current = e.clientX || (e.touches && e.touches[0].clientX);
     startY.current = e.clientY || (e.touches && e.touches[0].clientY);
     currentX.current = 0;
@@ -41,6 +43,10 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor }) => {
       isDragging.current = false;
       resetSwipe();
       return;
+    }
+
+    if (Math.abs(deltaX) > 10) {
+      wasSwiped.current = true;
     }
 
     if (deltaX > 0) {
@@ -74,6 +80,9 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor }) => {
       }
     }
     resetSwipe();
+    setTimeout(() => {
+      wasSwiped.current = false;
+    }, 50);
   };
 
   return (
@@ -90,7 +99,7 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor }) => {
       onTouchEnd={handlePointerUp}
       onTouchCancel={handlePointerUp}
       onClickCapture={(e) => {
-        if (currentX.current > 10) {
+        if (wasSwiped.current) {
           e.stopPropagation();
           e.preventDefault();
         }
