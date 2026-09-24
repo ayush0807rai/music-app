@@ -139,7 +139,13 @@ export default function App() {
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(0.8);
-  const [playMode, setPlayMode] = useState("repeat-all");
+  const [playMode, setPlayMode] = useState(() => {
+    return localStorage.getItem("euphony_play_mode") || "repeat-all";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("euphony_play_mode", playMode);
+  }, [playMode]);
 
   const [showLyrics, setShowLyrics] = useState(false);
   const [parsedLyrics, setParsedLyrics] = useState([]);
