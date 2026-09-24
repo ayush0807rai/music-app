@@ -124,45 +124,6 @@ export default function App() {
   const [activeAudioSrc, setActiveAudioSrc] = useState(null);
   const [dominantColor, setDominantColor] = useState(null);
 
-  useEffect(() => {
-    if (currentTrack?.poster_url) {
-      const img = new Image();
-      img.crossOrigin = "Anonymous";
-      img.onload = () => {
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = 1;
-          canvas.height = 1;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, 1, 1);
-          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-          setDominantColor(`rgb(${Math.max(20, r - 30)}, ${Math.max(20, g - 30)}, ${Math.max(20, b - 30)})`);
-        } catch (e) {
-          setDominantColor(null);
-        }
-      };
-      img.onerror = () => setDominantColor(null);
-      img.src = currentTrack.poster_url;
-    } else {
-      setDominantColor(null);
-    }
-  }, [currentTrack?.poster_url]);
-
-  useEffect(() => {
-    let metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (!metaTheme) {
-      metaTheme = document.createElement('meta');
-      metaTheme.name = 'theme-color';
-      document.head.appendChild(metaTheme);
-    }
-    
-    if (isMobilePlayerOpen) {
-      metaTheme.content = dominantColor || "#121212";
-    } else {
-      metaTheme.content = COLORS.bgBase;
-    }
-  }, [isMobilePlayerOpen, dominantColor, COLORS.bgBase]);
-
   const CACHE_NAME = 'euphony-audio-cache';
   const prefetchAudio = async (url) => {
     if (!url) return;
@@ -307,6 +268,45 @@ export default function App() {
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
+
+  useEffect(() => {
+    if (currentTrack?.poster_url) {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = 1;
+          canvas.height = 1;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, 1, 1);
+          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+          setDominantColor(`rgb(${Math.max(20, r - 30)}, ${Math.max(20, g - 30)}, ${Math.max(20, b - 30)})`);
+        } catch (e) {
+          setDominantColor(null);
+        }
+      };
+      img.onerror = () => setDominantColor(null);
+      img.src = currentTrack.poster_url;
+    } else {
+      setDominantColor(null);
+    }
+  }, [currentTrack?.poster_url]);
+
+  useEffect(() => {
+    let metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (!metaTheme) {
+      metaTheme = document.createElement('meta');
+      metaTheme.name = 'theme-color';
+      document.head.appendChild(metaTheme);
+    }
+    
+    if (isMobilePlayerOpen) {
+      metaTheme.content = dominantColor || "#121212";
+    } else {
+      metaTheme.content = COLORS.bgBase;
+    }
+  }, [isMobilePlayerOpen, dominantColor, COLORS.bgBase]);
 
   const [upcomingSourceList, setUpcomingSourceList] = useState([]);
 
