@@ -7,8 +7,8 @@ import { supabase } from "./supabase";
 import Auth from "./Auth";
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
-const SORT_CYCLE = [null, "title", "artist", "album"];
-const SORT_LABELS = { default: "Default", title: "Title", artist: "Artist", album: "Album" };
+const SORT_CYCLE = [null, "title", "created_at", "duration"];
+const SORT_LABELS = { default: "Default", title: "Name (A-Z)", created_at: "Date Added", duration: "Duration" };
 
 // --- LYRICS PARSER ---
 const parseLyrics = (lrcString) => {
@@ -214,6 +214,14 @@ export default function App() {
     })
     .sort((a, b) => {
       if (!currentSortKey) return 0;
+      if (currentSortKey === "created_at") {
+        const dateA = new Date(a.added_at || a.created_at).getTime();
+        const dateB = new Date(b.added_at || b.created_at).getTime();
+        return dateB - dateA;
+      }
+      if (currentSortKey === "duration") {
+        return (b.duration || 0) - (a.duration || 0);
+      }
       return (a[currentSortKey] || "").toString().localeCompare((b[currentSortKey] || "").toString());
     });
 
@@ -389,8 +397,27 @@ export default function App() {
       const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
       if (songsData) setPlaylist(songsData);
       
-      const { data: artistsData } = await supabase.from("artists").select("*").order("created_at", { ascending: true });
-      if (artistsData) setTopArtists(artistsData);
+      try {
+        const { data: artistsData, error } = await supabase.from("artists").select("*").order("created_at", { ascending: true });
+        if (!error && artistsData && artistsData.length > 0) {
+          setTopArtists(artistsData);
+        } else {
+          setTopArtists([
+            { name: "Arijit Singh", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Arijit_Singh_performance_at_Chandigarh_2025.jpg/500px-Arijit_Singh_performance_at_Chandigarh_2025.jpg" },
+            { name: "Armaan Malik", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Armaan_Malik_2016.jpg/500px-Armaan_Malik_2016.jpg" },
+            { name: "AR Rahman", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg/500px-AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg" },
+            { name: "Neeti Mohan", image_url: "https://upload.wikimedia.org/wikipedia/commons/1/13/Neeti_Mohan_attends_Shakti_Mohan%E2%80%99s_Nritya_Shakti_celebrations_for_World_Dance_Day_%2804%29_%28cropped%29.jpg" },
+            { name: "Darshan Raval", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Darshan-Raval-grace-the-12th-radio-mirchi-music-awards-2020.jpg/500px-Darshan-Raval-grace-the-12th-radio-mirchi-music-awards-2020.jpg" },
+            { name: "Taylor Swift", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png/500px-Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png" },
+            { name: "Sonu Nigam", image_url: "https://upload.wikimedia.org/wikipedia/commons/7/76/Sonu_Nigam123.jpg" },
+            { name: "Shawn Mendes", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png/500px-191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png" },
+            { name: "Shreya Ghoshal", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg/500px-Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg" },
+            { name: "Atif Aslam", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Atif_Aslam_at_Badlapur_%28cropped%29.jpg/500px-Atif_Aslam_at_Badlapur_%28cropped%29.jpg" }
+          ]);
+        }
+      } catch (err) {
+        // Fallback handled in else
+      }
 
       const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(song_id, songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
       if (playlistData) {
@@ -1531,16 +1558,17 @@ export default function App() {
                       </button>
                     )}
                     
-                    <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
+                    <div onClick={() => document.getElementById("playlist-search-input")?.focus()} style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0, cursor: "text" }}>
                       <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
                       <input 
+                        id="playlist-search-input"
                         type="text" 
                         placeholder="Search..." 
                         value={searchQuery} 
                         onChange={e => setSearchQuery(e.target.value)} 
                         style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
                       />
-                      {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
+                      {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={(e) => { e.stopPropagation(); setSearchQuery(""); }} />}
                     </div>
 
                     {renderSortButton(!isDesktop)}
@@ -1629,16 +1657,17 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
                   <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : 0, color: COLORS.primary }}>Global Library ({playlist.length})</h2>
                   
-                  <div style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0 }}>
+                  <div onClick={() => document.getElementById("global-search-input")?.focus()} style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0, cursor: "text" }}>
                     <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
                     <input 
+                      id="global-search-input"
                       type="text" 
                       placeholder="Search..." 
                       value={searchQuery} 
                       onChange={e => setSearchQuery(e.target.value)} 
                       style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
                     />
-                    {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSearchQuery("")} />}
+                    {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={(e) => { e.stopPropagation(); setSearchQuery(""); }} />}
                   </div>
 
                   {renderSortButton(!isDesktop)}
