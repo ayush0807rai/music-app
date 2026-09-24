@@ -108,6 +108,7 @@ export default function App() {
 
   const [sortOrders, setSortOrders] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedArtist, setSelectedArtist] = useState(null);
 
   const [playbackQueue, setPlaybackQueue] = useState([]);
   const [playbackIndex, setPlaybackIndex] = useState(0);
@@ -204,6 +205,9 @@ export default function App() {
 
   const displayedSongs = [...rawViewedSongs]
     .filter(track => {
+      if (selectedArtist) {
+        return (track.artist || "").toLowerCase().includes(selectedArtist.toLowerCase());
+      }
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
       return (
@@ -300,6 +304,7 @@ export default function App() {
   const handleSwitchPlaylist = (playlistId) => {
     setViewedPlaylistId(playlistId);
     setSearchQuery("");
+    setSelectedArtist(null);
   };
 
   const cycleSortKey = () => {
@@ -1637,15 +1642,23 @@ export default function App() {
             ) : (
               /* GLOBAL LIBRARY VIEW */
               <div>
-                {topArtists.length > 0 && !searchQuery && (
+                {topArtists.length > 0 && !searchQuery && !selectedArtist && (
                   <div style={{ marginBottom: "32px", paddingLeft: isDesktop ? "16px" : "0" }}>
                     <h3 style={{ fontSize: "20px", fontWeight: "bold", color: COLORS.primary, marginBottom: "16px" }}>Top Artists</h3>
                     <div style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px" }} className="custom-scrollbar">
                       {topArtists.map(artist => (
-                        <div key={artist.name} onClick={() => setSearchQuery(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
+                        <div key={artist.name} onClick={() => setSelectedArtist(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
                           <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.imageBg, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
                             {artist.image_url ? (
-                               <img src={artist.image_url} alt={artist.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                               <img 
+                                 src={artist.image_url} 
+                                 alt={artist.name} 
+                                 style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                                 onError={(e) => {
+                                   e.target.onerror = null;
+                                   e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}&background=2A1B38&color=fff&size=256`;
+                                 }}
+                               />
                             ) : (
                                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.textMuted }}><ImageIcon size={32} /></div>
                             )}
@@ -1657,30 +1670,51 @@ export default function App() {
                   </div>
                 )}
 
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
-                  <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : 0, color: COLORS.primary }}>Global Library ({playlist.length})</h2>
-                  
-                  <div onClick={() => document.getElementById("global-search-input")?.focus()} style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0, cursor: "text" }}>
-                    <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
-                    <input 
-                      id="global-search-input"
-                      type="text" 
-                      placeholder="Search..." 
-                      value={searchQuery} 
-                      onChange={e => setSearchQuery(e.target.value)} 
-                      style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
-                    />
-                    {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={(e) => { e.stopPropagation(); setSearchQuery(""); }} />}
+                {selectedArtist ? (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                      <button onClick={() => setSelectedArtist(null)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", padding: "8px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.05)" }} className="hover-effect">
+                        <X size={20} />
+                      </button>
+                      <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, color: COLORS.primary }}>
+                        {selectedArtist}
+                      </h2>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      {renderSortButton(!isDesktop)}
+                      {currentSortKey && (
+                        <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
+                          By {SORT_LABELS[currentSortKey]} &middot; <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
+                ) : (
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px", flexWrap: "wrap", justifyContent: isDesktop ? "flex-start" : "center" }}>
+                    <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, paddingLeft: isDesktop ? "16px" : 0, color: COLORS.primary }}>Global Library ({playlist.length})</h2>
+                    
+                    <div onClick={() => document.getElementById("global-search-input")?.focus()} style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "6px 12px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, minWidth: 0, cursor: "text" }}>
+                      <Search size={16} color={COLORS.primary} style={{ flexShrink: 0 }} />
+                      <input 
+                        id="global-search-input"
+                        type="text" 
+                        placeholder="Search..." 
+                        value={searchQuery} 
+                        onChange={e => setSearchQuery(e.target.value)} 
+                        style={{ background: "transparent", border: "none", outline: "none", marginLeft: "8px", fontSize: "14px", color: COLORS.primary, width: isDesktop ? "180px" : "100%", minWidth: 0 }} 
+                      />
+                      {searchQuery && <X size={16} color={COLORS.primary} style={{ cursor: "pointer", flexShrink: 0 }} onClick={(e) => { e.stopPropagation(); setSearchQuery(""); }} />}
+                    </div>
 
-                  {renderSortButton(!isDesktop)}
-                  
-                  {currentSortKey && (
-                    <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
-                      By {SORT_LABELS[currentSortKey]} &middot; <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
-                    </span>
-                  )}
-                </div>
+                    {renderSortButton(!isDesktop)}
+                    
+                    {currentSortKey && (
+                      <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
+                        By {SORT_LABELS[currentSortKey]} &middot; <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {displayedSongs.length > 0 ? displayedSongs.map((track, index) => {
@@ -1723,7 +1757,9 @@ export default function App() {
                     );
                   }) : (
                     <div style={{ textAlign: "center", padding: "100px 0", color: COLORS.textMuted }}>
-                      {searchQuery
+                      {selectedArtist
+                        ? <p style={{ margin: 0, fontSize: "16px" }}>No songs found for {selectedArtist}.</p>
+                        : searchQuery
                         ? <p style={{ margin: 0, fontSize: "16px" }}>No results for "{searchQuery}".</p>
                         : <><ImageIcon size={64} color={COLORS.textMuted} style={{ marginBottom: "16px", opacity: 0.5 }} /><p style={{ margin: 0, fontSize: "18px", fontWeight: "500" }}>Your library is empty. Click "Add Globally" to upload tracks.</p></>
                       }
