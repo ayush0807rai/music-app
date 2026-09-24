@@ -146,6 +146,10 @@ export default function App() {
   const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const lyricRefs = useRef([]);
+  const desktopProgressRef = useRef(null);
+  const mobileProgressRef = useRef(null);
+  const mobileMiniProgressRef = useRef(null);
+  const animationFrameRef = useRef(null);
   const [isMobilePlayerOpen, setIsMobilePlayerOpen] = useState(false);
 
   const [userQueue, setUserQueue] = useState([]);
@@ -210,6 +214,44 @@ export default function App() {
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
   const [upcomingSourceList, setUpcomingSourceList] = useState([]);
+
+  const updateProgressVisuals = () => {
+    if (!audioRef.current) return;
+    const time = audioRef.current.currentTime;
+    const dur = audioRef.current.duration || 100;
+    const percent = dur > 0 ? (time / dur) * 100 : 0;
+    
+    const gradient = `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${percent}%, rgba(255,255,255,0.15) ${percent}%)`;
+    
+    if (desktopProgressRef.current) {
+      desktopProgressRef.current.value = time;
+      desktopProgressRef.current.style.background = gradient;
+    }
+    if (mobileProgressRef.current) {
+      mobileProgressRef.current.value = time;
+      mobileProgressRef.current.style.background = gradient;
+    }
+    if (mobileMiniProgressRef.current) {
+      mobileMiniProgressRef.current.style.width = `${percent}%`;
+    }
+  };
+
+  useEffect(() => {
+    const loop = () => {
+      updateProgressVisuals();
+      if (isPlaying) {
+        animationFrameRef.current = requestAnimationFrame(loop);
+      }
+    };
+    if (isPlaying) {
+      animationFrameRef.current = requestAnimationFrame(loop);
+    } else {
+      updateProgressVisuals();
+    }
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    };
+  }, [isPlaying]);
 
   useEffect(() => {
     if (!playbackQueue || playbackQueue.length === 0) {
@@ -515,6 +557,7 @@ export default function App() {
     if (audioRef.current) {
       audioRef.current.currentTime = seekTime;
       setCurrentTime(seekTime);
+      updateProgressVisuals();
       if (vocalsRef.current) vocalsRef.current.currentTime = seekTime;
       if (drumsRef.current)  drumsRef.current.currentTime  = seekTime;
       if (bassRef.current)   bassRef.current.currentTime   = seekTime;
@@ -524,7 +567,12 @@ export default function App() {
 
   const handleLyricClick = (time, e) => {
     if (e) e.stopPropagation();
-    if (audioRef.current) { audioRef.current.currentTime = time; setCurrentTime(time); if (!isPlaying) setIsPlaying(true); }
+    if (audioRef.current) { 
+      audioRef.current.currentTime = time; 
+      setCurrentTime(time); 
+      updateProgressVisuals();
+      if (!isPlaying) setIsPlaying(true); 
+    }
   };
 
   useEffect(() => {
@@ -1615,7 +1663,7 @@ export default function App() {
               <div style={{ marginTop: "auto", paddingBottom: "0px", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
-                  <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ flex: 1, background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)` }} />
+                  <input type="range" min={0} max={duration || 100} defaultValue={0} ref={desktopProgressRef} onChange={handleSeek} className="glow-slider" style={{ flex: 1 }} />
                   <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -1657,7 +1705,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ width: "100%", height: "3px", background: "rgba(26,43,76,0.1)" }}>
-            <div style={{ width: `${progressPercent}%`, height: "100%", background: COLORS.primary, transition: "width 0.1s linear" }} />
+            <div ref={mobileMiniProgressRef} style={{ width: "0%", height: "100%", background: COLORS.primary }} />
           </div>
         </div>
       )}
@@ -1698,7 +1746,7 @@ export default function App() {
             </div>
 
             <div style={{ marginBottom: "24px" }}>
-              <input type="range" min={0} max={duration || 100} value={currentTime} onChange={handleSeek} className="glow-slider" style={{ width: "100%", background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${progressPercent}%, rgba(255,255,255,0.15) ${progressPercent}%)`, marginBottom: "8px", borderRadius: "6px" }} />
+              <input type="range" min={0} max={duration || 100} defaultValue={0} ref={mobileProgressRef} onChange={handleSeek} className="glow-slider" style={{ width: "100%", marginBottom: "8px", borderRadius: "6px" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
