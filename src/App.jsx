@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -385,8 +385,18 @@ export default function App() {
     const fetchData = async () => {
       const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
       if (songsData) setPlaylist(songsData);
-      const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
-      if (playlistData) setUserPlaylists(playlistData);
+      const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(song_id, songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
+      if (playlistData) {
+        let hasLiked = playlistData.some(p => p.name === "Liked Songs");
+        let finalPlaylists = [...playlistData];
+        if (!hasLiked) {
+          const { data: newLiked } = await supabase.from("playlists").insert([{ name: "Liked Songs", user_id: session.user.id }]).select("*, playlist_songs(song_id, songs(poster_url))");
+          if (newLiked && newLiked.length > 0) {
+            finalPlaylists.unshift(newLiked[0]);
+          }
+        }
+        setUserPlaylists(finalPlaylists);
+      }
       setIsInitialLoad(false);
     };
     fetchData();
@@ -780,9 +790,31 @@ export default function App() {
     const { error } = await supabase.from("playlist_songs").delete().eq("playlist_id", playlistId).eq("song_id", songId);
     if (!error) {
       setPlaylistSongs(prev => prev.filter(s => s.id !== songId));
-      supabase.from("playlists").select("*, playlist_songs(songs(poster_url))").eq("id", playlistId).single().then(({ data }) => {
+      supabase.from("playlists").select("*, playlist_songs(song_id, songs(poster_url))").eq("id", playlistId).single().then(({ data }) => {
         if (data) setUserPlaylists(prev => prev.map(pl => pl.id === playlistId ? data : pl));
       });
+    }
+  };
+
+  const handleToggleLike = async (track, e) => {
+    e.stopPropagation();
+    const likedPlaylist = userPlaylists.find(p => p.name === "Liked Songs");
+    if (!likedPlaylist) return;
+
+    const isLiked = likedPlaylist.playlist_songs?.some(ps => ps.song_id === track.id);
+
+    if (isLiked) {
+      const { error } = await supabase.from("playlist_songs").delete().eq("playlist_id", likedPlaylist.id).eq("song_id", track.id);
+      if (!error) {
+        setUserPlaylists(prev => prev.map(pl => pl.id === likedPlaylist.id ? { ...pl, playlist_songs: pl.playlist_songs.filter(ps => ps.song_id !== track.id) } : pl));
+        if (viewedPlaylistId === likedPlaylist.id) setPlaylistSongs(prev => prev.filter(s => s.id !== track.id));
+      }
+    } else {
+      const { error } = await supabase.from("playlist_songs").insert([{ playlist_id: likedPlaylist.id, song_id: track.id }]);
+      if (!error) {
+        setUserPlaylists(prev => prev.map(pl => pl.id === likedPlaylist.id ? { ...pl, playlist_songs: [...(pl.playlist_songs || []), { song_id: track.id, songs: { poster_url: track.poster_url } }] } : pl));
+        if (viewedPlaylistId === likedPlaylist.id) setPlaylistSongs(prev => [...prev, { ...track, added_at: new Date().toISOString() }]);
+      }
     }
   };
 
@@ -1169,6 +1201,7 @@ export default function App() {
   };
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const likedPlaylist = userPlaylists.find(p => p.name === "Liked Songs");
 
   if (!isSessionLoaded) return <div style={{ background: COLORS.bgBase, width: '100vw', height: '100vh' }} />;
   if (!session) return <Auth />;
@@ -1421,16 +1454,21 @@ export default function App() {
         {/* LEFT SIDEBAR */}
         {isDesktop && (
           <div style={{ width: "260px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
-            <div>
-              <div onClick={() => handleSwitchPlaylist(null)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div onClick={() => handleSwitchPlaylist(null)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
                 <Home size={24} color={viewedPlaylistId === null ? COLORS.primary : COLORS.textMuted} /> Global Library
               </div>
+              {likedPlaylist && (
+                <div onClick={() => handleSwitchPlaylist(likedPlaylist.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === likedPlaylist.id ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                  <Heart size={24} color={viewedPlaylistId === likedPlaylist.id ? COLORS.primary : COLORS.textMuted} fill={viewedPlaylistId === likedPlaylist.id ? COLORS.primary : "none"} /> Liked Songs
+                </div>
+              )}
             </div>
             <hr style={{ border: "none", borderTop: `1px solid ${COLORS.border}`, margin: 0 }} />
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
               <span style={{ fontSize: "12px", fontWeight: "bold", color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>Playlists</span>
-              {userPlaylists.map(pl => (
-                <div key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: viewedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: viewedPlaylistId === pl.id ? "bold" : "normal" }}>
+              {userPlaylists.filter(pl => pl.name !== "Liked Songs").map(pl => (
+                <div key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: viewedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: viewedPlaylistId === pl.id ? "bold" : "normal", cursor: "pointer" }}>
                   {renderMiniPlaylistCover(pl, 24)}
                   <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pl.name}</span>
                 </div>
@@ -1448,7 +1486,12 @@ export default function App() {
               <button onClick={() => handleSwitchPlaylist(null)} style={{ background: viewedPlaylistId === null ? COLORS.primary : "transparent", color: viewedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                 Global Library
               </button>
-              {userPlaylists.map(pl => (
+              {likedPlaylist && (
+                <button onClick={() => handleSwitchPlaylist(likedPlaylist.id)} style={{ background: viewedPlaylistId === likedPlaylist.id ? COLORS.primary : "transparent", color: viewedPlaylistId === likedPlaylist.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Heart size={14} fill={viewedPlaylistId === likedPlaylist.id ? COLORS.bgPanel : "none"} /> Liked Songs
+                </button>
+              )}
+              {userPlaylists.filter(pl => pl.name !== "Liked Songs").map(pl => (
                 <button key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} style={{ background: viewedPlaylistId === pl.id ? COLORS.primary : "transparent", color: viewedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                   🔒 {pl.name}
                 </button>
@@ -1532,6 +1575,7 @@ export default function App() {
                             {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at || track.created_at)}</span>}
                             <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "4px", flexShrink: 0 }}>
                               <button title="Add to Queue" onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} /></button>
+                              <button title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} /></button>
                               <button title="Remove from playlist" onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} /></button>
                               {isSelected && isPlaying && (
                                 <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
@@ -1598,6 +1642,9 @@ export default function App() {
                         <div style={{ display: "flex", alignItems: "center", gap: isDesktop ? "12px" : "4px", flexShrink: 0, justifyContent: "flex-end" }}>
                           <button title="Add to Queue" onClick={(e) => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
                             <ListPlus size={isDesktop ? 18 : 16} />
+                          </button>
+                          <button title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
+                            <Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} />
                           </button>
                           {userPlaylists.length > 0 && (
                             <button title="Add to Playlist" onClick={(e) => { e.stopPropagation(); setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
