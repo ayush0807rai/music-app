@@ -48,27 +48,27 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes} 
+      {...listeners}
     >
       <div
         style={{
-          display: "flex", alignItems: "center", gap: "8px", padding: "6px 8px",
+          display: "flex", alignItems: "center", gap: "10px", padding: "6px 8px",
           borderRadius: "6px",
           background: isDragging ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.04)",
-          cursor: "default",
-          boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none"
+          cursor: isDragging ? "grabbing" : "grab",
+          boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none",
+          touchAction: "none"
         }}
       >
-        <div {...attributes} {...listeners} style={{ flexShrink: 0, cursor: "grab", padding: "4px 2px", touchAction: "none", color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center" }}>
-          <GripVertical size={14} />
+        <div onClick={(e) => { e.stopPropagation(); playFromQueue(index); }} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} /> : <ImageIcon size={16} color="#888" />}
         </div>
-        <div onClick={() => playFromQueue(index)} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
+        <div onClick={(e) => { e.stopPropagation(); playFromQueue(index); }} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
+          <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
+          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
         </div>
-        <div onClick={() => playFromQueue(index)} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
-          <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
-          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
-        </div>
-        <button onClick={(e) => removeFromQueue(index, e)} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "4px", flexShrink: 0 }} className="hover-effect">
+        <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "4px", flexShrink: 0, position: "relative", zIndex: 10 }} className="hover-effect">
           <X size={14} />
         </button>
       </div>
