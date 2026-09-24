@@ -110,6 +110,9 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedArtist, setSelectedArtist] = useState(null);
 
+  const [songDurations, setSongDurations] = useState({});
+  const fetchingDurationsRef = useRef(new Set());
+
   const [playbackQueue, setPlaybackQueue] = useState([]);
   const [playbackIndex, setPlaybackIndex] = useState(0);
   const [playbackSourceName, setPlaybackSourceName] = useState("Global Library");
@@ -224,7 +227,9 @@ export default function App() {
         return dateB - dateA;
       }
       if (currentSortKey === "duration") {
-        return (a.duration || 0) - (b.duration || 0);
+        const durA = a.duration || songDurations[a.id] || Number.MAX_SAFE_INTEGER;
+        const durB = b.duration || songDurations[b.id] || Number.MAX_SAFE_INTEGER;
+        return durA - durB;
       }
       
       const valA = (a[currentSortKey] || "").toString().trim().toLowerCase();
@@ -398,6 +403,24 @@ export default function App() {
     if (viewedPlaylistId) localStorage.setItem("euphony_playlist_id", viewedPlaylistId);
     else localStorage.removeItem("euphony_playlist_id");
   }, [viewedPlaylistId]);
+
+  useEffect(() => {
+    const tracksToProcess = [...playlist, ...playlistSongs];
+    tracksToProcess.forEach(track => {
+      if (!track.duration && !songDurations[track.id] && !fetchingDurationsRef.current.has(track.id) && track.url) {
+        fetchingDurationsRef.current.add(track.id);
+        const audio = new Audio();
+        audio.preload = "metadata";
+        audio.onloadedmetadata = () => {
+          setSongDurations(prev => ({ ...prev, [track.id]: audio.duration }));
+        };
+        audio.onerror = () => {
+          setSongDurations(prev => ({ ...prev, [track.id]: 0 }));
+        };
+        audio.src = track.url;
+      }
+    });
+  }, [playlist, playlistSongs]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
