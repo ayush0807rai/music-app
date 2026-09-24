@@ -116,6 +116,17 @@ export default function App() {
   const [playbackQueue, setPlaybackQueue] = useState([]);
   const [playbackIndex, setPlaybackIndex] = useState(0);
   const [playbackSourceName, setPlaybackSourceName] = useState("Global Library");
+  const [activeAudioSrc, setActiveAudioSrc] = useState(null);
+
+  const CACHE_NAME = 'euphony-audio-cache';
+  const prefetchAudio = async (url) => {
+    if (!url) return;
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      const match = await cache.match(url);
+      if (!match) await cache.add(url);
+    } catch (err) {}
+  };
 
   const [playlist, setPlaylist] = useState([]);
   const [topArtists, setTopArtists] = useState([]);
@@ -535,8 +546,67 @@ export default function App() {
   }, [showMixer, currentTrack, stemsBroken]);
 
   useEffect(() => {
+    if (!currentTrack?.url) {
+      setActiveAudioSrc(null);
+      return;
+    }
+
+    let isMounted = true;
+    let objectUrl = null;
+
+    const loadAndPrefetch = async () => {
+      // 1. Try to load current track from cache
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        const match = await cache.match(currentTrack.url);
+        if (match) {
+          const blob = await match.blob();
+          objectUrl = URL.createObjectURL(blob);
+          if (isMounted) setActiveAudioSrc(objectUrl);
+        } else {
+          if (isMounted) setActiveAudioSrc(currentTrack.url);
+        }
+      } catch (e) {
+        if (isMounted) setActiveAudioSrc(currentTrack.url);
+      }
+
+      // 2. Prefetch the next few tracks (e.g. 3) in the queue
+      if (playbackQueue && playbackQueue.length > 0) {
+        const urlsToKeep = [currentTrack.url];
+        for (let i = 1; i <= 3; i++) {
+          const nextIndex = playbackIndex + i;
+          if (nextIndex < playbackQueue.length) {
+            const nextTrack = playbackQueue[nextIndex];
+            if (nextTrack?.url) {
+              urlsToKeep.push(nextTrack.url);
+              prefetchAudio(nextTrack.url);
+            }
+          }
+        }
+        // Cleanup old cached files so we don't hog phone storage
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          const keys = await cache.keys();
+          for (let request of keys) {
+            if (!urlsToKeep.includes(request.url)) {
+              await cache.delete(request);
+            }
+          }
+        } catch (e) {}
+      }
+    };
+
+    loadAndPrefetch();
+
+    return () => {
+      isMounted = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [currentTrack, playbackQueue, playbackIndex]);
+
+  useEffect(() => {
     const syncPlayState = async () => {
-      if (isPlaying && currentTrack) {
+      if (isPlaying && activeAudioSrc) {
         if (audioRef.current?.paused) audioRef.current.play().catch(e => console.log("play err:", e));
         if (currentTrack?.stem_vocals && !stemsBroken) {
           vocalsRef.current?.play().catch(e => e);
@@ -553,7 +623,7 @@ export default function App() {
       }
     };
     syncPlayState();
-  }, [isPlaying, currentTrack, stemsBroken]);
+  }, [isPlaying, activeAudioSrc, stemsBroken, currentTrack]);
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
@@ -1356,7 +1426,7 @@ export default function App() {
       {/* ── AUDIO ELEMENTS ── */}
       <audio
         ref={audioRef}
-        src={currentTrack?.url || undefined}
+        src={activeAudioSrc || undefined}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onEnded={handleTrackEnded}
         onCanPlay={handleCanPlay}
