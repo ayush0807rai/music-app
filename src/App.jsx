@@ -52,10 +52,9 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
       {...listeners}
     >
       <div
+        className={`glass-row ${isDragging ? 'active' : ''}`}
         style={{
           display: "flex", alignItems: "center", gap: "10px", padding: "6px 8px",
-          borderRadius: "6px",
-          background: isDragging ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.04)",
           cursor: isDragging ? "grabbing" : "grab",
           boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none",
           touchAction: "none"
@@ -1567,7 +1566,7 @@ export default function App() {
                 const song = item.track;
                 const actualIndex = item.originalIndex;
                 return (
-                  <div key={`next-${song.id}-${uIdx}`} onClick={() => handlePlaySong(actualIndex, playbackQueue, playbackSourceName)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", borderRadius: "6px", background: "transparent", cursor: "pointer" }} className="hover-effect">
+                  <div key={`next-${song.id}-${uIdx}`} onClick={() => handlePlaySong(actualIndex, playbackQueue, playbackSourceName)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", cursor: "pointer" }} className="glass-row">
                     <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
                     </div>
@@ -1723,6 +1722,22 @@ export default function App() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: ${isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}; border-radius: 10px; border: 2px solid transparent; }
         
         .loop-audio-fix { pointer-events: none; }
+        
+        .glass-row {
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.4)"};
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.3)"};
+          border-radius: 8px;
+          transition: background 0.2s ease, border-color 0.2s ease;
+        }
+        .glass-row:hover {
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.6)"};
+        }
+        .glass-row.active {
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.8)"};
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.5)"};
+        }
       `}</style>
 
       {/* ── AUDIO ELEMENTS ── */}
@@ -2005,7 +2020,7 @@ export default function App() {
                         const isSelected = currentTrack?.id === track.id;
                         return (
                           <SwipeableTrack key={track.id} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
-                            <div className="playlist-row" onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center", padding: "10px 16px", borderRadius: "8px", cursor: "pointer", background: isSelected ? COLORS.hover : "transparent" }}>
+                            <div className={`glass-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center", padding: "10px 16px", cursor: "pointer" }}>
                               <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                               <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
                                 <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -2127,7 +2142,7 @@ export default function App() {
                     const isSelected = currentTrack?.id === track.id;
                     return (
                       <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
-                        <div className="playlist-row" onClick={() => handlePlaySong(index, displayedSongs, "Global Library")} style={{ padding: "10px 16px", borderRadius: "8px", background: isSelected ? COLORS.hover : "transparent", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
+                        <div className={`glass-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, "Global Library")} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
                           <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
                             <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
