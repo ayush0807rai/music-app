@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart
@@ -215,6 +215,29 @@ export default function App() {
       if (!currentSortKey) return 0;
       return (a[currentSortKey] || "").toString().localeCompare((b[currentSortKey] || "").toString());
     });
+
+  const topArtists = useMemo(() => {
+    const artistCounts = {};
+    const artistImages = {};
+    playlist.forEach(song => {
+      if (!song.artist) return;
+      const artists = song.artist.split(',').map(a => a.trim()).filter(Boolean);
+      artists.forEach(a => {
+        if (!artistCounts[a]) {
+          artistCounts[a] = 0;
+          artistImages[a] = song.poster_url;
+        }
+        artistCounts[a]++;
+        if (!artistImages[a] && song.poster_url) {
+          artistImages[a] = song.poster_url;
+        }
+      });
+    });
+    return Object.keys(artistCounts)
+      .sort((a, b) => artistCounts[b] - artistCounts[a])
+      .slice(0, 10)
+      .map(name => ({ name, image: artistImages[name] }));
+  }, [playlist]);
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
@@ -1622,6 +1645,27 @@ export default function App() {
                     </span>
                   )}
                 </div>
+
+                {topArtists.length > 0 && !searchQuery && (
+                  <div style={{ marginBottom: "32px", paddingLeft: isDesktop ? "16px" : "0" }}>
+                    <h3 style={{ fontSize: "20px", fontWeight: "bold", color: COLORS.primary, marginBottom: "16px" }}>Top Artists</h3>
+                    <div style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px" }} className="custom-scrollbar">
+                      {topArtists.map(artist => (
+                        <div key={artist.name} onClick={() => setSearchQuery(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
+                          <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.imageBg, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+                            {artist.image ? (
+                               <img src={artist.image} alt={artist.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ) : (
+                               <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: COLORS.textMuted }}><ImageIcon size={32} /></div>
+                            )}
+                          </div>
+                          <span style={{ color: COLORS.primary, fontSize: "14px", fontWeight: "600", textAlign: "center", width: "100%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{artist.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {displayedSongs.length > 0 ? displayedSongs.map((track, index) => {
                     const isSelected = currentTrack?.id === track.id;
