@@ -78,6 +78,7 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
 const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, iconColor }) => {
   const containerRef = useRef(null);
   const trackRef = useRef(null);
+  const actionBgRef = useRef(null);
   const startX = useRef(0);
   const startY = useRef(0);
   const currentX = useRef(0);
@@ -112,6 +113,9 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
 
     if (Math.abs(deltaX) > 10) {
       wasSwiped.current = true;
+      if (actionBgRef.current) {
+        actionBgRef.current.style.opacity = '1';
+      }
     }
 
     if (deltaX > 0) {
@@ -132,6 +136,9 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
       trackRef.current.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
     }
     currentX.current = 0;
+    if (actionBgRef.current) {
+      actionBgRef.current.style.opacity = '0';
+    }
   };
 
   const handlePointerUp = () => {
@@ -153,7 +160,7 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
   return (
     <div 
       ref={containerRef}
-      style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y' }}
+      style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y', borderRadius: '8px' }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -170,15 +177,16 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
         }
       }}
     >
-      <div style={{
+      <div ref={actionBgRef} style={{
         position: 'absolute', top: 0, left: 0, bottom: 0, width: '100%',
         backgroundColor: actionColor || '#1DB954',
-        display: 'flex', alignItems: 'center', paddingLeft: '24px', zIndex: 0
+        display: 'flex', alignItems: 'center', paddingLeft: '24px', zIndex: 0,
+        borderRadius: '8px', opacity: 0, transition: 'opacity 0.2s ease'
       }}>
         <ListPlus color={iconColor || "#fff"} size={24} />
       </div>
 
-      <div ref={trackRef} style={{ position: 'relative', zIndex: 1, backgroundColor: baseColor }}>
+      <div ref={trackRef} style={{ position: 'relative', zIndex: 1, backgroundColor: 'transparent', borderRadius: '8px' }}>
         {children}
       </div>
     </div>
