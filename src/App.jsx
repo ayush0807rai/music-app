@@ -503,6 +503,7 @@ export default function App() {
   }, [isMobilePlayerOpen, dominantColor, COLORS.bgBase]);
 
   const [upcomingSourceList, setUpcomingSourceList] = useState([]);
+  const [playbackHistory, setPlaybackHistory] = useState([]);
 
   const updateProgressVisuals = () => {
     if (!audioRef.current) return;
@@ -557,12 +558,18 @@ export default function App() {
       ];
       setUpcomingSourceList(list);
     } else if (playMode === 'shuffle') {
-      const others = playbackQueue.map((track, i) => ({ track, originalIndex: i })).filter(obj => obj.originalIndex !== playbackIndex);
-      for (let i = others.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [others[i], others[j]] = [others[j], others[i]];
-      }
-      setUpcomingSourceList(others);
+      setUpcomingSourceList(prev => {
+        if (prev.length > 0 && prev[0].originalIndex === playbackIndex) {
+          return prev.slice(1);
+        }
+        
+        const others = playbackQueue.map((track, i) => ({ track, originalIndex: i })).filter(obj => obj.originalIndex !== playbackIndex);
+        for (let i = others.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [others[i], others[j]] = [others[j], others[i]];
+        }
+        return others;
+      });
     }
   }, [playbackQueue, playbackIndex, playMode]);
 
@@ -852,15 +859,21 @@ export default function App() {
         prefetchTimeout = setTimeout(async () => {
           const urlsToKeep = [currentTrack.url];
           
-          // Only fetch next 2 tracks instead of 3 to save bandwidth, sequentially
-          for (let i = 1; i <= 2; i++) {
-            const nextIndex = playbackIndex + i;
-            if (nextIndex < playbackQueue.length) {
-              const nextTrack = playbackQueue[nextIndex];
-              if (nextTrack?.url) {
-                urlsToKeep.push(nextTrack.url);
-                await prefetchAudio(nextTrack.url); // await sequential download
-              }
+          let nextTracks = [];
+          if (userQueue.length > 0) {
+            nextTracks = userQueue.slice(0, 2);
+          }
+          if (nextTracks.length < 2 && upcomingSourceList.length > 0) {
+            const needed = 2 - nextTracks.length;
+            const upc = upcomingSourceList.slice(0, needed).map(item => playbackQueue[item.originalIndex]).filter(Boolean);
+            nextTracks = [...nextTracks, ...upc];
+          }
+          
+          for (let i = 0; i < nextTracks.length; i++) {
+            const nextTrack = nextTracks[i];
+            if (nextTrack?.url) {
+              urlsToKeep.push(nextTrack.url);
+              await prefetchAudio(nextTrack.url); // await sequential download
             }
           }
           
@@ -1147,6 +1160,7 @@ export default function App() {
 
   const handlePlaySong = (index, listToSet, sourceName) => {
     const track = listToSet[index];
+    setPlaybackHistory(prev => [...prev, playbackIndex]);
     setPlaybackQueue(listToSet);
     setPlaybackIndex(index);
     setPlaybackSourceName(sourceName);
@@ -1281,6 +1295,8 @@ export default function App() {
       return;
     }
     
+    setPlaybackHistory(prev => [...prev, playbackIndex]);
+
     if (upcomingSourceList.length > 0) {
       const nextIdx = upcomingSourceList[0].originalIndex;
       setQueueCurrentTrack(null);
@@ -1308,7 +1324,12 @@ export default function App() {
     }
     
     let prevIdx = playbackIndex - 1;
-    if (prevIdx < 0) prevIdx = playbackQueue.length - 1; 
+    if (playMode === 'shuffle' && playbackHistory.length > 0) {
+      prevIdx = playbackHistory[playbackHistory.length - 1];
+      setPlaybackHistory(prev => prev.slice(0, -1));
+    } else {
+      if (prevIdx < 0) prevIdx = playbackQueue.length - 1; 
+    }
     
     setQueueCurrentTrack(null);
     setPlaybackIndex(prevIdx);
@@ -1348,6 +1369,8 @@ export default function App() {
       return;
     }
     
+    setPlaybackHistory(prev => [...prev, playbackIndex]);
+
     if (upcomingSourceList.length > 0) {
       const nextIdx = upcomingSourceList[0].originalIndex;
       setQueueCurrentTrack(null);
