@@ -1981,10 +1981,8 @@ export default function App() {
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[5, 10, 20, 30, 60, 120].map(mins => (
-                <div key={mins} style={{ backgroundColor: COLORS.bgBase, borderRadius: "12px" }}>
-                  <div onClick={() => handleSetSleepTimer(mins)} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
-                    {mins === 60 ? "1 hour" : mins === 120 ? "2 hours" : `${mins} minutes`}
-                  </div>
+                <div key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
+                  {mins === 60 ? "1 hour" : mins === 120 ? "2 hours" : `${mins} minutes`}
                 </div>
               ))}
               <div style={{ margin: "8px 0", height: "1px", background: COLORS.border }} />
@@ -2011,35 +2009,23 @@ export default function App() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div style={{ backgroundColor: COLORS.bgBase, borderRadius: "12px" }}>
-                <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
-                  <FolderPlus size={18} /> Add to playlist
-                </div>
+              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <FolderPlus size={18} /> Add to playlist
               </div>
-              <div style={{ backgroundColor: COLORS.bgBase, borderRadius: "12px" }}>
-                <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
-                  <ListPlus size={18} /> Add to Queue
-                </div>
+              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <ListPlus size={18} /> Add to Queue
               </div>
-              <div style={{ backgroundColor: COLORS.bgBase, borderRadius: "12px" }}>
-                <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
-                  <ListMusic size={18} /> Go to Queue
-                </div>
+              <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <ListMusic size={18} /> Go to Queue
               </div>
-              <div style={{ backgroundColor: COLORS.bgBase, borderRadius: "12px" }}>
-                <div onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
-                  <Disc size={18} /> Go to album
-                </div>
+              <div onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <Disc size={18} /> Go to album
               </div>
-              <div style={{ backgroundColor: COLORS.bgBase, borderRadius: "12px" }}>
-                <div onClick={() => { setSearchQuery(currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
-                  <User size={18} /> Go to artists
-                </div>
+              <div onClick={() => { setSearchQuery(currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <User size={18} /> Go to artists
               </div>
-              <div style={{ backgroundColor: COLORS.bgBase, borderRadius: "12px" }}>
-                <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
-                  <Clock size={18} /> Sleep timer
-                </div>
+              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <Clock size={18} /> Sleep timer
               </div>
             </div>
           </div>
