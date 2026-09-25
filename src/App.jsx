@@ -2042,13 +2042,13 @@ export default function App() {
       {/* UPLOAD MODAL */}
       {renderUpload && (
         <div className={uploadClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowUploadModal(false)}>
-          <div className={`${uploadClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+          <div className={`${uploadClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgBase, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><UploadCloud color={COLORS.primary} /> Add Song Globally</h2>
             <form onSubmit={handleUploadSubmit}>
-              <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="upload-input" />
-              <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={e => setUploadArtist(e.target.value)} className="upload-input" />
-              <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input" />
+              <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="upload-input glass-row" />
+              <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={e => setUploadArtist(e.target.value)} className="upload-input glass-row" />
+              <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input glass-row" />
               <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input custom-scrollbar" style={{ minHeight: "100px", resize: "vertical" }} />
               <div style={{ marginBottom: "16px", padding: "12px", border: `1px dashed ${COLORS.border}`, borderRadius: "8px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>Poster Image (Optional)</label>
@@ -2058,7 +2058,7 @@ export default function App() {
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
                 <input type="file" accept="audio/*" required onChange={e => setUploadFile(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
               </div>
-              <button type="submit" disabled={isUploading} style={{ width: "100%", padding: "14px", borderRadius: "8px", background: isUploading ? COLORS.textMuted : COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <button type="submit" disabled={isUploading} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                 {isUploading ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Upload to Cloud"}
               </button>
             </form>
@@ -2067,7 +2067,7 @@ export default function App() {
       )}      {/* PASSWORD RESET MODAL */}
       {showPasswordResetModal && (
         <div className="fade-enter" style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 6000, padding: "20px" }}>
-          <div className="pop-enter" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}>
+          <div className="pop-enter" style={{ background: COLORS.bgBase, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}>
             <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", color: COLORS.primary }}>Reset Password</h2>
             <p style={{ margin: "0 0 24px 0", fontSize: "14px", color: COLORS.textMuted }}>Enter your new password below.</p>
             <form onSubmit={handlePasswordReset} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -2091,12 +2091,12 @@ export default function App() {
       {/* CREATE PLAYLIST MODAL */}
       {renderPlaylistModal && (
         <div className={playlistModalClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowPlaylistModal(false)}>
-          <div className={playlistModalClosing ? "pop-exit" : "pop-enter"} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+          <div className={playlistModalClosing ? "pop-exit" : "pop-enter"} style={{ background: COLORS.bgBase, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Create Private Playlist</h2>
             <form onSubmit={handleCreatePlaylist}>
-              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input" />
-              <button type="submit" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: COLORS.primary, color: COLORS.bgPanel, border: "none", fontWeight: "bold", cursor: "pointer" }} className="hover-effect">Save Playlist</button>
+              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input glass-row" />
+              <button type="submit" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer" }} className="glass-row">Save Playlist</button>
             </form>
           </div>
         </div>
@@ -2105,7 +2105,7 @@ export default function App() {
       {/* SLEEP TIMER MODAL */}
       {renderSleepTimer && (
         <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
-          <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+          <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgBase, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -2126,7 +2126,7 @@ export default function App() {
       {/* TRACK OPTIONS MODAL */}
       {renderTrackOptions && currentTrack && (
         <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowTrackOptionsModal(false)}>
-          <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+          <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgBase, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowTrackOptionsModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px", textAlign: "center" }}>
@@ -2164,7 +2164,7 @@ export default function App() {
       {/* TRACK ARTISTS MODAL */}
       {renderTrackArtists && currentTrack && (
         <div className={trackArtistsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 5600 }} onClick={() => setShowTrackArtistsModal(false)}>
-          <SwipeableBottomSheet onClose={() => setShowTrackArtistsModal(false)} className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "24px", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: "500px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 -10px 40px rgba(0,0,0,0.3)" }}>
+          <SwipeableBottomSheet onClose={() => setShowTrackArtistsModal(false)} className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`} style={{ background: COLORS.bgBase, padding: "24px", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: "500px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 -10px 40px rgba(0,0,0,0.3)" }}>
             <div style={{ width: "40px", height: "4px", background: COLORS.border, borderRadius: "2px", margin: "0 auto 20px" }} />
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", textAlign: "center", color: COLORS.primary }}>Artists</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -2191,14 +2191,14 @@ export default function App() {
       {/* ADD TO PLAYLIST MODAL */}
       {renderSongForPlaylist && (
         <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
-          <div className={`${songForPlaylistClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+          <div className={`${songForPlaylistClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgBase, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Add to Playlist</h2>
             <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: COLORS.textMuted }}>"{safeSongForPlaylist?.title}"</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {userPlaylists.length > 0
                 ? userPlaylists.map(pl => (
-                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="hover-effect" style={{ width: "100%", padding: "14px", borderRadius: "8px", background: "transparent", border: `1px solid ${COLORS.border}`, color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                       <ListMusic size={18} /> {pl.name}
                     </button>
                   ))
@@ -2684,6 +2684,10 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
 
 
 
