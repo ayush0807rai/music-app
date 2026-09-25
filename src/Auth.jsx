@@ -57,7 +57,7 @@ export default function Auth() {
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#000000", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
       <div style={{ padding: "40px", width: "100%", maxWidth: "400px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         
-        <img src="/logo.png" alt="Euphony Logo" style={{ width: "72px", height: "72px", marginBottom: "24px", borderRadius: "16px" }} />
+        <img src="/logo.png" alt="Euphony Logo" style={{ width: "72px", height: "72px", marginBottom: "24px", borderRadius: "16px", border: "1px solid rgba(255, 255, 255, 0.2)" }} />
         
         <h1 style={{ textAlign: "center", margin: "0 0 8px 0", color: "#FFFFFF", fontSize: "24px", fontWeight: "600" }}>
           {isForgotPassword ? "Reset Password" : isLogin ? "Enter Your Password" : "Create Account"}

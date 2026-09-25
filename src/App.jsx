@@ -2090,7 +2090,7 @@ export default function App() {
         {showPasswordResetModal && (
           <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 6000, padding: "20px" }}>
             <div className="pop-enter" style={{ background: "#000000", padding: "40px", borderRadius: "16px", width: "100%", maxWidth: "400px", boxShadow: "0 20px 40px rgba(0,0,0,0.5)", border: "1px solid #333", display: "flex", flexDirection: "column", alignItems: "center" }} onClick={e => e.stopPropagation()}>
-              <img src="/logo.png" alt="Euphony Logo" style={{ width: "72px", height: "72px", marginBottom: "24px", borderRadius: "16px" }} />
+              <img src="/logo.png" alt="Euphony Logo" style={{ width: "72px", height: "72px", marginBottom: "24px", borderRadius: "16px", border: "1px solid rgba(255, 255, 255, 0.2)" }} />
               <h2 style={{ margin: "0 0 8px 0", fontSize: "24px", color: "#FFFFFF", fontWeight: "600" }}>Reset Password</h2>
               <p style={{ margin: "0 0 32px 0", fontSize: "15px", color: "#a1a1a6", textAlign: "center" }}>Enter your new password below.</p>
               <form onSubmit={handlePasswordReset} style={{ width: "100%", display: "flex", flexDirection: "column", gap: "24px" }}>
