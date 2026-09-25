@@ -1971,7 +1971,7 @@ export default function App() {
           border-radius: 12px;
           box-shadow: ${isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4)"};
           transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-            will-change: transform, backdrop-filter;
+            contain: paint;
             isolation: isolate;
             
                   }
