@@ -851,48 +851,66 @@ export default function App() {
     };
   }, [currentTrack?.url]);
 
+  const prefetchedSignatureRef = useRef("");
+  
   useEffect(() => {
-    let prefetchTimeout;
-    const doPrefetch = async () => {
-      if (playbackQueue && playbackQueue.length > 0 && currentTrack?.url) {
-        // Wait 25 seconds to ensure the current track has fully buffered and started playing without stuttering on mobile
-        prefetchTimeout = setTimeout(async () => {
-          const urlsToKeep = [currentTrack.url];
-          
-          let nextTracks = [];
-          if (userQueue.length > 0) {
-            nextTracks = userQueue.slice(0, 2);
+    // Reset signature when track changes so we can prefetch for the new track
+    prefetchedSignatureRef.current = "";
+  }, [currentTrack?.url]);
+
+  useEffect(() => {
+    const checkPrefetch = async () => {
+      if (!audioRef.current || !currentTrack?.url) return;
+      
+      // Wait for 20 seconds, or half the track if it's very short
+      const targetTime = Math.min(20, (audioRef.current.duration || 60) * 0.5);
+      
+      if (audioRef.current.currentTime >= targetTime) {
+        let nextTracks = [];
+        if (userQueue.length > 0) {
+          nextTracks = userQueue.slice(0, 2);
+        }
+        if (nextTracks.length < 2 && upcomingSourceList.length > 0) {
+          const needed = 2 - nextTracks.length;
+          const upc = upcomingSourceList.slice(0, needed).map(item => playbackQueue[item.originalIndex]).filter(Boolean);
+          nextTracks = [...nextTracks, ...upc];
+        }
+        
+        const signature = nextTracks.map(t => t.url).join(",");
+        if (prefetchedSignatureRef.current === signature) return;
+        prefetchedSignatureRef.current = signature;
+        
+        const urlsToKeep = [currentTrack.url];
+        for (let i = 0; i < nextTracks.length; i++) {
+          const nextTrack = nextTracks[i];
+          if (nextTrack?.url) {
+            urlsToKeep.push(nextTrack.url);
+            await prefetchAudio(nextTrack.url);
           }
-          if (nextTracks.length < 2 && upcomingSourceList.length > 0) {
-            const needed = 2 - nextTracks.length;
-            const upc = upcomingSourceList.slice(0, needed).map(item => playbackQueue[item.originalIndex]).filter(Boolean);
-            nextTracks = [...nextTracks, ...upc];
-          }
-          
-          for (let i = 0; i < nextTracks.length; i++) {
-            const nextTrack = nextTracks[i];
-            if (nextTrack?.url) {
-              urlsToKeep.push(nextTrack.url);
-              await prefetchAudio(nextTrack.url); // await sequential download
+        }
+        
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          const keys = await cache.keys();
+          for (let request of keys) {
+            if (!urlsToKeep.includes(request.url)) {
+              await cache.delete(request);
             }
           }
-          
-          try {
-            const cache = await caches.open(CACHE_NAME);
-            const keys = await cache.keys();
-            for (let request of keys) {
-              if (!urlsToKeep.includes(request.url)) {
-                await cache.delete(request);
-              }
-            }
-          } catch (e) {}
-        }, 25000);
+        } catch (e) {}
       }
     };
-    doPrefetch();
+
+    const audioEl = audioRef.current;
+    if (audioEl) {
+      // Native timeupdate fires even when the screen is locked on mobile devices (unlike setTimeout/setInterval)
+      audioEl.addEventListener("timeupdate", checkPrefetch);
+    }
     
-    return () => clearTimeout(prefetchTimeout);
-  }, [playbackQueue, playbackIndex, currentTrack?.url]);
+    return () => {
+      if (audioEl) audioEl.removeEventListener("timeupdate", checkPrefetch);
+    };
+  }, [playbackQueue, userQueue, upcomingSourceList, currentTrack?.url]);
 
   useEffect(() => {
     const syncPlayState = async () => {
