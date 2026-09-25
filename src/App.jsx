@@ -1841,6 +1841,16 @@ export default function App() {
         
         .loop-audio-fix { pointer-events: none; }
         
+        .glass-panel {
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.07)" : "rgba(0, 0, 0, 0.12)"};
+          backdrop-filter: blur(24px) saturate(200%);
+          -webkit-backdrop-filter: blur(24px) saturate(200%);
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.5)"};
+          border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.9)"};
+          border-radius: 16px;
+          box-shadow: ${isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4)"};
+        }
+        
         .glass-row {
           background: ${isDarkMode ? "rgba(255, 255, 255, 0.07)" : "rgba(0, 0, 0, 0.12)"};
           backdrop-filter: blur(24px) saturate(200%);
@@ -1960,7 +1970,7 @@ export default function App() {
       {/* SLEEP TIMER MODAL */}
       {renderSleepTimer && (
         <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: "rgba(26, 43, 76, 0.4)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
-          <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(26,43,76,0.15)" }} onClick={e => e.stopPropagation()}>
+          <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar glass-panel`} style={{ padding: "32px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
