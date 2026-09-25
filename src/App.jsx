@@ -2171,7 +2171,7 @@ export default function App() {
               {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
                 const dbArtist = topArtists.find(a => a.name.toLowerCase() === artistName.toLowerCase());
                 return (
-                  <div key={idx} onClick={() => { setSearchQuery(artistName); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackArtistsModal(false); }} className="hover-effect" style={{ display: "flex", alignItems: "center", gap: "16px", cursor: "pointer", padding: "8px", borderRadius: "12px" }}>
+                  <div key={idx} onClick={() => { setSelectedArtist(artistName); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackArtistsModal(false); }} className="hover-effect" style={{ display: "flex", alignItems: "center", gap: "16px", cursor: "pointer", padding: "8px", borderRadius: "12px" }}>
                     <div style={{ width: "50px", height: "50px", borderRadius: "50%", overflow: "hidden", backgroundColor: COLORS.imageBg, flexShrink: 0 }}>
                       {dbArtist?.image_url ? (
                         <img src={dbArtist.image_url} alt={artistName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
