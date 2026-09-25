@@ -690,28 +690,20 @@ export default function App() {
       else if (s.viewedPlaylistId !== null) { setViewedPlaylistId(null); handled = true; }
 
       if (handled) {
-        window.history.pushState({ page: 'euphony' }, '', window.location.href);
+        // Do NOT push state here. The browser just popped the modal's state for us.
         exitWarningRef.current = false;
         setShowExitToast(false);
       } else {
-        // On mobile, if playing, we trap infinitely to encourage Swiping Home. 
-        // On desktop, we always allow a double-back to exit.
-        if (s.isPlaying && !isDesktopEnv) {
+        // Double-back to exit logic applies universally (both desktop and mobile)
+        if (!exitWarningRef.current) {
+          exitWarningRef.current = true;
           setShowExitToast(true);
-          // Keep them trapped in the playing state
-          window.history.pushState({ page: 'euphony-playing' }, '', window.location.pathname + window.location.search + '#playing');
-          setTimeout(() => { setShowExitToast(false); }, 2500);
+          // Push a unique hash so Chrome respects the push state and traps them for the first back press
+          window.history.pushState({ page: 'euphony-exit' }, '', window.location.pathname + window.location.search + '#exit');
+          setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500);
         } else {
-          if (!exitWarningRef.current) {
-            exitWarningRef.current = true;
-            setShowExitToast(true);
-            // Push a unique hash so Chrome respects the push state and traps them for the first back press
-            window.history.pushState({ page: 'euphony-exit' }, '', window.location.pathname + window.location.search + '#exit');
-            setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500);
-          } else {
-            // Actually exit the app on the second consecutive back press
-            window.history.back();
-          }
+          // Actually exit the app on the second consecutive back press
+          window.history.back();
         }
       }
     };
@@ -1900,7 +1892,7 @@ export default function App() {
       )}
       {renderExitToast && (
         <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)", whiteSpace: "nowrap" }}>
-          {(isPlaying && !isDesktop) ? "Swipe Home to play in background" : "Press back again to exit"}
+          Press back again to exit
         </div>
       )}
 
