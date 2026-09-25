@@ -621,8 +621,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer };
-  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer]);
+    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying };
+  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying]);
 
   useEffect(() => {
     window.history.pushState({ page: 'euphony' }, '', window.location.href);
@@ -643,12 +643,18 @@ export default function App() {
         exitWarningRef.current = false;
         setShowExitToast(false);
       } else {
-        if (!exitWarningRef.current) {
-          exitWarningRef.current = true;
+        if (s.isPlaying) {
           setShowExitToast(true);
           window.history.pushState({ page: 'euphony' }, '', window.location.href);
-          setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500);
-        } else { window.history.back(); }
+          setTimeout(() => { setShowExitToast(false); }, 2500);
+        } else {
+          if (!exitWarningRef.current) {
+            exitWarningRef.current = true;
+            setShowExitToast(true);
+            window.history.pushState({ page: 'euphony' }, '', window.location.href);
+            setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500);
+          } else { window.history.back(); }
+        }
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -1834,8 +1840,8 @@ export default function App() {
         </div>
       )}
       {renderExitToast && (
-        <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)" }}>
-          Press back again to exit
+        <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)", whiteSpace: "nowrap" }}>
+          {isPlaying ? "Swipe Home to play in background" : "Press back again to exit"}
         </div>
       )}
 
