@@ -497,6 +497,10 @@ export default function App() {
     
     if (isMobilePlayerOpen) {
       metaTheme.content = dominantColor || "#121212";
+      // The modal just mounted, meaning mobileProgressRef just attached to a new input with defaultValue=0.
+      // Force it to sync with actual audio time. Use small timeouts to wait for React to attach the DOM node.
+      setTimeout(updateProgressVisuals, 10);
+      setTimeout(updateProgressVisuals, 100);
     } else {
       metaTheme.content = COLORS.bgBase;
     }
@@ -971,6 +975,7 @@ export default function App() {
       if (!audioRef.current) return;
       const time = audioRef.current.currentTime;
       setCurrentTime(time);
+      updateProgressVisuals(); // Force DOM update for sliders even if requestAnimationFrame died in the background
       
       const currentInt = Math.floor(time);
       if (currentInt % 2 === 0 && currentInt !== lastSavedTimeRef.current) {
