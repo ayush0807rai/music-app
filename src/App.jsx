@@ -135,7 +135,7 @@ const SwipeableBottomSheet = ({ children, onClose, className, style }) => {
     <div
       ref={sheetRef}
       className={className}
-      style={{ ...style, touchAction: 'pan-x' }}
+      style={style}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -496,10 +496,10 @@ export default function App() {
 
   useEffect(() => {
     // When a modal opens, push a state so the back button closes the modal instead of exiting the app
-    if (isMobilePlayerOpen || showQueue || showMixer || showUploadModal || showPlaylistModal || viewedPlaylistId !== null) {
+    if (isMobilePlayerOpen || showQueue || showMixer || showUploadModal || showPlaylistModal || showTrackOptionsModal || showSleepTimerModal || showTrackArtistsModal || songForPlaylistModal || viewedPlaylistId !== null) {
       window.history.pushState({ page: 'modal' }, '', window.location.pathname + window.location.search + '#modal');
     }
-  }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, viewedPlaylistId]);
+  }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId]);
   const stateRefs = useRef({});
 
   const pendingAutoPlayRef = useRef(false);
@@ -728,8 +728,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying };
-  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying]);
+    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying };
+  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying]);
 
   useEffect(() => {
     // Prevent accidental closure of the app when music is playing (adds OS-level protection)
@@ -1881,7 +1881,7 @@ export default function App() {
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes slideDown { from { transform: translateY(0); } to { transform: translateY(100%); } }
+        @keyframes slideDown { to { transform: translateY(100%); } }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes popOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
         @keyframes toastUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
@@ -2684,6 +2684,8 @@ export default function App() {
     </div>
   );
 }
+
+
 
 
 
