@@ -245,6 +245,18 @@ function useAnimatedPresence(isOpen, data, delay = 300) {
   return { render, isClosing: !isOpen && render, data: renderData };
 }
 
+const getCdnUrl = (url) => {
+  if (!url) return url;
+  try {
+    const original = new URL(url);
+    if (original.hostname === "rlojwqncfcbcszgdyjyz.supabase.co") {
+      original.hostname = "euphony.ayush080705.workers.dev";
+      return original.toString();
+    }
+  } catch (e) {}
+  return url;
+};
+
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("euphony_dark_mode") === "true");
 
@@ -324,7 +336,7 @@ export default function App() {
     try {
       const cache = await caches.open(CACHE_NAME);
       const match = await cache.match(url);
-      if (!match) await cache.add(url);
+      if (!match) await cache.add(getCdnUrl(url));
     } catch (err) {}
   };
 
@@ -892,10 +904,10 @@ export default function App() {
           objectUrl = URL.createObjectURL(blob);
           if (isMounted) setActiveAudioSrc(objectUrl);
         } else {
-          if (isMounted) setActiveAudioSrc(currentTrack.url);
+          if (isMounted) setActiveAudioSrc(getCdnUrl(currentTrack.url));
         }
       } catch (e) {
-        if (isMounted) setActiveAudioSrc(currentTrack.url);
+        if (isMounted) setActiveAudioSrc(getCdnUrl(currentTrack.url));
       }
     };
 
@@ -1879,10 +1891,10 @@ export default function App() {
         loop={playMode === 'repeat-one'}
         className="loop-audio-fix"
       />
-      <audio ref={vocalsRef} src={currentTrack?.stem_vocals || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={drumsRef}  src={currentTrack?.stem_drums  || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={bassRef}   src={currentTrack?.stem_bass   || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={otherRef}  src={currentTrack?.stem_other  || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_other  && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={vocalsRef} src={getCdnUrl(currentTrack?.stem_vocals) || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={drumsRef}  src={getCdnUrl(currentTrack?.stem_drums)  || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={bassRef}   src={getCdnUrl(currentTrack?.stem_bass)   || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={otherRef}  src={getCdnUrl(currentTrack?.stem_other)  || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_other  && setStemsBroken(true)} className="loop-audio-fix" />
 
       {/* TOASTS */}
       {renderQueueToast && (
