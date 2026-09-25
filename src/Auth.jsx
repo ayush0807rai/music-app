@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { supabase } from "./supabase";
-import { Loader2 } from "lucide-react";
+import { Loader2, Music } from "lucide-react";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -8,6 +8,8 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
+  
+  const [focusedField, setFocusedField] = useState(null);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -49,24 +51,97 @@ export default function Auth() {
     }
   };
 
+  const APPLE_RED = "#FA243C";
+
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#121212", color: "#fff", fontFamily: "sans-serif" }}>
-      <div style={{ background: "#181818", padding: "40px", borderRadius: "16px", width: "100%", maxWidth: "350px", boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#000000", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+      <div style={{ padding: "40px", width: "100%", maxWidth: "400px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         
-        <h1 style={{ textAlign: "center", margin: "0 0 8px 0", color: "#1DB954", fontSize: "28px" }}>Euphony</h1>
-                <h2 style={{ textAlign: "center", marginBottom: "24px", fontSize: "16px", color: "#a0a0a0", fontWeight: "normal" }}>
-          {isForgotPassword ? "Reset Password" : isLogin ? "Log in to Euphony" : "Create Account"}
+        <div style={{ width: "64px", height: "64px", background: APPLE_RED, borderRadius: "16px", display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "24px" }}>
+          <Music size={32} color="#FFFFFF" />
+        </div>
+        
+        <h1 style={{ textAlign: "center", margin: "0 0 8px 0", color: "#FFFFFF", fontSize: "24px", fontWeight: "600" }}>
+          {isForgotPassword ? "Reset Password" : isLogin ? "Enter Your Password" : "Create Account"}
+        </h1>
+        <h2 style={{ textAlign: "center", margin: "0 0 32px 0", fontSize: "15px", color: "#a1a1a6", fontWeight: "normal", lineHeight: "1.4" }}>
+          {isForgotPassword 
+            ? "Enter your email to receive a password reset link." 
+            : isLogin 
+              ? "You have a Euphony Account associated with this email." 
+              : "Sign up to start listening to your favorite music."}
         </h2>
+
+        <form onSubmit={handleAuth} style={{ width: "100%", display: "flex", flexDirection: "column", gap: "16px" }}>
+          
+          <div style={{ border: "1px solid #333", borderRadius: "12px", background: "#1C1C1E", overflow: "hidden" }}>
+            <div style={{ position: "relative", border: focusedField === 'email' ? `2px solid ${APPLE_RED}` : "2px solid transparent", borderRadius: focusedField === 'email' ? "12px" : "0", zIndex: focusedField === 'email' ? 10 : 1, transition: "border 0.2s ease" }}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                required
+                onFocus={() => setFocusedField('email')}
+                onBlur={() => setFocusedField(null)}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{ width: "100%", padding: "16px", background: "transparent", border: "none", color: "white", outline: "none", boxSizing: "border-box", fontSize: "16px" }}
+              />
+            </div>
+            
+            {!isForgotPassword && (
+              <>
+                <div style={{ height: "1px", background: "#333", marginLeft: "16px", display: focusedField === 'email' || focusedField === 'password' ? 'none' : 'block' }} />
+                <div style={{ position: "relative", border: focusedField === 'password' ? `2px solid ${APPLE_RED}` : "2px solid transparent", borderRadius: focusedField === 'password' ? "12px" : "0", zIndex: focusedField === 'password' ? 10 : 1, transition: "border 0.2s ease", marginTop: focusedField === 'password' ? "-2px" : "0" }}>
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    required
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField(null)}
+                    onChange={(e) => setPassword(e.target.value)}
+                    style={{ width: "100%", padding: "16px", background: "transparent", border: "none", color: "white", outline: "none", boxSizing: "border-box", fontSize: "16px" }}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
+            {!isForgotPassword && isLogin ? (
+              <p style={{ margin: 0, color: APPLE_RED, fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }} onClick={() => setIsForgotPassword(true)}>
+                Forgotten your password? <span style={{ fontSize: "16px" }}>↗</span>
+              </p>
+            ) : (
+              <div />
+            )}
+            
+            <p style={{ margin: 0, color: "#a1a1a6", fontSize: "14px", cursor: "pointer" }} onClick={() => { setIsForgotPassword(false); setIsLogin(!isLogin); }}>
+              {isLogin ? "Need an account?" : "Already have an account?"}
+            </p>
+          </div>
+
+          <button type="submit" disabled={loading} style={{ marginTop: "32px", padding: "16px", borderRadius: "12px", background: APPLE_RED, color: "#FFFFFF", fontWeight: "bold", fontSize: "16px", border: "none", cursor: loading ? "not-allowed" : "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", opacity: loading || (!email || (!isForgotPassword && !password)) ? 0.5 : 1, transition: "opacity 0.2s" }}>
+            {loading && <Loader2 size={18} className="animate-spin" />}
+            {isForgotPassword ? "Send Reset Link" : isLogin ? "Sign In" : "Sign Up"}
+          </button>
+        </form>
 
         {!isForgotPassword && (
           <>
+            <div style={{ display: "flex", alignItems: "center", margin: "32px 0 24px 0", width: "100%" }}>
+              <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
+              <span style={{ margin: "0 10px", color: "#86868b", fontSize: "14px" }}>or</span>
+              <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
+            </div>
+
             <button 
               onClick={handleGoogleLogin} 
-              style={{ width: "100%", padding: "12px", marginBottom: "20px", borderRadius: "24px", background: "transparent", border: "1px solid #555", color: "white", fontWeight: "bold", fontSize: "14px", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", transition: "all 0.2s" }}
-              onMouseOver={(e) => e.target.style.background = "rgba(255,255,255,0.05)"}
-              onMouseOut={(e) => e.target.style.background = "transparent"}
+              style={{ width: "100%", padding: "16px", borderRadius: "12px", background: "#1C1C1E", border: "none", color: "white", fontWeight: "bold", fontSize: "16px", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", transition: "background 0.2s" }}
+              onMouseOver={(e) => e.target.style.background = "#2C2C2E"}
+              onMouseOut={(e) => e.target.style.background = "#1C1C1E"}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -74,53 +149,9 @@ export default function Auth() {
               </svg>
               Continue with Google
             </button>
-
-            <div style={{ display: "flex", alignItems: "center", margin: "0 0 20px 0" }}>
-              <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
-              <span style={{ margin: "0 10px", color: "#666", fontSize: "14px" }}>or</span>
-              <div style={{ flex: 1, height: "1px", background: "#333" }}></div>
-            </div>
           </>
         )}
-        
-        <form onSubmit={handleAuth} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            required
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ padding: "12px", borderRadius: "8px", border: "1px solid #333", background: "#2a2a2a", color: "white", outline: "none" }}
-          />
-          {!isForgotPassword && (
-            <input
-              type="password"
-              placeholder="Password (min 6 chars)"
-              value={password}
-              required
-              onChange={(e) => setPassword(e.target.value)}
-              style={{ padding: "12px", borderRadius: "8px", border: "1px solid #333", background: "#2a2a2a", color: "white", outline: "none" }}
-            />
-          )}
-          <button type="submit" disabled={loading} style={{ padding: "12px", borderRadius: "8px", background: "#1DB954", color: "#000", fontWeight: "bold", border: "none", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
-            {loading && <Loader2 size={16} className="animate-spin" />}
-            {isForgotPassword ? "Send Reset Link" : isLogin ? "Log In" : "Sign Up"}
-          </button>
-        </form>
-
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", marginTop: "20px" }}>
-          {!isForgotPassword && isLogin && (
-            <p style={{ margin: 0, color: "#1DB954", fontSize: "14px", cursor: "pointer" }} onClick={() => setIsForgotPassword(true)}>
-              Forgot your password?
-            </p>
-          )}
-          <p style={{ margin: 0, color: "#a0a0a0", fontSize: "14px", cursor: "pointer" }} onClick={() => { setIsForgotPassword(false); setIsLogin(!isLogin); }}>
-            {isForgotPassword ? "Back to Login" : isLogin ? "Need an account? Sign up" : "Already have an account? Log in"}
-          </p>
-        </div>
       </div>
     </div>
   );
 }
-
-

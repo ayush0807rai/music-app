@@ -2087,30 +2087,35 @@ export default function App() {
           </div>
         </div>
       )}      {/* PASSWORD RESET MODAL */}
-      {showPasswordResetModal && (
-        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 6000, padding: "20px" }}>
-          <div className="pop-enter" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}>
-            <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", color: COLORS.primary }}>Reset Password</h2>
-            <p style={{ margin: "0 0 24px 0", fontSize: "14px", color: COLORS.textMuted }}>Enter your new password below.</p>
-            <form onSubmit={handlePasswordReset} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <input
-                type="password"
-                placeholder="New Password (min 6 chars)"
-                value={resetPasswordInput}
-                onChange={(e) => setResetPasswordInput(e.target.value)}
-                required
-                style={{ padding: "12px", borderRadius: "8px", border: `1px solid ${COLORS.border}`, background: COLORS.bgBase, color: COLORS.textMain, outline: "none" }}
-              />
-              <button type="submit" disabled={resetPasswordLoading} style={{ padding: "12px", borderRadius: "8px", background: COLORS.primary, color: "#000", fontWeight: "bold", border: "none", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
-                {resetPasswordLoading && <Loader2 size={16} className="animate-spin" />}
-                Update Password
-              </button>
-            </form>
+        {showPasswordResetModal && (
+          <div className="fade-enter" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 6000, padding: "20px" }}>
+            <div className="pop-enter" style={{ background: "#000000", padding: "40px", borderRadius: "16px", width: "100%", maxWidth: "400px", boxShadow: "0 20px 40px rgba(0,0,0,0.5)", border: "1px solid #333", display: "flex", flexDirection: "column", alignItems: "center" }} onClick={e => e.stopPropagation()}>
+              <div style={{ width: "64px", height: "64px", background: "#FA243C", borderRadius: "16px", display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "24px" }}>
+                <Music size={32} color="#FFFFFF" />
+              </div>
+              <h2 style={{ margin: "0 0 8px 0", fontSize: "24px", color: "#FFFFFF", fontWeight: "600" }}>Reset Password</h2>
+              <p style={{ margin: "0 0 32px 0", fontSize: "15px", color: "#a1a1a6", textAlign: "center" }}>Enter your new password below.</p>
+              <form onSubmit={handlePasswordReset} style={{ width: "100%", display: "flex", flexDirection: "column", gap: "24px" }}>
+                <div style={{ border: "2px solid transparent", borderRadius: "12px", background: "#1C1C1E", transition: "border 0.2s ease" }} onFocus={(e) => e.currentTarget.style.border = "2px solid #FA243C"} onBlur={(e) => e.currentTarget.style.border = "2px solid transparent"}>
+                  <input
+                    type="password"
+                    placeholder="New Password"
+                    value={resetPasswordInput}
+                    onChange={(e) => setResetPasswordInput(e.target.value)}
+                    required
+                    style={{ width: "100%", padding: "16px", background: "transparent", border: "none", color: "white", outline: "none", boxSizing: "border-box", fontSize: "16px", borderRadius: "12px" }}
+                  />
+                </div>
+                <button type="submit" disabled={resetPasswordLoading} style={{ padding: "16px", borderRadius: "12px", background: "#FA243C", color: "#FFFFFF", fontWeight: "bold", fontSize: "16px", border: "none", cursor: resetPasswordLoading ? "not-allowed" : "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", opacity: resetPasswordLoading || !resetPasswordInput ? 0.5 : 1, transition: "opacity 0.2s" }}>
+                  {resetPasswordLoading && <Loader2 size={18} className="animate-spin" />}
+                  Update Password
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* CREATE PLAYLIST MODAL */}
+        )}
+  
+        {/* CREATE PLAYLIST MODAL */}
       {renderPlaylistModal && (
         <div className={playlistModalClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowPlaylistModal(false)}>
           <div className={playlistModalClosing ? "pop-exit" : "pop-enter"} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
@@ -2706,6 +2711,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
