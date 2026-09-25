@@ -657,6 +657,25 @@ export default function App() {
   }, [isPlaying]);
 
   useEffect(() => {
+    // Add an initial history state on the very first user interaction so the history stack isn't empty.
+    // If the stack is empty, Android Predictive Back instantly exits without firing popstate.
+    const handleFirstInteraction = () => {
+      if (!window.hasPushedInitialState) {
+        window.hasPushedInitialState = true;
+        if (!window.location.hash) {
+          window.history.pushState({ page: 'euphony-home' }, '', window.location.pathname + window.location.search + '#home');
+        }
+      }
+    };
+    window.addEventListener('click', handleFirstInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, []);
+
+  useEffect(() => {
     const handlePopState = () => {
       const s = stateRefs.current;
       let handled = false;
@@ -683,10 +702,11 @@ export default function App() {
           if (!exitWarningRef.current) {
             exitWarningRef.current = true;
             setShowExitToast(true);
-            window.history.pushState({ page: 'euphony' }, '', window.location.href);
+            // Push a unique hash so Chrome respects the push state and traps them for the first back press
+            window.history.pushState({ page: 'euphony-exit' }, '', window.location.pathname + window.location.search + '#exit');
             setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500);
           } else {
-            // Actually exit the app
+            // Actually exit the app on the second consecutive back press
             window.history.back();
           }
         }
