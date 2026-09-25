@@ -678,6 +678,7 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const s = stateRefs.current;
+      const isDesktopEnv = window.innerWidth > 768;
       let handled = false;
       if (s.showUploadModal) { setShowUploadModal(false); handled = true; }
       else if (s.showPlaylistModal) { setShowPlaylistModal(false); handled = true; }
@@ -693,7 +694,9 @@ export default function App() {
         exitWarningRef.current = false;
         setShowExitToast(false);
       } else {
-        if (s.isPlaying) {
+        // On mobile, if playing, we trap infinitely to encourage Swiping Home. 
+        // On desktop, we always allow a double-back to exit.
+        if (s.isPlaying && !isDesktopEnv) {
           setShowExitToast(true);
           // Keep them trapped in the playing state
           window.history.pushState({ page: 'euphony-playing' }, '', window.location.pathname + window.location.search + '#playing');
@@ -1897,7 +1900,7 @@ export default function App() {
       )}
       {renderExitToast && (
         <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)", whiteSpace: "nowrap" }}>
-          {isPlaying ? "Swipe Home to play in background" : "Press back again to exit"}
+          {(isPlaying && !isDesktop) ? "Swipe Home to play in background" : "Press back again to exit"}
         </div>
       )}
 
