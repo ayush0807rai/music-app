@@ -75,6 +75,83 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
   );
 };
 
+const SwipeableBottomSheet = ({ children, onClose, className, style }) => {
+  const sheetRef = useRef(null);
+  const startY = useRef(0);
+  const currentY = useRef(0);
+  const isDragging = useRef(false);
+
+  const handlePointerDown = (e) => {
+    if (e.button !== 0 && e.type !== 'touchstart') return;
+    const target = e.target;
+    const scrollable = target.closest('.custom-scrollbar');
+    if (scrollable && scrollable.scrollTop > 0) return;
+
+    isDragging.current = true;
+    startY.current = e.clientY || (e.touches && e.touches[0].clientY);
+    currentY.current = 0;
+    
+    if (sheetRef.current) {
+      sheetRef.current.style.transition = 'none';
+    }
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging.current) return;
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    const deltaY = clientY - startY.current;
+
+    if (deltaY > 0) {
+      currentY.current = deltaY;
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = `translateY(${deltaY}px)`;
+      }
+    }
+  };
+
+  const resetSwipe = () => {
+    if (sheetRef.current) {
+      sheetRef.current.style.transform = 'translateY(0px)';
+      sheetRef.current.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    }
+    currentY.current = 0;
+  };
+
+  const handlePointerUp = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    
+    if (currentY.current > 100) {
+      if (sheetRef.current) {
+        // Just call onClose and let the CSS exit animation handle the rest
+      }
+      onClose();
+    } else {
+      resetSwipe();
+    }
+  };
+
+  return (
+    <div
+      ref={sheetRef}
+      className={className}
+      style={{ ...style, touchAction: 'pan-x' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+      onTouchStart={handlePointerDown}
+      onTouchMove={handlePointerMove}
+      onTouchEnd={handlePointerUp}
+      onTouchCancel={handlePointerUp}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>
+  );
+};
+
 const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, iconColor }) => {
   const containerRef = useRef(null);
   const trackRef = useRef(null);
@@ -2037,7 +2114,7 @@ export default function App() {
       {/* TRACK ARTISTS MODAL */}
       {renderTrackArtists && currentTrack && (
         <div className={trackArtistsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 5600 }} onClick={() => setShowTrackArtistsModal(false)}>
-          <div className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "24px", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: "500px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 -10px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+          <SwipeableBottomSheet onClose={() => setShowTrackArtistsModal(false)} className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "24px", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: "500px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 -10px 40px rgba(0,0,0,0.3)" }}>
             <div style={{ width: "40px", height: "4px", background: COLORS.border, borderRadius: "2px", margin: "0 auto 20px" }} />
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", textAlign: "center", color: COLORS.primary }}>Artists</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -2057,7 +2134,7 @@ export default function App() {
                 );
               })}
             </div>
-          </div>
+          </SwipeableBottomSheet>
         </div>
       )}
 
