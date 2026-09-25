@@ -399,6 +399,13 @@ export default function App() {
 
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
+
+  useEffect(() => {
+    // When a modal opens, push a state so the back button closes the modal instead of exiting the app
+    if (isMobilePlayerOpen || showQueue || showMixer || showUploadModal || showPlaylistModal || viewedPlaylistId !== null) {
+      window.history.pushState({ page: 'modal' }, '', window.location.pathname + window.location.search + '#modal');
+    }
+  }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, viewedPlaylistId]);
   const stateRefs = useRef({});
 
   const pendingAutoPlayRef = useRef(false);
