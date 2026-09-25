@@ -1794,7 +1794,7 @@ export default function App() {
                 const song = item.track;
                 const actualIndex = item.originalIndex;
                 return (
-                  <div key={`next-${song.id}-${uIdx}`} onClick={() => handlePlaySong(actualIndex, playbackQueue, playbackSourceName)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", cursor: "pointer" }} className="glass-row">
+                  <div key={`next-${song.id}-${uIdx}`} onClick={() => handlePlaySong(actualIndex, playbackQueue, playbackSourceName)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", cursor: "pointer" }} className="glass-panel-btn">
                     <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
                     </div>
@@ -1961,8 +1961,26 @@ export default function App() {
           box-shadow: ${isDarkMode ? "0 10px 40px rgba(0, 0, 0, 0.3)" : "0 10px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6)"};
         }
         
-                        .glass-row {
-          background: ${isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.12)"};
+                                .glass-row {
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.12)"};
+          backdrop-filter: blur(24px) saturate(200%);
+          -webkit-backdrop-filter: blur(24px) saturate(200%);
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.5)"};
+          border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.9)"};
+          border-radius: 12px;
+          box-shadow: ${isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)" : "0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4)"};
+          transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+          transform: translateZ(0);
+          -webkit-transform: translateZ(0);
+        }
+        .glass-row:hover {
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.16)"};
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.6)"};
+          border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 255, 255, 1)"};
+          box-shadow: ${isDarkMode ? "0 6px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"};
+        }
+        .glass-panel-btn {
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.08)"};
           backdrop-filter: blur(24px) saturate(200%);
           -webkit-backdrop-filter: blur(24px) saturate(200%);
           border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.5)"};
@@ -1973,8 +1991,8 @@ export default function App() {
           transform: translateZ(0);
           -webkit-transform: translateZ(0);
         }
-        .glass-row:hover {
-          background: ${isDarkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.16)"};
+        .glass-panel-btn:hover {
+          background: ${isDarkMode ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.12)"};
           border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 255, 255, 0.6)"};
           border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 255, 255, 1)"};
           box-shadow: ${isDarkMode ? "0 6px 16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"};
@@ -2044,9 +2062,9 @@ export default function App() {
             <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><UploadCloud color={COLORS.primary} /> Add Song Globally</h2>
             <form onSubmit={handleUploadSubmit}>
-              <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="upload-input glass-row" />
-              <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={e => setUploadArtist(e.target.value)} className="upload-input glass-row" />
-              <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input glass-row" />
+              <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="upload-input glass-panel-btn" />
+              <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={e => setUploadArtist(e.target.value)} className="upload-input glass-panel-btn" />
+              <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input glass-panel-btn" />
               <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input custom-scrollbar" style={{ minHeight: "100px", resize: "vertical" }} />
               <div style={{ marginBottom: "16px", padding: "12px", border: `1px dashed ${COLORS.border}`, borderRadius: "8px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>Poster Image (Optional)</label>
@@ -2056,7 +2074,7 @@ export default function App() {
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
                 <input type="file" accept="audio/*" required onChange={e => setUploadFile(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
               </div>
-              <button type="submit" disabled={isUploading} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <button type="submit" disabled={isUploading} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                 {isUploading ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Upload to Cloud"}
               </button>
             </form>
@@ -2093,8 +2111,8 @@ export default function App() {
             <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Create Private Playlist</h2>
             <form onSubmit={handleCreatePlaylist}>
-              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input glass-row" />
-              <button type="submit" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer" }} className="glass-row">Save Playlist</button>
+              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input glass-panel-btn" />
+              <button type="submit" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer" }} className="glass-panel-btn">Save Playlist</button>
             </form>
           </div>
         </div>
@@ -2108,12 +2126,12 @@ export default function App() {
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[5, 10, 20, 30, 60, 120].map(mins => (
-                <div key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
+                <div key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
                   {mins === 60 ? "1 hour" : mins === 120 ? "2 hours" : `${mins} minutes`}
                 </div>
               ))}
               <div style={{ margin: "8px 0", height: "1px", background: COLORS.border }} />
-              <button onClick={() => handleSetSleepTimer(0)} className={sleepTimerTarget ? "hover-effect" : "glass-row"} style={{ width: "100%", padding: "14px", borderRadius: sleepTimerTarget ? "8px" : undefined, background: sleepTimerTarget ? "#ffebee" : undefined, border: sleepTimerTarget ? "1px solid #ffcdd2" : undefined, color: sleepTimerTarget ? "#d32f2f" : COLORS.textMuted, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
+              <button onClick={() => handleSetSleepTimer(0)} className={sleepTimerTarget ? "hover-effect" : "glass-panel-btn"} style={{ width: "100%", padding: "14px", borderRadius: sleepTimerTarget ? "8px" : undefined, background: sleepTimerTarget ? "#ffebee" : undefined, border: sleepTimerTarget ? "1px solid #ffcdd2" : undefined, color: sleepTimerTarget ? "#d32f2f" : COLORS.textMuted, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
                 Turn off timer
               </button>
             </div>
@@ -2136,22 +2154,22 @@ export default function App() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div onClick={() => { setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <User size={18} /> Go to artists
               </div>
-              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <FolderPlus size={18} /> Add to playlist
               </div>
-              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListPlus size={18} /> Add to Queue
               </div>
-              <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListMusic size={18} /> Go to Queue
               </div>
-              <div onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Disc size={18} /> Go to album
               </div>
-              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Clock size={18} /> Sleep timer
               </div>
             </div>
@@ -2196,7 +2214,7 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {userPlaylists.length > 0
                 ? userPlaylists.map(pl => (
-                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="glass-panel-btn" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                       <ListMusic size={18} /> {pl.name}
                     </button>
                   ))
@@ -2682,6 +2700,9 @@ export default function App() {
     </div>
   );
 }
+
+
+
 
 
 
