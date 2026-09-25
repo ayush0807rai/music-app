@@ -54,10 +54,14 @@ export default function Auth() {
   const APPLE_RED = "#FA243C";
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#000000", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", width: "100vw", background: "#000000", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+      <style>{`
+        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: #000000 !important; }
+        * { box-sizing: border-box; }
+      `}</style>
       <div style={{ padding: "40px", width: "100%", maxWidth: "400px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         
-        <img src="/logo.png" alt="Euphony Logo" style={{ width: "72px", height: "72px", marginBottom: "24px", borderRadius: "16px", border: "1px solid rgba(255, 255, 255, 0.2)" }} />
+        <img src="/logo.png" alt="Euphony Logo" style={{ width: "72px", height: "72px", marginBottom: "24px", borderRadius: "16px", border: "2px solid rgba(255, 255, 255, 0.4)" }} />
         
         <h1 style={{ textAlign: "center", margin: "0 0 8px 0", color: "#FFFFFF", fontSize: "24px", fontWeight: "600" }}>
           {isForgotPassword ? "Reset Password" : isLogin ? "Enter Your Password" : "Create Account"}
