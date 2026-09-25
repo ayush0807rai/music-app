@@ -1981,6 +1981,28 @@ export default function App() {
           border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 1)"};
           box-shadow: ${isDarkMode ? "0 6px 16px rgba(0, 0, 0, 0.3)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"};
         }
+        .glass-btn-primary {
+          background: ${isDarkMode ? "rgba(242, 233, 228, 0.85)" : "rgba(26, 43, 76, 0.85)"};
+          backdrop-filter: blur(24px) saturate(200%);
+          -webkit-backdrop-filter: blur(24px) saturate(200%);
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.2)"};
+          border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.9)" : "rgba(0, 0, 0, 0.4)"};
+          border-radius: 12px;
+          color: ${isDarkMode ? "#1A2B4C" : "#FFFFFF"};
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          transition: all 0.2s ease;
+          font-weight: bold;
+          cursor: pointer;
+        }
+        .glass-btn-primary:hover {
+          background: ${isDarkMode ? "rgba(242, 233, 228, 1)" : "rgba(26, 43, 76, 1)"};
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+;
+          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.6)"};
+          border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 1)"};
+          box-shadow: ${isDarkMode ? "0 6px 16px rgba(0, 0, 0, 0.3)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"};
+        }
 .glass-row.active {
           background: ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.22)"};
           border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 255, 255, 0.8)"};
@@ -2058,7 +2080,7 @@ export default function App() {
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
                 <input type="file" accept="audio/*" required onChange={e => setUploadFile(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
               </div>
-              <button type="submit" disabled={isUploading} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <button type="submit" disabled={isUploading} className="glass-btn-primary" style={{ width: "100%", padding: "14px", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                 {isUploading ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Upload to Cloud"}
               </button>
             </form>
@@ -2096,7 +2118,7 @@ export default function App() {
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Create Private Playlist</h2>
             <form onSubmit={handleCreatePlaylist}>
               <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input glass-row" />
-              <button type="submit" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer" }} className="glass-row">Save Playlist</button>
+              <button type="submit" style={{ width: "100%", padding: "14px" }} className="glass-btn-primary">Save Playlist</button>
             </form>
           </div>
         </div>
