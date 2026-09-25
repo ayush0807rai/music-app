@@ -17,7 +17,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -401,6 +401,7 @@ export default function App() {
   const [showQueue, setShowQueue] = useState(false);
   const [queueToast, setQueueToast] = useState("");
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
+  const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
   const [showMixer, setShowMixer] = useState(false);
@@ -438,6 +439,7 @@ export default function App() {
   const { render: renderUpload, isClosing: uploadClosing } = useAnimatedPresence(showUploadModal, null, 300);
   const { render: renderPlaylistModal, isClosing: playlistModalClosing } = useAnimatedPresence(showPlaylistModal, null, 300);
   const { render: renderSleepTimer, isClosing: sleepTimerClosing } = useAnimatedPresence(showSleepTimerModal, null, 300);
+  const { render: renderTrackOptions, isClosing: trackOptionsClosing } = useAnimatedPresence(showTrackOptionsModal, null, 300);
   const { render: renderSongForPlaylist, isClosing: songForPlaylistClosing, data: safeSongForPlaylist } = useAnimatedPresence(!!songForPlaylistModal, songForPlaylistModal, 300);
   const { render: renderMobilePlayer, isClosing: mobilePlayerClosing } = useAnimatedPresence(isMobilePlayerOpen, null, 400);
   const { render: renderQueueToast, isClosing: queueToastClosing, data: safeQueueToast } = useAnimatedPresence(!!queueToast, queueToast, 300);
@@ -644,8 +646,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying };
-  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying]);
+    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying };
+  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying]);
 
   useEffect(() => {
     // Prevent accidental closure of the app when music is playing (adds OS-level protection)
@@ -696,6 +698,7 @@ export default function App() {
       else if (s.showPlaylistModal) { setShowPlaylistModal(false); handled = true; }
       else if (s.songForPlaylistModal) { setSongForPlaylistModal(null); handled = true; }
       else if (s.showSleepTimerModal) { setShowSleepTimerModal(false); handled = true; }
+      else if (s.showTrackOptionsModal) { setShowTrackOptionsModal(false); handled = true; }
       else if (s.showMixer) { setShowMixer(false); handled = true; }
       else if (s.showQueue) { setShowQueue(false); handled = true; }
       else if (s.isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; }
@@ -1988,6 +1991,44 @@ export default function App() {
         </div>
       )}
 
+      {/* TRACK OPTIONS MODAL */}
+      {renderTrackOptions && currentTrack && (
+        <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowTrackOptionsModal(false)}>
+          <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgBase, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowTrackOptionsModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px", textAlign: "center" }}>
+              <div style={{ width: "80px", height: "80px", borderRadius: "8px", overflow: "hidden", marginBottom: "12px", backgroundColor: COLORS.imageBg }}>
+                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={32} color={COLORS.textMuted} />}
+              </div>
+              <h2 style={{ margin: "0 0 4px 0", fontSize: "18px", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
+              <p style={{ margin: 0, fontSize: "14px", color: COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.artist}</p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <button onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <FolderPlus size={18} /> Add to playlist
+              </button>
+              <button onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <ListPlus size={18} /> Add to Queue
+              </button>
+              <button onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <ListMusic size={18} /> Go to Queue
+              </button>
+              <button onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <Disc size={18} /> Go to album
+              </button>
+              <button onClick={() => { setSearchQuery(currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <User size={18} /> Go to artists
+              </button>
+              <button onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+                <Clock size={18} /> Sleep timer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ADD TO PLAYLIST MODAL */}
       {renderSongForPlaylist && (
         <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
@@ -2356,6 +2397,7 @@ export default function App() {
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
                   {[
                     { label: "Sleep Timer", active: !!sleepTimerTarget, icon: <Moon size={15} />, action: (e) => { e.stopPropagation(); setShowSleepTimerModal(true); } },
+                    { label: "Options", active: false, icon: <MoreVertical size={15} />, action: (e) => { e.stopPropagation(); setShowTrackOptionsModal(true); } },
                     { label: "Stem Mixer", active: showMixer, icon: <SlidersHorizontal size={15} />, action: toggleStemMixer },
                     { label: "Lyrics", active: showLyrics, icon: <Mic2 size={15} />, action: () => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } } },
                     { label: "Queue", active: showQueue, icon: <ListMusic size={15} />, action: () => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } } }
@@ -2430,7 +2472,7 @@ export default function App() {
               <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
                 {showMixer ? "AI Mixer" : showQueue ? "Current Queue" : showLyrics ? "Lyrics" : "Now Playing"}
               </span>
-              <div style={{ width: "40px" }} />
+              <button onClick={() => setShowTrackOptionsModal(true)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><MoreVertical size={32} /></button>
             </div>
 
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
