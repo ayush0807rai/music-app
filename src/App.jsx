@@ -1944,7 +1944,8 @@ export default function App() {
         .stem-fader { -webkit-appearance: none; appearance: none; outline: none; cursor: pointer; }
         .stem-fader::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
         .stem-fader::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
-        .upload-input { width: 100%; padding: 12px; background: ${isDarkMode ? "rgba(255,255,255,0.05)" : "#FFFFFF"}; border: 1px solid ${COLORS.border}; border-radius: 8px; color: ${COLORS.textMain}; margin-bottom: 16px; outline: none; transition: border-color 0.2s ease; }
+        .upload-input { width: 100%; padding: 14px; color: ${COLORS.textMain}; margin-bottom: 16px; outline: none; font-family: inherit; font-size: 14px; }
+        .upload-input::placeholder { color: ${COLORS.textMuted}; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: ${isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}; border-radius: 10px; border: 2px solid transparent; }
@@ -2048,12 +2049,12 @@ export default function App() {
               <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="upload-input glass-row" />
               <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={e => setUploadArtist(e.target.value)} className="upload-input glass-row" />
               <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input glass-row" />
-              <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input custom-scrollbar" style={{ minHeight: "100px", resize: "vertical" }} />
-              <div style={{ marginBottom: "16px", padding: "12px", border: `1px dashed ${COLORS.border}`, borderRadius: "8px" }}>
+              <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input glass-row custom-scrollbar" style={{ minHeight: "100px", resize: "vertical" }} />
+              <div className="glass-row" style={{ marginBottom: "16px", padding: "14px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>Poster Image (Optional)</label>
                 <input type="file" accept="image/*" onChange={e => setUploadPoster(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
               </div>
-              <div style={{ marginBottom: "24px", padding: "12px", border: `1px dashed ${COLORS.border}`, borderRadius: "8px" }}>
+              <div className="glass-row" style={{ marginBottom: "24px", padding: "14px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
                 <input type="file" accept="audio/*" required onChange={e => setUploadFile(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
               </div>
