@@ -1970,11 +1970,7 @@ export default function App() {
           border-radius: 12px;
           box-shadow: ${isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4)"};
           transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-          transform: translateZ(0);
-          -webkit-transform: translateZ(0);
-          backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
-        }
+                    -webkit-                    -webkit-        }
         .glass-row:hover {
           background: ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.16)"};
           border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.6)"};
@@ -2684,6 +2680,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
