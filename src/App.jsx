@@ -428,6 +428,9 @@ export default function App() {
   const [songForPlaylistModal, setSongForPlaylistModal] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [session, setSession] = useState(null);
+  const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
+  const [resetPasswordInput, setResetPasswordInput] = useState('');
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
 
   const [uploadTitle, setUploadTitle] = useState("");
@@ -810,8 +813,14 @@ export default function App() {
     window.addEventListener("resize", handleResize);
     supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setIsSessionLoaded(true); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') setSession(null);
-      else if (session) setSession(session);
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
+      } else if (event === 'PASSWORD_RECOVERY') {
+        setSession(session);
+        setShowPasswordResetModal(true);
+      } else if (session) {
+        setSession(session);
+      }
     });
     return () => { window.removeEventListener("resize", handleResize); subscription.unsubscribe(); };
   }, []);
@@ -1374,6 +1383,25 @@ export default function App() {
       setUploadTitle(""); setUploadArtist(""); setUploadAlbum(""); setUploadLyrics(""); setUploadFile(null); setUploadPoster(null);
       alert("Song uploaded successfully!");
     } catch (error) { alert("Error uploading: " + error.message); } finally { setIsUploading(false); }
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (!resetPasswordInput || resetPasswordInput.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
+    setResetPasswordLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: resetPasswordInput });
+    setResetPasswordLoading(false);
+    
+    if (error) {
+      alert(error.message);
+    } else {
+      alert("Password updated successfully!");
+      setShowPasswordResetModal(false);
+      setResetPasswordInput("");
+    }
   };
 
   const handleCreatePlaylist = async (e) => {
@@ -2036,6 +2064,28 @@ export default function App() {
             </form>
           </div>
         </div>
+      )}      {/* PASSWORD RESET MODAL */}
+      {showPasswordResetModal && (
+        <div className="fade-enter" style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 6000, padding: "20px" }}>
+          <div className="pop-enter" style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }}>
+            <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", color: COLORS.primary }}>Reset Password</h2>
+            <p style={{ margin: "0 0 24px 0", fontSize: "14px", color: COLORS.textMuted }}>Enter your new password below.</p>
+            <form onSubmit={handlePasswordReset} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <input
+                type="password"
+                placeholder="New Password (min 6 chars)"
+                value={resetPasswordInput}
+                onChange={(e) => setResetPasswordInput(e.target.value)}
+                required
+                style={{ padding: "12px", borderRadius: "8px", border: `1px solid ${COLORS.border}`, background: COLORS.bgBase, color: COLORS.textMain, outline: "none" }}
+              />
+              <button type="submit" disabled={resetPasswordLoading} style={{ padding: "12px", borderRadius: "8px", background: COLORS.primary, color: "#000", fontWeight: "bold", border: "none", cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
+                {resetPasswordLoading && <Loader2 size={16} className="animate-spin" />}
+                Update Password
+              </button>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* CREATE PLAYLIST MODAL */}
@@ -2634,3 +2684,6 @@ export default function App() {
     </div>
   );
 }
+
+
+
