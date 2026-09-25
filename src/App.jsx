@@ -2134,7 +2134,7 @@ export default function App() {
                 {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={32} color={COLORS.textMuted} />}
               </div>
               <h2 style={{ margin: "0 0 4px 0", fontSize: "18px", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
-              <p style={{ margin: 0, fontSize: "14px", color: COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.artist}</p>
+              
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -2684,6 +2684,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
