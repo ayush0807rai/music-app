@@ -625,7 +625,11 @@ export default function App() {
   }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying]);
 
   useEffect(() => {
-    window.history.pushState({ page: 'euphony' }, '', window.location.href);
+    // Explicitly add a hash fragment so Android Chrome honors the history stack
+    if (window.location.hash !== '#app') {
+      window.history.pushState({ page: 'euphony' }, '', window.location.pathname + window.location.search + '#app');
+    }
+    
     const handlePopState = () => {
       const s = stateRefs.current;
       let handled = false;
@@ -638,20 +642,24 @@ export default function App() {
       else if (s.isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; }
       else if (s.viewedPlaylistId !== null) { setViewedPlaylistId(null); handled = true; }
 
+      const reTrap = () => {
+        window.history.pushState({ page: 'euphony' }, '', window.location.pathname + window.location.search + '#app');
+      };
+
       if (handled) {
-        window.history.pushState({ page: 'euphony' }, '', window.location.href);
+        reTrap();
         exitWarningRef.current = false;
         setShowExitToast(false);
       } else {
         if (s.isPlaying) {
           setShowExitToast(true);
-          window.history.pushState({ page: 'euphony' }, '', window.location.href);
+          reTrap();
           setTimeout(() => { setShowExitToast(false); }, 2500);
         } else {
           if (!exitWarningRef.current) {
             exitWarningRef.current = true;
             setShowExitToast(true);
-            window.history.pushState({ page: 'euphony' }, '', window.location.href);
+            reTrap();
             setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500);
           } else { window.history.back(); }
         }
