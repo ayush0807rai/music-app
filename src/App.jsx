@@ -2130,10 +2130,10 @@ export default function App() {
             <button onClick={() => setShowTrackOptionsModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px", textAlign: "center" }}>
-              <div style={{ width: "80px", height: "80px", borderRadius: "8px", overflow: "hidden", marginBottom: "12px", backgroundColor: COLORS.imageBg }}>
+              <div style={{ width: "140px", height: "140px", borderRadius: "16px", overflow: "hidden", marginBottom: "16px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", backgroundColor: COLORS.imageBg }}>
                 {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={32} color={COLORS.textMuted} />}
               </div>
-              <h2 style={{ margin: "0 0 4px 0", fontSize: "18px", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
+              <h2 style={{ margin: "0", fontSize: "22px", fontWeight: "800", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
               
             </div>
 
@@ -2684,6 +2684,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
