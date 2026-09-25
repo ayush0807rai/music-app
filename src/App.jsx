@@ -402,6 +402,7 @@ export default function App() {
   const [queueToast, setQueueToast] = useState("");
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
+  const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
   const [showMixer, setShowMixer] = useState(false);
@@ -440,6 +441,7 @@ export default function App() {
   const { render: renderPlaylistModal, isClosing: playlistModalClosing } = useAnimatedPresence(showPlaylistModal, null, 300);
   const { render: renderSleepTimer, isClosing: sleepTimerClosing } = useAnimatedPresence(showSleepTimerModal, null, 300);
   const { render: renderTrackOptions, isClosing: trackOptionsClosing } = useAnimatedPresence(showTrackOptionsModal, null, 300);
+  const { render: renderTrackArtists, isClosing: trackArtistsClosing } = useAnimatedPresence(showTrackArtistsModal, null, 300);
   const { render: renderSongForPlaylist, isClosing: songForPlaylistClosing, data: safeSongForPlaylist } = useAnimatedPresence(!!songForPlaylistModal, songForPlaylistModal, 300);
   const { render: renderMobilePlayer, isClosing: mobilePlayerClosing } = useAnimatedPresence(isMobilePlayerOpen, null, 400);
   const { render: renderQueueToast, isClosing: queueToastClosing, data: safeQueueToast } = useAnimatedPresence(!!queueToast, queueToast, 300);
@@ -2021,12 +2023,39 @@ export default function App() {
               <div onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Disc size={18} /> Go to album
               </div>
-              <div onClick={() => { setSearchQuery(currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <User size={18} /> Go to artists
               </div>
               <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Clock size={18} /> Sleep timer
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TRACK ARTISTS MODAL */}
+      {renderTrackArtists && currentTrack && (
+        <div className={trackArtistsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 5600 }} onClick={() => setShowTrackArtistsModal(false)}>
+          <div className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "24px", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: "500px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 -10px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
+            <div style={{ width: "40px", height: "4px", background: COLORS.border, borderRadius: "2px", margin: "0 auto 20px" }} />
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", textAlign: "center", color: COLORS.primary }}>Artists</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
+                const dbArtist = topArtists.find(a => a.name.toLowerCase() === artistName.toLowerCase());
+                return (
+                  <div key={idx} onClick={() => { setSearchQuery(artistName); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackArtistsModal(false); }} className="hover-effect" style={{ display: "flex", alignItems: "center", gap: "16px", cursor: "pointer", padding: "8px", borderRadius: "12px" }}>
+                    <div style={{ width: "50px", height: "50px", borderRadius: "50%", overflow: "hidden", backgroundColor: COLORS.imageBg, flexShrink: 0 }}>
+                      {dbArtist?.image_url ? (
+                        <img src={dbArtist.image_url} alt={artistName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <User size={24} color={COLORS.textMuted} style={{ margin: "13px" }} />
+                      )}
+                    </div>
+                    <span style={{ fontSize: "16px", color: COLORS.textMain, fontWeight: "500" }}>{artistName}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
