@@ -1978,9 +1978,9 @@ export default function App() {
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[5, 10, 20, 30, 60, 120].map(mins => (
-                <button key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
+                <div key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
                   {mins === 60 ? "1 hour" : mins === 120 ? "2 hours" : `${mins} minutes`}
-                </button>
+                </div>
               ))}
               <div style={{ margin: "8px 0", height: "1px", background: COLORS.border }} />
               <button onClick={() => handleSetSleepTimer(0)} className={sleepTimerTarget ? "hover-effect" : "glass-row"} style={{ width: "100%", padding: "14px", borderRadius: sleepTimerTarget ? "8px" : undefined, background: sleepTimerTarget ? "#ffebee" : undefined, border: sleepTimerTarget ? "1px solid #ffcdd2" : undefined, color: sleepTimerTarget ? "#d32f2f" : COLORS.textMuted, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
@@ -2006,24 +2006,24 @@ export default function App() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <button onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <FolderPlus size={18} /> Add to playlist
-              </button>
-              <button onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              </div>
+              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListPlus size={18} /> Add to Queue
-              </button>
-              <button onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              </div>
+              <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListMusic size={18} /> Go to Queue
-              </button>
-              <button onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              </div>
+              <div onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Disc size={18} /> Go to album
-              </button>
-              <button onClick={() => { setSearchQuery(currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              </div>
+              <div onClick={() => { setSearchQuery(currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <User size={18} /> Go to artists
-              </button>
-              <button onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              </div>
+              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Clock size={18} /> Sleep timer
-              </button>
+              </div>
             </div>
           </div>
         </div>
