@@ -587,27 +587,6 @@ export default function App() {
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
   useEffect(() => {
-    let nextUrl = null;
-    if (userQueue.length > 0) {
-      nextUrl = userQueue[0].url;
-    } else if (upcomingSourceList.length > 0) {
-      const idx = upcomingSourceList[0].originalIndex;
-      if (playbackQueue[idx]) nextUrl = playbackQueue[idx].url;
-    }
-    
-    if (nextUrl) {
-      const cdnUrl = getCdnUrl(nextUrl);
-      setPreloadSrc(cdnUrl);
-      if (preloadAudioRef.current) {
-        preloadAudioRef.current.src = cdnUrl;
-        preloadAudioRef.current.load();
-      }
-    } else {
-      setPreloadSrc(null);
-    }
-  }, [currentTrack, userQueue, upcomingSourceList, playbackQueue]);
-
-  useEffect(() => {
     if (currentTrack?.poster_url) {
       const img = new Image();
       img.crossOrigin = "Anonymous";
@@ -744,6 +723,27 @@ export default function App() {
     const idx = SORT_CYCLE.indexOf(current);
     setSortOrders(prev => ({ ...prev, [key]: SORT_CYCLE[(idx + 1) % SORT_CYCLE.length] }));
   };
+
+  useEffect(() => {
+    let nextUrl = null;
+    if (userQueue.length > 0) {
+      nextUrl = userQueue[0].url;
+    } else if (upcomingSourceList.length > 0) {
+      const idx = upcomingSourceList[0].originalIndex;
+      if (playbackQueue[idx]) nextUrl = playbackQueue[idx].url;
+    }
+    
+    if (nextUrl) {
+      const cdnUrl = getCdnUrl(nextUrl);
+      setPreloadSrc(cdnUrl);
+      if (preloadAudioRef.current) {
+        preloadAudioRef.current.src = cdnUrl;
+        preloadAudioRef.current.load();
+      }
+    } else {
+      setPreloadSrc(null);
+    }
+  }, [currentTrack, userQueue, upcomingSourceList, playbackQueue]);
 
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
