@@ -405,27 +405,11 @@ export default function App() {
   const [playbackIndex, setPlaybackIndex] = useState(() => parseInt(localStorage.getItem("euphony_playback_index")) || 0);
   const [playbackSourceName, setPlaybackSourceName] = useState(() => localStorage.getItem("euphony_playback_source") || "Global Library");
   const [activeAudioSrc, setActiveAudioSrc] = useState(null);
+  const [preloadSrc, setPreloadSrc] = useState(null);
   const [dominantColor, setDominantColor] = useState(null);
 
   const CACHE_NAME = 'euphony-audio-cache';
-  const prefetchedBlobUrlsRef = useRef({});
-
-  const prefetchAudio = async (url) => {
-    if (!url) return;
-    try {
-      const cdn = getCdnUrl(url);
-      const cache = await caches.open(CACHE_NAME);
-      let match = await cache.match(cdn);
-      if (!match) {
-        await cache.add(cdn);
-        match = await cache.match(cdn);
-      }
-      if (match && !prefetchedBlobUrlsRef.current[url]) {
-        const blob = await match.blob();
-        prefetchedBlobUrlsRef.current[url] = URL.createObjectURL(blob);
-      }
-    } catch (err) {}
-  };
+  
 
   const [playlist, setPlaylist] = useState([]);
   const [topArtists, setTopArtists] = useState([]);
@@ -544,6 +528,7 @@ export default function App() {
   const queueDragState = useRef({ active: false, startIdx: -1, overIdx: -1 });
   const queueItemEls = useRef([]);
 
+  const preloadAudioRef = useRef(null);
   const audioRef = useRef(null);
   const vocalsRef = useRef(null);
   const drumsRef = useRef(null);
@@ -600,6 +585,27 @@ export default function App() {
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
+
+  useEffect(() => {
+    let nextUrl = null;
+    if (userQueue.length > 0) {
+      nextUrl = userQueue[0].url;
+    } else if (upcomingSourceList.length > 0) {
+      const idx = upcomingSourceList[0].originalIndex;
+      if (playbackQueue[idx]) nextUrl = playbackQueue[idx].url;
+    }
+    
+    if (nextUrl) {
+      const cdnUrl = getCdnUrl(nextUrl);
+      setPreloadSrc(cdnUrl);
+      if (preloadAudioRef.current) {
+        preloadAudioRef.current.src = cdnUrl;
+        preloadAudioRef.current.load();
+      }
+    } else {
+      setPreloadSrc(null);
+    }
+  }, [currentTrack, userQueue, upcomingSourceList, playbackQueue]);
 
   useEffect(() => {
     if (currentTrack?.poster_url) {
@@ -1103,32 +1109,7 @@ export default function App() {
         if (prefetchedSignatureRef.current === signature) return;
         prefetchedSignatureRef.current = signature;
         
-        const urlsToKeep = [getCdnUrl(currentTrack.url)];
-        for (let i = 0; i < nextTracks.length; i++) {
-          const nextTrack = nextTracks[i];
-          if (nextTrack?.url) {
-            urlsToKeep.push(getCdnUrl(nextTrack.url));
-            await prefetchAudio(nextTrack.url);
-          }
-        }
         
-        try {
-          const cache = await caches.open(CACHE_NAME);
-          const keys = await cache.keys();
-          for (let request of keys) {
-            if (!urlsToKeep.includes(request.url)) {
-              await cache.delete(request);
-            }
-          }
-          
-          // Cleanup Blob URLs
-          Object.keys(prefetchedBlobUrlsRef.current).forEach(key => {
-            if (!urlsToKeep.includes(getCdnUrl(key))) {
-              URL.revokeObjectURL(prefetchedBlobUrlsRef.current[key]);
-              delete prefetchedBlobUrlsRef.current[key];
-            }
-          });
-        } catch (e) {}
       }
     };
 
@@ -1393,7 +1374,7 @@ export default function App() {
     resetPlaybackTime();
     setIsPlaying(true);
     if (audioRef.current && song) {
-      audioRef.current.src = prefetchedBlobUrlsRef.current[song.url] || getCdnUrl(song.url);
+      audioRef.current.src = getCdnUrl();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1418,7 +1399,7 @@ export default function App() {
     resetPlaybackTime();
     setIsPlaying(true);
     if (audioRef.current && track) {
-      audioRef.current.src = prefetchedBlobUrlsRef.current[track.url] || getCdnUrl(track.url);
+      audioRef.current.src = getCdnUrl();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1558,7 +1539,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && nextSong) {
-        audioRef.current.src = prefetchedBlobUrlsRef.current[nextSong.url] || getCdnUrl(nextSong.url);
+        audioRef.current.src = getCdnUrl();
         audioRef.current.play().catch(err => console.log(err));
       }
       return;
@@ -1607,7 +1588,7 @@ export default function App() {
     
     const prevSong = playbackQueue[prevIdx];
     if (audioRef.current && prevSong) {
-      audioRef.current.src = prefetchedBlobUrlsRef.current[prevSong.url] || getCdnUrl(prevSong.url);
+      audioRef.current.src = getCdnUrl();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1632,7 +1613,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && nextSong) {
-        audioRef.current.src = prefetchedBlobUrlsRef.current[nextSong.url] || getCdnUrl(nextSong.url);
+        audioRef.current.src = getCdnUrl();
         audioRef.current.play().catch(err => console.log(err));
       }
       return;
@@ -2084,6 +2065,7 @@ export default function App() {
       `}</style>
 
       {/* ── AUDIO ELEMENTS ── */}
+      <audio ref={preloadAudioRef} src={preloadSrc || undefined} preload="auto" muted style={{ display: 'none' }} />
       <audio
         ref={audioRef}
         src={activeAudioSrc || undefined}
