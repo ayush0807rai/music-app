@@ -1892,8 +1892,8 @@ export default function App() {
       <style>{`
         :root { max-width: none !important; }
         body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        input, textarea { -webkit-user-select: auto; -moz-user-select: auto; user-select: auto; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        input, textarea { -webkit-user-select: auto; -moz-user-select: auto; user-select: auto; outline: none; }
         
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
