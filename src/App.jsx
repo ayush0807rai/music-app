@@ -1370,7 +1370,7 @@ export default function App() {
     resetPlaybackTime();
     setIsPlaying(true);
     if (audioRef.current && song) {
-      audioRef.current.src = getCdnUrl(song.url);
+      audioRef.current.src = getCdnUrl(song.url); audioRef.current.load();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1395,7 +1395,7 @@ export default function App() {
     resetPlaybackTime();
     setIsPlaying(true);
     if (audioRef.current && track) {
-      audioRef.current.src = getCdnUrl(track.url);
+      audioRef.current.src = getCdnUrl(track.url); audioRef.current.load();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1535,7 +1535,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && nextSong) {
-        audioRef.current.src = getCdnUrl(nextSong.url);
+        audioRef.current.src = getCdnUrl(nextSong.url); audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
       }
       return;
@@ -1550,7 +1550,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && playbackQueue[nextIdx]) {
-        audioRef.current.src = getCdnUrl(playbackQueue[nextIdx].url);
+        audioRef.current.src = getCdnUrl(playbackQueue[nextIdx].url); audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
       }
     } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
@@ -1584,7 +1584,7 @@ export default function App() {
     
     const prevSong = playbackQueue[prevIdx];
     if (audioRef.current && prevSong) {
-      audioRef.current.src = getCdnUrl(prevSong.url);
+      audioRef.current.src = getCdnUrl(prevSong.url); audioRef.current.load();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1609,7 +1609,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && nextSong) {
-        audioRef.current.src = getCdnUrl(nextSong.url);
+        audioRef.current.src = getCdnUrl(nextSong.url); audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
       }
       return;
@@ -1624,7 +1624,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && playbackQueue[nextIdx]) {
-        audioRef.current.src = getCdnUrl(playbackQueue[nextIdx].url);
+        audioRef.current.src = getCdnUrl(playbackQueue[nextIdx].url); audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
       }
     } else {
