@@ -496,10 +496,10 @@ export default function App() {
 
   useEffect(() => {
     // When a modal opens, push a state so the back button closes the modal instead of exiting the app
-    if (isMobilePlayerOpen || showQueue || showMixer || showUploadModal || showPlaylistModal || showTrackOptionsModal || showSleepTimerModal || showTrackArtistsModal || songForPlaylistModal || viewedPlaylistId !== null) {
+    if (isMobilePlayerOpen || showQueue || showMixer || showUploadModal || showPlaylistModal || showTrackOptionsModal || showSleepTimerModal || showTrackArtistsModal || songForPlaylistModal || viewedPlaylistId !== null || selectedArtist !== null) {
       window.history.pushState({ page: 'modal' }, '', window.location.pathname + window.location.search + '#modal');
     }
-  }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId]);
+  }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId, selectedArtist]);
   const stateRefs = useRef({});
 
   const pendingAutoPlayRef = useRef(false);
@@ -728,8 +728,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying };
-  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying]);
+    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist };
+  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist]);
 
   useEffect(() => {
     // Prevent accidental closure of the app when music is playing (adds OS-level protection)
@@ -785,6 +785,7 @@ export default function App() {
       else if (s.showQueue) { setShowQueue(false); handled = true; }
       else if (s.isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; }
       else if (s.viewedPlaylistId !== null) { setViewedPlaylistId(null); handled = true; }
+      else if (s.selectedArtist !== null) { setSelectedArtist(null); handled = true; }
 
       if (handled) {
         // Do NOT push state here. The browser just popped the modal's state for us.
