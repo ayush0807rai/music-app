@@ -881,17 +881,22 @@ export default function App() {
   useEffect(() => {
     let isActive = true;
     
-    const fetchDurationsSequentially = async () => {
-      // Delay fetching by 40 seconds to ensure initial songs load perfectly on mobile bandwidth
-      await new Promise(resolve => setTimeout(resolve, 40000));
+    const fetchDurationsInBatches = async () => {
+      // Delay fetching by just 2 seconds to not block initial render
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const tracksToProcess = [...playlist, ...playlistSongs];
-      for (let track of tracksToProcess) {
+      const tracksToProcess = [...playlist, ...playlistSongs].filter(t => 
+        !t.duration && !songDurations[t.id] && !fetchingDurationsRef.current.has(t.id) && t.url
+      );
+      
+      const BATCH_SIZE = 5;
+      for (let i = 0; i < tracksToProcess.length; i += BATCH_SIZE) {
         if (!isActive) break;
-        if (!track.duration && !songDurations[track.id] && !fetchingDurationsRef.current.has(track.id) && track.url) {
+        const batch = tracksToProcess.slice(i, i + BATCH_SIZE);
+        
+        await Promise.all(batch.map(track => {
           fetchingDurationsRef.current.add(track.id);
-          
-          await new Promise((resolve) => {
+          return new Promise((resolve) => {
             const audio = new Audio();
             audio.preload = "metadata";
             audio.onloadedmetadata = () => {
@@ -899,16 +904,16 @@ export default function App() {
               resolve();
             };
             audio.onerror = resolve; // Continue even if one fails
-            audio.src = track.url;
+            audio.src = getCdnUrl(track.url);
             
             // Timeout in case metadata gets stuck loading
-            setTimeout(resolve, 2000); 
+            setTimeout(resolve, 3000); 
           });
-        }
+        }));
       }
     };
     
-    fetchDurationsSequentially();
+    fetchDurationsInBatches();
     
     return () => { isActive = false; };
   }, [playlist, playlistSongs]);
