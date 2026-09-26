@@ -988,10 +988,10 @@ export default function App() {
     setParsedLyrics(currentTrack?.lyrics ? parseLyrics(currentTrack.lyrics) : []);
   }, [currentTrack]);
 
+  const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
+  const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
+
   useEffect(() => {
-    const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
-    const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
-    
     const setVol = (ref, targetVol, targetMuted) => {
       if (!ref.current) return;
       if (Math.abs(ref.current.volume - targetVol) > 0.01) ref.current.volume = targetVol;
@@ -2082,13 +2082,14 @@ export default function App() {
         }}
         preload="auto"
         playsInline
+        muted={isMixerActive || isMuted}
         loop={playMode === 'repeat-one'}
         className="loop-audio-fix"
       />
-      <audio ref={vocalsRef} src={getCdnUrl(currentTrack?.stem_vocals) || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={drumsRef}  src={getCdnUrl(currentTrack?.stem_drums)  || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={bassRef}   src={getCdnUrl(currentTrack?.stem_bass)   || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={otherRef}  src={getCdnUrl(currentTrack?.stem_other)  || undefined} preload="auto" playsInline loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_other  && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={vocalsRef} src={getCdnUrl(currentTrack?.stem_vocals) || undefined} preload="auto" playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={drumsRef}  src={getCdnUrl(currentTrack?.stem_drums)  || undefined} preload="auto" playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={bassRef}   src={getCdnUrl(currentTrack?.stem_bass)   || undefined} preload="auto" playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={otherRef}  src={getCdnUrl(currentTrack?.stem_other)  || undefined} preload="auto" playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_other  && setStemsBroken(true)} className="loop-audio-fix" />
 
       {/* TOASTS */}
       {renderQueueToast && (
