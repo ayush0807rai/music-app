@@ -528,6 +528,7 @@ export default function App() {
   const queueDragState = useRef({ active: false, startIdx: -1, overIdx: -1 });
   const queueItemEls = useRef([]);
 
+  const silentAudioRef = useRef(null);
   const preloadAudioRef = useRef(null);
   const audioRef = useRef(null);
   const vocalsRef = useRef(null);
@@ -1636,6 +1637,12 @@ export default function App() {
     }
   };
 
+    useEffect(() => {
+    if (isPlaying && silentAudioRef.current && silentAudioRef.current.paused) {
+      silentAudioRef.current.play().catch(() => {});
+    }
+  }, [isPlaying]);
+
   const toggleMute = () => {
     if (isMuted) { setIsMuted(false); setVolume(previousVolume || 0.5); }
     else { setPreviousVolume(volume); setIsMuted(true); setVolume(0); }
@@ -2065,6 +2072,7 @@ export default function App() {
       `}</style>
 
       {/* ── AUDIO ELEMENTS ── */}
+      <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay muted style={{ display: 'none' }} />
       <audio ref={preloadAudioRef} src={preloadSrc || undefined} preload="auto" muted style={{ display: 'none' }} />
       <audio
         ref={audioRef}
