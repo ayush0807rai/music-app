@@ -494,11 +494,26 @@ export default function App() {
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
 
+  const prevModalState = useRef({ isMobilePlayerOpen: false, showQueue: false, showMixer: false, showUploadModal: false, showPlaylistModal: false, showTrackOptionsModal: false, showSleepTimerModal: false, showTrackArtistsModal: false, hasSongForPlaylist: false, hasViewedPlaylist: false, hasSelectedArtist: false });
+
   useEffect(() => {
-    // When a modal opens, push a state so the back button closes the modal instead of exiting the app
-    if (isMobilePlayerOpen || showQueue || showMixer || showUploadModal || showPlaylistModal || showTrackOptionsModal || showSleepTimerModal || showTrackArtistsModal || songForPlaylistModal || viewedPlaylistId !== null || selectedArtist !== null) {
-      window.history.pushState({ page: 'modal' }, '', window.location.pathname + window.location.search + '#modal');
+    const currentState = {
+      isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal,
+      hasSongForPlaylist: !!songForPlaylistModal,
+      hasViewedPlaylist: viewedPlaylistId !== null,
+      hasSelectedArtist: selectedArtist !== null
+    };
+
+    let pushed = false;
+    for (const key in currentState) {
+      if (currentState[key] && !prevModalState.current[key]) {
+        if (!pushed) {
+           window.history.pushState({ page: 'modal' }, '', window.location.pathname + window.location.search + '#modal');
+           pushed = true;
+        }
+      }
     }
+    prevModalState.current = currentState;
   }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId, selectedArtist]);
   const stateRefs = useRef({});
 
@@ -781,6 +796,7 @@ export default function App() {
       else if (s.songForPlaylistModal) { setSongForPlaylistModal(null); handled = true; }
       else if (s.showSleepTimerModal) { setShowSleepTimerModal(false); handled = true; }
       else if (s.showTrackOptionsModal) { setShowTrackOptionsModal(false); handled = true; }
+      else if (s.showTrackArtistsModal) { setShowTrackArtistsModal(false); handled = true; }
       else if (s.showMixer) { setShowMixer(false); handled = true; }
       else if (s.showQueue) { setShowQueue(false); handled = true; }
       else if (s.isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; }
