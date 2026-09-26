@@ -57,7 +57,8 @@ export default function Auth() {
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", width: "100%", background: "#000000", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
       <style>{`
         body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: #000000 !important; overflow: hidden !important; }
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; -webkit-user-select: none; user-select: none; }
+        input { -webkit-user-select: auto; user-select: auto; }
       `}</style>
       <div style={{ padding: "40px", width: "100%", maxWidth: "400px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         
