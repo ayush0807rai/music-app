@@ -476,8 +476,18 @@ export default function App() {
   const animationFrameRef = useRef(null);
   const [isMobilePlayerOpen, setIsMobilePlayerOpen] = useState(false);
 
-  const [userQueue, setUserQueue] = useState([]);
-  const [queueCurrentTrack, setQueueCurrentTrack] = useState(null);
+  const [userQueue, setUserQueue] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_user_queue");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+  const [queueCurrentTrack, setQueueCurrentTrack] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_queue_current_track");
+      return saved && saved !== "null" ? JSON.parse(saved) : null;
+    } catch (e) { return null; }
+  });
   const [showQueue, setShowQueue] = useState(false);
   const [queueToast, setQueueToast] = useState("");
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
@@ -625,7 +635,18 @@ export default function App() {
   }, [isMobilePlayerOpen, dominantColor, COLORS.bgBase]);
 
   const [upcomingSourceList, setUpcomingSourceList] = useState([]);
-  const [playbackHistory, setPlaybackHistory] = useState([]);
+  const [playbackHistory, setPlaybackHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_playback_history");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("euphony_user_queue", JSON.stringify(userQueue));
+    localStorage.setItem("euphony_queue_current_track", JSON.stringify(queueCurrentTrack));
+    localStorage.setItem("euphony_playback_history", JSON.stringify(playbackHistory));
+  }, [userQueue, queueCurrentTrack, playbackHistory]);
 
   const updateProgressVisuals = () => {
     if (!audioRef.current) return;
@@ -2286,7 +2307,7 @@ export default function App() {
           <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <FolderPlus size={16} color={COLORS.bgPanel} />{isDesktop && " New Playlist"}
           </button>
-          <button className="hover-effect" onClick={() => { localStorage.removeItem("euphony_current_time"); localStorage.removeItem("euphony_playlist_id"); supabase.auth.signOut(); }} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+          <button className="hover-effect" onClick={() => { localStorage.removeItem("euphony_current_time"); localStorage.removeItem("euphony_playlist_id"); localStorage.removeItem("euphony_user_queue"); localStorage.removeItem("euphony_queue_current_track"); localStorage.removeItem("euphony_playback_history"); localStorage.removeItem("euphony_playback_queue"); localStorage.removeItem("euphony_playback_index"); localStorage.removeItem("euphony_playback_source"); supabase.auth.signOut(); }} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
             {isDesktop ? "Log Out" : <LogOut size={16} />}
           </button>
         </div>
