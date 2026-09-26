@@ -1964,8 +1964,8 @@ export default function App() {
         .upload-input { width: 100%; padding: 14px; color: ${COLORS.textMain}; margin-bottom: 16px; outline: none; font-family: inherit; font-size: 14px; }
         .upload-input::placeholder { color: ${COLORS.textMuted}; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: ${isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"}; border-radius: 10px; border: 2px solid transparent; }
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+        .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
         .loop-audio-fix { pointer-events: none; }
         
