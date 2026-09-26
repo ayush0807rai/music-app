@@ -408,12 +408,22 @@ export default function App() {
   const [dominantColor, setDominantColor] = useState(null);
 
   const CACHE_NAME = 'euphony-audio-cache';
+  const prefetchedBlobUrlsRef = useRef({});
+
   const prefetchAudio = async (url) => {
     if (!url) return;
     try {
+      const cdn = getCdnUrl(url);
       const cache = await caches.open(CACHE_NAME);
-      const match = await cache.match(url);
-      if (!match) await cache.add(getCdnUrl(url));
+      let match = await cache.match(cdn);
+      if (!match) {
+        await cache.add(cdn);
+        match = await cache.match(cdn);
+      }
+      if (match && !prefetchedBlobUrlsRef.current[url]) {
+        const blob = await match.blob();
+        prefetchedBlobUrlsRef.current[url] = URL.createObjectURL(blob);
+      }
     } catch (err) {}
   };
 
@@ -1023,12 +1033,12 @@ export default function App() {
 
     const cdnUrl = getCdnUrl(currentTrack.url);
     const audioSrc = audioRef.current?.src || "";
-    // audio.src is always an absolute URL, so check if it ends with or equals cdnUrl
     const isAlreadyPlayingCdn = audioSrc === cdnUrl || audioSrc.endsWith(cdnUrl);
+    const isAlreadyPlayingBlob = audioSrc.startsWith("blob:");
     
-    // If the src was synchronously set (e.g. for background auto-play) and is playing, keep it!
-    if (isAlreadyPlayingCdn && audioRef.current && !audioRef.current.paused) {
-      setActiveAudioSrc(cdnUrl);
+    if ((isAlreadyPlayingCdn || isAlreadyPlayingBlob) && audioRef.current && !audioRef.current.paused) {
+      // It's seamlessly playing! Sync the state to whatever is actually loaded.
+      setActiveAudioSrc(audioSrc);
       return;
     }
 
@@ -1038,7 +1048,7 @@ export default function App() {
     const loadSrc = async () => {
       try {
         const cache = await caches.open(CACHE_NAME);
-        const match = await cache.match(currentTrack.url);
+        const match = await cache.match(cdnUrl);
         if (match) {
           const blob = await match.blob();
           objectUrl = URL.createObjectURL(blob);
@@ -1088,11 +1098,11 @@ export default function App() {
         if (prefetchedSignatureRef.current === signature) return;
         prefetchedSignatureRef.current = signature;
         
-        const urlsToKeep = [currentTrack.url];
+        const urlsToKeep = [getCdnUrl(currentTrack.url)];
         for (let i = 0; i < nextTracks.length; i++) {
           const nextTrack = nextTracks[i];
           if (nextTrack?.url) {
-            urlsToKeep.push(nextTrack.url);
+            urlsToKeep.push(getCdnUrl(nextTrack.url));
             await prefetchAudio(nextTrack.url);
           }
         }
@@ -1105,6 +1115,14 @@ export default function App() {
               await cache.delete(request);
             }
           }
+          
+          // Cleanup Blob URLs
+          Object.keys(prefetchedBlobUrlsRef.current).forEach(key => {
+            if (!urlsToKeep.includes(getCdnUrl(key))) {
+              URL.revokeObjectURL(prefetchedBlobUrlsRef.current[key]);
+              delete prefetchedBlobUrlsRef.current[key];
+            }
+          });
         } catch (e) {}
       }
     };
@@ -1370,7 +1388,7 @@ export default function App() {
     resetPlaybackTime();
     setIsPlaying(true);
     if (audioRef.current && song) {
-      audioRef.current.src = getCdnUrl(song.url); audioRef.current.load();
+      audioRef.current.src = prefetchedBlobUrlsRef.current[song.url] || getCdnUrl(song.url); audioRef.current.load();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1395,7 +1413,7 @@ export default function App() {
     resetPlaybackTime();
     setIsPlaying(true);
     if (audioRef.current && track) {
-      audioRef.current.src = getCdnUrl(track.url); audioRef.current.load();
+      audioRef.current.src = prefetchedBlobUrlsRef.current[track.url] || getCdnUrl(track.url); audioRef.current.load();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1535,7 +1553,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && nextSong) {
-        audioRef.current.src = getCdnUrl(nextSong.url); audioRef.current.load();
+        audioRef.current.src = prefetchedBlobUrlsRef.current[nextSong.url] || getCdnUrl(nextSong.url); audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
       }
       return;
@@ -1550,7 +1568,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && playbackQueue[nextIdx]) {
-        audioRef.current.src = getCdnUrl(playbackQueue[nextIdx].url); audioRef.current.load();
+        audioRef.current.src = prefetchedBlobUrlsRef.current[playbackQueue[nextIdx].url] || getCdnUrl(playbackQueue[nextIdx].url); audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
       }
     } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
@@ -1584,7 +1602,7 @@ export default function App() {
     
     const prevSong = playbackQueue[prevIdx];
     if (audioRef.current && prevSong) {
-      audioRef.current.src = getCdnUrl(prevSong.url); audioRef.current.load();
+      audioRef.current.src = prefetchedBlobUrlsRef.current[prevSong.url] || getCdnUrl(prevSong.url); audioRef.current.load();
       audioRef.current.play().catch(err => console.log(err));
     }
   };
@@ -1609,7 +1627,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && nextSong) {
-        audioRef.current.src = getCdnUrl(nextSong.url); audioRef.current.load();
+        audioRef.current.src = prefetchedBlobUrlsRef.current[nextSong.url] || getCdnUrl(nextSong.url); audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
       }
       return;
@@ -1624,7 +1642,7 @@ export default function App() {
       resetPlaybackTime();
       setIsPlaying(true);
       if (audioRef.current && playbackQueue[nextIdx]) {
-        audioRef.current.src = getCdnUrl(playbackQueue[nextIdx].url); audioRef.current.load();
+        audioRef.current.src = prefetchedBlobUrlsRef.current[playbackQueue[nextIdx].url] || getCdnUrl(playbackQueue[nextIdx].url); audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
       }
     } else {
