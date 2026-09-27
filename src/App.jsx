@@ -588,6 +588,8 @@ export default function App() {
 
   const vocalsRef = useRef(null);
   const drumsRef = useRef(null);
+  const bassRef = useRef(null);
+  const otherRef = useRef(null);
   const isFirstRender = useRef(true);
 
   const { render: renderLoader, isClosing: loaderClosing } = useAnimatedPresence(isInitialLoad, null, 300);
@@ -2877,6 +2879,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
