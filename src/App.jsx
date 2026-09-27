@@ -572,10 +572,18 @@ export default function App() {
   const queueDragState = useRef({ active: false, startIdx: -1, overIdx: -1 });
   const queueItemEls = useRef([]);
 
-  const silentAudioRef = useRef(null);
   const audioRef = useRef(null);
-  const preloadAudioRef = useRef(null);
+  const player1Ref = useRef(null);
+  const player2Ref = useRef(null);
+  const activePlayerIdxRef = useRef(0);
+  const primedTrackIdRef = useRef(null);
+  const switchingTrackRef = useRef(false);
+  const wantPlayingRef = useRef(false);
+  const handleNextRef = useRef(() => {});
+  const handlePrevRef = useRef(() => {});
+  const handleTrackEndedRef = useRef(() => {});
   const blobCacheRef = useRef(new Map());
+  const playbackSnapshotRef = useRef({});
 
 
 
@@ -584,6 +592,103 @@ export default function App() {
   const bassRef = useRef(null);
   const otherRef = useRef(null);
   const isFirstRender = useRef(true);
+
+  const getActiveAudio = () => {
+    const el = (activePlayerIdxRef.current === 0 ? player1Ref : player2Ref).current;
+    audioRef.current = el;
+    return el;
+  };
+
+  const getIdleAudio = () => (activePlayerIdxRef.current === 0 ? player2Ref : player1Ref).current;
+
+  const srcMatches = (el, url) => {
+    if (!el || !url) return false;
+    const current = el.currentSrc || el.src || "";
+    if (!current || current === window.location.href) return false;
+    try {
+      return decodeURI(current) === decodeURI(url) || current === url || current.endsWith(url) || url.endsWith(current);
+    } catch (e) {
+      return current === url;
+    }
+  };
+
+  const playAudioEl = (el) => {
+    if (!el) return Promise.resolve();
+    pendingAutoPlayRef.current = true;
+    const attempt = el.play();
+    if (!attempt || typeof attempt.then !== "function") {
+      pendingAutoPlayRef.current = false;
+      return Promise.resolve();
+    }
+    return attempt.then(() => {
+      pendingAutoPlayRef.current = false;
+      if (navigator.mediaSession) navigator.mediaSession.playbackState = "playing";
+    }).catch(() => {
+      pendingAutoPlayRef.current = true;
+    });
+  };
+
+  const peekNextTrack = () => {
+    const snap = playbackSnapshotRef.current || {};
+    if (snap.userQueue?.length > 0) return snap.userQueue[0];
+    if (snap.upcomingSourceList?.length > 0 && snap.playbackQueue) {
+      return snap.playbackQueue[snap.upcomingSourceList[0].originalIndex] || null;
+    }
+    return null;
+  };
+
+  const armNextTrack = () => {
+    const idle = getIdleAudio();
+    const next = peekNextTrack();
+    if (!idle) return;
+    if (!next?.url) {
+      primedTrackIdRef.current = null;
+      return;
+    }
+    const url = getCdnUrl(next.url);
+    primedTrackIdRef.current = next.id ?? next.queue_id ?? url;
+    if (!srcMatches(idle, url)) {
+      idle.preload = "auto";
+      idle.src = url;
+      try { idle.load(); } catch (e) {}
+    }
+  };
+
+  const playTrackNow = (track) => {
+    if (!track?.url) return;
+    wantPlayingRef.current = true;
+    setIsPlaying(true);
+    const cdnUrl = getCdnUrl(track.url);
+    const idle = getIdleAudio();
+    const active = getActiveAudio();
+    const nextKey = track.id ?? track.queue_id ?? cdnUrl;
+    const idleReady = idle && primedTrackIdRef.current === nextKey && idle.src && idle.src !== window.location.href;
+
+    setCurrentTime(0);
+    localStorage.setItem("euphony_current_time", "0");
+
+    if (idleReady) {
+      switchingTrackRef.current = true;
+      try { idle.currentTime = 0; } catch (e) {}
+      playAudioEl(idle);
+      if (active && active !== idle) {
+        try { active.pause(); } catch (e) {}
+      }
+      activePlayerIdxRef.current = activePlayerIdxRef.current === 0 ? 1 : 0;
+      audioRef.current = idle;
+      primedTrackIdRef.current = null;
+      switchingTrackRef.current = false;
+    } else if (active) {
+      if (!srcMatches(active, cdnUrl)) {
+        active.src = cdnUrl;
+      }
+      try { active.currentTime = 0; } catch (e) {}
+      playAudioEl(active);
+      audioRef.current = active;
+    }
+
+    queueMicrotask(() => armNextTrack());
+  };
 
   const { render: renderLoader, isClosing: loaderClosing } = useAnimatedPresence(isInitialLoad, null, 300);
   const { render: renderUpload, isClosing: uploadClosing } = useAnimatedPresence(showUploadModal, null, 300);
@@ -760,6 +865,19 @@ export default function App() {
     }
   }, [playbackQueue, playbackIndex, playMode]);
 
+  useEffect(() => {
+    playbackSnapshotRef.current = {
+      userQueue,
+      upcomingSourceList,
+      playbackQueue,
+      playbackIndex,
+      playMode,
+      queueCurrentTrack,
+      currentTrack,
+    };
+    armNextTrack();
+  }, [userQueue, upcomingSourceList, playbackQueue, playbackIndex, playMode, queueCurrentTrack, currentTrack]);
+
   const handleSwitchPlaylist = (playlistId) => {
     setViewedPlaylistId(playlistId);
     setSearchQuery("");
@@ -774,45 +892,41 @@ export default function App() {
   };
 
   useEffect(() => {
-    let nextUrl = null;
-    if (userQueue.length > 0) {
-      nextUrl = userQueue[0].url;
-    } else if (upcomingSourceList.length > 0) {
-      const idx = upcomingSourceList[0].originalIndex;
-      if (playbackQueue[idx]) nextUrl = playbackQueue[idx].url;
-    }
-    
-    if (nextUrl) {
-      const cdnUrl = getCdnUrl(nextUrl);
-      setPreloadSrc(cdnUrl);
-      if (preloadAudioRef.current) {
-        preloadAudioRef.current.src = cdnUrl;
-        preloadAudioRef.current.load();
-      }
-    } else {
-      setPreloadSrc(null);
-    }
-  }, [currentTrack, userQueue, upcomingSourceList, playbackQueue]);
-
-  useEffect(() => {
-    if ('mediaSession' in navigator && currentTrack) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: currentTrack.title,
-        artist: currentTrack.artist,
-        album: currentTrack.album || 'Euphony',
-        artwork: [{ src: currentTrack.poster_url || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }]
+    if (!('mediaSession' in navigator) || !currentTrack) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentTrack.title,
+      artist: currentTrack.artist,
+      album: currentTrack.album || 'Euphony',
+      artwork: [{ src: currentTrack.poster_url || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }]
+    });
+    navigator.mediaSession.setActionHandler('play', () => {
+      wantPlayingRef.current = true;
+      setIsPlaying(true);
+      playAudioEl(getActiveAudio());
+      navigator.mediaSession.playbackState = 'playing';
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      wantPlayingRef.current = false;
+      getActiveAudio()?.pause();
+      setIsPlaying(false);
+      navigator.mediaSession.playbackState = 'paused';
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => { handlePrevRef.current?.(); });
+    navigator.mediaSession.setActionHandler('nexttrack', () => { handleNextRef.current?.(); });
+    try {
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        const el = getActiveAudio();
+        if (el && details?.seekTime != null) el.currentTime = details.seekTime;
       });
-      navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
-      navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
-      navigator.mediaSession.setActionHandler('previoustrack', () => { handlePrev(); });
-      navigator.mediaSession.setActionHandler('nexttrack', () => { handleNext(); });
-    }
-  }, [currentTrack, playMode, userQueue]);
+    } catch (e) {}
+    navigator.mediaSession.playbackState = wantPlayingRef.current || isPlaying ? 'playing' : 'paused';
+  }, [currentTrack, isPlaying]);
 
   useEffect(() => {
     if (!sleepTimerTarget) return;
     const interval = setInterval(() => {
       if (Date.now() >= sleepTimerTarget) {
+        wantPlayingRef.current = false;
         audioRef.current?.pause();
         setIsPlaying(false);
         setSleepTimerTarget(null);
@@ -1093,65 +1207,51 @@ export default function App() {
       prefetchedSignatureRef.current = "";
     }, [currentTrack?.url]);
   
-    useEffect(() => {
-      const checkPrefetch = async () => {
-        if (!audioRef.current || !currentTrack?.url) return;
-        
-        if (audioRef.current.currentTime >= 1) {
-          let nextTracks = [];
-          if (userQueue.length > 0) {
-            nextTracks = userQueue.slice(0, 1);
-          } else if (upcomingSourceList.length > 0) {
-            nextTracks = upcomingSourceList.slice(0, 1).map(item => playbackQueue[item.originalIndex]).filter(Boolean);
-          }
-          
-          if (nextTracks.length === 0) return;
-          const track = nextTracks[0];
-          if (!track || !track.url) return;
-          
-          const signature = track.url;
-          if (prefetchedSignatureRef.current === signature) return;
-          prefetchedSignatureRef.current = signature;
-          
-          const cUrl = getCdnUrl(track.url);
-          if (blobCacheRef.current.has(cUrl) || activeFetchesRef.current.has(cUrl)) return;
-          
-          activeFetchesRef.current.add(cUrl);
-          try {
-            const cache = await caches.open(CACHE_NAME);
-            let match = await cache.match(cUrl);
-            if (!match) {
-              await cache.add(cUrl);
-              match = await cache.match(cUrl);
-            }
-            if (match) {
-              const blob = await match.blob();
-              blobCacheRef.current.set(cUrl, URL.createObjectURL(blob));
-            }
-          } catch(e) {
-            console.log('Prefetch error:', e);
-          } finally {
-            activeFetchesRef.current.delete(cUrl);
+    const cacheTrackUrl = async (cUrl) => {
+      if (!cUrl || blobCacheRef.current.has(cUrl) || activeFetchesRef.current.has(cUrl)) return;
+      activeFetchesRef.current.add(cUrl);
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        let match = await cache.match(cUrl);
+        if (!match) {
+          const res = await fetch(cUrl, { mode: "cors", credentials: "omit" });
+          if (res.ok) {
+            await cache.put(cUrl, res.clone());
+            match = res;
           }
         }
-      };
-
-    const audioEl = audioRef.current;
-    if (audioEl) {
-      // Native timeupdate fires even when the screen is locked on mobile devices (unlike setTimeout/setInterval)
-      audioEl.addEventListener("timeupdate", checkPrefetch);
-    }
-    
-    return () => {
-      if (audioEl) audioEl.removeEventListener("timeupdate", checkPrefetch);
+        if (match && !blobCacheRef.current.has(cUrl)) {
+          const blob = await match.blob();
+          blobCacheRef.current.set(cUrl, URL.createObjectURL(blob));
+        }
+      } catch (e) {
+        console.log("Prefetch error:", e);
+      } finally {
+        activeFetchesRef.current.delete(cUrl);
+      }
     };
-  }, [playbackQueue, userQueue, upcomingSourceList, currentTrack?.url]);
+
+    useEffect(() => {
+      const nextTracks = [
+        ...userQueue.slice(0, 3),
+        ...(upcomingSourceList.slice(0, 1).map(item => playbackQueue[item.originalIndex]).filter(Boolean))
+      ];
+      const signature = nextTracks.map(t => t?.url).join(",");
+      if (signature && prefetchedSignatureRef.current === signature) return;
+      if (signature) prefetchedSignatureRef.current = signature;
+      nextTracks.forEach(track => {
+        if (track?.url) cacheTrackUrl(getCdnUrl(track.url));
+      });
+      armNextTrack();
+    }, [playbackQueue, userQueue, upcomingSourceList, currentTrack?.url]);
 
   useEffect(() => {
     const syncPlayState = async () => {
+      const el = getActiveAudio();
       if (isPlaying && currentTrack) {
-        if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
-          audioRef.current.play().catch(e => e);
+        wantPlayingRef.current = true;
+        if (el?.paused && el.src && el.src !== window.location.href) {
+          playAudioEl(el);
         }
         if (currentTrack?.stem_vocals && !stemsBroken) {
           vocalsRef.current?.play().catch(e => e);
@@ -1159,8 +1259,8 @@ export default function App() {
           bassRef.current?.play().catch(e => e);
           otherRef.current?.play().catch(e => e);
         }
-      } else {
-        audioRef.current?.pause();
+      } else if (!wantPlayingRef.current) {
+        el?.pause();
         vocalsRef.current?.pause();
         drumsRef.current?.pause();
         bassRef.current?.pause();
@@ -1169,6 +1269,36 @@ export default function App() {
     };
     syncPlayState();
   }, [isPlaying, stemsBroken, currentTrack]);
+
+  useEffect(() => {
+    const resumePlayback = () => {
+      const el = getActiveAudio();
+      if (!el) return;
+      if (wantPlayingRef.current) {
+        const almostEnded = el.ended || (Number.isFinite(el.duration) && el.duration > 0 && el.currentTime >= el.duration - 0.2);
+        if (almostEnded) {
+          handleTrackEndedRef.current?.();
+        } else if (el.paused) {
+          playAudioEl(el);
+        }
+        setIsPlaying(true);
+        if (navigator.mediaSession) navigator.mediaSession.playbackState = "playing";
+      } else {
+        setIsPlaying(!el.paused && !el.ended);
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") resumePlayback();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", resumePlayback);
+    window.addEventListener("focus", resumePlayback);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", resumePlayback);
+      window.removeEventListener("focus", resumePlayback);
+    };
+  }, []);
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
@@ -1184,6 +1314,19 @@ export default function App() {
       if (currentInt % 2 === 0 && currentInt !== lastSavedTimeRef.current) {
         localStorage.setItem("euphony_current_time", time);
         lastSavedTimeRef.current = currentInt;
+      }
+
+      if ('mediaSession' in navigator && audioRef.current) {
+        try {
+          const dur = audioRef.current.duration;
+          if (Number.isFinite(dur) && dur > 0) {
+            navigator.mediaSession.setPositionState({
+              duration: dur,
+              playbackRate: audioRef.current.playbackRate || 1,
+              position: Math.min(time, dur)
+            });
+          }
+        } catch (e) {}
       }
 
       if (currentTrack?.stem_vocals && !stemsBroken) {
@@ -1226,15 +1369,18 @@ export default function App() {
   }, [isPlaying]);
 
   useEffect(() => {
-    if (isFirstRender.current && audioRef.current && currentTrack) {
-      if (!audioRef.current.src || audioRef.current.src === window.location.href) {
-        audioRef.current.src = getCdnUrl(currentTrack.url);
+    if (isFirstRender.current && currentTrack) {
+      const el = getActiveAudio() || player1Ref.current;
+      if (el && (!el.src || el.src === window.location.href)) {
+        el.src = getCdnUrl(currentTrack.url);
+        audioRef.current = el;
       }
       const savedTime = localStorage.getItem("euphony_current_time");
       if (savedTime && !isNaN(parseFloat(savedTime))) {
         setTimeout(() => {
-          if (audioRef.current) {
-            audioRef.current.currentTime = parseFloat(savedTime);
+          const active = getActiveAudio();
+          if (active) {
+            active.currentTime = parseFloat(savedTime);
             setCurrentTime(parseFloat(savedTime));
             updateProgressVisuals();
           }
@@ -1244,15 +1390,67 @@ export default function App() {
     }
   }, [currentTrack]);
 
-  const handleCanPlay = () => {
-    if (pendingAutoPlayRef.current) {
-      pendingAutoPlayRef.current = false;
-      audioRef.current?.play().catch(e => console.log("canplay-play err:", e));
+  const isActiveMediaEl = (el) => {
+    const active = getActiveAudio();
+    return !!el && !!active && el === active;
+  };
+
+  const handleCanPlay = (e) => {
+    if (e?.target && !isActiveMediaEl(e.target)) return;
+    if (pendingAutoPlayRef.current || wantPlayingRef.current) {
+      playAudioEl(getActiveAudio());
       if (currentTrack?.stem_vocals && !stemsBroken) {
         vocalsRef.current?.play().catch(e => e);
         drumsRef.current?.play().catch(e => e);
         bassRef.current?.play().catch(e => e);
         otherRef.current?.play().catch(e => e);
+      }
+    }
+  };
+
+  const handleMediaPlay = (e) => {
+    if (!isActiveMediaEl(e.target)) return;
+    setIsPlaying(true);
+    if (navigator.mediaSession) navigator.mediaSession.playbackState = "playing";
+    if (currentTrack?.stem_vocals && !stemsBroken) {
+      vocalsRef.current?.play().catch(err => err);
+      drumsRef.current?.play().catch(err => err);
+      bassRef.current?.play().catch(err => err);
+      otherRef.current?.play().catch(err => err);
+    }
+  };
+
+  const handleMediaPause = (e) => {
+    if (!isActiveMediaEl(e.target) || switchingTrackRef.current) return;
+    const el = e.target;
+    if (el.ended || (Number.isFinite(el.duration) && el.duration > 0 && el.currentTime >= el.duration - 0.15)) return;
+    if (wantPlayingRef.current) {
+      setTimeout(() => {
+        const active = getActiveAudio();
+        if (wantPlayingRef.current && active && active.paused && !active.ended) {
+          playAudioEl(active);
+        }
+      }, 160);
+      return;
+    }
+    setIsPlaying(false);
+    if (navigator.mediaSession) navigator.mediaSession.playbackState = "paused";
+  };
+
+  const handleMediaEnded = (e) => {
+    if (!isActiveMediaEl(e.target)) return;
+    handleTrackEndedRef.current?.();
+  };
+
+  const handleMediaError = (e) => {
+    if (!isActiveMediaEl(e.target) || !wantPlayingRef.current) return;
+    const track = playbackSnapshotRef.current?.currentTrack || currentTrack;
+    const el = e.target;
+    if (track?.url) {
+      const fallback = getCdnUrl(track.url);
+      if (!srcMatches(el, fallback)) {
+        el.src = fallback;
+        playAudioEl(el);
       }
     }
   };
@@ -1426,14 +1624,16 @@ export default function App() {
   const playFromQueue = (index, e) => {
     if (e) e.stopPropagation();
     const song = userQueue[index];
-    setUserQueue(prev => prev.filter((_, i) => i !== index));
+    const rest = userQueue.filter((_, i) => i !== index);
+    playbackSnapshotRef.current = {
+      ...playbackSnapshotRef.current,
+      userQueue: rest,
+      queueCurrentTrack: song,
+      currentTrack: song,
+    };
+    setUserQueue(rest);
     setQueueCurrentTrack(song);
-    resetPlaybackTime();
-    setIsPlaying(true);
-    if (audioRef.current && song) {
-      audioRef.current.src = getCdnUrl(song.url);
-      audioRef.current.play().catch(err => { console.log(err); setIsPlaying(false); });
-    }
+    playTrackNow(song);
   };
 
   const resetPlaybackTime = () => {
@@ -1454,12 +1654,15 @@ export default function App() {
     setPlaybackIndex(index);
     setPlaybackSourceName(sourceName);
     setQueueCurrentTrack(null);
-    resetPlaybackTime();
-    setIsPlaying(true);
-    if (audioRef.current && track) {
-      audioRef.current.src = getCdnUrl(track.url);
-      audioRef.current.play().catch(err => { console.log(err); setIsPlaying(false); });
-    }
+    playbackSnapshotRef.current = {
+      ...playbackSnapshotRef.current,
+      queueCurrentTrack: null,
+      playbackQueue: queueWithIds,
+      playbackIndex: index,
+      currentTrack: track,
+      userQueue: playbackSnapshotRef.current?.userQueue || userQueue,
+    };
+    playTrackNow(track);
   };
 
   const handleUploadSubmit = async (e) => {
@@ -1573,13 +1776,27 @@ export default function App() {
 
   const handlePlayPause = (e) => {
     if (e) e.stopPropagation();
-    if (!audioRef.current) return;
+    const el = getActiveAudio();
+    if (!el) return;
     if (playbackQueue.length === 0 && playlist.length > 0) {
        handlePlaySong(0, playlist, "Global Library");
        return;
     }
     if (!currentTrack) return;
-    setIsPlaying(prev => !prev);
+    if (!el.paused && !el.ended) {
+      wantPlayingRef.current = false;
+      el.pause();
+      setIsPlaying(false);
+      if (navigator.mediaSession) navigator.mediaSession.playbackState = "paused";
+    } else {
+      wantPlayingRef.current = true;
+      if (!el.src || el.src === window.location.href) {
+        el.src = getCdnUrl(currentTrack.url);
+      }
+      setIsPlaying(true);
+      playAudioEl(el);
+      if (navigator.mediaSession) navigator.mediaSession.playbackState = "playing";
+    }
   };
 
   const cyclePlayMode = () => {
@@ -1589,39 +1806,47 @@ export default function App() {
 
   const handleNext = (e) => {
     if (e) e.stopPropagation();
+    const snap = playbackSnapshotRef.current || {};
+    const q = snap.userQueue || userQueue;
     
-    if (userQueue.length > 0) {
-      const nextSong = userQueue[0];
-      setUserQueue(prev => prev.slice(1));
+    if (q.length > 0) {
+      const nextSong = q[0];
+      const rest = q.slice(1);
+      playbackSnapshotRef.current = {
+        ...snap,
+        userQueue: rest,
+        queueCurrentTrack: nextSong,
+        currentTrack: nextSong,
+      };
+      setUserQueue(rest);
       setQueueCurrentTrack(nextSong);
-      resetPlaybackTime();
-      setIsPlaying(true);
-      if (audioRef.current && nextSong) {
-    const cdnUrl = getCdnUrl(nextSong.url);
-    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
-    audioRef.current.src = objUrl;
-    audioRef.current.play().catch(e => { setIsPlaying(false); });
-  }
+      playTrackNow(nextSong);
       return;
     }
     
     setPlaybackHistory(prev => [...prev, playbackIndex]);
+    const upcoming = snap.upcomingSourceList || upcomingSourceList;
 
-    if (upcomingSourceList.length > 0) {
-      const nextIdx = upcomingSourceList[0].originalIndex;
+    if (upcoming.length > 0) {
+      const nextIdx = upcoming[0].originalIndex;
+      const nextSong = playbackQueue[nextIdx];
+      playbackSnapshotRef.current = {
+        ...snap,
+        queueCurrentTrack: null,
+        playbackIndex: nextIdx,
+        currentTrack: nextSong,
+        upcomingSourceList: upcoming.slice(1),
+      };
       setQueueCurrentTrack(null);
       setPlaybackIndex(nextIdx);
-      resetPlaybackTime();
-      setIsPlaying(true);
-      if (audioRef.current && playbackQueue[nextIdx]) {
-    const cdnUrl = getCdnUrl(playbackQueue[nextIdx].url);
-    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
-    audioRef.current.src = objUrl;
-    audioRef.current.play().catch(e => { setIsPlaying(false); });
-  }
+      playTrackNow(nextSong);
     } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
-      if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); }
+      const el = getActiveAudio();
+      if (el) { el.currentTime = 0; playAudioEl(el); }
+      wantPlayingRef.current = true;
+      setIsPlaying(true);
     } else {
+      wantPlayingRef.current = false;
       setIsPlaying(false);
     }
   };
@@ -1630,8 +1855,9 @@ export default function App() {
     if (e) e.stopPropagation();
     if (playbackQueue.length === 0) return;
     
-    if (audioRef.current && audioRef.current.currentTime > 3) { 
-        audioRef.current.currentTime = 0; 
+    const el = getActiveAudio();
+    if (el && el.currentTime > 3) { 
+        el.currentTime = 0; 
         return; 
     }
     
@@ -1645,69 +1871,28 @@ export default function App() {
     
     setQueueCurrentTrack(null);
     setPlaybackIndex(prevIdx);
-    resetPlaybackTime();
-    setIsPlaying(true);
-    
-    const prevSong = playbackQueue[prevIdx];
-    if (audioRef.current && prevSong) {
-      audioRef.current.src = getCdnUrl(prevSong.url);
-      audioRef.current.play().catch(err => { console.log(err); setIsPlaying(false); });
-    }
+    playTrackNow(playbackQueue[prevIdx]);
   };
 
 
   const handleTrackEnded = () => {
     if (playMode === "repeat-one") {
-      resetPlaybackTime();
-      audioRef.current?.play().catch(() => {});
-      if (currentTrack?.stem_vocals && !stemsBroken) {
-        vocalsRef.current?.play().catch(() => {});
-        drumsRef.current?.play().catch(() => {});
-        bassRef.current?.play().catch(() => {});
-        otherRef.current?.play().catch(() => {});
+      const el = getActiveAudio();
+      if (el) {
+        el.currentTime = 0;
+        playAudioEl(el);
       }
-      return;
-    }
-    
-    if (userQueue.length > 0) {
-      const nextSong = userQueue[0];
-      setUserQueue(prev => prev.slice(1));
-      setQueueCurrentTrack(nextSong);
-      resetPlaybackTime();
+      wantPlayingRef.current = true;
       setIsPlaying(true);
-      if (audioRef.current && nextSong) {
-    const cdnUrl = getCdnUrl(nextSong.url);
-    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
-    audioRef.current.src = objUrl;
-    audioRef.current.play().catch(e => { setIsPlaying(false); });
-  }
       return;
     }
-    
-    setPlaybackHistory(prev => [...prev, playbackIndex]);
 
-    if (upcomingSourceList.length > 0) {
-      const nextIdx = upcomingSourceList[0].originalIndex;
-      setQueueCurrentTrack(null);
-      setPlaybackIndex(nextIdx);
-      resetPlaybackTime();
-      setIsPlaying(true);
-      if (audioRef.current && playbackQueue[nextIdx]) {
-    const cdnUrl = getCdnUrl(playbackQueue[nextIdx].url);
-    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
-    audioRef.current.src = objUrl;
-    audioRef.current.play().catch(e => { setIsPlaying(false); });
-  }
-    } else {
-      setIsPlaying(false);
-    }
+    handleNext();
   };
 
-    useEffect(() => {
-    if (isPlaying && silentAudioRef.current && silentAudioRef.current.paused) {
-      silentAudioRef.current.play().catch(() => {});
-    }
-  }, [isPlaying]);
+  handleNextRef.current = handleNext;
+  handlePrevRef.current = handlePrev;
+  handleTrackEndedRef.current = handleTrackEnded;
 
   const toggleMute = () => {
     if (isMuted) { setIsMuted(false); setVolume(previousVolume || 0.5); }
@@ -2137,29 +2322,59 @@ export default function App() {
       `}</style>
 
       {/* ── AUDIO ELEMENTS ── */}
-      <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay muted style={{ display: 'none' }} />
-            <audio
-        ref={audioRef}
+      <audio
+        ref={(el) => {
+          player1Ref.current = el;
+          if (activePlayerIdxRef.current === 0) audioRef.current = el;
+        }}
         onLoadedMetadata={(e) => {
+          if (e.target !== getActiveAudio()) return;
           setDuration(e.target.duration);
           updateProgressVisuals();
         }}
-        onTimeUpdate={() => {
-          setCurrentTime(audioRef.current?.currentTime || 0);
+        onTimeUpdate={(e) => {
+          if (e.target !== getActiveAudio()) return;
+          setCurrentTime(e.target.currentTime || 0);
           handleTimeUpdateRef.current && handleTimeUpdateRef.current();
         }}
-        onEnded={() => { handleTrackEnded(); }}
+        onEnded={handleMediaEnded}
         onCanPlay={handleCanPlay}
+        onPlay={handleMediaPlay}
+        onPause={handleMediaPause}
+        onError={handleMediaError}
         onWaiting={() => {
           if (currentTrack?.stem_vocals && !stemsBroken) {
             vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
           }
         }}
-        onPlaying={() => {
-          if (isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
-            vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
-          }
+        onPlaying={handleMediaPlay}
+        preload="auto"
+        playsInline
+        muted={isMixerActive || isMuted}
+        loop={playMode === 'repeat-one'}
+        className="loop-audio-fix"
+      />
+      <audio
+        ref={(el) => {
+          player2Ref.current = el;
+          if (activePlayerIdxRef.current === 1) audioRef.current = el;
         }}
+        onLoadedMetadata={(e) => {
+          if (e.target !== getActiveAudio()) return;
+          setDuration(e.target.duration);
+          updateProgressVisuals();
+        }}
+        onTimeUpdate={(e) => {
+          if (e.target !== getActiveAudio()) return;
+          setCurrentTime(e.target.currentTime || 0);
+          handleTimeUpdateRef.current && handleTimeUpdateRef.current();
+        }}
+        onEnded={handleMediaEnded}
+        onCanPlay={handleCanPlay}
+        onPlay={handleMediaPlay}
+        onPause={handleMediaPause}
+        onError={handleMediaError}
+        onPlaying={handleMediaPlay}
         preload="auto"
         playsInline
         muted={isMixerActive || isMuted}
