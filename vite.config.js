@@ -28,32 +28,16 @@ export default defineConfig({
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/euphony\.ayush080705\.workers\.dev\/.*/i,
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'euphony-audio-cache',
-              rangeRequests: true,
               expiration: {
-                maxEntries: 80,
-                maxAgeSeconds: 60 * 60 * 24 * 7
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
               },
               cacheableResponse: {
-                statuses: [0, 200, 206]
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'euphony-audio-cache',
-              rangeRequests: true,
-              expiration: {
-                maxEntries: 80,
-                maxAgeSeconds: 60 * 60 * 24 * 7
-              },
-              cacheableResponse: {
-                statuses: [0, 200, 206]
+                statuses: [0, 200]
               }
             }
           }
