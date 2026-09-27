@@ -696,28 +696,18 @@ export default function App() {
     wantPlayingRef.current = true;
     setIsPlaying(true);
     const cdnUrl = getCdnUrl(track.url);
-    const idle = getIdleAudio();
     const active = getActiveAudio();
-    const nextKey = track.id ?? track.queue_id ?? cdnUrl;
-    const idleReady = idle && primedTrackIdRef.current === nextKey && idle.src && idle.src !== window.location.href;
 
     setCurrentTime(0);
     localStorage.setItem("euphony_current_time", "0");
 
-    if (idleReady) {
-      switchingTrackRef.current = true;
-      try { idle.currentTime = 0; } catch (e) {}
-      playAudioEl(idle);
-      if (active && active !== idle) {
-        try { active.pause(); } catch (e) {}
-      }
-      activePlayerIdxRef.current = activePlayerIdxRef.current === 0 ? 1 : 0;
-      audioRef.current = idle;
-      primedTrackIdRef.current = null;
-      switchingTrackRef.current = false;
-    } else if (active) {
-      if (!srcMatches(active, cdnUrl)) {
-        active.src = cdnUrl;
+    // FORCE SINGLE-AUDIO SWAP WITH BLOB CACHE FOR MOBILE BACKGROUND SUPPORT:
+    // Mobile browsers strictly revoke background audio focus if you swap to a different <audio> tag.
+    // We MUST reuse the active audio tag for the next song to inherit the background audio token!
+    if (active) {
+      const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
+      if (!srcMatches(active, objUrl)) {
+        active.src = objUrl;
       }
       try { active.currentTime = 0; } catch (e) {}
       playAudioEl(active);
