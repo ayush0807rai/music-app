@@ -36,7 +36,7 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: `source-${song.id}-${actualIndex}` });
+  } = useSortable({ id: `source-${song.id}-${actualIndex}`, transition: { duration: 350, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' } });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -65,9 +65,7 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
           <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
         </div>
-        <div style={{ padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}>
-          <GripVertical size={16} />
-        </div>
+
       </div>
     </div>
   );
@@ -81,7 +79,7 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: song.queue_id });
+  } = useSortable({ id: song.queue_id, transition: { duration: 350, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' } });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -113,9 +111,7 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
         <button onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "8px", flexShrink: 0 }} className="hover-effect">
           <X size={14} />
         </button>
-        <div style={{ padding: "8px 0 8px 8px", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}>
-          <GripVertical size={16} />
-        </div>
+
       </div>
     </div>
   );
@@ -2879,6 +2875,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
