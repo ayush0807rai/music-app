@@ -2172,19 +2172,7 @@ export default function App() {
           setCurrentTime(audioRef.current?.currentTime || 0);
           handleTimeUpdateRef.current && handleTimeUpdateRef.current();
         }}
-        onEnded={() => {
-          const nextIndex = playbackIndex + 1;
-          if (nextIndex < playbackQueue.length) {
-            const nextTrack = playbackQueue[nextIndex];
-            const nextCdnUrl = getCdnUrl(nextTrack.url);
-            const objUrl = blobCacheRef.current.get(nextCdnUrl) || nextCdnUrl;
-            if (audioRef.current) {
-              audioRef.current.src = objUrl;
-              audioRef.current.play().catch(e=>e);
-            }
-          }
-          handleTrackEnded();
-        }}
+        onEnded={() => { handleTrackEnded(); }}
         onCanPlay={handleCanPlay}
         onWaiting={() => {
           if (currentTrack?.stem_vocals && !stemsBroken) {
