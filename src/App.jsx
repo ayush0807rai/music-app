@@ -804,6 +804,23 @@ export default function App() {
       });
       navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
       navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.fastSeek && 'fastSeek' in audioRef.current) {
+          audioRef.current.fastSeek(details.seekTime);
+        } else if (audioRef.current) {
+          audioRef.current.currentTime = details.seekTime;
+        }
+      });
+      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        if (audioRef.current) {
+          audioRef.current.currentTime = Math.min(audioRef.current.currentTime + (details.seekOffset || 10), audioRef.current.duration);
+        }
+      });
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        if (audioRef.current) {
+          audioRef.current.currentTime = Math.max(audioRef.current.currentTime - (details.seekOffset || 10), 0);
+        }
+      });
       navigator.mediaSession.setActionHandler('previoustrack', () => {
         const prevIndex = playbackIndex - 1;
         if (prevIndex >= 0) {
@@ -1173,7 +1190,10 @@ export default function App() {
 
   useEffect(() => {
     const syncPlayState = async () => {
-      if (isPlaying && currentTrack) {
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+        }
+        if (isPlaying && currentTrack) {
         if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
           audioRef.current.play().catch(e => e);
         }
@@ -1199,16 +1219,26 @@ export default function App() {
   
   useEffect(() => {
     handleTimeUpdateRef.current = () => {
-      if (!audioRef.current) return;
-      const time = audioRef.current.currentTime;
-      setCurrentTime(time);
-      updateProgressVisuals(); // Force DOM update for sliders even if requestAnimationFrame died in the background
-      
-      const currentInt = Math.floor(time);
-      if (currentInt % 2 === 0 && currentInt !== lastSavedTimeRef.current) {
-        localStorage.setItem("euphony_current_time", time);
-        lastSavedTimeRef.current = currentInt;
-      }
+        if (!audioRef.current) return;
+        const time = audioRef.current.currentTime;
+        setCurrentTime(time);
+        updateProgressVisuals(); // Force DOM update for sliders even if requestAnimationFrame died in the background
+        
+        const currentInt = Math.floor(time);
+        if (currentInt % 2 === 0 && currentInt !== lastSavedTimeRef.current) {
+          localStorage.setItem("euphony_current_time", time);
+          lastSavedTimeRef.current = currentInt;
+        }
+
+        if ('mediaSession' in navigator && audioRef.current && isFinite(audioRef.current.duration) && audioRef.current.duration > 0) {
+          try {
+            navigator.mediaSession.setPositionState({
+              duration: audioRef.current.duration,
+              playbackRate: audioRef.current.playbackRate,
+              position: audioRef.current.currentTime
+            });
+          } catch(e) {}
+        }
 
       if (currentTrack?.stem_vocals && !stemsBroken) {
         const syncStem = (ref) => {
