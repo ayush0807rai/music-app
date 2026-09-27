@@ -36,7 +36,7 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: source-- });
+  } = useSortable({ id: `source-${song.id}-${actualIndex}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -2882,6 +2882,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
