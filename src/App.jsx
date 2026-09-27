@@ -938,7 +938,7 @@ export default function App() {
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
     window.addEventListener("resize", handleResize);
-    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setIsSessionLoaded(true); });
+    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setIsSessionLoaded(true); }).catch((e) => { console.error("Session error:", e); setIsSessionLoaded(true); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         setSession(null);
