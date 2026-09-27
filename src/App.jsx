@@ -797,10 +797,10 @@ export default function App() {
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: currentTrack.title,
-        artist: currentTrack.artist,
+        title: currentTrack.title || 'Unknown Title',
+        artist: currentTrack.artist || 'Unknown Artist',
         album: currentTrack.album || 'Euphony',
-        artwork: [{ src: currentTrack.poster_url || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }]
+        artwork: [{ src: currentTrack.poster_url || 'https://via.placeholder.com/512.png', sizes: '512x512', type: 'image/png' }]
       });
       navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
       navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
@@ -1511,6 +1511,14 @@ export default function App() {
     resetPlaybackTime();
     setIsPlaying(true);
     if (audioRef.current && track) {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: track.title || 'Unknown Title',
+          artist: track.artist || 'Unknown Artist',
+          album: track.album || 'Euphony',
+          artwork: [{ src: track.poster_url || 'https://via.placeholder.com/512.png', sizes: '512x512', type: 'image/png' }]
+        });
+      }
       audioRef.current.src = getCdnUrl(track.url);
       audioRef.current.play().catch(err => console.log(err));
     }
