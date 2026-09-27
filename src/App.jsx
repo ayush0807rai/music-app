@@ -639,6 +639,611 @@ export default function App() {
 
   const activeFetchesRef = useRef(new Set());
 
+  const armNextTrack = async () => {
+    const idle = getIdleAudio();
+    const next = peekNextTrack();
+    if (!idle) return;
+    if (!next?.url) {
+      primedTrackIdRef.current = null;
+      return;
+    }
+    const cdnUrl = getCdnUrl(next.url);
+    const nextKey = next.id ?? next.queue_id ?? cdnUrl;
+    primedTrackIdRef.current = nextKey;
+
+    if (blobCacheRef.current.has(cdnUrl)) {
+      const blobUrl = blobCacheRef.current.get(cdnUrl);
+      if (!srcMatches(idle, blobUrl)) {
+        idle.src = blobUrl;
+        try { idle.load(); } catch (e) {}
+      }
+      return;
+    }
+
+    if (activeFetchesRef.current.has(cdnUrl)) return;
+    activeFetchesRef.current.add(cdnUrl);
+
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      let match = await cache.match(cdnUrl);
+      if (!match) {
+        await cache.add(cdnUrl);
+        match = await cache.match(cdnUrl);
+      }
+      if (match) {
+        const blob = await match.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        blobCacheRef.current.set(cdnUrl, blobUrl);
+        if (primedTrackIdRef.current === nextKey) {
+          if (!srcMatches(idle, blobUrl)) {
+            idle.src = blobUrl;
+            try { idle.load(); } catch(e) {}
+          }
+        }
+      }
+    } catch(e) {
+      console.log(e);
+      if (primedTrackIdRef.current === nextKey && !srcMatches(idle, cdnUrl)) {
+        idle.src = cdnUrl;
+      }
+    } finally {
+      activeFetchesRef.current.delete(cdnUrl);
+    }
+  };
+
+  const playTrackNow = (track) => {
+    if (!track?.url) return;
+    wantPlayingRef.current = true;
+    setIsPlaying(true);
+    const cdnUrl = getCdnUrl(track.url);
+    const idle = getIdleAudio();
+    const active = getActiveAudio();
+    const nextKey = track.id ?? track.queue_id ?? cdnUrl;
+    const idleReady = idle && primedTrackIdRef.current === nextKey && idle.src && idle.src !== window.location.href;
+
+    setCurrentTime(0);
+    localStorage.setItem("euphony_current_time", "0");
+
+    if (idleReady) {
+      switchingTrackRef.current = true;
+      try { idle.currentTime = 0; } catch (e) {}
+      playAudioEl(idle);
+      if (active && active !== idle) {
+        try { active.pause(); } catch (e) {}
+      }
+      activePlayerIdxRef.current = activePlayerIdxRef.current === 0 ? 1 : 0;
+      audioRef.current = idle;
+      primedTrackIdRef.current = null;
+      switchingTrackRef.current = false;
+    } else if (active) {
+      if (!srcMatches(active, cdnUrl)) {
+        active.src = cdnUrl;
+      }
+      try { active.currentTime = 0; } catch (e) {}
+      playAudioEl(active);
+      audioRef.current = active;
+    }
+
+    queueMicrotask(() => armNextTrack());
+  };
+
+  const { render: renderLoader, isClosing: loaderClosing } = useAnimatedPresence(isInitialLoad, null, 300);
+  const { render: renderUpload, isClosing: uploadClosing } = useAnimatedPresence(showUploadModal, null, 300);
+  const { render: renderPlaylistModal, isClosing: playlistModalClosing } = useAnimatedPresence(showPlaylistModal, null, 300);
+  const { render: renderSleepTimer, isClosing: sleepTimerClosing } = useAnimatedPresence(showSleepTimerModal, null, 300);
+  const { render: renderTrackOptions, isClosing: trackOptionsClosing } = useAnimatedPresence(showTrackOptionsModal, null, 300);
+  const { render: renderTrackArtists, isClosing: trackArtistsClosing } = useAnimatedPresence(showTrackArtistsModal, null, 300);
+  const { render: renderSongForPlaylist, isClosing: songForPlaylistClosing, data: safeSongForPlaylist } = useAnimatedPresence(!!songForPlaylistModal, songForPlaylistModal, 300);
+  const { render: renderMobilePlayer, isClosing: mobilePlayerClosing } = useAnimatedPresence(isMobilePlayerOpen, null, 400);
+  const { render: renderQueueToast, isClosing: queueToastClosing, data: safeQueueToast } = useAnimatedPresence(!!queueToast, queueToast, 300);
+  const { render: renderExitToast, isClosing: exitToastClosing } = useAnimatedPresence(showExitToast, null, 300);
+
+  const rawViewedSongs = viewedPlaylistId === null ? playlist : playlistSongs;
+  const currentSortKey = sortOrders[viewedPlaylistId ?? "global"] ?? null;
+
+  const displayedSongs = [...rawViewedSongs]
+    .filter(track => {
+      if (selectedArtist) {
+        return (track.artist || "").toLowerCase().includes(selectedArtist.toLowerCase());
+      }
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        (track.title || "").toLowerCase().includes(q) ||
+        (track.artist || "").toLowerCase().includes(q) ||
+        (track.album || "").toLowerCase().includes(q)
+        );
+      })
+    .sort((a, b) => {
+      if (!currentSortKey) return 0;
+      if (currentSortKey === "created_at") {
+        const dateA = new Date(a.added_at || a.created_at).getTime();
+        const dateB = new Date(b.added_at || b.created_at).getTime();
+        return dateB - dateA;
+      }
+      if (currentSortKey === "duration") {
+        const durA = a.duration || songDurations[a.id] || Number.MAX_SAFE_INTEGER;
+        const durB = b.duration || songDurations[b.id] || Number.MAX_SAFE_INTEGER;
+        return durA - durB;
+      }
+      
+      const valA = (a[currentSortKey] || "").toString().trim().toLowerCase();
+      const valB = (b[currentSortKey] || "").toString().trim().toLowerCase();
+      return valA.localeCompare(valB);
+    });
+
+
+
+  const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
+  const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
+
+  useEffect(() => {
+    if (currentTrack?.poster_url) {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = 1;
+          canvas.height = 1;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, 1, 1);
+          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+          setDominantColor(`rgb(${Math.max(20, r - 30)}, ${Math.max(20, g - 30)}, ${Math.max(20, b - 30)})`);
+        } catch (e) {
+          setDominantColor(null);
+        }
+      };
+      img.onerror = () => setDominantColor(null);
+      img.src = currentTrack.poster_url;
+    } else {
+      setDominantColor(null);
+    }
+  }, [currentTrack?.poster_url]);
+
+  useEffect(() => {
+    let metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (!metaTheme) {
+      metaTheme = document.createElement('meta');
+      metaTheme.name = 'theme-color';
+      document.head.appendChild(metaTheme);
+    }
+    
+    if (isMobilePlayerOpen) {
+      metaTheme.content = dominantColor || "#121212";
+      // The modal just mounted, meaning mobileProgressRef just attached to a new input with defaultValue=0.
+      // Force it to sync with actual audio time. Use small timeouts to wait for React to attach the DOM node.
+      setTimeout(updateProgressVisuals, 10);
+      setTimeout(updateProgressVisuals, 100);
+    } else {
+      metaTheme.content = COLORS.bgBase;
+    }
+  }, [isMobilePlayerOpen, dominantColor, COLORS.bgBase]);
+
+  const [upcomingSourceList, setUpcomingSourceList] = useState([]);
+  const [playbackHistory, setPlaybackHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_playback_history");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("euphony_user_queue", JSON.stringify(userQueue));
+    localStorage.setItem("euphony_queue_current_track", JSON.stringify(queueCurrentTrack));
+    localStorage.setItem("euphony_playback_history", JSON.stringify(playbackHistory));
+  }, [userQueue, queueCurrentTrack, playbackHistory]);
+
+  const updateProgressVisuals = () => {
+    if (!audioRef.current) return;
+    const time = audioRef.current.currentTime;
+    const dur = audioRef.current.duration || 100;
+    const percent = dur > 0 ? (time / dur) * 100 : 0;
+    
+    const gradient = `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${percent}%, rgba(255,255,255,0.15) ${percent}%)`;
+    
+    if (desktopProgressRef.current) {
+      desktopProgressRef.current.value = time;
+      desktopProgressRef.current.style.background = gradient;
+    }
+    if (mobileProgressRef.current) {
+      mobileProgressRef.current.value = time;
+      mobileProgressRef.current.style.background = gradient;
+    }
+    if (mobileMiniProgressRef.current) {
+      mobileMiniProgressRef.current.style.width = `${percent}%`;
+    }
+  };
+
+  useEffect(() => {
+    const loop = () => {
+      updateProgressVisuals();
+      if (isPlaying) {
+        animationFrameRef.current = requestAnimationFrame(loop);
+      }
+    };
+    if (isPlaying) {
+      animationFrameRef.current = requestAnimationFrame(loop);
+    } else {
+      updateProgressVisuals();
+    }
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+    };
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (!playbackQueue || playbackQueue.length === 0) {
+      setUpcomingSourceList([]);
+      return;
+    }
+    if (playMode === 'order') {
+      const list = playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1);
+      setUpcomingSourceList(list);
+    } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
+      const list = [
+        ...playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1),
+        ...playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(0, playbackIndex)
+      ];
+      setUpcomingSourceList(list);
+    } else if (playMode === 'shuffle') {
+      setUpcomingSourceList(prev => {
+        if (prev.length > 0 && prev[0].originalIndex === playbackIndex) {
+          return prev.slice(1);
+        }
+        
+        const others = playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).filter(obj => obj.originalIndex !== playbackIndex);
+        for (let i = others.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [others[i], others[j]] = [others[j], others[i]];
+        }
+        return others;
+      });
+    }
+  }, [playbackQueue, playbackIndex, playMode]);
+
+  useEffect(() => {
+    playbackSnapshotRef.current = {
+      userQueue,
+      upcomingSourceList,
+      playbackQueue,
+      playbackIndex,
+      playMode,
+      queueCurrentTrack,
+      currentTrack,
+    };
+    armNextTrack();
+  }, [userQueue, upcomingSourceList, playbackQueue, playbackIndex, playMode, queueCurrentTrack, currentTrack]);
+
+  const handleSwitchPlaylist = (playlistId) => {
+    setViewedPlaylistId(playlistId);
+    setSearchQuery("");
+    setSelectedArtist(null);
+  };
+
+  const cycleSortKey = () => {
+    const key = viewedPlaylistId ?? "global";
+    const current = sortOrders[key] ?? null;
+    const idx = SORT_CYCLE.indexOf(current);
+    setSortOrders(prev => ({ ...prev, [key]: SORT_CYCLE[(idx + 1) % SORT_CYCLE.length] }));
+  };
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !currentTrack) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: currentTrack.title,
+      artist: currentTrack.artist,
+      album: currentTrack.album || 'Euphony',
+      artwork: [{ src: currentTrack.poster_url || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }]
+    });
+    navigator.mediaSession.setActionHandler('play', () => {
+      wantPlayingRef.current = true;
+      setIsPlaying(true);
+      playAudioEl(getActiveAudio());
+      navigator.mediaSession.playbackState = 'playing';
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      wantPlayingRef.current = false;
+      getActiveAudio()?.pause();
+      setIsPlaying(false);
+      navigator.mediaSession.playbackState = 'paused';
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => { handlePrevRef.current?.(); });
+    navigator.mediaSession.setActionHandler('nexttrack', () => { handleNextRef.current?.(); });
+    try {
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        const el = getActiveAudio();
+        if (el && details?.seekTime != null) el.currentTime = details.seekTime;
+      });
+    } catch (e) {}
+    navigator.mediaSession.playbackState = wantPlayingRef.current || isPlaying ? 'playing' : 'paused';
+  }, [currentTrack, isPlaying]);
+
+  useEffect(() => {
+    if (!sleepTimerTarget) return;
+    const interval = setInterval(() => {
+      if (Date.now() >= sleepTimerTarget) {
+        wantPlayingRef.current = false;
+        audioRef.current?.pause();
+        setIsPlaying(false);
+        setSleepTimerTarget(null);
+        triggerToast("Sleep timer ended. Playback paused.");
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [sleepTimerTarget]);
+
+  const handleSetSleepTimer = (mins) => {
+    if (mins === 0) { setSleepTimerTarget(null); triggerToast("Sleep timer turned off"); }
+    else { setSleepTimerTarget(Date.now() + mins * 60000); triggerToast(`Sleep timer set for ${mins} minutes`); }
+    setShowSleepTimerModal(false);
+  };
+
+  useEffect(() => {
+    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist };
+  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist]);
+
+  useEffect(() => {
+    // Prevent accidental closure of the app when music is playing (adds OS-level protection)
+    const handleBeforeUnload = (e) => {
+      if (stateRefs.current?.isPlaying) {
+        e.preventDefault();
+        e.returnValue = 'Music is playing. Are you sure you want to exit?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  useEffect(() => {
+    // Only trap history AFTER a user gesture (like hitting play).
+    // Browsers ignore history traps placed on initial load to prevent spam.
+    if (isPlaying && window.location.hash !== '#playing') {
+      window.history.pushState({ page: 'euphony-playing' }, '', window.location.pathname + window.location.search + '#playing');
+    }
+  }, [isPlaying]);
+
+  useEffect(() => {
+    // Add an initial history state on the very first user interaction so the history stack isn't empty.
+    // If the stack is empty, Android Predictive Back instantly exits without firing popstate.
+    const handleFirstInteraction = () => {
+      if (!window.hasPushedInitialState) {
+        window.hasPushedInitialState = true;
+        if (!window.location.hash) {
+          window.history.pushState({ page: 'euphony-home' }, '', window.location.pathname + window.location.search + '#home');
+        }
+      }
+    };
+    window.addEventListener('click', handleFirstInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const s = stateRefs.current;
+      const isDesktopEnv = window.innerWidth > 768;
+      let handled = false;
+      if (s.showUploadModal) { setShowUploadModal(false); handled = true; }
+      else if (s.showPlaylistModal) { setShowPlaylistModal(false); handled = true; }
+      else if (s.songForPlaylistModal) { setSongForPlaylistModal(null); handled = true; }
+      else if (s.showSleepTimerModal) { setShowSleepTimerModal(false); handled = true; }
+      else if (s.showTrackOptionsModal) { setShowTrackOptionsModal(false); handled = true; }
+      else if (s.showTrackArtistsModal) { setShowTrackArtistsModal(false); handled = true; }
+      else if (s.showMixer) { setShowMixer(false); handled = true; }
+      else if (s.showQueue) { setShowQueue(false); handled = true; }
+      else if (s.isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; }
+      else if (s.viewedPlaylistId !== null) { setViewedPlaylistId(null); handled = true; }
+      else if (s.selectedArtist !== null) { setSelectedArtist(null); handled = true; }
+
+      if (handled) {
+        // Do NOT push state here. The browser just popped the modal's state for us.
+        exitWarningRef.current = false;
+        setShowExitToast(false);
+      } else {
+        // Double-back to exit logic applies universally (both desktop and mobile)
+        if (!exitWarningRef.current) {
+          exitWarningRef.current = true;
+          setShowExitToast(true);
+          // Push a unique hash so Chrome respects the push state and traps them for the first back press
+          window.history.pushState({ page: 'euphony-exit' }, '', window.location.pathname + window.location.search + '#exit');
+          setTimeout(() => { exitWarningRef.current = false; setShowExitToast(false); }, 2500);
+        } else {
+          // Actually exit the app on the second consecutive back press
+          window.history.back();
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth > 768);
+    window.addEventListener("resize", handleResize);
+    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setIsSessionLoaded(true); }).catch((e) => { console.error("Session error:", e); setIsSessionLoaded(true); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
+      } else if (event === 'PASSWORD_RECOVERY') {
+        setSession(session);
+        setShowPasswordResetModal(true);
+      } else if (session) {
+        setSession(session);
+      }
+    });
+    return () => { window.removeEventListener("resize", handleResize); subscription.unsubscribe(); };
+  }, []);
+
+  useEffect(() => {
+    if (viewedPlaylistId) localStorage.setItem("euphony_playlist_id", viewedPlaylistId);
+    else localStorage.removeItem("euphony_playlist_id");
+  }, [viewedPlaylistId]);
+
+  useEffect(() => {
+    let isActive = true;
+    
+    const fetchDurationsInBatches = async () => {
+      // Delay fetching by just 2 seconds to not block initial render
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const tracksToProcess = [...playlist, ...playlistSongs].filter(t => 
+        !t.duration && !songDurations[t.id] && !fetchingDurationsRef.current.has(t.id) && t.url
+      );
+      
+      const BATCH_SIZE = 5;
+      for (let i = 0; i < tracksToProcess.length; i += BATCH_SIZE) {
+        if (!isActive) break;
+        const batch = tracksToProcess.slice(i, i + BATCH_SIZE);
+        
+        await Promise.all(batch.map(track => {
+          fetchingDurationsRef.current.add(track.id);
+          return new Promise((resolve) => {
+            const audio = new Audio();
+            audio.preload = "metadata";
+            audio.onloadedmetadata = () => {
+              if (isActive) setSongDurations(prev => ({ ...prev, [track.id]: audio.duration }));
+              resolve();
+            };
+            audio.onerror = resolve; // Continue even if one fails
+            audio.src = getCdnUrl(track.url);
+            
+            // Timeout in case metadata gets stuck loading
+            setTimeout(resolve, 3000); 
+          });
+        }));
+      }
+    };
+    
+    fetchDurationsInBatches();
+    
+    return () => { isActive = false; };
+  }, [playlist, playlistSongs]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const fetchData = async () => {
+      const { data: songsData } = await supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
+      if (songsData) setPlaylist(songsData);
+      
+      try {
+        const { data: artistsData, error } = await supabase.from("artists").select("*").order("created_at", { ascending: true });
+        if (!error && artistsData && artistsData.length > 0) {
+          setTopArtists(artistsData);
+        } else {
+          setTopArtists([
+            { name: "Arijit Singh", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Arijit_Singh_performance_at_Chandigarh_2025.jpg/500px-Arijit_Singh_performance_at_Chandigarh_2025.jpg" },
+            { name: "Armaan Malik", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Armaan_Malik_2016.jpg/500px-Armaan_Malik_2016.jpg" },
+            { name: "AR Rahman", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg/500px-AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg" },
+            { name: "Neeti Mohan", image_url: "https://upload.wikimedia.org/wikipedia/commons/1/13/Neeti_Mohan_attends_Shakti_Mohan%E2%80%99s_Nritya_Shakti_celebrations_for_World_Dance_Day_%2804%29_%28cropped%29.jpg" },
+            { name: "Darshan Raval", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Darshan-Raval-grace-the-12th-radio-mirchi-music-awards-2020.jpg/500px-Darshan-Raval-grace-the-12th-radio-mirchi-music-awards-2020.jpg" },
+            { name: "Taylor Swift", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b1/Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png/500px-Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png" },
+            { name: "Sonu Nigam", image_url: "https://upload.wikimedia.org/wikipedia/commons/7/76/Sonu_Nigam123.jpg" },
+            { name: "Shawn Mendes", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png/500px-191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png" },
+            { name: "Shreya Ghoshal", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg/500px-Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg" },
+            { name: "Atif Aslam", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Atif_Aslam_at_Badlapur_%28cropped%29.jpg/500px-Atif_Aslam_at_Badlapur_%28cropped%29.jpg" }
+          ]);
+        }
+      } catch (err) {
+        // Fallback handled in else
+      }
+
+      const { data: playlistData } = await supabase.from("playlists").select("*, playlist_songs(song_id, songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
+      if (playlistData) {
+        let hasLiked = playlistData.some(p => p.name === "Liked Songs");
+        let finalPlaylists = [...playlistData];
+        if (!hasLiked) {
+          const { data: newLiked } = await supabase.from("playlists").insert([{ name: "Liked Songs", user_id: session.user.id }]).select("*, playlist_songs(song_id, songs(poster_url))");
+          if (newLiked && newLiked.length > 0) {
+            finalPlaylists.unshift(newLiked[0]);
+          }
+        }
+        setUserPlaylists(finalPlaylists);
+      }
+      setIsInitialLoad(false);
+    };
+    fetchData();
+
+    const channel = supabase.channel('public:songs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'songs' }, (payload) => {
+        setPlaylist(prev => {
+          if (prev.find(s => s.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        });
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'songs' }, (payload) => {
+        setPlaylist(prev => prev.map(s => s.id === payload.new.id ? payload.new : s));
+        setPlaylistSongs(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
+        setPlaybackQueue(prev => prev.map(s => s.id === payload.new.id ? { ...s, ...payload.new } : s));
+        setQueueCurrentTrack(prev => prev?.id === payload.new.id ? { ...prev, ...payload.new } : prev);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (viewedPlaylistId === null) return;
+    const fetchPlaylistSongs = async () => {
+      const { data } = await supabase.from("playlist_songs").select("song_id, added_at, songs(*)").eq("playlist_id", viewedPlaylistId);
+      if (data) {
+        const formattedSongs = data.map(item => ({ ...item.songs, added_at: item.added_at })).filter(item => item.id);
+        setPlaylistSongs(formattedSongs);
+      }
+    };
+    fetchPlaylistSongs();
+  }, [viewedPlaylistId]);
+
+  useEffect(() => {
+    setStemsBroken(false);
+    setShowLyrics(false);
+    setActiveLyricIndex(-1);
+    setActiveWordIndex(-1);
+    setStemVolumes({ vocals: 1, drums: 1, bass: 1, other: 1 });
+    setParsedLyrics(currentTrack?.lyrics ? parseLyrics(currentTrack.lyrics) : []);
+  }, [currentTrack]);
+
+  const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
+  const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
+
+  useEffect(() => {
+    const setVol = (ref, targetVol, targetMuted) => {
+      if (!ref.current) return;
+      if (Math.abs(ref.current.volume - targetVol) > 0.01) ref.current.volume = targetVol;
+      if (ref.current.muted !== targetMuted) ref.current.muted = targetMuted;
+    };
+
+    setVol(audioRef, isMixerActive ? 0 : (isMuted ? 0 : volume), isMixerActive || isMuted);
+    setVol(vocalsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.vocals === 0);
+    setVol(drumsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.drums === 0);
+    setVol(bassRef, isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.bass === 0);
+    setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.other === 0);
+  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken]);
+
+  useEffect(() => {
+    if (showMixer && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
+      const t = audioRef.current.currentTime;
+      if (vocalsRef.current) vocalsRef.current.currentTime = t;
+      if (drumsRef.current)  drumsRef.current.currentTime  = t;
+      if (bassRef.current)   bassRef.current.currentTime   = t;
+      if (otherRef.current)  otherRef.current.currentTime  = t;
+    }
+  }, [showMixer, currentTrack, stemsBroken]);
+
+  
+  const prefetchedSignatureRef = useRef("");
+    const activeFetchesRef = useRef(new Set());
+    
+    useEffect(() => {
+      prefetchedSignatureRef.current = "";
+    }, [currentTrack?.url]);
+  
     const cacheTrackUrl = async (cUrl) => {
       if (!cUrl || blobCacheRef.current.has(cUrl) || activeFetchesRef.current.has(cUrl)) return;
       activeFetchesRef.current.add(cUrl);
@@ -646,7 +1251,7 @@ export default function App() {
         const cache = await caches.open(CACHE_NAME);
         let match = await cache.match(cUrl);
         if (!match) {
-          const res = await fetch(cUrl, { mode: 'cors', credentials: 'omit' });
+          const res = await fetch(cUrl, { mode: "cors", credentials: "omit" });
           if (res.ok) {
             await cache.put(cUrl, res.clone());
             match = res;
@@ -657,66 +1262,32 @@ export default function App() {
           blobCacheRef.current.set(cUrl, URL.createObjectURL(blob));
         }
       } catch (e) {
-        console.log('Prefetch error:', e);
+        console.log("Prefetch error:", e);
       } finally {
         activeFetchesRef.current.delete(cUrl);
       }
     };
 
-    const armNextTrack = async () => {
-      const idle = getIdleAudio();
-      const next = peekNextTrack();
-      if (!idle) return;
-      if (!next?.url) {
-        primedTrackIdRef.current = null;
-        return;
-      }
-      const cdnUrl = getCdnUrl(next.url);
-      const nextKey = next.id ?? next.queue_id ?? cdnUrl;
-      primedTrackIdRef.current = nextKey;
-
-      if (blobCacheRef.current.has(cdnUrl)) {
-        const blobUrl = blobCacheRef.current.get(cdnUrl);
-        if (!srcMatches(idle, blobUrl)) {
-          idle.src = blobUrl;
-          try { idle.load(); } catch (e) {}
-        }
-        return;
-      }
-
-      await cacheTrackUrl(cdnUrl);
+    useEffect(() => {
+    const runPrefetch = async () => {
+      // Arm the immediate next track first
+      await armNextTrack();
       
-      if (blobCacheRef.current.has(cdnUrl) && primedTrackIdRef.current === nextKey) {
-        const blobUrl = blobCacheRef.current.get(cdnUrl);
-        if (!srcMatches(idle, blobUrl)) {
-          idle.src = blobUrl;
-          try { idle.load(); } catch(e) {}
+      // Then SEQUENTIALLY prefetch the next few tracks in the queue so we don't saturate background network
+      const nextTracks = [
+        ...userQueue.slice(0, 3),
+        ...(upcomingSourceList.slice(0, 2).map(item => playbackQueue[item.originalIndex]).filter(Boolean))
+      ];
+      
+      for (const track of nextTracks) {
+        if (track?.url) {
+          await cacheTrackUrl(getCdnUrl(track.url));
         }
-      } else if (primedTrackIdRef.current === nextKey && !srcMatches(idle, cdnUrl)) {
-        idle.src = cdnUrl;
       }
     };
-
-    useEffect(() => {
-      const runPrefetch = async () => {
-        // Arm the immediate next track first
-        await armNextTrack();
-        
-        // Then SEQUENTIALLY prefetch the next few tracks in the queue so we don't saturate background network
-        const nextTracks = [
-          ...userQueue.slice(0, 3),
-          ...(upcomingSourceList.slice(0, 2).map(item => playbackQueue[item.originalIndex]).filter(Boolean))
-        ];
-        
-        for (const track of nextTracks) {
-          if (track?.url) {
-            await cacheTrackUrl(getCdnUrl(track.url));
-          }
-        }
-      };
-      
-      runPrefetch();
-    }, [playbackQueue, userQueue, upcomingSourceList, currentTrack?.url]);
+    
+    runPrefetch();
+  }, [playbackQueue, userQueue, upcomingSourceList, currentTrack?.url]);
 
   useEffect(() => {
     const syncPlayState = async () => {
