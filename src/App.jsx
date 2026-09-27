@@ -1237,12 +1237,7 @@ export default function App() {
   }, [showMixer, currentTrack, stemsBroken]);
 
   
-  const prefetchedSignatureRef = useRef("");
-    const activeFetchesRef = useRef(new Set());
-    
-    useEffect(() => {
-      prefetchedSignatureRef.current = "";
-    }, [currentTrack?.url]);
+  
   
     const cacheTrackUrl = async (cUrl) => {
       if (!cUrl || blobCacheRef.current.has(cUrl) || activeFetchesRef.current.has(cUrl)) return;
