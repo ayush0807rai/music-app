@@ -36,7 +36,7 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: `source-${song.id}-${actualIndex}` });
+  } = useSortable({ id: source-- });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -49,10 +49,13 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        className={`glass-row ${isDragging ? "active" : ""}`}
+        className={glass-row }
+        {...attributes} 
+        {...listeners}
         style={{
           display: "flex", alignItems: "center", gap: "10px", padding: "6px 8px",
           boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none",
+          cursor: isDragging ? "grabbing" : "pointer"
         }}
       >
         <div onClick={(e) => { e.stopPropagation(); playSong(); }} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -62,11 +65,7 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
           <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
         </div>
-        <div
-          {...attributes} 
-          {...listeners}
-          style={{ padding: "8px", cursor: isDragging ? "grabbing" : "grab", touchAction: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}
-        >
+        <div style={{ padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}>
           <GripVertical size={16} />
         </div>
       </div>
@@ -95,10 +94,13 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        className={`glass-row ${isDragging ? "active" : ""}`}
+        className={glass-row }
+        {...attributes} 
+        {...listeners}
         style={{
           display: "flex", alignItems: "center", gap: "10px", padding: "6px 8px",
           boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none",
+          cursor: isDragging ? "grabbing" : "pointer"
         }}
       >
         <div onClick={(e) => { e.stopPropagation(); playFromQueue(index); }} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -111,11 +113,7 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
         <button onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "8px", flexShrink: 0 }} className="hover-effect">
           <X size={14} />
         </button>
-        <div
-          {...attributes} 
-          {...listeners}
-          style={{ padding: "8px 0 8px 8px", cursor: isDragging ? "grabbing" : "grab", touchAction: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}
-        >
+        <div style={{ padding: "8px 0 8px 8px", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}>
           <GripVertical size={16} />
         </div>
       </div>
@@ -387,9 +385,7 @@ export default function App() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
+      activationConstraint: { delay: 200, tolerance: 5 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
@@ -2882,6 +2878,9 @@ export default function App() {
     </div>
   );
 }
+
+
+
 
 
 
