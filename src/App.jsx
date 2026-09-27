@@ -36,7 +36,7 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: source-- });
+  } = useSortable({ id: `source-${song.id}-${actualIndex}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -49,7 +49,7 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        className={glass-row }
+        className={`glass-row ${isDragging ? "active" : ""}`}
         {...attributes} 
         {...listeners}
         style={{
@@ -94,7 +94,7 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
   return (
     <div ref={setNodeRef} style={style}>
       <div
-        className={glass-row }
+        className={`glass-row ${isDragging ? "active" : ""}`}
         {...attributes} 
         {...listeners}
         style={{
@@ -2877,6 +2877,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
