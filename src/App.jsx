@@ -574,18 +574,10 @@ export default function App() {
   const queueItemEls = useRef([]);
 
   const silentAudioRef = useRef(null);
-  const player1Ref = useRef(null);
-  const player2Ref = useRef(null);
-  const activePlayerIdRef = useRef(1);
-  const [activePlayerId, setActivePlayerId] = useState(1);
+  const audioRef = useRef(null);
+  const blobCacheRef = useRef(new Map());
 
-  const audioRef = useMemo(() => ({
-    get current() { return activePlayerIdRef.current === 1 ? player1Ref.current : player2Ref.current; }
-  }), [activePlayerId]);
 
-  const preloadAudioRef = useMemo(() => ({
-    get current() { return activePlayerIdRef.current === 1 ? player2Ref.current : player1Ref.current; }
-  }), [activePlayerId]);
 
   const vocalsRef = useRef(null);
   const drumsRef = useRef(null);
@@ -812,8 +804,32 @@ export default function App() {
       });
       navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
       navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
-      navigator.mediaSession.setActionHandler('previoustrack', () => handlePrev());
-      navigator.mediaSession.setActionHandler('nexttrack', () => handleNext());
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        const prevIndex = playbackIndex - 1;
+        if (prevIndex >= 0) {
+          const prevTrack = playbackQueue[prevIndex];
+          const prevCdnUrl = getCdnUrl(prevTrack.url);
+          const objUrl = blobCacheRef.current.get(prevCdnUrl) || prevCdnUrl;
+          if (audioRef.current) {
+            audioRef.current.src = objUrl;
+            audioRef.current.play().catch(e=>e);
+          }
+        }
+        handlePrev();
+      });
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        let nextIndex = playbackIndex + 1;
+        if (playMode !== 'shuffle' && nextIndex < playbackQueue.length) {
+          const nextTrack = playbackQueue[nextIndex];
+          const nextCdnUrl = getCdnUrl(nextTrack.url);
+          const objUrl = blobCacheRef.current.get(nextCdnUrl) || nextCdnUrl;
+          if (audioRef.current) {
+            audioRef.current.src = objUrl;
+            audioRef.current.play().catch(e=>e);
+          }
+        }
+        handleNext();
+      });
     }
   }, [currentTrack, playMode, userQueue]);
 
@@ -1110,6 +1126,11 @@ export default function App() {
       return;
     }
 
+    if (blobCacheRef.current.has(cdnUrl)) {
+      setActiveAudioSrc(blobCacheRef.current.get(cdnUrl));
+      return;
+    }
+
     let isMounted = true;
     let objectUrl = null;
 
@@ -1120,6 +1141,7 @@ export default function App() {
         if (match) {
           const blob = await match.blob();
           objectUrl = URL.createObjectURL(blob);
+          blobCacheRef.current.set(cdnUrl, objectUrl);
           if (isMounted) setActiveAudioSrc(objectUrl);
         } else {
           if (isMounted && activeAudioSrc !== cdnUrl) setActiveAudioSrc(cdnUrl);
@@ -1166,7 +1188,24 @@ export default function App() {
         if (prefetchedSignatureRef.current === signature) return;
         prefetchedSignatureRef.current = signature;
         
-        
+        for (const track of nextTracks) {
+          if (!track.url) continue;
+          const cUrl = getCdnUrl(track.url);
+          if (!blobCacheRef.current.has(cUrl)) {
+            try {
+              const cache = await caches.open(CACHE_NAME);
+              let match = await cache.match(cUrl);
+              if (!match) {
+                await cache.add(cUrl);
+                match = await cache.match(cUrl);
+              }
+              if (match) {
+                const blob = await match.blob();
+                blobCacheRef.current.set(cUrl, URL.createObjectURL(blob));
+              }
+            } catch(e) {}
+          }
+        }
       }
     };
 
@@ -1184,7 +1223,7 @@ export default function App() {
   useEffect(() => {
     const syncPlayState = async () => {
       if (isPlaying && activeAudioSrc) {
-        if (audioRef.current?.paused) audioRef.current.play().catch(e => console.log("play err:", e));
+        if (audioRef.current?.paused) audioRef.current.play().catch(e => e);
         if (currentTrack?.stem_vocals && !stemsBroken) {
           vocalsRef.current?.play().catch(e => e);
           drumsRef.current?.play().catch(e => e);
@@ -2156,57 +2195,44 @@ export default function App() {
 
       {/* ── AUDIO ELEMENTS ── */}
       <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay muted style={{ display: 'none' }} />
-      <audio
-        ref={player1Ref}
-        src={activePlayerId === 1 ? activeAudioSrc : (preloadSrc || undefined)}
-        onLoadedMetadata={() => {
-          if (activePlayerId === 1) {
-            setDuration(player1Ref.current?.duration || 0);
-            updateProgressVisuals();
-          }
+            <audio
+        ref={audioRef}
+        src={activeAudioSrc || undefined}
+        onLoadedMetadata={(e) => {
+          setDuration(e.target.duration);
+          updateProgressVisuals();
         }}
-        onEnded={handleTrackEnded}
+        onTimeUpdate={() => {
+          setCurrentTime(audioRef.current?.currentTime || 0);
+          handleTimeUpdateRef.current && handleTimeUpdateRef.current();
+        }}
+        onEnded={() => {
+          const nextIndex = playbackIndex + 1;
+          if (nextIndex < playbackQueue.length) {
+            const nextTrack = playbackQueue[nextIndex];
+            const nextCdnUrl = getCdnUrl(nextTrack.url);
+            const objUrl = blobCacheRef.current.get(nextCdnUrl) || nextCdnUrl;
+            if (audioRef.current) {
+              audioRef.current.src = objUrl;
+              audioRef.current.play().catch(e=>e);
+            }
+          }
+          handleTrackEnded();
+        }}
         onCanPlay={handleCanPlay}
         onWaiting={() => {
-          if (activePlayerId === 1 && currentTrack?.stem_vocals && !stemsBroken) {
+          if (currentTrack?.stem_vocals && !stemsBroken) {
             vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
           }
         }}
         onPlaying={() => {
-          if (activePlayerId === 1 && isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
+          if (isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
           }
         }}
         preload="auto"
         playsInline
-        muted={activePlayerId === 2 || isMixerActive || isMuted}
-        loop={playMode === 'repeat-one'}
-        className="loop-audio-fix"
-      />
-      <audio
-        ref={player2Ref}
-        src={activePlayerId === 2 ? activeAudioSrc : (preloadSrc || undefined)}
-        onLoadedMetadata={() => {
-          if (activePlayerId === 2) {
-            setDuration(player2Ref.current?.duration || 0);
-            updateProgressVisuals();
-          }
-        }}
-        onEnded={handleTrackEnded}
-        onCanPlay={handleCanPlay}
-        onWaiting={() => {
-          if (activePlayerId === 2 && currentTrack?.stem_vocals && !stemsBroken) {
-            vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
-          }
-        }}
-        onPlaying={() => {
-          if (activePlayerId === 2 && isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
-            vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
-          }
-        }}
-        preload="auto"
-        playsInline
-        muted={activePlayerId === 1 || isMixerActive || isMuted}
+        muted={isMixerActive || isMuted}
         loop={playMode === 'repeat-one'}
         className="loop-audio-fix"
       />
