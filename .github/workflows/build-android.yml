@@ -27,14 +27,22 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Fix ancient Cordova plugins (AndroidX)
+      run: npx jetifier
+
     - name: Build Web App
       run: npm run build
 
     - name: Capacitor Sync
       run: npx cap sync android
 
-    - name: Build APK
-      run: npx cap build android
+    - name: Build APK (Debug)
+      working-directory: ./android
+      run: |
+        sudo apt-get install -y dos2unix
+        dos2unix gradlew
+        chmod +x gradlew
+        ./gradlew assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
