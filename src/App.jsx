@@ -26,6 +26,54 @@ const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 const SORT_CYCLE = [null, "title", "created_at", "duration"];
 const SORT_LABELS = { default: "Default", title: "Name (A-Z)", created_at: "Date Added", duration: "Duration" };
 
+const SortableSourceItem = ({ item, playSong, sourceName }) => {
+  const song = item.track;
+  const actualIndex = item.originalIndex;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.dnd_id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 10 : 1,
+    position: 'relative',
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes} 
+      {...listeners}
+    >
+      <div
+        className={`glass-row ${isDragging ? "active" : ""}`}
+        style={{
+          display: "flex", alignItems: "center", gap: "10px", padding: "6px 8px",
+          cursor: isDragging ? "grabbing" : "grab",
+          boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none",
+          touchAction: "none"
+        }}
+      >
+        <div onClick={(e) => { e.stopPropagation(); playSong(); }} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} /> : <ImageIcon size={16} color="#888" />}
+        </div>
+        <div onClick={(e) => { e.stopPropagation(); playSong(); }} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
+          <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
+          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQueue }) => {
   const {
     attributes,
@@ -67,7 +115,7 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
           <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
         </div>
-        <button onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "4px", flexShrink: 0, position: "relative", zIndex: 10 }} className="hover-effect">
+        <button onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "4px", flexShrink: 0, position: "relative", zIndex: 10 }} className="hover-effect">
           <X size={14} />
         </button>
       </div>
@@ -697,12 +745,12 @@ export default function App() {
       return;
     }
     if (playMode === 'order') {
-      const list = playbackQueue.map((track, i) => ({ track, originalIndex: i })).slice(playbackIndex + 1);
+      const list = playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1);
       setUpcomingSourceList(list);
     } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
       const list = [
-        ...playbackQueue.map((track, i) => ({ track, originalIndex: i })).slice(playbackIndex + 1),
-        ...playbackQueue.map((track, i) => ({ track, originalIndex: i })).slice(0, playbackIndex)
+        ...playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1),
+        ...playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(0, playbackIndex)
       ];
       setUpcomingSourceList(list);
     } else if (playMode === 'shuffle') {
@@ -711,7 +759,7 @@ export default function App() {
           return prev.slice(1);
         }
         
-        const others = playbackQueue.map((track, i) => ({ track, originalIndex: i })).filter(obj => obj.originalIndex !== playbackIndex);
+        const others = playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).filter(obj => obj.originalIndex !== playbackIndex);
         for (let i = others.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [others[i], others[j]] = [others[j], others[i]];
@@ -1345,6 +1393,36 @@ export default function App() {
     }
   };
 
+  const handleSourceDragEnd = (event) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIdx = upcomingSourceList.findIndex(item => item.dnd_id === active.id);
+      const newIdx = upcomingSourceList.findIndex(item => item.dnd_id === over.id);
+      
+      if (oldIdx !== -1 && newIdx !== -1) {
+        if (playMode === 'shuffle') {
+          // In shuffle mode, upcomingSourceList is independent of playbackQueue order.
+          // We just reorder it locally.
+          setUpcomingSourceList(items => arrayMove(items, oldIdx, newIdx));
+        } else {
+          // In order/repeat modes, upcomingSourceList is strictly derived from playbackQueue.
+          // We MUST reorder playbackQueue to persist the change.
+          const oldOriginal = upcomingSourceList[oldIdx].originalIndex;
+          const newOriginal = upcomingSourceList[newIdx].originalIndex;
+          
+          setPlaybackQueue(prevQueue => arrayMove(prevQueue, oldOriginal, newOriginal));
+          
+          setPlaybackIndex(prevIdx => {
+            if (oldOriginal === prevIdx) return newOriginal;
+            if (oldOriginal < prevIdx && newOriginal >= prevIdx) return prevIdx - 1;
+            if (oldOriginal > prevIdx && newOriginal <= prevIdx) return prevIdx + 1;
+            return prevIdx;
+          });
+        }
+      }
+    }
+  };
+
   const handleQueueTouchStart = (e, index) => {
     queueDragState.current = { active: true, startIdx: index, overIdx: index };
     setDraggedQueueIndex(index);
@@ -1400,9 +1478,10 @@ export default function App() {
   };
 
   const handlePlaySong = (index, listToSet, sourceName) => {
-    const track = listToSet[index];
+    const queueWithIds = listToSet.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+    const track = queueWithIds[index];
     setPlaybackHistory(prev => [...prev, playbackIndex]);
-    setPlaybackQueue(listToSet);
+    setPlaybackQueue(queueWithIds);
     setPlaybackIndex(index);
     setPlaybackSourceName(sourceName);
     setQueueCurrentTrack(null);
@@ -1854,24 +1933,28 @@ export default function App() {
 
         <div>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next From: {playbackSourceName}</h4>
-          {upcomingSourceList.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              {upcomingSourceList.map((item, uIdx) => {
-                const song = item.track;
-                const actualIndex = item.originalIndex;
-                return (
-                  <div key={`next-${song.id}-${uIdx}`} onClick={() => handlePlaySong(actualIndex, playbackQueue, playbackSourceName)} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "6px 8px", cursor: "pointer" }} className="glass-row">
-                    <div style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={16} color="#888" />}
-                    </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                    {upcomingSourceList.length > 0 ? (
+            <DndContext 
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleSourceDragEnd}
+            >
+              <SortableContext 
+                items={upcomingSourceList.map(item => item.dnd_id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {upcomingSourceList.map((item, uIdx) => (
+                    <SortableSourceItem
+                      key={item.dnd_id}
+                      item={item}
+                      playSong={() => handlePlaySong(item.originalIndex, playbackQueue, playbackSourceName)}
+                      sourceName={playbackSourceName}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           ) : (
             <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>End of playlist.</div>
           )}
@@ -2807,6 +2890,16 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
