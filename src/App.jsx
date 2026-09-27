@@ -716,8 +716,7 @@ export default function App() {
       setTimeout(() => { switchingTrackRef.current = false; }, 100);
     }
 
-    queueMicrotask(() => armNextTrack());
-  };
+      };
 
   const { render: renderLoader, isClosing: loaderClosing } = useAnimatedPresence(isInitialLoad, null, 300);
   const { render: renderUpload, isClosing: uploadClosing } = useAnimatedPresence(showUploadModal, null, 300);
@@ -904,8 +903,7 @@ export default function App() {
       queueCurrentTrack,
       currentTrack,
     };
-    armNextTrack();
-  }, [userQueue, upcomingSourceList, playbackQueue, playbackIndex, playMode, queueCurrentTrack, currentTrack]);
+    }, [userQueue, upcomingSourceList, playbackQueue, playbackIndex, playMode, queueCurrentTrack, currentTrack]);
 
   const handleSwitchPlaylist = (playlistId) => {
     setViewedPlaylistId(playlistId);
@@ -1255,8 +1253,16 @@ export default function App() {
       }
     };
 
-    useEffect(() => {
+    const prefetchedSignatureRef = useRef("");
+
+  useEffect(() => {
     const runPrefetch = async () => {
+      if (!audioRef.current || audioRef.current.currentTime < 2) return;
+      
+      const signature = currentTrack?.url;
+      if (prefetchedSignatureRef.current === signature) return;
+      prefetchedSignatureRef.current = signature;
+
       // Arm the immediate next track first
       await armNextTrack();
       
@@ -1273,7 +1279,15 @@ export default function App() {
       }
     };
     
-    runPrefetch();
+    const audioEl = audioRef.current;
+    if (audioEl) {
+      audioEl.addEventListener('timeupdate', runPrefetch);
+    }
+    return () => {
+      if (audioEl) {
+        audioEl.removeEventListener('timeupdate', runPrefetch);
+      }
+    };
   }, [playbackQueue, userQueue, upcomingSourceList, currentTrack?.url]);
 
   useEffect(() => {
