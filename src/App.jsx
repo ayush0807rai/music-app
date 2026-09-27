@@ -449,8 +449,7 @@ export default function App() {
   });
   const [playbackIndex, setPlaybackIndex] = useState(() => parseInt(localStorage.getItem("euphony_playback_index")) || 0);
   const [playbackSourceName, setPlaybackSourceName] = useState(() => localStorage.getItem("euphony_playback_source") || "Global Library");
-  const [activeAudioSrc, setActiveAudioSrc] = useState(null);
-  const [preloadSrc, setPreloadSrc] = useState(null);
+    const [preloadSrc, setPreloadSrc] = useState(null);
   const [dominantColor, setDominantColor] = useState(null);
 
   const CACHE_NAME = 'euphony-audio-cache';
@@ -1110,74 +1109,7 @@ export default function App() {
     }
   }, [showMixer, currentTrack, stemsBroken]);
 
-  useEffect(() => {
-    if (!currentTrack?.url) {
-      setActiveAudioSrc(null);
-      return;
-    }
-
-    const cdnUrl = getCdnUrl(currentTrack.url);
-    const audioSrc = audioRef.current?.src || "";
-    const isAlreadyPlayingCdn = audioSrc === cdnUrl || audioSrc.endsWith(cdnUrl);
-    const isAlreadyPlayingBlob = audioSrc.startsWith("blob:");
-    
-    if ((isAlreadyPlayingCdn || isAlreadyPlayingBlob) && audioRef.current && !audioRef.current.paused) {
-      setActiveAudioSrc(audioSrc);
-      return;
-    }
-
-    if (blobCacheRef.current.has(cdnUrl)) {
-      const cachedSrc = blobCacheRef.current.get(cdnUrl);
-      if (audioRef.current && !audioRef.current.src.endsWith(cachedSrc)) {
-        audioRef.current.src = cachedSrc;
-      }
-      setActiveAudioSrc(cachedSrc);
-      return;
-    }
-
-    let isMounted = true;
-    let objectUrl = null;
-
-    const loadSrc = async () => {
-      try {
-        const cache = await caches.open(CACHE_NAME);
-        const match = await cache.match(cdnUrl);
-        if (match) {
-          const blob = await match.blob();
-          objectUrl = URL.createObjectURL(blob);
-          blobCacheRef.current.set(cdnUrl, objectUrl);
-          if (isMounted) {
-            if (audioRef.current && !audioRef.current.src.endsWith(objectUrl)) {
-              audioRef.current.src = objectUrl;
-            }
-            setActiveAudioSrc(objectUrl);
-          }
-        } else {
-          if (isMounted && activeAudioSrc !== cdnUrl) {
-            if (audioRef.current && !audioRef.current.src.endsWith(cdnUrl)) {
-              audioRef.current.src = cdnUrl;
-            }
-            setActiveAudioSrc(cdnUrl);
-          }
-        }
-      } catch (e) {
-        if (isMounted && activeAudioSrc !== cdnUrl) {
-            if (audioRef.current && !audioRef.current.src.endsWith(cdnUrl)) {
-              audioRef.current.src = cdnUrl;
-            }
-            setActiveAudioSrc(cdnUrl);
-          }
-      }
-    };
-
-    loadSrc();
-
-    return () => {
-      isMounted = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [currentTrack?.url]);
-
+  
   const prefetchedSignatureRef = useRef("");
   
   useEffect(() => {
@@ -1241,8 +1173,10 @@ export default function App() {
 
   useEffect(() => {
     const syncPlayState = async () => {
-      if (isPlaying && activeAudioSrc) {
-        if (audioRef.current?.paused) audioRef.current.play().catch(e => e);
+      if (isPlaying && currentTrack) {
+        if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
+          audioRef.current.play().catch(e => e);
+        }
         if (currentTrack?.stem_vocals && !stemsBroken) {
           vocalsRef.current?.play().catch(e => e);
           drumsRef.current?.play().catch(e => e);
@@ -1258,7 +1192,7 @@ export default function App() {
       }
     };
     syncPlayState();
-  }, [isPlaying, activeAudioSrc, stemsBroken, currentTrack]);
+  }, [isPlaying, stemsBroken, currentTrack]);
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
@@ -1316,10 +1250,12 @@ export default function App() {
   }, [isPlaying]);
 
   useEffect(() => {
-    if (isFirstRender.current && audioRef.current && activeAudioSrc) {
+    if (isFirstRender.current && audioRef.current && currentTrack) {
+      if (!audioRef.current.src || audioRef.current.src === window.location.href) {
+        audioRef.current.src = getCdnUrl(currentTrack.url);
+      }
       const savedTime = localStorage.getItem("euphony_current_time");
       if (savedTime && !isNaN(parseFloat(savedTime))) {
-        // Use a slight timeout to ensure the audio element has processed the src
         setTimeout(() => {
           if (audioRef.current) {
             audioRef.current.currentTime = parseFloat(savedTime);
@@ -1330,7 +1266,7 @@ export default function App() {
       }
       isFirstRender.current = false;
     }
-  }, [activeAudioSrc]);
+  }, [currentTrack]);
 
   const handleCanPlay = () => {
     if (pendingAutoPlayRef.current) {
