@@ -575,6 +575,7 @@ export default function App() {
 
   const silentAudioRef = useRef(null);
   const audioRef = useRef(null);
+  const preloadAudioRef = useRef(null);
   const blobCacheRef = useRef(new Map());
 
 
@@ -609,7 +610,9 @@ export default function App() {
       return (
         (track.title || "").toLowerCase().includes(q) ||
         (track.artist || "").toLowerCase().includes(q) ||
-        (track.album || 'Unknown'})
+        (track.album || "").toLowerCase().includes(q)
+        );
+      })
     .sort((a, b) => {
       if (!currentSortKey) return 0;
       if (currentSortKey === "created_at") {
@@ -1187,7 +1190,7 @@ export default function App() {
       if (!audioRef.current || !currentTrack?.url) return;
       
       // Wait for 20 seconds, or half the track if it's very short
-      const targetTime = Math.min(20, (audioRef.current.duration || 60) * 0.5);
+      const targetTime = 1;
       
       if (audioRef.current.currentTime >= targetTime) {
         let nextTracks = [];
@@ -1681,7 +1684,12 @@ export default function App() {
       setQueueCurrentTrack(nextSong);
       resetPlaybackTime();
       setIsPlaying(true);
-      if (audioRef.current && nextSong) { swapAndPlay(); }
+      if (audioRef.current && nextSong) {
+    const cdnUrl = getCdnUrl(nextSong.url);
+    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
+    audioRef.current.src = objUrl;
+    audioRef.current.play().catch(e=>e);
+  }
       return;
     }
     
@@ -1693,7 +1701,12 @@ export default function App() {
       setPlaybackIndex(nextIdx);
       resetPlaybackTime();
       setIsPlaying(true);
-      if (audioRef.current && playbackQueue[nextIdx]) { swapAndPlay(); }
+      if (audioRef.current && playbackQueue[nextIdx]) {
+    const cdnUrl = getCdnUrl(playbackQueue[nextIdx].url);
+    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
+    audioRef.current.src = objUrl;
+    audioRef.current.play().catch(e=>e);
+  }
     } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
       if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); }
     } else {
@@ -1730,14 +1743,6 @@ export default function App() {
     }
   };
 
-  const swapAndPlay = () => {
-    const nextId = activePlayerIdRef.current === 1 ? 2 : 1;
-    activePlayerIdRef.current = nextId;
-    setActivePlayerId(nextId);
-    if (audioRef.current) {
-      audioRef.current.play().catch(err => console.log(err));
-    }
-  };
 
   const handleTrackEnded = () => {
     if (playMode === "repeat-one") {
@@ -1758,7 +1763,12 @@ export default function App() {
       setQueueCurrentTrack(nextSong);
       resetPlaybackTime();
       setIsPlaying(true);
-      if (audioRef.current && nextSong) { swapAndPlay(); }
+      if (audioRef.current && nextSong) {
+    const cdnUrl = getCdnUrl(nextSong.url);
+    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
+    audioRef.current.src = objUrl;
+    audioRef.current.play().catch(e=>e);
+  }
       return;
     }
     
@@ -1770,7 +1780,12 @@ export default function App() {
       setPlaybackIndex(nextIdx);
       resetPlaybackTime();
       setIsPlaying(true);
-      if (audioRef.current && playbackQueue[nextIdx]) { swapAndPlay(); }
+      if (audioRef.current && playbackQueue[nextIdx]) {
+    const cdnUrl = getCdnUrl(playbackQueue[nextIdx].url);
+    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
+    audioRef.current.src = objUrl;
+    audioRef.current.play().catch(e=>e);
+  }
     } else {
       setIsPlaying(false);
     }
