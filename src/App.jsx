@@ -705,6 +705,7 @@ export default function App() {
     // Mobile browsers strictly revoke background audio focus if you swap to a different <audio> tag.
     // We MUST reuse the active audio tag for the next song to inherit the background audio token!
     if (active) {
+      switchingTrackRef.current = true;
       const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
       if (!srcMatches(active, objUrl)) {
         active.src = objUrl;
@@ -712,6 +713,7 @@ export default function App() {
       try { active.currentTime = 0; } catch (e) {}
       playAudioEl(active);
       audioRef.current = active;
+      setTimeout(() => { switchingTrackRef.current = false; }, 100);
     }
 
     queueMicrotask(() => armNextTrack());
@@ -1478,9 +1480,11 @@ export default function App() {
     if (track?.url) {
       const fallback = getCdnUrl(track.url);
       if (!srcMatches(el, fallback)) {
-        el.src = fallback;
-        playAudioEl(el);
-      }
+          switchingTrackRef.current = true;
+          el.src = fallback;
+          playAudioEl(el);
+          setTimeout(() => { switchingTrackRef.current = false; }, 100);
+        }
     }
   };
 
