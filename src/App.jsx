@@ -1121,13 +1121,16 @@ export default function App() {
     const isAlreadyPlayingBlob = audioSrc.startsWith("blob:");
     
     if ((isAlreadyPlayingCdn || isAlreadyPlayingBlob) && audioRef.current && !audioRef.current.paused) {
-      // It's seamlessly playing! Sync the state to whatever is actually loaded.
       setActiveAudioSrc(audioSrc);
       return;
     }
 
     if (blobCacheRef.current.has(cdnUrl)) {
-      setActiveAudioSrc(blobCacheRef.current.get(cdnUrl));
+      const cachedSrc = blobCacheRef.current.get(cdnUrl);
+      if (audioRef.current && !audioRef.current.src.endsWith(cachedSrc)) {
+        audioRef.current.src = cachedSrc;
+      }
+      setActiveAudioSrc(cachedSrc);
       return;
     }
 
@@ -1142,12 +1145,27 @@ export default function App() {
           const blob = await match.blob();
           objectUrl = URL.createObjectURL(blob);
           blobCacheRef.current.set(cdnUrl, objectUrl);
-          if (isMounted) setActiveAudioSrc(objectUrl);
+          if (isMounted) {
+            if (audioRef.current && !audioRef.current.src.endsWith(objectUrl)) {
+              audioRef.current.src = objectUrl;
+            }
+            setActiveAudioSrc(objectUrl);
+          }
         } else {
-          if (isMounted && activeAudioSrc !== cdnUrl) setActiveAudioSrc(cdnUrl);
+          if (isMounted && activeAudioSrc !== cdnUrl) {
+            if (audioRef.current && !audioRef.current.src.endsWith(cdnUrl)) {
+              audioRef.current.src = cdnUrl;
+            }
+            setActiveAudioSrc(cdnUrl);
+          }
         }
       } catch (e) {
-        if (isMounted && activeAudioSrc !== cdnUrl) setActiveAudioSrc(cdnUrl);
+        if (isMounted && activeAudioSrc !== cdnUrl) {
+            if (audioRef.current && !audioRef.current.src.endsWith(cdnUrl)) {
+              audioRef.current.src = cdnUrl;
+            }
+            setActiveAudioSrc(cdnUrl);
+          }
       }
     };
 
@@ -2197,7 +2215,6 @@ export default function App() {
       <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay muted style={{ display: 'none' }} />
             <audio
         ref={audioRef}
-        src={activeAudioSrc || undefined}
         onLoadedMetadata={(e) => {
           setDuration(e.target.duration);
           updateProgressVisuals();
