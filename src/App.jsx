@@ -1087,55 +1087,54 @@ export default function App() {
 
   
   const prefetchedSignatureRef = useRef("");
+    const activeFetchesRef = useRef(new Set());
+    
+    useEffect(() => {
+      prefetchedSignatureRef.current = "";
+    }, [currentTrack?.url]);
   
-  useEffect(() => {
-    // Reset signature when track changes so we can prefetch for the new track
-    prefetchedSignatureRef.current = "";
-  }, [currentTrack?.url]);
-
-  useEffect(() => {
-    const checkPrefetch = async () => {
-      if (!audioRef.current || !currentTrack?.url) return;
-      
-      // Wait for 20 seconds, or half the track if it's very short
-      const targetTime = 1;
-      
-      if (audioRef.current.currentTime >= targetTime) {
-        let nextTracks = [];
-        if (userQueue.length > 0) {
-          nextTracks = userQueue.slice(0, 2);
-        }
-        if (nextTracks.length < 2 && upcomingSourceList.length > 0) {
-          const needed = 2 - nextTracks.length;
-          const upc = upcomingSourceList.slice(0, needed).map(item => playbackQueue[item.originalIndex]).filter(Boolean);
-          nextTracks = [...nextTracks, ...upc];
-        }
+    useEffect(() => {
+      const checkPrefetch = async () => {
+        if (!audioRef.current || !currentTrack?.url) return;
         
-        const signature = nextTracks.map(t => t.url).join(",");
-        if (prefetchedSignatureRef.current === signature) return;
-        prefetchedSignatureRef.current = signature;
-        
-        const promises = nextTracks.map(async (track) => {
-            if (!track || !track.url) return;
-            const cUrl = getCdnUrl(track.url);
-            if (!blobCacheRef.current.has(cUrl)) {
-              try {
-                const cache = await caches.open(CACHE_NAME);
-                let match = await cache.match(cUrl);
-                if (!match) {
-                  await cache.add(cUrl);
-                  match = await cache.match(cUrl);
-                }
-                if (match) {
-                  const blob = await match.blob();
-                  blobCacheRef.current.set(cUrl, URL.createObjectURL(blob));
-                }
-              } catch(e) {}
+        if (audioRef.current.currentTime >= 1) {
+          let nextTracks = [];
+          if (userQueue.length > 0) {
+            nextTracks = userQueue.slice(0, 1);
+          } else if (upcomingSourceList.length > 0) {
+            nextTracks = upcomingSourceList.slice(0, 1).map(item => playbackQueue[item.originalIndex]).filter(Boolean);
+          }
+          
+          if (nextTracks.length === 0) return;
+          const track = nextTracks[0];
+          if (!track || !track.url) return;
+          
+          const signature = track.url;
+          if (prefetchedSignatureRef.current === signature) return;
+          prefetchedSignatureRef.current = signature;
+          
+          const cUrl = getCdnUrl(track.url);
+          if (blobCacheRef.current.has(cUrl) || activeFetchesRef.current.has(cUrl)) return;
+          
+          activeFetchesRef.current.add(cUrl);
+          try {
+            const cache = await caches.open(CACHE_NAME);
+            let match = await cache.match(cUrl);
+            if (!match) {
+              await cache.add(cUrl);
+              match = await cache.match(cUrl);
             }
-          });
-          await Promise.all(promises);
-      }
-    };
+            if (match) {
+              const blob = await match.blob();
+              blobCacheRef.current.set(cUrl, URL.createObjectURL(blob));
+            }
+          } catch(e) {
+            console.log('Prefetch error:', e);
+          } finally {
+            activeFetchesRef.current.delete(cUrl);
+          }
+        }
+      };
 
     const audioEl = audioRef.current;
     if (audioEl) {
