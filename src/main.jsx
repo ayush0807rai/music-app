@@ -4,13 +4,16 @@ import './index.css'
 import App from './App.jsx'
 import { registerSW } from 'virtual:pwa-register'
 import { Capacitor } from '@capacitor/core';
-import { BackgroundMode } from '@awesome-cordova-plugins/background-mode';
 
 if (Capacitor.isNativePlatform()) {
-  BackgroundMode.enable();
-  BackgroundMode.on('activate').subscribe(() => {
-    BackgroundMode.disableWebViewOptimizations();
-  });
+  import('@awesome-cordova-plugins/background-mode').then(({ BackgroundMode }) => {
+    try {
+      BackgroundMode.enable();
+      BackgroundMode.on('activate').subscribe(() => {
+        BackgroundMode.disableWebViewOptimizations();
+      });
+    } catch(e) {}
+  }).catch(e => console.error(e));
 }
 
 registerSW({ immediate: true })
