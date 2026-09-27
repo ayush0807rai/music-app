@@ -36,7 +36,7 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.dnd_id });
+  } = useSortable({ id: source-- });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -47,19 +47,12 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes} 
-      {...listeners}
-    >
+    <div ref={setNodeRef} style={style}>
       <div
         className={`glass-row ${isDragging ? "active" : ""}`}
         style={{
           display: "flex", alignItems: "center", gap: "10px", padding: "6px 8px",
-          cursor: isDragging ? "grabbing" : "grab",
           boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none",
-          touchAction: "none"
         }}
       >
         <div onClick={(e) => { e.stopPropagation(); playSong(); }} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -68,6 +61,13 @@ const SortableSourceItem = ({ item, playSong, sourceName }) => {
         <div onClick={(e) => { e.stopPropagation(); playSong(); }} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
           <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
+        </div>
+        <div
+          {...attributes} 
+          {...listeners}
+          style={{ padding: "8px", cursor: isDragging ? "grabbing" : "grab", touchAction: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}
+        >
+          <GripVertical size={16} />
         </div>
       </div>
     </div>
@@ -93,19 +93,12 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes} 
-      {...listeners}
-    >
+    <div ref={setNodeRef} style={style}>
       <div
-        className={`glass-row ${isDragging ? 'active' : ''}`}
+        className={`glass-row ${isDragging ? "active" : ""}`}
         style={{
           display: "flex", alignItems: "center", gap: "10px", padding: "6px 8px",
-          cursor: isDragging ? "grabbing" : "grab",
           boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none",
-          touchAction: "none"
         }}
       >
         <div onClick={(e) => { e.stopPropagation(); playFromQueue(index); }} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
@@ -115,9 +108,16 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
           <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
         </div>
-        <button onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "4px", flexShrink: 0, position: "relative", zIndex: 10 }} className="hover-effect">
+        <button onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "8px", flexShrink: 0 }} className="hover-effect">
           <X size={14} />
         </button>
+        <div
+          {...attributes} 
+          {...listeners}
+          style={{ padding: "8px 0 8px 8px", cursor: isDragging ? "grabbing" : "grab", touchAction: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}
+        >
+          <GripVertical size={16} />
+        </div>
       </div>
     </div>
   );
@@ -1396,8 +1396,8 @@ export default function App() {
   const handleSourceDragEnd = (event) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
-      const oldIdx = upcomingSourceList.findIndex(item => item.dnd_id === active.id);
-      const newIdx = upcomingSourceList.findIndex(item => item.dnd_id === over.id);
+      const oldIdx = upcomingSourceList.findIndex(item => `source-${item.track.id}-${item.originalIndex}` === active.id);
+      const newIdx = upcomingSourceList.findIndex(item => `source-${item.track.id}-${item.originalIndex}` === over.id);
       
       if (oldIdx !== -1 && newIdx !== -1) {
         if (playMode === 'shuffle') {
@@ -1899,11 +1899,7 @@ export default function App() {
             {userQueue.length > 0 && <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
           </div>
           {userQueue.length > 0 ? (
-            <DndContext 
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
+            <DndContext id="dnd-user-queue" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext 
                 items={userQueue.map(s => s.queue_id)}
                 strategy={verticalListSortingStrategy}
@@ -1934,19 +1930,15 @@ export default function App() {
         <div>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Next From: {playbackSourceName}</h4>
                     {upcomingSourceList.length > 0 ? (
-            <DndContext 
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleSourceDragEnd}
-            >
+            <DndContext id="dnd-source-list" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSourceDragEnd}>
               <SortableContext 
-                items={upcomingSourceList.map(item => item.dnd_id)}
+                items={upcomingSourceList.map(item => `source-${item.track.id}-${item.originalIndex}`)}
                 strategy={verticalListSortingStrategy}
               >
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   {upcomingSourceList.map((item, uIdx) => (
                     <SortableSourceItem
-                      key={item.dnd_id}
+                      key={`source-${item.track.id}-${item.originalIndex}`}
                       item={item}
                       playSong={() => handlePlaySong(item.originalIndex, playbackQueue, playbackSourceName)}
                       sourceName={playbackSourceName}
@@ -2890,6 +2882,11 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
+
 
 
 
