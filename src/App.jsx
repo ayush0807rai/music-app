@@ -1823,10 +1823,9 @@ export default function App() {
   };
 
   const renderMixerBlock = (isMobile) => {
-    const sliderHeight = isMobile ? 180 : 220;
+    const sliderHeight = isMobile ? 145 : 185;
     return (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
-      <h4 style={{ margin: "4px 0 12px 0", fontSize: "14px", textTransform: "uppercase", letterSpacing: "2px", color: "rgba(255,255,255,0.8)" }}>AI Stem Mixer</h4>
       {!currentTrack?.stem_vocals || stemsBroken ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
           {isGeneratingStems ? (
