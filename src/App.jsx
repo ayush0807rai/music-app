@@ -1261,15 +1261,21 @@ export default function App() {
         audioRef.current.src = getCdnUrl(currentTrack.url);
       }
       const savedTime = localStorage.getItem("euphony_current_time");
-      if (savedTime && !isNaN(parseFloat(savedTime))) {
-        setTimeout(() => {
-          if (audioRef.current) {
-            audioRef.current.currentTime = parseFloat(savedTime);
-            setCurrentTime(parseFloat(savedTime));
-            updateProgressVisuals();
+        if (savedTime && !isNaN(parseFloat(savedTime))) {
+          const restoreTime = () => {
+            if (audioRef.current) {
+              audioRef.current.currentTime = parseFloat(savedTime);
+              setCurrentTime(parseFloat(savedTime));
+              updateProgressVisuals();
+            }
+            audioRef.current?.removeEventListener('loadedmetadata', restoreTime);
+          };
+          if (audioRef.current.readyState >= 1) {
+            restoreTime();
+          } else {
+            audioRef.current.addEventListener('loadedmetadata', restoreTime);
           }
-        }, 100);
-      }
+        }
       isFirstRender.current = false;
     }
   }, [currentTrack]);
@@ -1627,7 +1633,12 @@ export default function App() {
     if (!isPlaying) {
       setIsPlaying(true);
       if (audioRef.current.src && audioRef.current.src !== window.location.href) {
+        if (audioRef.current.readyState === 0) audioRef.current.load();
         audioRef.current.play().catch(err => console.log(err));
+      } else {
+        audioRef.current.src = getCdnUrl(currentTrack.url);
+        audioRef.current.load();
+        audioRef.current.play().catch(e=>e);
       }
     } else {
       setIsPlaying(false);
