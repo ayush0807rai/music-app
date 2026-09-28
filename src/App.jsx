@@ -508,6 +508,7 @@ export default function App() {
   const [activeLyricIndex, setActiveLyricIndex] = useState(-1);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const lyricRefs = useRef([]);
+  const lyricsContainerRef = useRef(null);
   const desktopProgressRef = useRef(null);
   const mobileProgressRef = useRef(null);
   const mobileMiniProgressRef = useRef(null);
@@ -1317,8 +1318,37 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (activeLyricIndex !== -1 && lyricRefs.current[activeLyricIndex]) {
-      lyricRefs.current[activeLyricIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+    if (activeLyricIndex !== -1 && lyricRefs.current[activeLyricIndex] && lyricsContainerRef.current) {
+      const container = lyricsContainerRef.current;
+      const target = lyricRefs.current[activeLyricIndex];
+      const targetY = target.offsetTop - (container.offsetHeight / 2) + (target.offsetHeight / 2);
+      
+      const startY = container.scrollTop;
+      const distance = targetY - startY;
+      if (Math.abs(distance) < 2) return;
+      
+      const startTime = performance.now();
+      const duration = 350; // Smooth 350ms duration for Apple devices
+
+      const easeInOutCubic = (t, b, c, d) => {
+        t /= d/2;
+        if (t < 1) return c/2*t*t*t + b;
+        t -= 2;
+        return c/2*(t*t*t + 2) + b;
+      };
+
+      const animateScroll = (currentTime) => {
+        const timeElapsed = currentTime - startTime;
+        const next = easeInOutCubic(timeElapsed, startY, distance, duration);
+        container.scrollTop = next;
+        if (timeElapsed < duration) {
+          requestAnimationFrame(animateScroll);
+        } else {
+          container.scrollTop = targetY;
+        }
+      };
+      
+      requestAnimationFrame(animateScroll);
     }
   }, [activeLyricIndex]);
 
@@ -1857,20 +1887,20 @@ export default function App() {
     const inactiveShadow = isDarkMode ? "none" : "0 0 8px rgba(255,255,255,0.7)";
 
     return (
-      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", overflowX: "hidden", background: "transparent", textAlign: "center", borderRadius: "12px" }}>
+      <div ref={lyricsContainerRef} className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", overflowX: "hidden", background: "transparent", textAlign: "center", borderRadius: "12px", WebkitOverflowScrolling: "touch", scrollBehavior: "auto" }}>
         {parsedLyrics.length > 0 ? (
           <div style={{ padding: isMobile ? "80px 0" : "120px 0" }}>
             {parsedLyrics.map((lyric, index) => {
               const isActiveLine = index === activeLyricIndex;
               return (
                 <div key={index} ref={el => lyricRefs.current[index] = el} onClick={(e) => handleLyricClick(lyric.time, e)}
-                  style={{ fontSize: isMobile ? "20px" : "18px", fontWeight: "700", color: isActiveLine ? activeColor : inactiveColor, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.15)" : "scale(1)", transformOrigin: "center", lineHeight: "1.4", cursor: "pointer" }}>
+                  style={{ fontSize: isMobile ? "20px" : "18px", fontWeight: "700", color: isActiveLine ? activeColor : inactiveColor, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.15)" : "scale(1)", transformOrigin: "center", lineHeight: "1.4", cursor: "pointer", willChange: "transform, color, text-shadow", WebkitFontSmoothing: "antialiased", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}>
                   {lyric.words ? lyric.words.map((wordObj, wIndex) => {
                     const isActiveWord = isActiveLine && wIndex === activeWordIndex;
                     const isPastWord = isActiveLine && wIndex < activeWordIndex;
                     return (
                       <span key={wIndex} onClick={(e) => handleLyricClick(wordObj.time, e)}
-                        style={{ color: (isActiveWord || isPastWord) ? activeColor : inactiveColor, textShadow: isActiveWord ? activeShadow : inactiveShadow, transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer" }}>
+                        style={{ color: (isActiveWord || isPastWord) ? activeColor : inactiveColor, textShadow: isActiveWord ? activeShadow : inactiveShadow, transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer", willChange: "color, text-shadow", WebkitFontSmoothing: "antialiased" }}>
                         {wordObj.text}
                       </span>
                     );
