@@ -821,32 +821,8 @@ export default function App() {
           audioRef.current.currentTime = Math.max(audioRef.current.currentTime - (details.seekOffset || 10), 0);
         }
       });
-      navigator.mediaSession.setActionHandler('previoustrack', () => {
-        const prevIndex = playbackIndex - 1;
-        if (prevIndex >= 0) {
-          const prevTrack = playbackQueue[prevIndex];
-          const prevCdnUrl = getCdnUrl(prevTrack.url);
-          const objUrl = blobCacheRef.current.get(prevCdnUrl) || prevCdnUrl;
-          if (audioRef.current) {
-            audioRef.current.src = objUrl;
-            audioRef.current.play().catch(e=>e);
-          }
-        }
-        handlePrev();
-      });
-      navigator.mediaSession.setActionHandler('nexttrack', () => {
-        let nextIndex = playbackIndex + 1;
-        if (playMode !== 'shuffle' && nextIndex < playbackQueue.length) {
-          const nextTrack = playbackQueue[nextIndex];
-          const nextCdnUrl = getCdnUrl(nextTrack.url);
-          const objUrl = blobCacheRef.current.get(nextCdnUrl) || nextCdnUrl;
-          if (audioRef.current) {
-            audioRef.current.src = objUrl;
-            audioRef.current.play().catch(e=>e);
-          }
-        }
-        handleNext();
-      });
+      navigator.mediaSession.setActionHandler('previoustrack', () => handlePrev());
+      navigator.mediaSession.setActionHandler('nexttrack', () => handleNext());
     }
   }, [currentTrack, playMode, userQueue]);
 
@@ -1136,12 +1112,13 @@ export default function App() {
 
   useEffect(() => {
     const checkPrefetch = async () => {
-      if (!audioRef.current || !currentTrack?.url) return;
-      
-      // Wait for 20 seconds, or half the track if it's very short
-      const targetTime = 1;
-      
-      if (audioRef.current.currentTime >= targetTime) {
+        if (!audioRef.current || !currentTrack?.url) return;
+        
+        const targetTime = 1;
+        
+        if (audioRef.current.currentTime >= targetTime) {
+          if (prefetchedSignatureRef.current === currentTrack.url) return;
+          prefetchedSignatureRef.current = currentTrack.url;
         let nextTracks = [];
         if (userQueue.length > 0) {
           nextTracks = userQueue.slice(0, 2);
@@ -1500,6 +1477,23 @@ export default function App() {
     if (otherRef.current) otherRef.current.currentTime = 0;
   };
 
+  const playTrackWithMetadata = (track, audioEl, cacheMap) => {
+    if (!audioEl || !track) return;
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: track.title || 'Unknown Title',
+        artist: track.artist || 'Unknown Artist',
+        album: track.album || '-',
+        artwork: [{ src: track.poster_url || 'https://via.placeholder.com/512.png', sizes: '512x512', type: 'image/png' }]
+      });
+      navigator.mediaSession.playbackState = 'playing';
+    }
+    const cdnUrl = getCdnUrl(track.url);
+    const objUrl = cacheMap?.get(cdnUrl) || cdnUrl;
+    audioEl.src = objUrl;
+    audioEl.play().catch(e=>console.log(e));
+  };
+  
   const handlePlaySong = (index, listToSet, sourceName) => {
     const queueWithIds = listToSet.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
     const track = queueWithIds[index];
@@ -1510,18 +1504,7 @@ export default function App() {
     setQueueCurrentTrack(null);
     resetPlaybackTime();
     setIsPlaying(true);
-    if (audioRef.current && track) {
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: track.title || 'Unknown Title',
-          artist: track.artist || 'Unknown Artist',
-          album: track.album || 'Euphony',
-          artwork: [{ src: track.poster_url || 'https://via.placeholder.com/512.png', sizes: '512x512', type: 'image/png' }]
-        });
-      }
-      audioRef.current.src = getCdnUrl(track.url);
-      audioRef.current.play().catch(err => console.log(err));
-    }
+    playTrackWithMetadata(track, audioRef.current, blobCacheRef.current);
   };
 
   const handleUploadSubmit = async (e) => {
@@ -1658,12 +1641,7 @@ export default function App() {
       setQueueCurrentTrack(nextSong);
       resetPlaybackTime();
       setIsPlaying(true);
-      if (audioRef.current && nextSong) {
-    const cdnUrl = getCdnUrl(nextSong.url);
-    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
-    audioRef.current.src = objUrl;
-    audioRef.current.play().catch(e=>e);
-  }
+      playTrackWithMetadata(nextSong, audioRef.current, blobCacheRef.current);
       return;
     }
     
@@ -1675,12 +1653,7 @@ export default function App() {
       setPlaybackIndex(nextIdx);
       resetPlaybackTime();
       setIsPlaying(true);
-      if (audioRef.current && playbackQueue[nextIdx]) {
-    const cdnUrl = getCdnUrl(playbackQueue[nextIdx].url);
-    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
-    audioRef.current.src = objUrl;
-    audioRef.current.play().catch(e=>e);
-  }
+      playTrackWithMetadata(playbackQueue[nextIdx], audioRef.current, blobCacheRef.current);
     } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
       if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); }
     } else {
@@ -1711,10 +1684,7 @@ export default function App() {
     setIsPlaying(true);
     
     const prevSong = playbackQueue[prevIdx];
-    if (audioRef.current && prevSong) {
-      audioRef.current.src = getCdnUrl(prevSong.url);
-      audioRef.current.play().catch(err => console.log(err));
-    }
+    playTrackWithMetadata(prevSong, audioRef.current, blobCacheRef.current);
   };
 
 
@@ -1737,12 +1707,7 @@ export default function App() {
       setQueueCurrentTrack(nextSong);
       resetPlaybackTime();
       setIsPlaying(true);
-      if (audioRef.current && nextSong) {
-    const cdnUrl = getCdnUrl(nextSong.url);
-    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
-    audioRef.current.src = objUrl;
-    audioRef.current.play().catch(e=>e);
-  }
+      playTrackWithMetadata(nextSong, audioRef.current, blobCacheRef.current);
       return;
     }
     
@@ -1754,12 +1719,7 @@ export default function App() {
       setPlaybackIndex(nextIdx);
       resetPlaybackTime();
       setIsPlaying(true);
-      if (audioRef.current && playbackQueue[nextIdx]) {
-    const cdnUrl = getCdnUrl(playbackQueue[nextIdx].url);
-    const objUrl = blobCacheRef.current.get(cdnUrl) || cdnUrl;
-    audioRef.current.src = objUrl;
-    audioRef.current.play().catch(e=>e);
-  }
+      playTrackWithMetadata(playbackQueue[nextIdx], audioRef.current, blobCacheRef.current);
     } else {
       setIsPlaying(false);
     }
