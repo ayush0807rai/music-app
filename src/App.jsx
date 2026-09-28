@@ -1328,18 +1328,18 @@ export default function App() {
       if (Math.abs(distance) < 2) return;
       
       const startTime = performance.now();
-      const duration = 350; // Smooth 350ms duration for Apple devices
+      const duration = 600; // Ultra smooth 600ms duration
 
-      const easeInOutCubic = (t, b, c, d) => {
+      const easeInOutQuart = (t, b, c, d) => {
         t /= d/2;
-        if (t < 1) return c/2*t*t*t + b;
+        if (t < 1) return c/2*t*t*t*t + b;
         t -= 2;
-        return c/2*(t*t*t + 2) + b;
+        return -c/2 * (t*t*t*t - 2) + b;
       };
 
       const animateScroll = (currentTime) => {
         const timeElapsed = currentTime - startTime;
-        const next = easeInOutCubic(timeElapsed, startY, distance, duration);
+        const next = easeInOutQuart(timeElapsed, startY, distance, duration);
         container.scrollTop = next;
         if (timeElapsed < duration) {
           requestAnimationFrame(animateScroll);
@@ -1894,13 +1894,13 @@ export default function App() {
               const isActiveLine = index === activeLyricIndex;
               return (
                 <div key={index} ref={el => lyricRefs.current[index] = el} onClick={(e) => handleLyricClick(lyric.time, e)}
-                  style={{ fontSize: isMobile ? "20px" : "18px", fontWeight: "700", color: isActiveLine ? activeColor : inactiveColor, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)", transform: isActiveLine ? "scale(1.15)" : "scale(1)", transformOrigin: "center", lineHeight: "1.4", cursor: "pointer", willChange: "transform, color, text-shadow", WebkitFontSmoothing: "antialiased", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}>
+                  style={{ fontSize: isMobile ? "20px" : "18px", fontWeight: "700", color: isActiveLine ? activeColor : inactiveColor, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "all 0.6s cubic-bezier(0.25, 1, 0.5, 1)", transform: isActiveLine ? "scale(1.15)" : "scale(1)", transformOrigin: "center", lineHeight: "1.4", cursor: "pointer", willChange: "transform, color, text-shadow", WebkitFontSmoothing: "antialiased", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}>
                   {lyric.words ? lyric.words.map((wordObj, wIndex) => {
                     const isActiveWord = isActiveLine && wIndex === activeWordIndex;
                     const isPastWord = isActiveLine && wIndex < activeWordIndex;
                     return (
                       <span key={wIndex} onClick={(e) => handleLyricClick(wordObj.time, e)}
-                        style={{ color: (isActiveWord || isPastWord) ? activeColor : inactiveColor, textShadow: isActiveWord ? activeShadow : inactiveShadow, transition: "all 0.2s ease", marginRight: "4px", cursor: "pointer", willChange: "color, text-shadow", WebkitFontSmoothing: "antialiased" }}>
+                        style={{ color: (isActiveWord || isPastWord) ? activeColor : inactiveColor, textShadow: isActiveWord ? activeShadow : inactiveShadow, transition: "all 0.3s ease", marginRight: "4px", cursor: "pointer", willChange: "color, text-shadow", WebkitFontSmoothing: "antialiased" }}>
                         {wordObj.text}
                       </span>
                     );
