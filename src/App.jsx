@@ -1845,7 +1845,7 @@ export default function App() {
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}>
           <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "14px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
             {["vocals", "drums", "bass", "other"].map((stemType) => (
-              <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", height: "100%", flex: 1 }}>
+              <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: "12px", height: "100%", flex: 1 }}>
                 <div style={{ position: "relative", width: "30px", height: `${sliderHeight}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
                     onChange={(e) => setStemVolumes({ ...stemVolumes, [stemType]: parseFloat(e.target.value) })}
