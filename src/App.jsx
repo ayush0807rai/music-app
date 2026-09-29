@@ -1886,7 +1886,7 @@ export default function App() {
     const inactiveShadow = isDarkMode ? "none" : "0 2px 4px rgba(0,0,0,0.5)";
 
     return (
-      <div ref={lyricsContainerRef} className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", overflowX: "hidden", background: "transparent", textAlign: "center", borderRadius: "12px", WebkitOverflowScrolling: "touch", scrollBehavior: "auto" }}>
+      <div ref={lyricsContainerRef} className="custom-scrollbar" style={{ position: "relative", width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", overflowX: "hidden", background: "transparent", textAlign: "center", borderRadius: "12px", WebkitOverflowScrolling: "touch", scrollBehavior: "auto" }}>
         {parsedLyrics.length > 0 ? (
           <div style={{ padding: isMobile ? "200px 0" : "300px 0" }}>
             {parsedLyrics.map((lyric, index) => {
