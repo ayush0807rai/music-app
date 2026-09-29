@@ -1881,9 +1881,9 @@ export default function App() {
     const activeColor = isDarkMode ? COLORS.primary : "#FFFFFF";
     const inactiveColor = COLORS.textMuted;
     const activeShadow = isDarkMode 
-      ? `0 0 16px ${COLORS.primary}80` 
-      : `0 0 12px #FFFFFF, 0 0 22px #FFFFFF, 0 0 35px rgba(0,0,0,0.7), 0 4px 15px rgba(0,0,0,0.6)`;
-    const inactiveShadow = isDarkMode ? "none" : "0 0 8px rgba(255,255,255,0.7)";
+        ? `0 0 16px ${COLORS.primary}80` 
+        : `0 4px 12px rgba(0,0,0,0.8), 0 0 2px rgba(255,255,255,0.4)`;
+    const inactiveShadow = isDarkMode ? "none" : "0 2px 4px rgba(0,0,0,0.5)";
 
     return (
       <div ref={lyricsContainerRef} className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", overflowX: "hidden", background: "transparent", textAlign: "center", borderRadius: "12px", WebkitOverflowScrolling: "touch", scrollBehavior: "auto" }}>
