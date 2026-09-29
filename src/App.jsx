@@ -1888,7 +1888,7 @@ export default function App() {
     return (
       <div ref={lyricsContainerRef} className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", overflowX: "hidden", background: "transparent", textAlign: "center", borderRadius: "12px", WebkitOverflowScrolling: "touch", scrollBehavior: "auto" }}>
         {parsedLyrics.length > 0 ? (
-          <div style={{ padding: isMobile ? "80px 0" : "120px 0" }}>
+          <div style={{ padding: "45vh 0" }}>
             {parsedLyrics.map((lyric, index) => {
               const isActiveLine = index === activeLyricIndex;
               return (
