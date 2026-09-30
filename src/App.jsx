@@ -437,6 +437,7 @@ export default function App() {
   const [sortOrders, setSortOrders] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedArtist, setSelectedArtist] = useState(null);
+  const [selectedAlbum, setSelectedAlbum] = useState(null);
 
   const [songDurations, setSongDurations] = useState({});
   const fetchingDurationsRef = useRef(new Set());
@@ -543,14 +544,15 @@ export default function App() {
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
 
-  const prevModalState = useRef({ isMobilePlayerOpen: false, showQueue: false, showMixer: false, showUploadModal: false, showPlaylistModal: false, showTrackOptionsModal: false, showSleepTimerModal: false, showTrackArtistsModal: false, hasSongForPlaylist: false, hasViewedPlaylist: false, hasSelectedArtist: false });
+  const prevModalState = useRef({ isMobilePlayerOpen: false, showQueue: false, showMixer: false, showUploadModal: false, showPlaylistModal: false, showTrackOptionsModal: false, showSleepTimerModal: false, showTrackArtistsModal: false, hasSongForPlaylist: false, hasViewedPlaylist: false, hasSelectedArtist: false, hasSelectedAlbum: false });
 
   useEffect(() => {
     const currentState = {
       isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal,
       hasSongForPlaylist: !!songForPlaylistModal,
       hasViewedPlaylist: viewedPlaylistId !== null,
-      hasSelectedArtist: selectedArtist !== null
+      hasSelectedArtist: selectedArtist !== null,
+      hasSelectedAlbum: selectedAlbum !== null
     };
 
     let pushed = false;
@@ -563,7 +565,7 @@ export default function App() {
       }
     }
     prevModalState.current = currentState;
-  }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId, selectedArtist]);
+  }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId, selectedArtist, selectedAlbum]);
   const stateRefs = useRef({});
 
   const pendingAutoPlayRef = useRef(false);
@@ -604,6 +606,9 @@ export default function App() {
     .filter(track => {
       if (selectedArtist) {
         return (track.artist || "").toLowerCase().includes(selectedArtist.toLowerCase());
+      }
+      if (selectedAlbum) {
+        return (track.album || "").toLowerCase() === selectedAlbum.toLowerCase();
       }
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
@@ -765,6 +770,7 @@ export default function App() {
     setViewedPlaylistId(playlistId);
     setSearchQuery("");
     setSelectedArtist(null);
+    setSelectedAlbum(null);
   };
 
   const cycleSortKey = () => {
@@ -847,8 +853,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist };
-  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist]);
+    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist, selectedAlbum };
+  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist, selectedAlbum]);
 
   useEffect(() => {
     // Prevent accidental closure of the app when music is playing (adds OS-level protection)
@@ -906,6 +912,7 @@ export default function App() {
       else if (s.isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; }
       else if (s.viewedPlaylistId !== null) { setViewedPlaylistId(null); handled = true; }
       else if (s.selectedArtist !== null) { setSelectedArtist(null); handled = true; }
+        else if (s.selectedAlbum !== null) { setSelectedAlbum(null); handled = true; }
 
       if (handled) {
         // Do NOT push state here. The browser just popped the modal's state for us.
@@ -2375,7 +2382,7 @@ export default function App() {
               <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListMusic size={18} /> Go to Queue
               </div>
-              <div onClick={() => { setSearchQuery(currentTrack.album || currentTrack.artist); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Disc size={18} /> Go to album
               </div>
               <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
@@ -2649,15 +2656,15 @@ export default function App() {
                   </div>
                 )}
 
-                {selectedArtist ? (
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                      <button onClick={() => setSelectedArtist(null)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", padding: "8px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.05)" }} className="hover-effect">
+                {selectedArtist || selectedAlbum ? (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                        <button onClick={() => { setSelectedArtist(null); setSelectedAlbum(null); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", padding: "8px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.05)" }} className="hover-effect">
                         <X size={20} />
                       </button>
                       <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, color: COLORS.primary }}>
-                        {selectedArtist}
-                      </h2>
+                          {selectedArtist || selectedAlbum}
+                        </h2>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                       {renderSortButton(!isDesktop)}
@@ -2741,8 +2748,8 @@ export default function App() {
                     );
                   }) : (
                     <div style={{ textAlign: "center", padding: "100px 0", color: COLORS.textMuted }}>
-                      {selectedArtist
-                        ? <p style={{ margin: 0, fontSize: "16px" }}>No songs found for {selectedArtist}.</p>
+                      {selectedArtist || selectedAlbum
+                        ? <p style={{ margin: 0, fontSize: "16px" }}>No songs found for {selectedArtist || selectedAlbum}.</p>
                         : searchQuery
                         ? <p style={{ margin: 0, fontSize: "16px" }}>No results for "{searchQuery}".</p>
                         : <><ImageIcon size={64} color={COLORS.textMuted} style={{ marginBottom: "16px", opacity: 0.5 }} /><p style={{ margin: 0, fontSize: "18px", fontWeight: "500" }}>Your library is empty. Click "Add Globally" to upload tracks.</p></>
