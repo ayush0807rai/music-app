@@ -2628,7 +2628,7 @@ export default function App() {
             ) : (
               /* GLOBAL LIBRARY VIEW */
               <div>
-                {topArtists.length > 0 && !searchQuery && !selectedArtist && (
+                {topArtists.length > 0 && !searchQuery && !selectedArtist && !selectedAlbum && (
                   <div style={{ marginBottom: "32px", paddingLeft: isDesktop ? "16px" : "0" }}>
                     <h3 style={{ fontSize: "20px", fontWeight: "bold", color: COLORS.primary, marginBottom: "16px" }}>Top Artists</h3>
                     <div style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px" }} className="custom-scrollbar">
