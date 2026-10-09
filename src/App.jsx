@@ -2436,7 +2436,7 @@ export default function App() {
 
       {/* SLEEP TIMER MODAL */}
       {renderSleepTimer && (
-        <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
+        <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
           <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
             <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
@@ -2457,35 +2457,34 @@ export default function App() {
 
       {/* TRACK OPTIONS MODAL */}
       {renderTrackOptions && currentTrack && (
-        <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowTrackOptionsModal(false)}>
-          <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowTrackOptionsModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+        <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowTrackOptionsModal(false)}>
+          <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: (isDesktopFullscreen || dominantColor) ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #080C14 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #080C14 100%)") : COLORS.bgPanel, backdropFilter: "blur(24px)", border: (isDesktopFullscreen || dominantColor) ? "1px solid rgba(255, 255, 255, 0.15)" : `1px solid ${COLORS.border}`, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 24px 60px rgba(0,0,0,0.7)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowTrackOptionsModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: (isDesktopFullscreen || dominantColor) ? "rgba(255,255,255,0.7)" : COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px", textAlign: "center" }}>
-              <div style={{ width: "140px", height: "140px", borderRadius: "16px", overflow: "hidden", marginBottom: "16px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", backgroundColor: COLORS.imageBg }}>
+              <div style={{ width: "140px", height: "140px", borderRadius: "16px", overflow: "hidden", marginBottom: "16px", boxShadow: "0 8px 24px rgba(0,0,0,0.5)", backgroundColor: COLORS.imageBg }}>
                 {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={32} color={COLORS.textMuted} />}
               </div>
-              <h2 style={{ margin: "0", fontSize: "22px", fontWeight: "800", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
-              
+              <h2 style={{ margin: "0", fontSize: "22px", fontWeight: "800", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div onClick={() => { setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <User size={18} /> Go to artists
               </div>
-              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <FolderPlus size={18} /> Add to playlist
               </div>
-              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListPlus size={18} /> Add to Queue
               </div>
-              <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListMusic size={18} /> Go to Queue
               </div>
-              <div onClick={() => { setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Disc size={18} /> Go to album
               </div>
-              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <Clock size={18} /> Sleep timer
               </div>
             </div>
@@ -2495,28 +2494,196 @@ export default function App() {
 
       {/* TRACK ARTISTS MODAL */}
       {renderTrackArtists && currentTrack && (
-        <div className={trackArtistsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 5600 }} onClick={() => setShowTrackArtistsModal(false)}>
-          <SwipeableBottomSheet onClose={() => setShowTrackArtistsModal(false)} className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "24px", borderRadius: "24px 24px 0 0", width: "100%", maxWidth: "500px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 -10px 40px rgba(0,0,0,0.3)" }}>
-            <div style={{ width: "40px", height: "4px", background: COLORS.border, borderRadius: "2px", margin: "0 auto 20px" }} />
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", textAlign: "center", color: COLORS.primary }}>Artists</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
-                const dbArtist = topArtists.find(a => a.name.toLowerCase() === artistName.toLowerCase());
-                return (
-                  <div key={idx} onClick={() => { setSelectedArtist(artistName); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setShowTrackArtistsModal(false); }} className="hover-effect" style={{ display: "flex", alignItems: "center", gap: "16px", cursor: "pointer", padding: "8px", borderRadius: "12px" }}>
-                    <div style={{ width: "50px", height: "50px", borderRadius: "50%", overflow: "hidden", backgroundColor: COLORS.imageBg, flexShrink: 0 }}>
-                      {dbArtist?.image_url ? (
-                        <img src={dbArtist.image_url} alt={artistName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      ) : (
-                        <User size={24} color={COLORS.textMuted} style={{ margin: "13px" }} />
-                      )}
+        <div
+          className={trackArtistsClosing ? "fade-exit" : "fade-enter"}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.72)",
+            backdropFilter: "blur(14px)",
+            display: "flex",
+            alignItems: isDesktop ? "center" : "flex-end",
+            justifyContent: "center",
+            zIndex: 10005,
+            padding: isDesktop ? "24px" : "0"
+          }}
+          onClick={() => setShowTrackArtistsModal(false)}
+        >
+          {isDesktop ? (
+            <div
+              className={`${trackArtistsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`}
+              style={{
+                background: dominantColor
+                  ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #070B12 100%)`
+                  : "radial-gradient(circle at 50% 15%, #182844 0%, #070B12 100%)",
+                backdropFilter: "blur(24px)",
+                border: "1px solid rgba(255, 255, 255, 0.16)",
+                padding: "28px",
+                borderRadius: "22px",
+                width: "100%",
+                maxWidth: "420px",
+                position: "relative",
+                maxHeight: "80vh",
+                overflowY: "auto",
+                boxShadow: "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)",
+                color: "#FFFFFF"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" }}>
+                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.3px" }}>Artists</h2>
+                <button
+                  onClick={() => setShowTrackArtistsModal(false)}
+                  style={{
+                    background: "rgba(255, 255, 255, 0.12)",
+                    border: "none",
+                    color: "#FFFFFF",
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  className="hover-effect"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
+                  const dbArtist = topArtists.find(a => a.name.toLowerCase() === artistName.toLowerCase());
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setSelectedArtist(artistName);
+                        setSearchQuery('');
+                        setViewedPlaylistId(null);
+                        setIsMobilePlayerOpen(false);
+                        setIsDesktopFullscreen(false);
+                        setShowTrackArtistsModal(false);
+                      }}
+                      className="hover-effect"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "14px",
+                        cursor: "pointer",
+                        padding: "10px 14px",
+                        borderRadius: "14px",
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(255, 255, 255, 0.1)",
+                        transition: "all 0.2s ease"
+                      }}
+                    >
+                      <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.12)", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
+                        {dbArtist?.image_url ? (
+                          <img src={dbArtist.image_url} alt={artistName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <User size={22} color="#FFFFFF" />
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+                        <span style={{ fontSize: "15px", color: "#FFFFFF", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{artistName}</span>
+                        <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.6)", marginTop: "2px" }}>View artist</span>
+                      </div>
                     </div>
-                    <span style={{ fontSize: "16px", color: COLORS.textMain, fontWeight: "500" }}>{artistName}</span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </SwipeableBottomSheet>
+          ) : (
+            <SwipeableBottomSheet
+              onClose={() => setShowTrackArtistsModal(false)}
+              className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`}
+              style={{
+                background: dominantColor
+                  ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #070B12 100%)`
+                  : COLORS.bgPanel,
+                padding: "24px",
+                borderRadius: "24px 24px 0 0",
+                width: "100%",
+                maxWidth: "500px",
+                position: "relative",
+                maxHeight: "80vh",
+                overflowY: "auto",
+                boxShadow: "0 -10px 40px rgba(0,0,0,0.5)",
+                color: dominantColor ? "#FFFFFF" : COLORS.textMain
+              }}
+            >
+              <div style={{ width: "40px", height: "4px", background: dominantColor ? "rgba(255,255,255,0.3)" : COLORS.border, borderRadius: "2px", margin: "0 auto 20px" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: dominantColor ? "#FFFFFF" : COLORS.primary }}>Artists</h2>
+                <button
+                  onClick={() => setShowTrackArtistsModal(false)}
+                  style={{
+                    background: dominantColor ? "rgba(255, 255, 255, 0.12)" : "transparent",
+                    border: "none",
+                    color: dominantColor ? "#FFFFFF" : COLORS.textMuted,
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer"
+                  }}
+                  className="hover-effect"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
+                  const dbArtist = topArtists.find(a => a.name.toLowerCase() === artistName.toLowerCase());
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setSelectedArtist(artistName);
+                        setSearchQuery('');
+                        setViewedPlaylistId(null);
+                        setIsMobilePlayerOpen(false);
+                        setIsDesktopFullscreen(false);
+                        setShowTrackArtistsModal(false);
+                      }}
+                      className="hover-effect"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "14px",
+                        cursor: "pointer",
+                        padding: "10px 12px",
+                        borderRadius: "14px",
+                        background: dominantColor ? "rgba(255, 255, 255, 0.08)" : undefined,
+                        border: dominantColor ? "1px solid rgba(255, 255, 255, 0.1)" : undefined
+                      }}
+                    >
+                      <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", backgroundColor: dominantColor ? "rgba(255,255,255,0.12)" : COLORS.imageBg, flexShrink: 0 }}>
+                        {dbArtist?.image_url ? (
+                          <img src={dbArtist.image_url} alt={artistName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <User size={22} color={dominantColor ? "#FFFFFF" : COLORS.textMuted} />
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column" }}>
+                        <span style={{ fontSize: "15px", color: dominantColor ? "#FFFFFF" : COLORS.textMain, fontWeight: "700" }}>{artistName}</span>
+                        <span style={{ fontSize: "12px", color: dominantColor ? "rgba(255, 255, 255, 0.6)" : COLORS.textMuted, marginTop: "2px" }}>View artist</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </SwipeableBottomSheet>
+          )}
         </div>
       )}
 
