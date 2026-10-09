@@ -2875,53 +2875,30 @@ export default function App() {
                 <span style={{ fontSize: "13px", fontWeight: "700", color: "#FFFFFF", letterSpacing: "0.5px", textShadow: "0 1px 4px rgba(0,0,0,0.7)", textTransform: "uppercase" }}>
                   Now Playing
                 </span>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setShowTrackOptionsModal(true); }}
-                    title="Track options"
-                    style={{
-                      background: "rgba(255,255,255,0.12)",
-                      border: "none",
-                      color: "#FFFFFF",
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      backdropFilter: "blur(4px)",
-                      transition: "all 0.2s ease"
-                    }}
-                    className="hover-effect"
-                  >
-                    <MoreVertical size={15} />
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsDesktopFullscreen(true);
-                      setFullscreenView("art");
-                    }}
-                    title="Full screen"
-                    style={{
-                      background: "rgba(255,255,255,0.12)",
-                      border: "none",
-                      color: "#FFFFFF",
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      backdropFilter: "blur(4px)",
-                      transition: "all 0.2s ease"
-                    }}
-                    className="hover-effect"
-                  >
-                    <Maximize2 size={15} />
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    setIsDesktopFullscreen(true);
+                    setFullscreenView("art");
+                  }}
+                  title="Full screen"
+                  style={{
+                    background: "rgba(255,255,255,0.12)",
+                    border: "none",
+                    color: "#FFFFFF",
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    backdropFilter: "blur(4px)",
+                    transition: "all 0.2s ease"
+                  }}
+                  className="hover-effect"
+                >
+                  <Maximize2 size={15} />
+                </button>
               </div>
 
               {/* ARTWORK / DYNAMIC PLAYER VIEW */}
