@@ -1327,7 +1327,7 @@ export default function App() {
       }
       setIsInitialLoad(false);
       if (showToastNotice) {
-        triggerToast("Library");
+        triggerToast("Refreshed!");
       }
     } catch (err) {
       console.error("Error fetching library data:", err);
