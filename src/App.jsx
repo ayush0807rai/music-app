@@ -2040,18 +2040,19 @@ export default function App() {
   };
 
   const renderQueueBlock = (isMobile, customBg) => {
+    const isDark = isDarkMode || customBg === "transparent";
     return (
-      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: customBg !== undefined ? "4px 0" : (isMobile ? "16px" : "18px"), overflowY: "auto", background: customBg !== undefined ? customBg : (isDarkMode ? "rgba(10, 15, 26, 0.75)" : "rgba(250, 250, 247, 0.85)"), backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: "12px", textAlign: "left", color: isDarkMode ? "#FFFFFF" : COLORS.primary }}>
+      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: customBg !== undefined ? "4px 0" : (isMobile ? "16px" : "18px"), overflowY: "auto", background: customBg !== undefined ? customBg : (isDarkMode ? "rgba(10, 15, 26, 0.75)" : "rgba(250, 250, 247, 0.85)"), backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: "12px", textAlign: "left", color: isDark ? "#FFFFFF" : COLORS.primary }}>
         <div style={{ marginBottom: "22px" }}>
-          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>Now Playing</h4>
+          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDark ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>Now Playing</h4>
           {currentTrack && (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "8px", background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.06)", border: isDarkMode ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(26,43,76,0.08)" }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(26,43,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color={isDarkMode ? "rgba(255,255,255,0.6)" : COLORS.textMuted} />}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "8px", background: isDark ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.06)", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(26,43,76,0.08)" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(26,43,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color={isDark ? "rgba(255,255,255,0.6)" : COLORS.textMuted} />}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</div>
-                <div style={{ fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.artist}</div>
+                <div style={{ fontSize: "12px", color: isDark ? "rgba(255,255,255,0.7)" : COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.artist}</div>
               </div>
               {isPlaying && (
                 <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px" }}>
@@ -2066,10 +2067,10 @@ export default function App() {
 
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-            <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>
+            <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDark ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>
               Next In Queue {userQueue.length > 0 && <span style={{ background: COLORS.spotifyGreen, color: "#fff", borderRadius: "10px", padding: "1px 7px", fontSize: "11px", marginLeft: "6px" }}>{userQueue.length}</span>}
             </h4>
-            {userQueue.length > 0 && <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted, fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
+            {userQueue.length > 0 && <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: isDark ? "rgba(255,255,255,0.7)" : COLORS.textMuted, fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
           </div>
           {userQueue.length > 0 ? (
             <DndContext id="dnd-user-queue" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -2085,24 +2086,24 @@ export default function App() {
                       index={qIndex}
                       playFromQueue={playFromQueue}
                       removeFromQueue={removeFromQueue}
-                      isDarkMode={isDarkMode}
+                      isDarkMode={isDark}
                     />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
           ) : (
-            <div style={{ fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.5)" : COLORS.textMuted, fontStyle: "italic", padding: "4px 0" }}>
+            <div style={{ fontSize: "12px", color: isDark ? "rgba(255,255,255,0.5)" : COLORS.textMuted, fontStyle: "italic", padding: "4px 0" }}>
               No songs queued. Tap <ListPlus size={12} style={{ verticalAlign: "middle", margin: "0 2px" }} /> next to any song to add it.
             </div>
           )}
           {userQueue.length > 0 && (
-            <p style={{ margin: "8px 0 0 0", fontSize: "11px", color: isDarkMode ? "rgba(255,255,255,0.4)" : COLORS.textMuted, fontStyle: "italic" }}>Drag <GripVertical size={10} style={{ verticalAlign: "middle" }} /> to reorder • Tap a song to play it now</p>
+            <p style={{ margin: "8px 0 0 0", fontSize: "11px", color: isDark ? "rgba(255,255,255,0.4)" : COLORS.textMuted, fontStyle: "italic" }}>Drag <GripVertical size={10} style={{ verticalAlign: "middle" }} /> to reorder • Tap a song to play it now</p>
           )}
         </div>
 
         <div>
-          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>Next From: {playbackSourceName}</h4>
+          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDark ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>Next From: {playbackSourceName}</h4>
           {upcomingSourceList.length > 0 ? (
             <DndContext id="dnd-source-list" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSourceDragEnd}>
               <SortableContext 
@@ -2116,14 +2117,14 @@ export default function App() {
                       item={item}
                       playSong={() => handlePlaySong(item.originalIndex, playbackQueue, playbackSourceName)}
                       sourceName={playbackSourceName}
-                      isDarkMode={isDarkMode}
+                      isDarkMode={isDark}
                     />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
           ) : (
-            <div style={{ fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.5)" : COLORS.textMuted, fontStyle: "italic" }}>End of playlist.</div>
+            <div style={{ fontSize: "12px", color: isDark ? "rgba(255,255,255,0.5)" : COLORS.textMuted, fontStyle: "italic" }}>End of playlist.</div>
           )}
         </div>
       </div>
