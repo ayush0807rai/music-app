@@ -2653,6 +2653,28 @@ export default function App() {
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         input, textarea { -webkit-user-select: auto; -moz-user-select: auto; user-select: auto; outline: none; }
         
+        img {
+          -webkit-user-drag: none !important;
+          -khtml-user-drag: none !important;
+          -moz-user-drag: none !important;
+          -o-user-drag: none !important;
+          user-drag: none !important;
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          user-select: none !important;
+          -webkit-touch-callout: none !important;
+          pointer-events: none !important;
+        }
+
+        svg, video, canvas {
+          -webkit-user-drag: none !important;
+          user-drag: none !important;
+          -webkit-user-select: none !important;
+          user-select: none !important;
+          -webkit-touch-callout: none !important;
+        }
+        
         /* Fallback transition only active for non-ViewTransition browsers */
         html.fallback-theme-transition body,
         html.fallback-theme-transition #root {

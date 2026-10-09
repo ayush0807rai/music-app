@@ -21,6 +21,22 @@ if (typeof window !== 'undefined' && 'caches' in window) {
   caches.delete('euphony-audio-cache').catch(() => {});
 }
 
+// Prevent context menu (except on text inputs and textareas) and image dragging globally
+if (typeof window !== 'undefined') {
+  window.addEventListener('contextmenu', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
+      return;
+    }
+    e.preventDefault();
+  }, { capture: true });
+
+  window.addEventListener('dragstart', (e) => {
+    if (e.target && (e.target.tagName === 'IMG' || e.target.closest('img'))) {
+      e.preventDefault();
+    }
+  }, { capture: true });
+}
+
 registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')).render(
