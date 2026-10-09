@@ -1975,10 +1975,10 @@ export default function App() {
 
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
-    if (!uploadFile || !uploadTitle || !uploadArtist) return alert("Please fill in required fields.");
+    if (!uploadFile || !uploadTitle || !uploadArtist || !uploadPoster) return alert("Please fill in all required fields, including the poster image.");
     
     if (uploadFile.size > 50 * 1024 * 1024) return alert("Audio file is too large! Maximum size is 50MB.");
-    if (uploadPoster && uploadPoster.size > 5 * 1024 * 1024) return alert("Poster image is too large! Maximum size is 5MB.");
+    if (uploadPoster.size > 5 * 1024 * 1024) return alert("Poster image is too large! Maximum size is 5MB.");
     
     setIsUploading(true);
     try {
@@ -1998,23 +1998,24 @@ export default function App() {
       const audioData = await audioRes.json();
       const audioUrl = audioData.secure_url;
       
-      // 2. Upload poster directly to Cloudinary if provided
-      let posterUrl = null;
-      if (uploadPoster) {
-        const posterFormData = new FormData();
-        posterFormData.append("upload_preset", "app_songs");
-        posterFormData.append("file", uploadPoster);
+      // 2. Upload poster directly to Cloudinary (compulsory)
+      const posterFormData = new FormData();
+      posterFormData.append("upload_preset", "app_songs");
+      posterFormData.append("file", uploadPoster);
 
-        const posterRes = await fetch("https://api.cloudinary.com/v1_1/cpsimhz1/auto/upload", {
-          method: "POST",
-          body: posterFormData
-        });
-        if (!posterRes.ok) {
-          const errData = await posterRes.json().catch(() => ({}));
-          throw new Error(errData.error?.message || "Poster upload to Cloudinary failed.");
-        }
-        const posterData = await posterRes.json();
-        posterUrl = posterData.secure_url;
+      const posterRes = await fetch("https://api.cloudinary.com/v1_1/cpsimhz1/auto/upload", {
+        method: "POST",
+        body: posterFormData
+      });
+      if (!posterRes.ok) {
+        const errData = await posterRes.json().catch(() => ({}));
+        throw new Error(errData.error?.message || "Poster upload to Cloudinary failed.");
+      }
+      const posterData = await posterRes.json();
+      const posterUrl = posterData.secure_url;
+
+      if (!posterUrl) {
+        throw new Error("Poster image upload failed. A valid poster image is required.");
       }
 
       // 3. Save song metadata and direct Cloudinary URL into Supabase database
@@ -2853,8 +2854,8 @@ export default function App() {
               <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input glass-row" style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
               <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input glass-row custom-scrollbar" style={{ minHeight: "100px", resize: "vertical", color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
               <div className="glass-row" style={{ marginBottom: "16px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px" }}>
-                <label style={{ display: "block", marginBottom: "8px", color: songTheme.textMuted, fontSize: "14px" }}>Poster Image (Optional)</label>
-                <input type="file" accept="image/*" onChange={e => setUploadPoster(e.target.files[0])} style={{ color: songTheme.textColor, width: "100%" }} />
+                <label style={{ display: "block", marginBottom: "8px", color: songTheme.textMuted, fontSize: "14px" }}>Poster Image *</label>
+                <input type="file" accept="image/*" required onChange={e => setUploadPoster(e.target.files[0])} style={{ color: songTheme.textColor, width: "100%" }} />
               </div>
               <div className="glass-row" style={{ marginBottom: "24px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: songTheme.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
