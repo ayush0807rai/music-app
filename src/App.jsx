@@ -380,6 +380,73 @@ const getCdnUrl = (url) => {
   return url;
 };
 
+const getSongThemeGradients = (rgb, isDark) => {
+  if (!rgb) {
+    return {
+      modalBg: isDark
+        ? "radial-gradient(circle at 50% 0%, #1A2844 0%, #07090E 100%)"
+        : "radial-gradient(circle at 50% 0%, rgba(26, 43, 76, 0.08) 0%, #FAFAF7 70%, #F3F0E6 100%)",
+      modalOverlay: isDark
+        ? "rgba(0, 0, 0, 0.72)"
+        : "rgba(18, 26, 47, 0.42)",
+      modalBorder: isDark
+        ? "1px solid rgba(255, 255, 255, 0.15)"
+        : "1px solid rgba(26, 43, 76, 0.12)",
+      modalShadow: isDark
+        ? "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)"
+        : "0 20px 50px rgba(26, 43, 76, 0.16)",
+      playerBg: isDark
+        ? "radial-gradient(ellipse at 50% 32%, rgba(24, 40, 68, 0.6) 0%, #06080D 100%)"
+        : "radial-gradient(ellipse at 50% 28%, rgba(26, 43, 76, 0.08) 0%, #F8F5EE 75%, #EFEBE1 100%)",
+      mobilePlayerBg: isDark
+        ? "#121212"
+        : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)",
+      sidebarBg: isDark
+        ? "radial-gradient(circle at 50% 0%, rgba(24, 40, 68, 0.4) 0%, #0A0F1A 100%)"
+        : "radial-gradient(circle at 50% 0%, rgba(26, 43, 76, 0.06) 0%, #FAFAF7 70%, #F3F0E6 100%)",
+      textColor: isDark ? "#FFFFFF" : "#1A2B4C",
+      textMuted: isDark ? "rgba(255, 255, 255, 0.65)" : "rgba(26, 43, 76, 0.65)",
+      rowBg: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.8)",
+      rowBorder: isDark ? "1px solid rgba(255, 255, 255, 0.12)" : "1px solid rgba(26, 43, 76, 0.1)",
+      accentGlow: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(26, 43, 76, 0.12)"
+    };
+  }
+
+  const { r, g, b } = rgb;
+  if (isDark) {
+    return {
+      modalBg: `radial-gradient(circle at 50% -10%, rgba(${r}, ${g}, ${b}, 0.50) 0%, rgba(${r}, ${g}, ${b}, 0.20) 38%, rgba(13, 17, 26, 0.96) 80%, #07090E 100%)`,
+      modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.24) 0%, rgba(0, 0, 0, 0.78) 65%, rgba(0, 0, 0, 0.90) 100%)`,
+      modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.35)`,
+      modalShadow: `0 28px 70px rgba(0,0,0,0.85), 0 0 45px rgba(${r}, ${g}, ${b}, 0.28)`,
+      playerBg: `radial-gradient(ellipse at 50% 32%, rgba(${r}, ${g}, ${b}, 0.45) 0%, rgba(${r}, ${g}, ${b}, 0.18) 40%, rgba(9, 12, 18, 0.94) 75%, #06080D 100%)`,
+      mobilePlayerBg: `radial-gradient(circle at 50% 25%, rgba(${r}, ${g}, ${b}, 0.50) 0%, rgba(${r}, ${g}, ${b}, 0.18) 45%, #090C12 85%, #05070A 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.35) 0%, rgba(10, 14, 22, 0.95) 70%, #070A10 100%)`,
+      textColor: "#FFFFFF",
+      textMuted: "rgba(255, 255, 255, 0.65)",
+      rowBg: "rgba(255, 255, 255, 0.08)",
+      rowBorder: "1px solid rgba(255, 255, 255, 0.12)",
+      accentGlow: `rgba(${r}, ${g}, ${b}, 0.35)`
+    };
+  } else {
+    // Light Mode Variant
+    return {
+      modalBg: `radial-gradient(circle at 50% -10%, rgba(${r}, ${g}, ${b}, 0.28) 0%, rgba(${r}, ${g}, ${b}, 0.09) 38%, rgba(250, 250, 247, 0.96) 75%, rgba(243, 240, 230, 0.98) 100%)`,
+      modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.16) 0%, rgba(18, 26, 47, 0.42) 70%, rgba(18, 26, 47, 0.55) 100%)`,
+      modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.28)`,
+      modalShadow: `0 24px 60px rgba(26, 43, 76, 0.16), 0 0 35px rgba(${r}, ${g}, ${b}, 0.18)`,
+      playerBg: `radial-gradient(ellipse at 50% 28%, rgba(${r}, ${g}, ${b}, 0.24) 0%, rgba(${r}, ${g}, ${b}, 0.08) 45%, #F8F5EE 80%, #EDE8DC 100%)`,
+      mobilePlayerBg: `radial-gradient(circle at 50% 25%, rgba(${r}, ${g}, ${b}, 0.28) 0%, rgba(${r}, ${g}, ${b}, 0.10) 45%, #F8F5EE 75%, #EFEBE1 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.18) 0%, rgba(250, 250, 247, 0.95) 70%, #F3F0E6 100%)`,
+      textColor: "#1A2B4C",
+      textMuted: "rgba(26, 43, 76, 0.65)",
+      rowBg: "rgba(255, 255, 255, 0.8)",
+      rowBorder: "1px solid rgba(26, 43, 76, 0.1)",
+      accentGlow: `rgba(${r}, ${g}, ${b}, 0.22)`
+    };
+  }
+};
+
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem("euphony_dark_mode") === "true");
 
@@ -454,6 +521,8 @@ export default function App() {
   const [playbackSourceName, setPlaybackSourceName] = useState(() => localStorage.getItem("euphony_playback_source") || "Global Library");
     const [preloadSrc, setPreloadSrc] = useState(null);
   const [dominantColor, setDominantColor] = useState(null);
+  const [dominantRgb, setDominantRgb] = useState(null);
+  const songTheme = getSongThemeGradients(dominantRgb, isDarkMode);
 
   const CACHE_NAME = 'euphony-audio-cache';
   
@@ -656,20 +725,61 @@ export default function App() {
       img.onload = () => {
         try {
           const canvas = document.createElement("canvas");
-          canvas.width = 1;
-          canvas.height = 1;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, 1, 1);
-          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-          setDominantColor(`rgb(${Math.max(20, r - 30)}, ${Math.max(20, g - 30)}, ${Math.max(20, b - 30)})`);
+          canvas.width = 24;
+          canvas.height = 24;
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0, 24, 24);
+          const imgData = ctx.getImageData(0, 0, 24, 24).data;
+          
+          let bestR = 24, bestG = 40, bestB = 68;
+          let maxScore = -1;
+          let totalR = 0, totalG = 0, totalB = 0, count = 0;
+          
+          for (let i = 0; i < imgData.length; i += 4) {
+            const r = imgData[i];
+            const g = imgData[i + 1];
+            const b = imgData[i + 2];
+            const a = imgData[i + 3];
+            if (a < 128) continue;
+            
+            totalR += r; totalG += g; totalB += b; count++;
+            
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const delta = max - min;
+            const lightness = (max + min) / 2;
+            
+            if (lightness > 18 && lightness < 240) {
+              const saturation = delta / (255 - Math.abs(2 * lightness - 255) || 1);
+              const score = saturation * 2.5 + (1 - Math.abs(lightness - 120) / 120);
+              if (score > maxScore) {
+                maxScore = score;
+                bestR = r; bestG = g; bestB = b;
+              }
+            }
+          }
+          
+          if (maxScore < 0.25 && count > 0) {
+            bestR = Math.round(totalR / count);
+            bestG = Math.round(totalG / count);
+            bestB = Math.round(totalB / count);
+          }
+          
+          setDominantColor(`rgb(${bestR}, ${bestG}, ${bestB})`);
+          setDominantRgb({ r: bestR, g: bestG, b: bestB });
         } catch (e) {
           setDominantColor(null);
+          setDominantRgb(null);
         }
       };
-      img.onerror = () => setDominantColor(null);
+      img.onerror = () => {
+        setDominantColor(null);
+        setDominantRgb(null);
+      };
       img.src = currentTrack.poster_url;
     } else {
       setDominantColor(null);
+      setDominantRgb(null);
     }
   }, [currentTrack?.poster_url]);
 
@@ -2421,22 +2531,22 @@ export default function App() {
 
       {/* UPLOAD MODAL */}
       {renderUpload && (
-        <div className={uploadClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowUploadModal(false)}>
-          <div className={`${uploadClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><UploadCloud color={COLORS.primary} /> Add Song Globally</h2>
+        <div className={uploadClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowUploadModal(false)}>
+          <div className={`${uploadClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, boxShadow: songTheme.modalShadow, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "400px", position: "relative", maxHeight: "90vh", overflowY: "auto", color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowUploadModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: songTheme.textColor }}><UploadCloud color={songTheme.textColor} /> Add Song Globally</h2>
             <form onSubmit={handleUploadSubmit}>
-              <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="upload-input glass-row" />
-              <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={e => setUploadArtist(e.target.value)} className="upload-input glass-row" />
-              <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input glass-row" />
-              <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input glass-row custom-scrollbar" style={{ minHeight: "100px", resize: "vertical" }} />
-              <div className="glass-row" style={{ marginBottom: "16px", padding: "14px" }}>
-                <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>Poster Image (Optional)</label>
-                <input type="file" accept="image/*" onChange={e => setUploadPoster(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
+              <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="upload-input glass-row" style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
+              <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={e => setUploadArtist(e.target.value)} className="upload-input glass-row" style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
+              <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input glass-row" style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
+              <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input glass-row custom-scrollbar" style={{ minHeight: "100px", resize: "vertical", color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
+              <div className="glass-row" style={{ marginBottom: "16px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px" }}>
+                <label style={{ display: "block", marginBottom: "8px", color: songTheme.textMuted, fontSize: "14px" }}>Poster Image (Optional)</label>
+                <input type="file" accept="image/*" onChange={e => setUploadPoster(e.target.files[0])} style={{ color: songTheme.textColor, width: "100%" }} />
               </div>
-              <div className="glass-row" style={{ marginBottom: "24px", padding: "14px" }}>
-                <label style={{ display: "block", marginBottom: "8px", color: COLORS.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
-                <input type="file" accept="audio/*" required onChange={e => setUploadFile(e.target.files[0])} style={{ color: COLORS.textMain, width: "100%" }} />
+              <div className="glass-row" style={{ marginBottom: "24px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px" }}>
+                <label style={{ display: "block", marginBottom: "8px", color: songTheme.textMuted, fontSize: "14px" }}>MP3 Audio File *</label>
+                <input type="file" accept="audio/*" required onChange={e => setUploadFile(e.target.files[0])} style={{ color: songTheme.textColor, width: "100%" }} />
               </div>
               <button type="submit" disabled={isUploading} className="glass-btn-primary" style={{ width: "100%", padding: "14px", cursor: isUploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                 {isUploading ? <><Loader2 size={18} className="animate-spin" /> Uploading...</> : "Upload to Cloud"}
@@ -2473,12 +2583,12 @@ export default function App() {
   
         {/* CREATE PLAYLIST MODAL */}
       {renderPlaylistModal && (
-        <div className={playlistModalClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: isDarkMode ? (dominantColor ? "rgba(0, 0, 0, 0.72)" : COLORS.invertedShadow) : "rgba(18, 26, 47, 0.45)", backdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowPlaylistModal(false)}>
-          <div className={`${playlistModalClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: isDarkMode ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #080C14 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #080C14 100%)") : (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor}25 0%, #FAFAF7 75%, #F3F0E6 100%)` : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)"), backdropFilter: "blur(24px)", border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.16)" : "1px solid rgba(26, 43, 76, 0.12)", padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: isDarkMode ? "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)" : "0 20px 50px rgba(26, 43, 76, 0.16)", color: "#FFFFFF" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#FFFFFF", cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: "#FFFFFF", fontWeight: "800" }}><FolderPlus color="#FFFFFF" /> Create Private Playlist</h2>
+        <div className={playlistModalClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowPlaylistModal(false)}>
+          <div className={`${playlistModalClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: songTheme.textColor, fontWeight: "800" }}><FolderPlus color={songTheme.textColor} /> Create Private Playlist</h2>
             <form onSubmit={handleCreatePlaylist}>
-              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input glass-row" style={{ color: "#FFFFFF", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.15)" }} />
+              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input glass-row" style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
               <button type="submit" style={{ width: "100%", padding: "14px" }} className="glass-btn-primary">Save Playlist</button>
             </form>
           </div>
@@ -2487,18 +2597,18 @@ export default function App() {
 
       {/* SLEEP TIMER MODAL */}
       {renderSleepTimer && (
-        <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: isDarkMode ? "rgba(0, 0, 0, 0.72)" : "rgba(18, 26, 47, 0.45)", backdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
-          <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: isDarkMode ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #080C14 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #080C14 100%)") : (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor}25 0%, #FAFAF7 75%, #F3F0E6 100%)` : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)"), backdropFilter: "blur(24px)", border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.16)" : "1px solid rgba(26, 43, 76, 0.12)", padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: isDarkMode ? "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)" : "0 20px 50px rgba(26, 43, 76, 0.16)", color: "#FFFFFF" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#FFFFFF", cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: "#FFFFFF", fontWeight: "800", letterSpacing: "-0.3px" }}><Moon color="#FFFFFF" size={22} /> Sleep Timer</h2>
+        <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
+          <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: songTheme.textColor, fontWeight: "800", letterSpacing: "-0.3px" }}><Moon color={songTheme.textColor} size={22} /> Sleep Timer</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[5, 10, 20, 30, 60, 120].map(mins => (
-                <div key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-row hover-effect" style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", color: "#FFFFFF", fontWeight: "700", cursor: "pointer", textAlign: "left", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.1)", transition: "all 0.2s" }}>
+                <div key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-row hover-effect" style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", color: songTheme.textColor, fontWeight: "700", cursor: "pointer", textAlign: "left", background: songTheme.rowBg, border: songTheme.rowBorder, transition: "all 0.2s" }}>
                   {mins === 60 ? "1 hour" : mins === 120 ? "2 hours" : `${mins} minutes`}
                 </div>
               ))}
-              <div style={{ margin: "8px 0", height: "1px", background: "rgba(255, 255, 255, 0.12)" }} />
-              <button onClick={() => handleSetSleepTimer(0)} className={sleepTimerTarget ? "hover-effect" : "glass-row"} style={{ width: "100%", padding: "14px", borderRadius: "14px", background: sleepTimerTarget ? (isDarkMode ? "rgba(239, 68, 68, 0.25)" : "#ffebee") : (isDarkMode ? "rgba(255, 255, 255, 0.04)" : "rgba(26, 43, 76, 0.04)"), border: sleepTimerTarget ? (isDarkMode ? "1px solid rgba(239, 68, 68, 0.5)" : "1px solid #ffcdd2") : (isDarkMode ? "1px solid rgba(255, 255, 255, 0.06)" : "1px solid rgba(26, 43, 76, 0.08)"), color: sleepTimerTarget ? (isDarkMode ? "#ff7b7b" : "#d32f2f") : "rgba(255, 255, 255, 0.5)", fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
+              <div style={{ margin: "8px 0", height: "1px", background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.12)" }} />
+              <button onClick={() => handleSetSleepTimer(0)} className={sleepTimerTarget ? "hover-effect" : "glass-row"} style={{ width: "100%", padding: "14px", borderRadius: "14px", background: sleepTimerTarget ? (isDarkMode ? "rgba(239, 68, 68, 0.25)" : "#ffebee") : (isDarkMode ? "rgba(255, 255, 255, 0.04)" : "rgba(26, 43, 76, 0.04)"), border: sleepTimerTarget ? (isDarkMode ? "1px solid rgba(239, 68, 68, 0.5)" : "1px solid #ffcdd2") : (isDarkMode ? "1px solid rgba(255, 255, 255, 0.06)" : "1px solid rgba(26, 43, 76, 0.08)"), color: sleepTimerTarget ? (isDarkMode ? "#ff7b7b" : "#d32f2f") : songTheme.textMuted, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
                 Turn off timer
               </button>
             </div>
@@ -2508,34 +2618,34 @@ export default function App() {
 
       {/* TRACK OPTIONS MODAL */}
       {renderTrackOptions && currentTrack && (
-        <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: isDarkMode ? "rgba(0, 0, 0, 0.7)" : "rgba(18, 26, 47, 0.45)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowTrackOptionsModal(false)}>
-          <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: isDarkMode ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #080C14 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #080C14 100%)") : (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor}25 0%, #FAFAF7 75%, #F3F0E6 100%)` : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)"), backdropFilter: "blur(24px)", border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.15)" : "1px solid rgba(26, 43, 76, 0.12)", padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: isDarkMode ? "0 24px 60px rgba(0,0,0,0.7)" : "0 20px 50px rgba(26, 43, 76, 0.16)", color: "#FFFFFF" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowTrackOptionsModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "rgba(255,255,255,0.7)", cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+        <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowTrackOptionsModal(false)}>
+          <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowTrackOptionsModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px", textAlign: "center" }}>
               <div style={{ width: "140px", height: "140px", borderRadius: "16px", overflow: "hidden", marginBottom: "16px", boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.5)" : "0 8px 24px rgba(26,43,76,0.15)", backgroundColor: COLORS.imageBg }}>
                 {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={32} color={COLORS.textMuted} />}
               </div>
-              <h2 style={{ margin: "0", fontSize: "22px", fontWeight: "800", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
+              <h2 style={{ margin: "0", fontSize: "22px", fontWeight: "800", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div onClick={() => { setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: "#FFFFFF", fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "14px" }}>
+              <div onClick={() => { setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <User size={18} /> Go to artists
               </div>
-              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: "#FFFFFF", fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "14px" }}>
+              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <FolderPlus size={18} /> Add to playlist
               </div>
-              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: "#FFFFFF", fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "14px" }}>
+              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <ListPlus size={18} /> Add to Queue
               </div>
-              <div onClick={() => { if (isDesktopFullscreen) { setShowFullscreenQueueModal(true); } else { setShowQueue(true); if (isMobilePlayerOpen) setIsMobilePlayerOpen(true); } setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: "#FFFFFF", fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "14px" }}>
+              <div onClick={() => { if (isDesktopFullscreen) { setShowFullscreenQueueModal(true); } else { setShowQueue(true); if (isMobilePlayerOpen) setIsMobilePlayerOpen(true); } setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <ListMusic size={18} /> Go to Queue
               </div>
-              <div onClick={() => { setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: "#FFFFFF", fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "14px" }}>
+              <div onClick={() => { setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <Disc size={18} /> Go to album
               </div>
-              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: "#FFFFFF", fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.1)", borderRadius: "14px" }}>
+              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <Clock size={18} /> Sleep timer
               </div>
             </div>
@@ -2550,8 +2660,8 @@ export default function App() {
           style={{
             position: "fixed",
             inset: 0,
-            background: isDarkMode ? "rgba(0, 0, 0, 0.72)" : "rgba(18, 26, 47, 0.45)",
-            backdropFilter: "blur(14px)",
+            background: songTheme.modalOverlay,
+            backdropFilter: "blur(18px)",
             display: "flex",
             alignItems: isDesktop ? "center" : "flex-end",
             justifyContent: "center",
@@ -2564,11 +2674,9 @@ export default function App() {
             <div
               className={`${trackArtistsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`}
               style={{
-                background: isDarkMode
-                  ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #070B12 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #070B12 100%)")
-                  : (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor}25 0%, #FAFAF7 75%, #F3F0E6 100%)` : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)"),
+                background: songTheme.modalBg,
                 backdropFilter: "blur(24px)",
-                border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.16)" : "1px solid rgba(26, 43, 76, 0.12)",
+                border: songTheme.modalBorder,
                 padding: "28px",
                 borderRadius: "22px",
                 width: "100%",
@@ -2576,19 +2684,19 @@ export default function App() {
                 position: "relative",
                 maxHeight: "80vh",
                 overflowY: "auto",
-                boxShadow: isDarkMode ? "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)" : "0 20px 50px rgba(26, 43, 76, 0.16)",
-                color: "#FFFFFF"
+                boxShadow: songTheme.modalShadow,
+                color: songTheme.textColor
               }}
               onClick={e => e.stopPropagation()}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" }}>
-                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.3px" }}>Artists</h2>
+                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Artists</h2>
                 <button
                   onClick={() => setShowTrackArtistsModal(false)}
                   style={{
-                    background: "rgba(255, 255, 255, 0.12)",
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
-                    color: "#FFFFFF",
+                    color: songTheme.textColor,
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
@@ -2626,23 +2734,23 @@ export default function App() {
                         cursor: "pointer",
                         padding: "10px 14px",
                         borderRadius: "14px",
-                        background: "rgba(255, 255, 255, 0.08)",
-                        border: "1px solid rgba(255, 255, 255, 0.12)",
+                        background: songTheme.rowBg,
+                        border: songTheme.rowBorder,
                         transition: "all 0.2s ease"
                       }}
                     >
-                      <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.12)", flexShrink: 0, boxShadow: isDarkMode ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(26, 43, 76, 0.1)" }}>
+                      <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(26, 43, 76, 0.08)", flexShrink: 0, boxShadow: isDarkMode ? "0 4px 12px rgba(0,0,0,0.3)" : "0 4px 12px rgba(26, 43, 76, 0.1)" }}>
                         {dbArtist?.image_url ? (
                           <img src={dbArtist.image_url} alt={artistName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         ) : (
                           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <User size={22} color="#FFFFFF" />
+                            <User size={22} color={songTheme.textColor} />
                           </div>
                         )}
                       </div>
                       <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column" }}>
-                        <span style={{ fontSize: "15px", color: "#FFFFFF", fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{artistName}</span>
-                        <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.65)", marginTop: "2px" }}>View artist</span>
+                        <span style={{ fontSize: "15px", color: songTheme.textColor, fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{artistName}</span>
+                        <span style={{ fontSize: "12px", color: songTheme.textMuted, marginTop: "2px" }}>View artist</span>
                       </div>
                     </div>
                   );
@@ -2654,9 +2762,9 @@ export default function App() {
               onClose={() => setShowTrackArtistsModal(false)}
               className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`}
               style={{
-                background: isDarkMode
-                  ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #070B12 100%)` : COLORS.bgPanel)
-                  : (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor}25 0%, #FAFAF7 75%, #F3F0E6 100%)` : COLORS.bgPanel),
+                background: songTheme.modalBg,
+                backdropFilter: "blur(24px)",
+                borderTop: songTheme.modalBorder,
                 padding: "24px",
                 borderRadius: "24px 24px 0 0",
                 width: "100%",
@@ -2664,19 +2772,19 @@ export default function App() {
                 position: "relative",
                 maxHeight: "80vh",
                 overflowY: "auto",
-                boxShadow: isDarkMode ? "0 -10px 40px rgba(0,0,0,0.5)" : "0 -10px 40px rgba(26, 43, 76, 0.15)",
-                color: "#FFFFFF"
+                boxShadow: songTheme.modalShadow,
+                color: songTheme.textColor
               }}
             >
-              <div style={{ width: "40px", height: "4px", background: "rgba(255,255,255,0.3)", borderRadius: "2px", margin: "0 auto 20px" }} />
+              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(26,43,76,0.2)", borderRadius: "2px", margin: "0 auto 20px" }} />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF" }}>Artists</h2>
+                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor }}>Artists</h2>
                 <button
                   onClick={() => setShowTrackArtistsModal(false)}
                   style={{
-                    background: "rgba(255, 255, 255, 0.12)",
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
-                    color: "#FFFFFF",
+                    color: songTheme.textColor,
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
@@ -2712,22 +2820,22 @@ export default function App() {
                         cursor: "pointer",
                         padding: "10px 12px",
                         borderRadius: "14px",
-                        background: "rgba(255, 255, 255, 0.08)",
-                        border: "1px solid rgba(255, 255, 255, 0.12)"
+                        background: songTheme.rowBg,
+                        border: songTheme.rowBorder
                       }}
                     >
-                      <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.12)", flexShrink: 0 }}>
+                      <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(26, 43, 76, 0.08)", flexShrink: 0 }}>
                         {dbArtist?.image_url ? (
                           <img src={dbArtist.image_url} alt={artistName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         ) : (
                           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <User size={22} color="#FFFFFF" />
+                            <User size={22} color={songTheme.textColor} />
                           </div>
                         )}
                       </div>
                       <div style={{ minWidth: 0, flex: 1, display: "flex", flexDirection: "column" }}>
-                        <span style={{ fontSize: "15px", color: "#FFFFFF", fontWeight: "700" }}>{artistName}</span>
-                        <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.65)", marginTop: "2px" }}>View artist</span>
+                        <span style={{ fontSize: "15px", color: songTheme.textColor, fontWeight: "700" }}>{artistName}</span>
+                        <span style={{ fontSize: "12px", color: songTheme.textMuted, marginTop: "2px" }}>View artist</span>
                       </div>
                     </div>
                   );
@@ -2745,8 +2853,8 @@ export default function App() {
           style={{
             position: "fixed",
             inset: 0,
-            background: isDarkMode ? "rgba(0, 0, 0, 0.72)" : "rgba(18, 26, 47, 0.45)",
-            backdropFilter: "blur(14px)",
+            background: songTheme.modalOverlay,
+            backdropFilter: "blur(18px)",
             display: "flex",
             alignItems: isDesktop ? "center" : "flex-end",
             justifyContent: "center",
@@ -2759,11 +2867,9 @@ export default function App() {
             <div
               className={`${fullscreenQueueClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`}
               style={{
-                background: isDarkMode
-                  ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #070B12 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #070B12 100%)")
-                  : (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor}25 0%, #FAFAF7 75%, #F3F0E6 100%)` : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)"),
+                background: songTheme.modalBg,
                 backdropFilter: "blur(24px)",
-                border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.16)" : "1px solid rgba(26, 43, 76, 0.12)",
+                border: songTheme.modalBorder,
                 padding: "26px 28px",
                 borderRadius: "22px",
                 width: "100%",
@@ -2771,8 +2877,8 @@ export default function App() {
                 position: "relative",
                 maxHeight: "82vh",
                 overflowY: "auto",
-                boxShadow: isDarkMode ? "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)" : "0 20px 50px rgba(26, 43, 76, 0.16)",
-                color: "#FFFFFF",
+                boxShadow: songTheme.modalShadow,
+                color: songTheme.textColor,
                 display: "flex",
                 flexDirection: "column"
               }}
@@ -2780,8 +2886,8 @@ export default function App() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <ListMusic size={22} color="#FFFFFF" />
-                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.3px" }}>Queue</h2>
+                  <ListMusic size={22} color={songTheme.textColor} />
+                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Queue</h2>
                   {userQueue.length > 0 && (
                     <span style={{ background: COLORS.spotifyGreen, color: "#FFFFFF", borderRadius: "12px", padding: "2px 8px", fontSize: "11px", fontWeight: "700" }}>
                       {userQueue.length}
@@ -2791,9 +2897,9 @@ export default function App() {
                 <button
                   onClick={() => setShowFullscreenQueueModal(false)}
                   style={{
-                    background: "rgba(255, 255, 255, 0.12)",
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
-                    color: "#FFFFFF",
+                    color: songTheme.textColor,
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
@@ -2819,9 +2925,9 @@ export default function App() {
               onClose={() => setShowFullscreenQueueModal(false)}
               className={`${fullscreenQueueClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`}
               style={{
-                background: isDarkMode
-                  ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #070B12 100%)` : COLORS.bgPanel)
-                  : (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor}25 0%, #FAFAF7 75%, #F3F0E6 100%)` : COLORS.bgPanel),
+                background: songTheme.modalBg,
+                backdropFilter: "blur(24px)",
+                borderTop: songTheme.modalBorder,
                 padding: "24px",
                 borderRadius: "24px 24px 0 0",
                 width: "100%",
@@ -2829,15 +2935,15 @@ export default function App() {
                 position: "relative",
                 maxHeight: "82vh",
                 overflowY: "auto",
-                boxShadow: isDarkMode ? "0 -10px 40px rgba(0,0,0,0.5)" : "0 -10px 40px rgba(26, 43, 76, 0.15)",
-                color: "#FFFFFF"
+                boxShadow: songTheme.modalShadow,
+                color: songTheme.textColor
               }}
             >
-              <div style={{ width: "40px", height: "4px", background: "rgba(255,255,255,0.3)", borderRadius: "2px", margin: "0 auto 20px" }} />
+              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(26,43,76,0.2)", borderRadius: "2px", margin: "0 auto 20px" }} />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <ListMusic size={22} color="#FFFFFF" />
-                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF" }}>Queue</h2>
+                  <ListMusic size={22} color={songTheme.textColor} />
+                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor }}>Queue</h2>
                   {userQueue.length > 0 && (
                     <span style={{ background: COLORS.spotifyGreen, color: "#FFFFFF", borderRadius: "12px", padding: "2px 8px", fontSize: "11px", fontWeight: "700" }}>
                       {userQueue.length}
@@ -2847,9 +2953,9 @@ export default function App() {
                 <button
                   onClick={() => setShowFullscreenQueueModal(false)}
                   style={{
-                    background: "rgba(255, 255, 255, 0.12)",
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
-                    color: "#FFFFFF",
+                    color: songTheme.textColor,
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
@@ -2873,22 +2979,22 @@ export default function App() {
 
       {/* ADD TO PLAYLIST MODAL */}
       {renderSongForPlaylist && (
-        <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: isDarkMode ? "rgba(0, 0, 0, 0.72)" : "rgba(18, 26, 47, 0.45)", backdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
-          <div className={`${songForPlaylistClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: isDarkMode ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #080C14 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #080C14 100%)") : (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor}25 0%, #FAFAF7 75%, #F3F0E6 100%)` : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)"), backdropFilter: "blur(24px)", border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.16)" : "1px solid rgba(26, 43, 76, 0.12)", padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: isDarkMode ? "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)" : "0 20px 50px rgba(26, 43, 76, 0.16)", color: "#FFFFFF" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#FFFFFF", cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: "#FFFFFF", fontWeight: "800" }}><FolderPlus color="#FFFFFF" size={22} /> Add to Playlist</h2>
-            <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: "rgba(255, 255, 255, 0.75)" }}>"{safeSongForPlaylist?.title}"</p>
+        <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
+          <div className={`${songForPlaylistClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: songTheme.textColor, fontWeight: "800" }}><FolderPlus color={songTheme.textColor} size={22} /> Add to Playlist</h2>
+            <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: songTheme.textMuted }}>"{safeSongForPlaylist?.title}"</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {userPlaylists.length > 0
                 ? userPlaylists.map(pl => (
-                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", color: "#FFFFFF", fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.12)", transition: "all 0.2s" }}>
-                      <ListMusic size={18} color="#FFFFFF" /> {pl.name}
+                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, transition: "all 0.2s" }}>
+                      <ListMusic size={18} color={songTheme.textColor} /> {pl.name}
                     </button>
                   ))
                 : (
                   <div style={{ textAlign: "center", padding: "16px 0" }}>
-                    <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "14px", margin: "0 0 16px 0" }}>You don't have any playlists yet.</p>
-                    <button onClick={() => { setSongForPlaylistModal(null); setShowPlaylistModal(true); }} style={{ background: "#FFFFFF", color: "#070B12", border: "none", borderRadius: "12px", padding: "12px 20px", fontWeight: "bold", cursor: "pointer" }} className="hover-effect">
+                    <p style={{ color: songTheme.textMuted, fontSize: "14px", margin: "0 0 16px 0" }}>You don't have any playlists yet.</p>
+                    <button onClick={() => { setSongForPlaylistModal(null); setShowPlaylistModal(true); }} style={{ background: isDarkMode ? "#FFFFFF" : "#1A2B4C", color: isDarkMode ? "#070B12" : "#FFFFFF", border: "none", borderRadius: "12px", padding: "12px 20px", fontWeight: "bold", cursor: "pointer" }} className="hover-effect">
                       Create a Playlist
                     </button>
                   </div>
@@ -3215,9 +3321,9 @@ export default function App() {
 
         {/* RIGHT DESKTOP PLAYER */}
         {isDesktop && currentTrack && (
-          <div style={{ width: "320px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", boxSizing: "border-box", position: "relative", overflow: "hidden", border: `1px solid ${COLORS.border}` }}>
+          <div style={{ width: "320px", flexShrink: 0, background: songTheme.sidebarBg, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", boxSizing: "border-box", position: "relative", overflow: "hidden", border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.25)` : "1px solid rgba(255, 255, 255, 0.1)") : `1px solid ${COLORS.border}`, boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.12)` : "none") : "0 8px 24px rgba(26,43,76,0.06)" }}>
             {currentTrack.poster_url && (
-              <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: "blur(50px) brightness(1) saturate(100%)", opacity: 0.35, zIndex: 0, pointerEvents: "none" }} />
+              <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: isDarkMode ? "blur(50px) brightness(0.65) saturate(120%)" : "blur(50px) brightness(1.1) saturate(95%)", opacity: isDarkMode ? 0.35 : 0.18, zIndex: 0, pointerEvents: "none" }} />
             )}
             
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
@@ -3339,9 +3445,7 @@ export default function App() {
           position: "fixed", 
           inset: 0, 
           zIndex: 4000, 
-          background: isDarkMode 
-            ? (dominantColor ? `linear-gradient(to bottom, ${dominantColor} 0%, #121212 100%)` : "#121212")
-            : (dominantColor ? `radial-gradient(ellipse at 50% 20%, ${dominantColor}30 0%, #F8F5EE 60%, #EFEBE1 100%)` : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)"),
+          background: songTheme.mobilePlayerBg,
           display: "flex", 
           flexDirection: "column", 
           overflow: "hidden" 
@@ -3356,8 +3460,8 @@ export default function App() {
               backgroundImage: `url(${currentTrack?.poster_url})`, 
               backgroundSize: "cover", 
               backgroundPosition: "center", 
-              filter: isDarkMode ? "blur(60px) brightness(1.2) saturate(80%)" : "blur(60px) brightness(1.05) saturate(90%)", 
-              opacity: isDarkMode ? 0.15 : 0.18, 
+              filter: isDarkMode ? "blur(70px) brightness(0.65) saturate(130%)" : "blur(70px) brightness(1.1) saturate(95%)", 
+              opacity: isDarkMode ? 0.35 : 0.20, 
               zIndex: 0, 
               pointerEvents: "none" 
             }} />
@@ -3430,13 +3534,7 @@ export default function App() {
             display: "flex",
             flexDirection: "column",
             backgroundColor: isDarkMode ? "#0A0E17" : "#F3F0E6",
-            background: isDarkMode
-              ? (dominantColor
-                  ? `radial-gradient(ellipse at 50% 25%, ${dominantColor} 0%, #060910 100%)`
-                  : "radial-gradient(ellipse at 50% 25%, #182844 0%, #060910 100%)")
-              : (dominantColor
-                  ? `radial-gradient(ellipse at 50% 20%, ${dominantColor}30 0%, #F8F5EE 60%, #EFEBE1 100%)`
-                  : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)"),
+            background: songTheme.playerBg,
             overflow: "hidden",
             color: isDarkMode ? "#FFFFFF" : "#1A2B4C",
             fontFamily: "inherit"
@@ -3454,8 +3552,8 @@ export default function App() {
                 backgroundImage: `url(${currentTrack.poster_url})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                filter: isDarkMode ? "blur(90px) brightness(0.55) saturate(130%)" : "blur(90px) brightness(1.05) saturate(90%)",
-                opacity: isDarkMode ? 0.35 : 0.18,
+                filter: isDarkMode ? "blur(90px) brightness(0.65) saturate(135%)" : "blur(90px) brightness(1.15) saturate(95%)",
+                opacity: isDarkMode ? 0.38 : 0.20,
                 zIndex: 0,
                 pointerEvents: "none"
               }}
@@ -3687,12 +3785,12 @@ export default function App() {
                       backdropFilter: "blur(20px)",
                       borderRadius: "14px",
                       padding: "16px 20px",
-                      border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(26, 43, 76, 0.1)",
+                      border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.22)` : "1px solid rgba(255,255,255,0.08)") : (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.18)` : "1px solid rgba(26, 43, 76, 0.1)"),
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
                       minHeight: "92px",
-                      boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(26, 43, 76, 0.08)"
+                      boxShadow: isDarkMode ? (dominantRgb ? `0 8px 24px rgba(0,0,0,0.35), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.08)` : "0 8px 24px rgba(0,0,0,0.3)") : "0 8px 24px rgba(26, 43, 76, 0.08)"
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -3730,12 +3828,12 @@ export default function App() {
                       backdropFilter: "blur(20px)",
                       borderRadius: "14px",
                       padding: "16px 20px",
-                      border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(26, 43, 76, 0.1)",
+                      border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.22)` : "1px solid rgba(255,255,255,0.08)") : (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.18)` : "1px solid rgba(26, 43, 76, 0.1)"),
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
                       minHeight: "92px",
-                      boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(26, 43, 76, 0.08)"
+                      boxShadow: isDarkMode ? (dominantRgb ? `0 8px 24px rgba(0,0,0,0.35), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.08)` : "0 8px 24px rgba(0,0,0,0.3)") : "0 8px 24px rgba(26, 43, 76, 0.08)"
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -3848,12 +3946,12 @@ export default function App() {
                       backdropFilter: "blur(20px)",
                       borderRadius: "14px",
                       padding: "16px 20px",
-                      border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(26, 43, 76, 0.1)",
+                      border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.22)` : "1px solid rgba(255,255,255,0.08)") : (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.18)` : "1px solid rgba(26, 43, 76, 0.1)"),
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
                       minHeight: "92px",
-                      boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(26, 43, 76, 0.08)"
+                      boxShadow: isDarkMode ? (dominantRgb ? `0 8px 24px rgba(0,0,0,0.35), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.08)` : "0 8px 24px rgba(0,0,0,0.3)") : "0 8px 24px rgba(26, 43, 76, 0.08)"
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -3891,12 +3989,12 @@ export default function App() {
                       backdropFilter: "blur(20px)",
                       borderRadius: "14px",
                       padding: "16px 20px",
-                      border: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(26, 43, 76, 0.1)",
+                      border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.22)` : "1px solid rgba(255,255,255,0.08)") : (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.18)` : "1px solid rgba(26, 43, 76, 0.1)"),
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "space-between",
                       minHeight: "92px",
-                      boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.3)" : "0 8px 24px rgba(26, 43, 76, 0.08)"
+                      boxShadow: isDarkMode ? (dominantRgb ? `0 8px 24px rgba(0,0,0,0.35), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.08)` : "0 8px 24px rgba(0,0,0,0.3)") : "0 8px 24px rgba(26, 43, 76, 0.08)"
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
