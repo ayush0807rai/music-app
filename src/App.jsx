@@ -1,6 +1,7 @@
 import React, { 
   useState, useRef, useEffect, useMemo, useCallback } 
 from "react";
+import { flushSync } from "react-dom";
 import {
   DndContext,
   closestCenter,
@@ -466,54 +467,24 @@ export default function App() {
     localStorage.setItem("euphony_dark_mode", isDarkMode);
   }, [isDarkMode]);
 
-  const toggleDarkMode = (e) => {
+  const toggleDarkMode = () => {
     const nextDark = !isDarkMode;
-    if (!document.startViewTransition) {
+    if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setIsDarkMode(nextDark);
       return;
     }
 
-    const x = e?.clientX ?? (window.innerWidth / 2);
-    const y = e?.clientY ?? (window.innerHeight / 2);
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
+    document.documentElement.classList.add('theme-transitioning');
 
     const transition = document.startViewTransition(() => {
-      setIsDarkMode(nextDark);
+      flushSync(() => {
+        setIsDarkMode(nextDark);
+      });
     });
 
-    transition.ready.then(() => {
-      try {
-        const anim = document.documentElement.animate(
-          {
-            clipPath: [
-              `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`
-            ]
-          },
-          {
-            duration: 450,
-            easing: "cubic-bezier(0.25, 1, 0.5, 1)",
-            pseudoElement: "::view-transition-new(root)"
-          }
-        );
-        if (!anim) {
-          document.documentElement.animate(
-            { opacity: [0, 1] },
-            { duration: 350, easing: "ease", pseudoElement: "::view-transition-new(root)" }
-          );
-        }
-      } catch (err) {
-        try {
-          document.documentElement.animate(
-            { opacity: [0, 1] },
-            { duration: 350, easing: "ease", pseudoElement: "::view-transition-new(root)" }
-          );
-        } catch (e2) {}
-      }
-    }).catch(() => {});
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove('theme-transitioning');
+    });
   };
 
   const COLORS = isDarkMode ? {
@@ -2373,17 +2344,44 @@ export default function App() {
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         input, textarea { -webkit-user-select: auto; -moz-user-select: auto; user-select: auto; outline: none; }
         
+        /* Disable element-level CSS transitions during snapshot capture to avoid layout / paint collision */
+        html.theme-transitioning,
+        html.theme-transitioning * {
+          transition: none !important;
+        }
+
+        ::view-transition-group(root) {
+          animation-duration: 300ms;
+          animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
         ::view-transition-old(root),
         ::view-transition-new(root) {
-          animation: none;
+          animation-duration: 300ms;
+          animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
           mix-blend-mode: normal;
         }
+
         ::view-transition-old(root) {
+          animation-name: theme-fade-out;
           z-index: 1;
         }
+
         ::view-transition-new(root) {
-          z-index: 9999;
+          animation-name: theme-fade-in;
+          z-index: 2;
         }
+
+        @keyframes theme-fade-out {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+
+        @keyframes theme-fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           ::view-transition-group(*),
           ::view-transition-old(*),
