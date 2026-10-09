@@ -1560,29 +1560,61 @@ export default function App() {
     
     setIsUploading(true);
     try {
-      const fileExt = uploadFile.name.split('.').pop().toLowerCase();
-      const cleanTitle = uploadTitle.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-      const fileName = `${session.user.id}-${Date.now()}-${cleanTitle}.${fileExt}`;
+      // 1. Upload audio directly to Cloudinary (Free 25 GB tier)
+      const audioFormData = new FormData();
+      audioFormData.append("upload_preset", "app_songs");
+      audioFormData.append("file", uploadFile);
+
+      const audioRes = await fetch("https://api.cloudinary.com/v1_1/cpsimhz1/auto/upload", {
+        method: "POST",
+        body: audioFormData
+      });
+      if (!audioRes.ok) {
+        const errData = await audioRes.json().catch(() => ({}));
+        throw new Error(errData.error?.message || "Audio upload to Cloudinary failed.");
+      }
+      const audioData = await audioRes.json();
+      const audioUrl = audioData.secure_url;
       
-      const { error: audioError } = await supabase.storage.from("songs").upload(fileName, uploadFile, { cacheControl: "3600" });
-      if (audioError) throw audioError;
-      const { data: { publicUrl: audioUrl } } = supabase.storage.from("songs").getPublicUrl(fileName);
-      
+      // 2. Upload poster directly to Cloudinary if provided
       let posterUrl = null;
       if (uploadPoster) {
-        const posterExt = uploadPoster.name.split('.').pop().toLowerCase();
-        const posterName = `${session.user.id}-${Date.now()}-poster.${posterExt}`;
-        const { error: posterError } = await supabase.storage.from("songs").upload(posterName, uploadPoster, { cacheControl: "3600" });
-        if (posterError) throw posterError;
-        posterUrl = supabase.storage.from("songs").getPublicUrl(posterName).data.publicUrl;
+        const posterFormData = new FormData();
+        posterFormData.append("upload_preset", "app_songs");
+        posterFormData.append("file", uploadPoster);
+
+        const posterRes = await fetch("https://api.cloudinary.com/v1_1/cpsimhz1/auto/upload", {
+          method: "POST",
+          body: posterFormData
+        });
+        if (!posterRes.ok) {
+          const errData = await posterRes.json().catch(() => ({}));
+          throw new Error(errData.error?.message || "Poster upload to Cloudinary failed.");
+        }
+        const posterData = await posterRes.json();
+        posterUrl = posterData.secure_url;
       }
-      const { data: dbData, error: dbError } = await supabase.from("songs").insert([{ title: uploadTitle, artist: uploadArtist, album: uploadAlbum || null, lyrics: uploadLyrics || null, url: audioUrl, poster_url: posterUrl }]).select();
+
+      // 3. Save song metadata and direct Cloudinary URL into Supabase database
+      const { data: dbData, error: dbError } = await supabase.from("songs").insert([{ 
+        title: uploadTitle, 
+        artist: uploadArtist, 
+        album: uploadAlbum || null, 
+        lyrics: uploadLyrics || null, 
+        url: audioUrl, 
+        poster_url: posterUrl 
+      }]).select();
       if (dbError) throw dbError;
+
       setPlaylist(prev => [...prev, dbData[0]]);
       setShowUploadModal(false);
       setUploadTitle(""); setUploadArtist(""); setUploadAlbum(""); setUploadLyrics(""); setUploadFile(null); setUploadPoster(null);
-      alert("Song uploaded successfully!");
-    } catch (error) { alert("Error uploading: " + error.message); } finally { setIsUploading(false); }
+      alert("Song uploaded successfully to Cloudinary!");
+    } catch (error) { 
+      alert("Error uploading: " + error.message); 
+    } finally { 
+      setIsUploading(false); 
+    }
   };
 
   const handlePasswordReset = async (e) => {
