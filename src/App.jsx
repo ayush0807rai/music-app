@@ -611,21 +611,6 @@ export default function App() {
     }
   }, [playbackQueue, playbackIndex, playbackSourceName]);
 
-  // Ensure playbackQueue is always hydrated with songs from the library if empty
-  useEffect(() => {
-    if (playlist.length > 0 && playbackQueue.length === 0) {
-      const queueWithIds = playlist.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
-      setPlaybackQueue(queueWithIds);
-      if (currentTrack) {
-        const foundIdx = queueWithIds.findIndex(s => s.id === currentTrack.id);
-        if (foundIdx !== -1) {
-          setPlaybackIndex(foundIdx);
-          setQueueCurrentTrack(null);
-        }
-      }
-    }
-  }, [playlist, playbackQueue.length, currentTrack?.id]);
-
 
 
   const [showLyrics, setShowLyrics] = useState(false);
@@ -802,6 +787,21 @@ export default function App() {
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
+
+  // Ensure playbackQueue is always hydrated with songs from the library if empty
+  useEffect(() => {
+    if (playlist.length > 0 && playbackQueue.length === 0) {
+      const queueWithIds = playlist.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+      setPlaybackQueue(queueWithIds);
+      if (currentTrack) {
+        const foundIdx = queueWithIds.findIndex(s => s.id === currentTrack.id);
+        if (foundIdx !== -1) {
+          setPlaybackIndex(foundIdx);
+          setQueueCurrentTrack(null);
+        }
+      }
+    }
+  }, [playlist, playbackQueue.length, currentTrack?.id]);
 
   useEffect(() => {
     if (currentTrack?.poster_url) {
