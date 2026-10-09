@@ -50,14 +50,22 @@ async function uploadStemBlob(trackId, type, remoteUrl) {
   if (!blob || blob.size < 1024) throw new Error(`The ${type} stem was empty. Re-run the Colab cell and try again.`);
 
   const ext = (blob.type || "").includes("wav") || remoteUrl.includes(".wav") ? "wav" : "mp3";
-  const fileName = `stems/${trackId}_${type}_${Date.now()}.${ext}`;
-  const { error } = await supabase.storage.from("songs").upload(fileName, blob, {
-    cacheControl: "3600",
-    contentType: blob.type || (ext === "wav" ? "audio/wav" : "audio/mpeg"),
-    upsert: true,
+  const fileName = `${trackId}_${type}_${Date.now()}.${ext}`;
+
+  const formData = new FormData();
+  formData.append("upload_preset", "app_songs");
+  formData.append("file", blob, fileName);
+
+  const cloudRes = await fetch("https://api.cloudinary.com/v1_1/cpsimhz1/auto/upload", {
+    method: "POST",
+    body: formData,
   });
-  if (error) throw new Error(`Supabase upload failed for ${type}: ${error.message}`);
-  return supabase.storage.from("songs").getPublicUrl(fileName).data.publicUrl;
+  if (!cloudRes.ok) {
+    const err = await cloudRes.json().catch(() => ({}));
+    throw new Error(`Cloudinary upload failed for ${type}: ${err.error?.message || cloudRes.statusText}`);
+  }
+  const cloudData = await cloudRes.json();
+  return cloudData.secure_url;
 }
 
 export async function generateAndStoreStems(currentTrack, onStatus) {
