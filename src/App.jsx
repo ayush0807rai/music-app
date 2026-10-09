@@ -396,11 +396,11 @@ const getSongThemeGradients = (rgb, isDark) => {
         ? "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)"
         : "0 20px 50px rgba(26, 43, 76, 0.16)",
       playerBg: isDark
-        ? "radial-gradient(ellipse at 50% 32%, rgba(24, 40, 68, 0.6) 0%, #06080D 100%)"
-        : "radial-gradient(ellipse at 50% 28%, rgba(26, 43, 76, 0.08) 0%, #F8F5EE 75%, #EFEBE1 100%)",
+        ? "radial-gradient(ellipse 95% 75% at 50% 32%, rgba(28, 45, 75, 0.65) 0%, rgba(7, 10, 17, 0.88) 75%, #070A11 100%)"
+        : "radial-gradient(ellipse 95% 75% at 50% 30%, rgba(26, 43, 76, 0.12) 0%, rgba(244, 239, 230, 0.88) 75%, #F4EFE6 100%)",
       mobilePlayerBg: isDark
-        ? "#121212"
-        : "linear-gradient(180deg, #FAFAF7 0%, #F3F0E6 100%)",
+        ? "radial-gradient(circle at 50% 28%, rgba(28, 45, 75, 0.6) 0%, #070A11 100%)"
+        : "radial-gradient(circle at 50% 28%, rgba(26, 43, 76, 0.10) 0%, #F4EFE6 100%)",
       sidebarBg: isDark
         ? "radial-gradient(circle at 50% 0%, rgba(24, 40, 68, 0.4) 0%, #0A0F1A 100%)"
         : "radial-gradient(circle at 50% 0%, rgba(26, 43, 76, 0.06) 0%, #FAFAF7 70%, #F3F0E6 100%)",
@@ -419,8 +419,8 @@ const getSongThemeGradients = (rgb, isDark) => {
       modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.24) 0%, rgba(0, 0, 0, 0.78) 65%, rgba(0, 0, 0, 0.90) 100%)`,
       modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.35)`,
       modalShadow: `0 28px 70px rgba(0,0,0,0.85), 0 0 45px rgba(${r}, ${g}, ${b}, 0.28)`,
-      playerBg: `radial-gradient(ellipse at 50% 32%, rgba(${r}, ${g}, ${b}, 0.45) 0%, rgba(${r}, ${g}, ${b}, 0.18) 40%, rgba(9, 12, 18, 0.94) 75%, #06080D 100%)`,
-      mobilePlayerBg: `radial-gradient(circle at 50% 25%, rgba(${r}, ${g}, ${b}, 0.50) 0%, rgba(${r}, ${g}, ${b}, 0.18) 45%, #090C12 85%, #05070A 100%)`,
+      playerBg: `radial-gradient(ellipse 95% 75% at 50% 32%, rgba(${r}, ${g}, ${b}, 0.55) 0%, rgba(${r}, ${g}, ${b}, 0.22) 48%, rgba(7, 10, 17, 0.88) 78%, #070A11 100%)`,
+      mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.52) 0%, rgba(${r}, ${g}, ${b}, 0.20) 45%, rgba(7, 10, 17, 0.88) 75%, #070A11 100%)`,
       sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.35) 0%, rgba(10, 14, 22, 0.95) 70%, #070A10 100%)`,
       textColor: "#FFFFFF",
       textMuted: "rgba(255, 255, 255, 0.65)",
@@ -435,8 +435,8 @@ const getSongThemeGradients = (rgb, isDark) => {
       modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.16) 0%, rgba(18, 26, 47, 0.42) 70%, rgba(18, 26, 47, 0.55) 100%)`,
       modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.28)`,
       modalShadow: `0 24px 60px rgba(26, 43, 76, 0.16), 0 0 35px rgba(${r}, ${g}, ${b}, 0.18)`,
-      playerBg: `radial-gradient(ellipse at 50% 28%, rgba(${r}, ${g}, ${b}, 0.24) 0%, rgba(${r}, ${g}, ${b}, 0.08) 45%, #F8F5EE 80%, #EDE8DC 100%)`,
-      mobilePlayerBg: `radial-gradient(circle at 50% 25%, rgba(${r}, ${g}, ${b}, 0.28) 0%, rgba(${r}, ${g}, ${b}, 0.10) 45%, #F8F5EE 75%, #EFEBE1 100%)`,
+      playerBg: `radial-gradient(ellipse 95% 75% at 50% 30%, rgba(${r}, ${g}, ${b}, 0.32) 0%, rgba(${r}, ${g}, ${b}, 0.12) 48%, rgba(244, 239, 230, 0.88) 78%, #F4EFE6 100%)`,
+      mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.30) 0%, rgba(${r}, ${g}, ${b}, 0.12) 45%, rgba(244, 239, 230, 0.88) 75%, #F4EFE6 100%)`,
       sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.18) 0%, rgba(250, 250, 247, 0.95) 70%, #F3F0E6 100%)`,
       textColor: "#1A2B4C",
       textMuted: "rgba(26, 43, 76, 0.65)",
@@ -3445,11 +3445,22 @@ export default function App() {
           position: "fixed", 
           inset: 0, 
           zIndex: 4000, 
-          background: songTheme.mobilePlayerBg,
+          backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
           display: "flex", 
           flexDirection: "column", 
           overflow: "hidden" 
         }}>
+          {/* Guaranteed 100% Opaque Solid Base */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
+              zIndex: 0
+            }}
+          />
+
+          {/* Dynamic Ambient Blurred Cover Art Backdrop */}
           {currentTrack?.poster_url && (
             <div className="fade-enter" style={{ 
               position: "absolute", 
@@ -3460,12 +3471,23 @@ export default function App() {
               backgroundImage: `url(${currentTrack?.poster_url})`, 
               backgroundSize: "cover", 
               backgroundPosition: "center", 
-              filter: isDarkMode ? "blur(70px) brightness(0.65) saturate(130%)" : "blur(70px) brightness(1.1) saturate(95%)", 
-              opacity: isDarkMode ? 0.35 : 0.20, 
+              filter: isDarkMode ? "blur(80px) brightness(0.72) saturate(160%)" : "blur(80px) brightness(1.05) saturate(130%)", 
+              opacity: isDarkMode ? 0.52 : 0.35, 
               zIndex: 0, 
               pointerEvents: "none" 
             }} />
           )}
+
+          {/* Dynamic Song Theme Radial Gradient Overlay */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: songTheme.mobilePlayerBg,
+              zIndex: 0,
+              pointerEvents: "none"
+            }}
+          />
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
               <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><ChevronDown size={32} /></button>
@@ -3530,35 +3552,55 @@ export default function App() {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 9999,
+            zIndex: 10000,
             display: "flex",
             flexDirection: "column",
-            backgroundColor: isDarkMode ? "#0A0E17" : "#F3F0E6",
-            background: songTheme.playerBg,
+            backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
             overflow: "hidden",
             color: isDarkMode ? "#FFFFFF" : "#1A2B4C",
             fontFamily: "inherit"
           }}
         >
-          {/* Ambient blurred backdrop image */}
+          {/* Guaranteed 100% Opaque Solid Base to prevent underlying home page bleed */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
+              zIndex: 0
+            }}
+          />
+
+          {/* Dynamic Ambient Blurred Cover Art Backdrop */}
           {currentTrack.poster_url && (
             <div
               style={{
                 position: "absolute",
-                top: "-15%",
-                left: "-15%",
-                width: "130%",
-                height: "130%",
+                top: "-20%",
+                left: "-20%",
+                width: "140%",
+                height: "140%",
                 backgroundImage: `url(${currentTrack.poster_url})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                filter: isDarkMode ? "blur(90px) brightness(0.65) saturate(135%)" : "blur(90px) brightness(1.15) saturate(95%)",
-                opacity: isDarkMode ? 0.38 : 0.20,
+                filter: isDarkMode ? "blur(90px) brightness(0.72) saturate(165%)" : "blur(90px) brightness(1.05) saturate(135%)",
+                opacity: isDarkMode ? 0.55 : 0.38,
                 zIndex: 0,
                 pointerEvents: "none"
               }}
             />
           )}
+
+          {/* Dynamic Song Theme Radial Gradient Overlay */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: songTheme.playerBg,
+              zIndex: 0,
+              pointerEvents: "none"
+            }}
+          />
 
           {/* FULLSCREEN TOP BAR */}
           <div
