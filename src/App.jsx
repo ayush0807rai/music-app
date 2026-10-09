@@ -642,29 +642,61 @@ export default function App() {
 
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
+  const openedFromTrackOptionsRef = useRef(false);
+  const isPopStateActionRef = useRef(false);
 
-  const prevModalState = useRef({ isMobilePlayerOpen: false, showQueue: false, showMixer: false, showUploadModal: false, showPlaylistModal: false, showTrackOptionsModal: false, showSleepTimerModal: false, showTrackArtistsModal: false, hasSongForPlaylist: false, hasViewedPlaylist: false, hasSelectedArtist: false, hasSelectedAlbum: false });
+  const prevModalState = useRef({
+    isDesktopFullscreen: false,
+    showFullscreenQueueModal: false,
+    isMobilePlayerOpen: false,
+    showQueue: false,
+    showMixer: false,
+    showUploadModal: false,
+    showPlaylistModal: false,
+    showTrackOptionsModal: false,
+    showSleepTimerModal: false,
+    showTrackArtistsModal: false,
+    hasSongForPlaylist: false,
+    hasViewedPlaylist: false,
+    hasSelectedArtist: false,
+    hasSelectedAlbum: false
+  });
 
   useEffect(() => {
     const currentState = {
-      isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal,
+      isDesktopFullscreen,
+      showFullscreenQueueModal,
+      isMobilePlayerOpen,
+      showQueue,
+      showMixer,
+      showUploadModal,
+      showPlaylistModal,
+      showTrackOptionsModal,
+      showSleepTimerModal,
+      showTrackArtistsModal,
       hasSongForPlaylist: !!songForPlaylistModal,
       hasViewedPlaylist: viewedPlaylistId !== null,
       hasSelectedArtist: selectedArtist !== null,
       hasSelectedAlbum: selectedAlbum !== null
     };
 
+    if (isPopStateActionRef.current) {
+      isPopStateActionRef.current = false;
+      prevModalState.current = currentState;
+      return;
+    }
+
     let pushed = false;
     for (const key in currentState) {
       if (currentState[key] && !prevModalState.current[key]) {
         if (!pushed) {
-           window.history.pushState({ page: 'modal' }, '', window.location.pathname + window.location.search + '#modal');
-           pushed = true;
+          window.history.pushState({ page: 'modal' }, '', window.location.pathname + window.location.search + '#modal');
+          pushed = true;
         }
       }
     }
     prevModalState.current = currentState;
-  }, [isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId, selectedArtist, selectedAlbum]);
+  }, [isDesktopFullscreen, showFullscreenQueueModal, isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId, selectedArtist, selectedAlbum]);
   const stateRefs = useRef({});
 
   const pendingAutoPlayRef = useRef(false);
@@ -998,12 +1030,45 @@ export default function App() {
   const handleSetSleepTimer = (mins) => {
     if (mins === 0) { setSleepTimerTarget(null); triggerToast("Sleep timer turned off"); }
     else { setSleepTimerTarget(Date.now() + mins * 60000); triggerToast(`Sleep timer set for ${mins} minutes`); }
+    openedFromTrackOptionsRef.current = false;
     setShowSleepTimerModal(false);
   };
 
   useEffect(() => {
-    stateRefs.current = { showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist, selectedAlbum };
-  }, [showUploadModal, showPlaylistModal, songForPlaylistModal, showSleepTimerModal, showTrackOptionsModal, showTrackArtistsModal, isMobilePlayerOpen, viewedPlaylistId, showQueue, showMixer, isPlaying, selectedArtist, selectedAlbum]);
+    stateRefs.current = {
+      isDesktopFullscreen,
+      showFullscreenQueueModal,
+      showUploadModal,
+      showPlaylistModal,
+      songForPlaylistModal,
+      showSleepTimerModal,
+      showTrackOptionsModal,
+      showTrackArtistsModal,
+      isMobilePlayerOpen,
+      viewedPlaylistId,
+      showQueue,
+      showMixer,
+      isPlaying,
+      selectedArtist,
+      selectedAlbum
+    };
+  }, [
+    isDesktopFullscreen,
+    showFullscreenQueueModal,
+    showUploadModal,
+    showPlaylistModal,
+    songForPlaylistModal,
+    showSleepTimerModal,
+    showTrackOptionsModal,
+    showTrackArtistsModal,
+    isMobilePlayerOpen,
+    viewedPlaylistId,
+    showQueue,
+    showMixer,
+    isPlaying,
+    selectedArtist,
+    selectedAlbum
+  ]);
 
   useEffect(() => {
     // Prevent accidental closure of the app when music is playing (adds OS-level protection)
@@ -1048,20 +1113,88 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const s = stateRefs.current;
-      const isDesktopEnv = window.innerWidth > 768;
       let handled = false;
-      if (s.showUploadModal) { setShowUploadModal(false); handled = true; }
-      else if (s.showPlaylistModal) { setShowPlaylistModal(false); handled = true; }
-      else if (s.songForPlaylistModal) { setSongForPlaylistModal(null); handled = true; }
-      else if (s.showSleepTimerModal) { setShowSleepTimerModal(false); handled = true; }
-      else if (s.showTrackOptionsModal) { setShowTrackOptionsModal(false); handled = true; }
-      else if (s.showTrackArtistsModal) { setShowTrackArtistsModal(false); handled = true; }
-      else if (s.showMixer) { setShowMixer(false); handled = true; }
-      else if (s.showQueue) { setShowQueue(false); handled = true; }
-      else if (s.isMobilePlayerOpen) { setIsMobilePlayerOpen(false); handled = true; }
-      else if (s.viewedPlaylistId !== null) { setViewedPlaylistId(null); handled = true; }
-      else if (s.selectedArtist !== null) { setSelectedArtist(null); handled = true; }
-        else if (s.selectedAlbum !== null) { setSelectedAlbum(null); handled = true; }
+
+      // Tier 1: Sub-modals opened on top (artists, sleep timer, fullscreen queue, add to playlist)
+      if (s.showTrackArtistsModal) {
+        setShowTrackArtistsModal(false);
+        if (openedFromTrackOptionsRef.current) {
+          openedFromTrackOptionsRef.current = false;
+          isPopStateActionRef.current = true;
+          setShowTrackOptionsModal(true);
+        }
+        handled = true;
+      } else if (s.showSleepTimerModal) {
+        setShowSleepTimerModal(false);
+        if (openedFromTrackOptionsRef.current) {
+          openedFromTrackOptionsRef.current = false;
+          isPopStateActionRef.current = true;
+          setShowTrackOptionsModal(true);
+        }
+        handled = true;
+      } else if (s.showFullscreenQueueModal) {
+        setShowFullscreenQueueModal(false);
+        if (openedFromTrackOptionsRef.current) {
+          openedFromTrackOptionsRef.current = false;
+          isPopStateActionRef.current = true;
+          setShowTrackOptionsModal(true);
+        }
+        handled = true;
+      } else if (s.songForPlaylistModal) {
+        setSongForPlaylistModal(null);
+        if (openedFromTrackOptionsRef.current) {
+          openedFromTrackOptionsRef.current = false;
+          isPopStateActionRef.current = true;
+          setShowTrackOptionsModal(true);
+        }
+        handled = true;
+      }
+      // Tier 2: 3-dots options popup box
+      else if (s.showTrackOptionsModal) {
+        setShowTrackOptionsModal(false);
+        openedFromTrackOptionsRef.current = false;
+        handled = true;
+      }
+      // Tier 3: Standalone dialogs
+      else if (s.showUploadModal) {
+        setShowUploadModal(false);
+        handled = true;
+      } else if (s.showPlaylistModal) {
+        setShowPlaylistModal(false);
+        handled = true;
+      }
+      // Tier 4: Overlay panels (Queue & Mixer)
+      else if (s.showQueue) {
+        setShowQueue(false);
+        if (openedFromTrackOptionsRef.current) {
+          openedFromTrackOptionsRef.current = false;
+          isPopStateActionRef.current = true;
+          setShowTrackOptionsModal(true);
+        }
+        handled = true;
+      } else if (s.showMixer) {
+        setShowMixer(false);
+        handled = true;
+      }
+      // Tier 5: Fullscreen / expanded players (music continues running minimized!)
+      else if (s.isDesktopFullscreen) {
+        setIsDesktopFullscreen(false);
+        handled = true;
+      } else if (s.isMobilePlayerOpen) {
+        setIsMobilePlayerOpen(false);
+        handled = true;
+      }
+      // Tier 6: View filters & playlists
+      else if (s.viewedPlaylistId !== null) {
+        setViewedPlaylistId(null);
+        handled = true;
+      } else if (s.selectedArtist !== null) {
+        setSelectedArtist(null);
+        handled = true;
+      } else if (s.selectedAlbum !== null) {
+        setSelectedAlbum(null);
+        handled = true;
+      }
 
       if (handled) {
         // Do NOT push state here. The browser just popped the modal's state for us.
@@ -1529,20 +1662,43 @@ export default function App() {
     if (isDesktopFullscreen) {
       setTimeout(updateProgressVisuals, 10);
       setTimeout(updateProgressVisuals, 100);
+    }
+    const hasActiveModalOrFullscreen = isDesktopFullscreen || showFullscreenQueueModal || showTrackArtistsModal || showTrackOptionsModal || showSleepTimerModal || !!songForPlaylistModal;
+    if (hasActiveModalOrFullscreen) {
       const handleKeyDown = (e) => {
         if (e.key === "Escape") {
-          if (showFullscreenQueueModal) {
-            setShowFullscreenQueueModal(false);
-          } else if (showTrackArtistsModal) {
-            setShowTrackArtistsModal(false);
-          } else if (showTrackOptionsModal) {
-            setShowTrackOptionsModal(false);
-          } else if (showSleepTimerModal) {
-            setShowSleepTimerModal(false);
-          } else if (songForPlaylistModal) {
-            setSongForPlaylistModal(null);
+          if (window.history.state?.page === 'modal') {
+            window.history.back();
           } else {
-            setIsDesktopFullscreen(false);
+            if (showFullscreenQueueModal) {
+              setShowFullscreenQueueModal(false);
+              if (openedFromTrackOptionsRef.current) {
+                openedFromTrackOptionsRef.current = false;
+                setShowTrackOptionsModal(true);
+              }
+            } else if (showTrackArtistsModal) {
+              setShowTrackArtistsModal(false);
+              if (openedFromTrackOptionsRef.current) {
+                openedFromTrackOptionsRef.current = false;
+                setShowTrackOptionsModal(true);
+              }
+            } else if (showSleepTimerModal) {
+              setShowSleepTimerModal(false);
+              if (openedFromTrackOptionsRef.current) {
+                openedFromTrackOptionsRef.current = false;
+                setShowTrackOptionsModal(true);
+              }
+            } else if (songForPlaylistModal) {
+              setSongForPlaylistModal(null);
+              if (openedFromTrackOptionsRef.current) {
+                openedFromTrackOptionsRef.current = false;
+                setShowTrackOptionsModal(true);
+              }
+            } else if (showTrackOptionsModal) {
+              setShowTrackOptionsModal(false);
+            } else if (isDesktopFullscreen) {
+              setIsDesktopFullscreen(false);
+            }
           }
         }
       };
@@ -2685,9 +2841,9 @@ export default function App() {
 
       {/* SLEEP TIMER MODAL */}
       {renderSleepTimer && (
-        <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
+        <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setShowSleepTimerModal(false); }}>
           <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowSleepTimerModal(false); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: songTheme.textColor, fontWeight: "800", letterSpacing: "-0.3px" }}><Moon color={songTheme.textColor} size={22} /> Sleep Timer</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[5, 10, 20, 30, 60, 120].map(mins => (
@@ -2706,9 +2862,9 @@ export default function App() {
 
       {/* TRACK OPTIONS MODAL */}
       {renderTrackOptions && currentTrack && (
-        <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowTrackOptionsModal(false)}>
+        <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); }}>
           <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowTrackOptionsModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px", textAlign: "center" }}>
               <div style={{ width: "140px", height: "140px", borderRadius: "16px", overflow: "hidden", marginBottom: "16px", boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.5)" : "0 8px 24px rgba(26,43,76,0.15)", backgroundColor: COLORS.imageBg }}>
@@ -2718,22 +2874,22 @@ export default function App() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div onClick={() => { setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+              <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <User size={18} /> Go to artists
               </div>
-              <div onClick={() => { setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+              <div onClick={() => { openedFromTrackOptionsRef.current = true; setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <FolderPlus size={18} /> Add to playlist
               </div>
-              <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+              <div onClick={(e) => { openedFromTrackOptionsRef.current = false; addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <ListPlus size={18} /> Add to Queue
               </div>
-              <div onClick={() => { if (isDesktopFullscreen) { setShowFullscreenQueueModal(true); } else { setShowQueue(true); if (isMobilePlayerOpen) setIsMobilePlayerOpen(true); } setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+              <div onClick={() => { openedFromTrackOptionsRef.current = true; if (isDesktopFullscreen) { setShowFullscreenQueueModal(true); } else { setShowQueue(true); if (isMobilePlayerOpen) setIsMobilePlayerOpen(true); } setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <ListMusic size={18} /> Go to Queue
               </div>
-              <div onClick={() => { setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+              <div onClick={() => { openedFromTrackOptionsRef.current = false; setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <Disc size={18} /> Go to album
               </div>
-              <div onClick={() => { setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+              <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                 <Clock size={18} /> Sleep timer
               </div>
             </div>
@@ -2756,7 +2912,7 @@ export default function App() {
             zIndex: 10005,
             padding: isDesktop ? "24px" : "0"
           }}
-          onClick={() => setShowTrackArtistsModal(false)}
+          onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackArtistsModal(false); }}
         >
           {isDesktop ? (
             <div
@@ -2780,7 +2936,7 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" }}>
                 <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Artists</h2>
                 <button
-                  onClick={() => setShowTrackArtistsModal(false)}
+                  onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackArtistsModal(false); }}
                   style={{
                     background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
@@ -2807,6 +2963,7 @@ export default function App() {
                     <div
                       key={idx}
                       onClick={() => {
+                        openedFromTrackOptionsRef.current = false;
                         setSelectedArtist(artistName);
                         setSearchQuery('');
                         setViewedPlaylistId(null);
@@ -2847,7 +3004,7 @@ export default function App() {
             </div>
           ) : (
             <SwipeableBottomSheet
-              onClose={() => setShowTrackArtistsModal(false)}
+              onClose={() => { openedFromTrackOptionsRef.current = false; setShowTrackArtistsModal(false); }}
               className={`${trackArtistsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`}
               style={{
                 background: songTheme.modalBg,
@@ -2868,7 +3025,7 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor }}>Artists</h2>
                 <button
-                  onClick={() => setShowTrackArtistsModal(false)}
+                  onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackArtistsModal(false); }}
                   style={{
                     background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
@@ -2893,6 +3050,7 @@ export default function App() {
                     <div
                       key={idx}
                       onClick={() => {
+                        openedFromTrackOptionsRef.current = false;
                         setSelectedArtist(artistName);
                         setSearchQuery('');
                         setViewedPlaylistId(null);
@@ -2949,7 +3107,7 @@ export default function App() {
             zIndex: 10005,
             padding: isDesktop ? "24px" : "0"
           }}
-          onClick={() => setShowFullscreenQueueModal(false)}
+          onClick={() => { openedFromTrackOptionsRef.current = false; setShowFullscreenQueueModal(false); }}
         >
           {isDesktop ? (
             <div
@@ -2983,7 +3141,7 @@ export default function App() {
                   )}
                 </div>
                 <button
-                  onClick={() => setShowFullscreenQueueModal(false)}
+                  onClick={() => { openedFromTrackOptionsRef.current = false; setShowFullscreenQueueModal(false); }}
                   style={{
                     background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
@@ -3010,7 +3168,7 @@ export default function App() {
             </div>
           ) : (
             <SwipeableBottomSheet
-              onClose={() => setShowFullscreenQueueModal(false)}
+              onClose={() => { openedFromTrackOptionsRef.current = false; setShowFullscreenQueueModal(false); }}
               className={`${fullscreenQueueClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`}
               style={{
                 background: songTheme.modalBg,
@@ -3039,7 +3197,7 @@ export default function App() {
                   )}
                 </div>
                 <button
-                  onClick={() => setShowFullscreenQueueModal(false)}
+                  onClick={() => { openedFromTrackOptionsRef.current = false; setShowFullscreenQueueModal(false); }}
                   style={{
                     background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
@@ -3067,22 +3225,22 @@ export default function App() {
 
       {/* ADD TO PLAYLIST MODAL */}
       {renderSongForPlaylist && (
-        <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
+        <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(null); }}>
           <div className={`${songForPlaylistClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <button onClick={() => { openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(null); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
             <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: songTheme.textColor, fontWeight: "800" }}><FolderPlus color={songTheme.textColor} size={22} /> Add to Playlist</h2>
             <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: songTheme.textMuted }}>"{safeSongForPlaylist?.title}"</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {userPlaylists.length > 0
                 ? userPlaylists.map(pl => (
-                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, transition: "all 0.2s" }}>
+                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, transition: "all 0.2s" }}>
                       <ListMusic size={18} color={songTheme.textColor} /> {pl.name}
                     </button>
                   ))
                 : (
                   <div style={{ textAlign: "center", padding: "16px 0" }}>
                     <p style={{ color: songTheme.textMuted, fontSize: "14px", margin: "0 0 16px 0" }}>You don't have any playlists yet.</p>
-                    <button onClick={() => { setSongForPlaylistModal(null); setShowPlaylistModal(true); }} style={{ background: isDarkMode ? "#FFFFFF" : "#1A2B4C", color: isDarkMode ? "#070B12" : "#FFFFFF", border: "none", borderRadius: "12px", padding: "12px 20px", fontWeight: "bold", cursor: "pointer" }} className="hover-effect">
+                    <button onClick={() => { openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(null); setShowPlaylistModal(true); }} style={{ background: isDarkMode ? "#FFFFFF" : "#1A2B4C", color: isDarkMode ? "#070B12" : "#FFFFFF", border: "none", borderRadius: "12px", padding: "12px 20px", fontWeight: "bold", cursor: "pointer" }} className="hover-effect">
                       Create a Playlist
                     </button>
                   </div>
@@ -3376,7 +3534,7 @@ export default function App() {
                               <Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} />
                             </button>
                             {userPlaylists.length > 0 && (
-                              <button title="Add to Playlist" onClick={(e) => { e.stopPropagation(); setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
+                              <button title="Add to Playlist" onClick={(e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
                                 <FolderPlus size={isDesktop ? 18 : 16} />
                               </button>
                             )}
@@ -3463,8 +3621,8 @@ export default function App() {
                 </div>
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
                   {[
-                    { label: "Sleep Timer", active: !!sleepTimerTarget, icon: <Moon size={15} />, action: (e) => { e.stopPropagation(); setShowSleepTimerModal(true); } },
-                    { label: "Options", active: false, icon: <MoreVertical size={15} />, action: (e) => { e.stopPropagation(); setShowTrackOptionsModal(true); } },
+                    { label: "Sleep Timer", active: !!sleepTimerTarget, icon: <Moon size={15} />, action: (e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowSleepTimerModal(true); } },
+                    { label: "Options", active: false, icon: <MoreVertical size={15} />, action: (e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); } },
                     { label: "Stem Mixer", active: showMixer, icon: <SlidersHorizontal size={15} />, action: toggleStemMixer },
                     { label: "Lyrics", active: showLyrics, icon: <Mic2 size={15} />, action: () => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } } },
                     { label: "Queue", active: showQueue, icon: <ListMusic size={15} />, action: () => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } } }
@@ -3582,7 +3740,7 @@ export default function App() {
               <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
                 {showMixer ? "AI Mixer" : showQueue ? "Current Queue" : showLyrics ? "Lyrics" : "Now Playing"}
               </span>
-              <button onClick={() => setShowTrackOptionsModal(true)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><MoreVertical size={32} /></button>
+              <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); }} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><MoreVertical size={32} /></button>
             </div>
 
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
@@ -3600,7 +3758,7 @@ export default function App() {
               </div>
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
                 <button onClick={toggleStemMixer} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><SlidersHorizontal size={17} /></button>
-                <button onClick={e => { e.stopPropagation(); setShowSleepTimerModal(true); }} style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Moon size={17} /></button>
+                <button onClick={e => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowSleepTimerModal(true); }} style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Moon size={17} /></button>
                 <button onClick={() => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} style={{ background: showLyrics ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Mic2 size={17} /></button>
               </div>
             </div>
@@ -3798,7 +3956,7 @@ export default function App() {
             {/* Right: Actions & Exit Fullscreen */}
             <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end", minWidth: "220px" }}>
               <button
-                onClick={(e) => { e.stopPropagation(); setShowTrackOptionsModal(true); }}
+                onClick={(e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); }}
                 title="Options"
                 style={{
                   background: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(255, 255, 255, 0.75)",
@@ -3926,7 +4084,7 @@ export default function App() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: "16px", fontWeight: "800", color: isDarkMode ? "#FFFFFF" : "#1A2B4C" }}>Credits</span>
                       <button
-                        onClick={() => setShowTrackArtistsModal(true)}
+                        onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackArtistsModal(true); }}
                         style={{
                           background: "transparent",
                           border: "none",
@@ -3969,7 +4127,7 @@ export default function App() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: "16px", fontWeight: "800", color: isDarkMode ? "#FFFFFF" : "#1A2B4C" }}>Next in queue</span>
                       <button
-                        onClick={() => setShowFullscreenQueueModal(true)}
+                        onClick={() => { openedFromTrackOptionsRef.current = false; setShowFullscreenQueueModal(true); }}
                         style={{
                           background: "transparent",
                           border: "none",
@@ -4087,7 +4245,7 @@ export default function App() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: "16px", fontWeight: "800", color: isDarkMode ? "#FFFFFF" : "#1A2B4C" }}>Credits</span>
                       <button
-                        onClick={() => setShowTrackArtistsModal(true)}
+                        onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackArtistsModal(true); }}
                         style={{
                           background: "transparent",
                           border: "none",
@@ -4130,7 +4288,7 @@ export default function App() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: "16px", fontWeight: "800", color: isDarkMode ? "#FFFFFF" : "#1A2B4C" }}>Next in queue</span>
                       <button
-                        onClick={() => setShowFullscreenQueueModal(true)}
+                        onClick={() => { openedFromTrackOptionsRef.current = false; setShowFullscreenQueueModal(true); }}
                         style={{
                           background: "transparent",
                           border: "none",
