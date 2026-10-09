@@ -1,5 +1,5 @@
 import React, { 
-  useState, useRef, useEffect, useMemo } 
+  useState, useRef, useEffect, useMemo, useCallback } 
 from "react";
 import {
   DndContext,
@@ -574,7 +574,8 @@ export default function App() {
   const [dominantRgb, setDominantRgb] = useState(null);
   const songTheme = getSongThemeGradients(dominantRgb, isDarkMode);
 
-  const CACHE_NAME = 'euphony-audio-cache';
+  const CACHE_NAME = 'euphony-media-blobs';
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
 
   const [playlist, setPlaylist] = useState([]);
@@ -1175,16 +1176,22 @@ export default function App() {
     return () => { isActive = false; };
   }, [playlist, playlistSongs]);
 
-  useEffect(() => {
+  const fetchAllData = useCallback(async (showToastNotice = false) => {
     if (!session?.user?.id) return;
-    const fetchData = async () => {
+    try {
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        await caches.delete('euphony-audio-cache').catch(() => {});
+      }
+      setIsRefreshing(true);
       const pSongs = supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
       const pArtists = supabase.from("artists").select("*").order("created_at", { ascending: true });
       const pPlaylists = supabase.from("playlists").select("*, playlist_songs(song_id, songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
 
       const [songsRes, artistsRes, playlistRes] = await Promise.all([pSongs, pArtists, pPlaylists]);
       
-      if (songsRes.data) setPlaylist(songsRes.data);
+      if (songsRes.data) {
+        setPlaylist(songsRes.data);
+      }
       
       if (!artistsRes.error && artistsRes.data && artistsRes.data.length > 0) {
         setTopArtists(artistsRes.data);
@@ -1215,8 +1222,19 @@ export default function App() {
         setUserPlaylists(finalPlaylists);
       }
       setIsInitialLoad(false);
-    };
-    fetchData();
+      if (showToastNotice) {
+        triggerToast(`Library refreshed! (${songsRes.data?.length || 0} songs)`);
+      }
+    } catch (err) {
+      console.error("Error fetching library data:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    fetchAllData();
 
     const channel = supabase.channel('public:songs')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'songs' }, (payload) => {
@@ -1236,7 +1254,7 @@ export default function App() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id]);
+  }, [session?.user?.id, fetchAllData]);
 
   useEffect(() => {
     if (viewedPlaylistId === null) return;
@@ -2374,6 +2392,9 @@ export default function App() {
           }
         }
         
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .spin-animate { animation: spin 0.8s linear infinite; }
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
         @keyframes slideUp { 0% { transform: translateY(100%); } 99% { transform: translateY(0); } 100% { transform: none; } }
@@ -3078,8 +3099,8 @@ export default function App() {
       <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", zIndex: 10 }}>
         <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px" }}>Euphony</h1>
         <div style={{ display: "flex", gap: isDesktop ? "12px" : "8px", alignItems: "center" }}>
-          <button className="hover-effect" onClick={() => window.location.reload()} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
-            <RefreshCw size={16} />{isDesktop && " Refresh"}
+          <button className="hover-effect" onClick={() => fetchAllData(true)} disabled={isRefreshing} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", opacity: isRefreshing ? 0.7 : 1 }}>
+            <RefreshCw size={16} className={isRefreshing ? "spin-animate" : ""} />{isDesktop && (isRefreshing ? " Refreshing..." : " Refresh")}
           </button>
           <button className="hover-effect" onClick={toggleDarkMode} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}

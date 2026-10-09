@@ -16,6 +16,11 @@ if (Capacitor.isNativePlatform()) {
   }).catch(e => console.error(e));
 }
 
+// Automatically purge legacy poisoned cache so stale Supabase database queries are cleared immediately
+if (typeof window !== 'undefined' && 'caches' in window) {
+  caches.delete('euphony-audio-cache').catch(() => {});
+}
+
 registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')).render(

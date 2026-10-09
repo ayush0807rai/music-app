@@ -26,15 +26,18 @@ export default defineConfig({
         ]
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*$/,
-            handler: 'CacheFirst',
+            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*$/,
+            handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'euphony-audio-cache',
+              cacheName: 'euphony-cloudinary-media',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 14 // 14 days
               },
               cacheableResponse: {
                 statuses: [0, 200]
