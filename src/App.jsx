@@ -4092,22 +4092,6 @@ export default function App() {
                   }}
                 />
               </div>
-
-              <button
-                onClick={() => setIsDesktopFullscreen(false)}
-                title="Exit full screen (Esc)"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "rgba(255,255,255,0.8)",
-                  cursor: "pointer",
-                  padding: "4px",
-                  marginLeft: "4px"
-                }}
-                className="hover-effect"
-              >
-                <Minimize2 size={18} />
-              </button>
             </div>
           </div>
         </div>
