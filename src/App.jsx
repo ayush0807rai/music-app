@@ -605,7 +605,6 @@ export default function App() {
   const { render: renderMobilePlayer, isClosing: mobilePlayerClosing } = useAnimatedPresence(isMobilePlayerOpen, null, 400);
   const { render: renderQueueToast, isClosing: queueToastClosing, data: safeQueueToast } = useAnimatedPresence(!!queueToast, queueToast, 300);
   const { render: renderExitToast, isClosing: exitToastClosing } = useAnimatedPresence(showExitToast, null, 300);
-  const { render: renderDesktopFullscreen, isClosing: desktopFullscreenClosing } = useAnimatedPresence(isDesktop && !!currentTrack && isDesktopFullscreen, null, 250);
 
   const rawViewedSongs = viewedPlaylistId === null ? playlist : playlistSongs;
   const currentSortKey = sortOrders[viewedPlaylistId ?? "global"] ?? null;
@@ -648,7 +647,6 @@ export default function App() {
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
-  const nextTrackInLine = userQueue.length > 0 ? userQueue[0] : (upcomingSourceList.length > 0 ? upcomingSourceList[0].track : null);
 
   useEffect(() => {
     if (currentTrack?.poster_url) {
@@ -706,6 +704,9 @@ export default function App() {
     localStorage.setItem("euphony_queue_current_track", JSON.stringify(queueCurrentTrack));
     localStorage.setItem("euphony_playback_history", JSON.stringify(playbackHistory));
   }, [userQueue, queueCurrentTrack, playbackHistory]);
+
+  const nextTrackInLine = userQueue.length > 0 ? userQueue[0] : (upcomingSourceList.length > 0 ? upcomingSourceList[0].track : null);
+  const { render: renderDesktopFullscreen, isClosing: desktopFullscreenClosing } = useAnimatedPresence(isDesktop && !!currentTrack && isDesktopFullscreen, null, 250);
 
   const updateProgressVisuals = () => {
     if (!audioRef.current) return;
