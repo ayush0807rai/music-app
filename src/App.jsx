@@ -587,11 +587,44 @@ export default function App() {
 
   useEffect(() => {
     if (playbackQueue.length > 0) {
-      localStorage.setItem("euphony_playback_queue", JSON.stringify(playbackQueue));
-      localStorage.setItem("euphony_playback_index", playbackIndex);
-      localStorage.setItem("euphony_playback_source", playbackSourceName);
+      try {
+        const slimQueue = playbackQueue.map(s => ({
+          id: s.id,
+          title: s.title,
+          artist: s.artist,
+          album: s.album,
+          url: s.url,
+          poster_url: s.poster_url,
+          duration: s.duration,
+          stem_vocals: s.stem_vocals,
+          stem_drums: s.stem_drums,
+          stem_bass: s.stem_bass,
+          stem_other: s.stem_other,
+          _play_id: s._play_id
+        }));
+        localStorage.setItem("euphony_playback_queue", JSON.stringify(slimQueue));
+        localStorage.setItem("euphony_playback_index", playbackIndex);
+        localStorage.setItem("euphony_playback_source", playbackSourceName);
+      } catch (e) {
+        console.warn("Failed to persist playbackQueue:", e);
+      }
     }
   }, [playbackQueue, playbackIndex, playbackSourceName]);
+
+  // Ensure playbackQueue is always hydrated with songs from the library if empty
+  useEffect(() => {
+    if (playlist.length > 0 && playbackQueue.length === 0) {
+      const queueWithIds = playlist.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+      setPlaybackQueue(queueWithIds);
+      if (currentTrack) {
+        const foundIdx = queueWithIds.findIndex(s => s.id === currentTrack.id);
+        if (foundIdx !== -1) {
+          setPlaybackIndex(foundIdx);
+          setQueueCurrentTrack(null);
+        }
+      }
+    }
+  }, [playlist, playbackQueue.length, currentTrack?.id]);
 
 
 
@@ -916,34 +949,39 @@ export default function App() {
   }, [isPlaying, isDarkMode]);
 
   useEffect(() => {
-    if (!playbackQueue || playbackQueue.length === 0) {
+    const queueToUse = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
+    if (!queueToUse || queueToUse.length === 0) {
       setUpcomingSourceList([]);
       return;
     }
-    if (playMode === 'order') {
-      const list = playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1);
-      setUpcomingSourceList(list);
-    } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
+    if (playMode === 'repeat-one') {
       const list = [
-        ...playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1),
-        ...playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(0, playbackIndex)
+        ...queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1),
+        ...queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(0, playbackIndex)
       ];
-      setUpcomingSourceList(list);
+      setUpcomingSourceList(list.length > 0 ? list : queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })));
+    } else if (playMode === 'order' || playMode === 'repeat-all') {
+      const list = [
+        ...queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1),
+        ...queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(0, playbackIndex)
+      ];
+      setUpcomingSourceList(list.length > 0 ? list : queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })));
     } else if (playMode === 'shuffle') {
       setUpcomingSourceList(prev => {
         if (prev.length > 0 && prev[0].originalIndex === playbackIndex) {
-          return prev.slice(1);
+          const remaining = prev.slice(1);
+          if (remaining.length > 0) return remaining;
         }
         
-        const others = playbackQueue.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).filter(obj => obj.originalIndex !== playbackIndex);
+        const others = queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).filter(obj => obj.originalIndex !== playbackIndex);
         for (let i = others.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [others[i], others[j]] = [others[j], others[i]];
         }
-        return others;
+        return others.length > 0 ? others : queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) }));
       });
     }
-  }, [playbackQueue, playbackIndex, playMode]);
+  }, [playbackQueue, playbackIndex, playMode, playlist]);
 
   const handleSwitchPlaylist = (playlistId) => {
     setViewedPlaylistId(playlistId);
@@ -2119,6 +2157,9 @@ export default function App() {
       return;
     }
     
+    const queueToUse = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
+    if (!queueToUse || queueToUse.length === 0) return;
+
     setPlaybackHistory(prev => [...prev, playbackIndex]);
 
     if (upcomingSourceList.length > 0) {
@@ -2127,17 +2168,27 @@ export default function App() {
       setPlaybackIndex(nextIdx);
       resetPlaybackTime();
       setIsPlaying(true);
-      playTrackWithMetadata(playbackQueue[nextIdx], audioRef.current, blobCacheRef.current);
-    } else if (playMode === 'repeat-all' || playMode === 'repeat-one') {
-      if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); }
+      playTrackWithMetadata(queueToUse[nextIdx] || playbackQueue[nextIdx], audioRef.current, blobCacheRef.current);
     } else {
-      setIsPlaying(false);
+      let nextIdx = (playbackIndex + 1) % queueToUse.length;
+      if (playMode === 'shuffle' && queueToUse.length > 1) {
+        do {
+          nextIdx = Math.floor(Math.random() * queueToUse.length);
+        } while (nextIdx === playbackIndex);
+      }
+      setQueueCurrentTrack(null);
+      setPlaybackIndex(nextIdx);
+      resetPlaybackTime();
+      setIsPlaying(true);
+      playTrackWithMetadata(queueToUse[nextIdx], audioRef.current, blobCacheRef.current);
     }
   };
 
   const handlePrev = (e) => {
     if (e) e.stopPropagation();
-    if (playbackQueue.length === 0) return;
+    
+    const queueToUse = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
+    if (!queueToUse || queueToUse.length === 0) return;
     
     if (audioRef.current && audioRef.current.currentTime > 3) { 
         audioRef.current.currentTime = 0; 
@@ -2149,7 +2200,7 @@ export default function App() {
       prevIdx = playbackHistory[playbackHistory.length - 1];
       setPlaybackHistory(prev => prev.slice(0, -1));
     } else {
-      if (prevIdx < 0) prevIdx = playbackQueue.length - 1; 
+      if (prevIdx < 0) prevIdx = queueToUse.length - 1; 
     }
     
     setQueueCurrentTrack(null);
@@ -2157,8 +2208,10 @@ export default function App() {
     resetPlaybackTime();
     setIsPlaying(true);
     
-    const prevSong = playbackQueue[prevIdx];
-    playTrackWithMetadata(prevSong, audioRef.current, blobCacheRef.current);
+    const prevSong = queueToUse[prevIdx];
+    if (prevSong) {
+      playTrackWithMetadata(prevSong, audioRef.current, blobCacheRef.current);
+    }
   };
 
 
@@ -2185,6 +2238,12 @@ export default function App() {
       return;
     }
     
+    const queueToUse = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
+    if (!queueToUse || queueToUse.length === 0) {
+      setIsPlaying(false);
+      return;
+    }
+
     setPlaybackHistory(prev => [...prev, playbackIndex]);
 
     if (upcomingSourceList.length > 0) {
@@ -2193,9 +2252,19 @@ export default function App() {
       setPlaybackIndex(nextIdx);
       resetPlaybackTime();
       setIsPlaying(true);
-      playTrackWithMetadata(playbackQueue[nextIdx], audioRef.current, blobCacheRef.current);
+      playTrackWithMetadata(queueToUse[nextIdx] || playbackQueue[nextIdx], audioRef.current, blobCacheRef.current);
     } else {
-      setIsPlaying(false);
+      let nextIdx = (playbackIndex + 1) % queueToUse.length;
+      if (playMode === 'shuffle' && queueToUse.length > 1) {
+        do {
+          nextIdx = Math.floor(Math.random() * queueToUse.length);
+        } while (nextIdx === playbackIndex);
+      }
+      setQueueCurrentTrack(null);
+      setPlaybackIndex(nextIdx);
+      resetPlaybackTime();
+      setIsPlaying(true);
+      playTrackWithMetadata(queueToUse[nextIdx], audioRef.current, blobCacheRef.current);
     }
   };
 
