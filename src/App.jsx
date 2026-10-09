@@ -1194,7 +1194,7 @@ export default function App() {
       }
       setIsInitialLoad(false);
       if (showToastNotice) {
-        triggerToast(`Library refreshed! (${songsRes.data?.length || 0} songs)`);
+        triggerToast("Library");
       }
     } catch (err) {
       console.error("Error fetching library data:", err);
