@@ -470,20 +470,18 @@ export default function App() {
   const toggleDarkMode = () => {
     const nextDark = !isDarkMode;
     if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('fallback-theme-transition');
       setIsDarkMode(nextDark);
+      setTimeout(() => {
+        document.documentElement.classList.remove('fallback-theme-transition');
+      }, 400);
       return;
     }
 
-    document.documentElement.classList.add('theme-transitioning');
-
-    const transition = document.startViewTransition(() => {
+    document.startViewTransition(() => {
       flushSync(() => {
         setIsDarkMode(nextDark);
       });
-    });
-
-    transition.finished.finally(() => {
-      document.documentElement.classList.remove('theme-transitioning');
     });
   };
 
@@ -2496,41 +2494,42 @@ export default function App() {
     <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: COLORS.bgBase, color: COLORS.textMain, fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <style>{`
         :root { max-width: none !important; }
-        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; transition: background-color 0.35s ease; }
+        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         input, textarea { -webkit-user-select: auto; -moz-user-select: auto; user-select: auto; outline: none; }
         
-        /* Disable element-level CSS transitions during snapshot capture to avoid layout / paint collision */
-        html.theme-transitioning,
-        html.theme-transitioning * {
-          transition: none !important;
+        /* Fallback transition only active for non-ViewTransition browsers */
+        html.fallback-theme-transition body,
+        html.fallback-theme-transition #root {
+          transition: background-color 0.35s ease !important;
         }
 
+        /* View Transitions - Mobile-optimized hardware-accelerated single-layer dissolve */
         ::view-transition-group(root) {
-          animation-duration: 300ms;
-          animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+          animation-duration: 400ms;
+          animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        ::view-transition-image-pair(root) {
+          isolation: isolate;
         }
 
         ::view-transition-old(root),
         ::view-transition-new(root) {
-          animation-duration: 300ms;
-          animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
-          mix-blend-mode: normal;
+          mix-blend-mode: normal !important;
         }
 
+        /* Keep old snapshot 100% solid as base to eliminate opacity dips, flickering, and dual-layer GPU compositing lag */
         ::view-transition-old(root) {
-          animation-name: theme-fade-out;
+          animation: none !important;
           z-index: 1;
         }
 
+        /* Fade in new snapshot smoothly on top */
         ::view-transition-new(root) {
-          animation-name: theme-fade-in;
+          animation: theme-fade-in 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
           z-index: 2;
-        }
-
-        @keyframes theme-fade-out {
-          from { opacity: 1; }
-          to { opacity: 0; }
+          will-change: opacity;
         }
 
         @keyframes theme-fade-in {
