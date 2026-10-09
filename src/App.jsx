@@ -4518,7 +4518,7 @@ export default function App() {
             {/* Center: Playback Controls & Scrubber */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px", margin: "0 auto", position: "relative", zIndex: 1 }}>
               {/* Buttons row */}
-              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "8px", transform: "translateX(-24px)" }}>
                 <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer" }} className="hover-effect" title={`Mode: ${playMode}`}>
                   {renderModeIcon(isDarkMode ? "#FFFFFF" : "#1A2B4C")}
                 </button>
