@@ -4172,18 +4172,71 @@ export default function App() {
               position: "relative",
               zIndex: 2,
               padding: "16px 36px 20px 36px",
-              background: isDarkMode ? "rgba(8, 12, 18, 0.88)" : "rgba(250, 250, 247, 0.92)",
+              overflow: "hidden",
               backdropFilter: "blur(24px)",
-              borderTop: isDarkMode ? "1px solid rgba(255, 255, 255, 0.08)" : "1px solid rgba(26, 43, 76, 0.12)",
-              boxShadow: isDarkMode ? "none" : "0 -4px 20px rgba(26, 43, 76, 0.06)",
+              borderTop: isDarkMode
+                ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.28)` : "1px solid rgba(255, 255, 255, 0.10)")
+                : (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.28)` : "1px solid rgba(26, 43, 76, 0.14)"),
+              boxShadow: isDarkMode
+                ? (dominantRgb ? `0 -8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.15)` : "0 -8px 24px rgba(0,0,0,0.4)")
+                : (dominantRgb ? `0 -6px 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.18)` : "0 -4px 20px rgba(26, 43, 76, 0.08)"),
               display: "grid",
               gridTemplateColumns: "280px 1fr 280px",
               alignItems: "center",
               flexShrink: 0
             }}
           >
+            {/* Base Underlay */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundColor: isDarkMode ? "#070A11" : "#EAE4D6",
+                zIndex: 0
+              }}
+            />
+
+            {/* Dynamic Ambient Blurred Cover Art Backdrop in Bottom Bar */}
+            {currentTrack.poster_url && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-80%",
+                  left: "-20%",
+                  width: "140%",
+                  height: "260%",
+                  backgroundImage: `url(${currentTrack.poster_url})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  filter: isDarkMode
+                    ? "blur(75px) brightness(0.72) saturate(165%)"
+                    : "blur(75px) brightness(0.92) saturate(145%)",
+                  opacity: isDarkMode ? 0.65 : 0.50,
+                  zIndex: 0,
+                  pointerEvents: "none"
+                }}
+              />
+            )}
+
+            {/* Dynamic Song Theme Gradient Overlay in Bottom Bar */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: isDarkMode
+                  ? (dominantRgb
+                      ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.35) 0%, rgba(7, 10, 17, 0.82) 100%)`
+                      : "linear-gradient(180deg, rgba(28, 45, 75, 0.45) 0%, rgba(7, 10, 17, 0.88) 100%)")
+                  : (dominantRgb
+                      ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.32) 0%, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.52) 100%)`
+                      : "linear-gradient(180deg, rgba(26, 43, 76, 0.22) 0%, rgba(26, 43, 76, 0.40) 100%)"),
+                zIndex: 0,
+                pointerEvents: "none"
+              }}
+            />
+
             {/* Left: Track Info & Like */}
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0, position: "relative", zIndex: 1 }}>
               <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(26, 43, 76, 0.08)", flexShrink: 0, boxShadow: isDarkMode ? "0 4px 12px rgba(0,0,0,0.4)" : "0 4px 12px rgba(26, 43, 76, 0.1)" }}>
                 {currentTrack.poster_url ? (
                   <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -4218,7 +4271,7 @@ export default function App() {
             </div>
 
             {/* Center: Playback Controls & Scrubber */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px", margin: "0 auto" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px", margin: "0 auto", position: "relative", zIndex: 1 }}>
               {/* Buttons row */}
               <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "8px" }}>
                 <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer" }} className="hover-effect" title={`Mode: ${playMode}`}>
@@ -4274,7 +4327,7 @@ export default function App() {
             </div>
 
             {/* Right: Volume & Minimize */}
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", justifyContent: "flex-end", position: "relative", zIndex: 1 }}>
               {/* Volume controls */}
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <button
