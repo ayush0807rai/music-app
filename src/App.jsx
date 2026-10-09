@@ -1944,9 +1944,9 @@ export default function App() {
   };
 
   const renderMixerBlock = (isMobile, customHeight, customBg) => {
-    const sliderHeight = customHeight || (isMobile ? 145 : 185);
+    const sliderHeight = customHeight || (isMobile ? 140 : 160);
     return (
-    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: customBg !== undefined ? customBg : "rgba(10, 15, 26, 0.75)", backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: customBg !== undefined ? "0" : "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
+    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "20px 18px", background: customBg !== undefined ? customBg : "rgba(10, 15, 26, 0.75)", backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: customBg !== undefined ? "0" : "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
       {!currentTrack?.stem_vocals || stemsBroken ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
           {isGeneratingStems ? (
@@ -1964,16 +1964,16 @@ export default function App() {
         </div>
       ) : (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}>
-          <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "14px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
+          <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "20px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
             {["vocals", "drums", "bass", "other"].map((stemType) => (
-              <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", gap: "12px", height: "100%", flex: 1 }}>
+              <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", height: "100%", flex: 1 }}>
                 <div style={{ position: "relative", width: "30px", height: `${sliderHeight}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
                     onChange={(e) => setStemVolumes({ ...stemVolumes, [stemType]: parseFloat(e.target.value) })}
                     style={{ 
                       position: "absolute", 
                       appearance: "none", 
-                      WebkitAppearance: "none",
+                      WebkitAppearance: "none", 
                       width: `${sliderHeight}px`, 
                       height: "30px", /* Expanded bounding box to prevent clipping and transform-origin shift */
                       background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`, 
@@ -1988,7 +1988,7 @@ export default function App() {
                     }}
                     className="stem-fader" />
                 </div>
-                <span style={{ fontSize: "10px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px" }}>{stemType}</span>
+                <span style={{ fontSize: "11px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#fff", marginTop: "12px", letterSpacing: "0.2px" }}>{stemType}</span>
               </div>
             ))}
           </div>
@@ -3755,10 +3755,12 @@ export default function App() {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
+                    padding: "16px 12px",
+                    boxSizing: "border-box",
                     flexShrink: 0
                   }}
                 >
-                  {renderMixerBlock(false, 195, "transparent")}
+                  {renderMixerBlock(false, 150, "transparent")}
                 </div>
 
                 {/* Dual Cards: Credits & Next in queue */}
@@ -4084,7 +4086,10 @@ export default function App() {
                     if (isMuted && v > 0) setIsMuted(false);
                   }}
                   className="glow-slider"
-                  style={{ width: "80px" }}
+                  style={{
+                    width: "80px",
+                    background: `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.15) ${(isMuted ? 0 : volume) * 100}%)`
+                  }}
                 />
               </div>
 
