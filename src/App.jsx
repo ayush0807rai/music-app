@@ -522,6 +522,7 @@ export default function App() {
   const fullscreenLyricsContainerRef = useRef(null);
   const fullscreenLyricRefs = useRef([]);
   const fullscreenProgressRef = useRef(null);
+  const [showFullscreenQueueModal, setShowFullscreenQueueModal] = useState(false);
 
   const [userQueue, setUserQueue] = useState(() => {
     try {
@@ -707,6 +708,7 @@ export default function App() {
 
   const nextTrackInLine = userQueue.length > 0 ? userQueue[0] : (upcomingSourceList.length > 0 ? upcomingSourceList[0].track : null);
   const { render: renderDesktopFullscreen, isClosing: desktopFullscreenClosing } = useAnimatedPresence(isDesktop && !!currentTrack && isDesktopFullscreen, null, 250);
+  const { render: renderFullscreenQueue, isClosing: fullscreenQueueClosing } = useAnimatedPresence(showFullscreenQueueModal, null, 250);
 
   const updateProgressVisuals = () => {
     if (!audioRef.current) return;
@@ -1379,13 +1381,21 @@ export default function App() {
       setTimeout(updateProgressVisuals, 100);
       const handleKeyDown = (e) => {
         if (e.key === "Escape") {
-          setIsDesktopFullscreen(false);
+          if (showFullscreenQueueModal) {
+            setShowFullscreenQueueModal(false);
+          } else if (showTrackArtistsModal) {
+            setShowTrackArtistsModal(false);
+          } else if (showTrackOptionsModal) {
+            setShowTrackOptionsModal(false);
+          } else {
+            setIsDesktopFullscreen(false);
+          }
         }
       };
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
     }
-  }, [isDesktopFullscreen]);
+  }, [isDesktopFullscreen, showFullscreenQueueModal, showTrackArtistsModal, showTrackOptionsModal]);
 
   useEffect(() => {
     if (isDesktopFullscreen && fullscreenView === "lyrics" && activeLyricIndex !== -1 && fullscreenLyricRefs.current[activeLyricIndex] && fullscreenLyricsContainerRef.current) {
@@ -2024,9 +2034,9 @@ export default function App() {
     );
   };
 
-  const renderQueueBlock = (isMobile) => {
+  const renderQueueBlock = (isMobile, customBg) => {
     return (
-      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", overflowY: "auto", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
+      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: customBg !== undefined ? "4px 0" : (isMobile ? "16px" : "18px"), overflowY: "auto", background: customBg !== undefined ? customBg : "rgba(10, 15, 26, 0.75)", backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
         <div style={{ marginBottom: "22px" }}>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.6)" }}>Now Playing</h4>
           {currentTrack && (
@@ -2681,6 +2691,139 @@ export default function App() {
                     </div>
                   );
                 })}
+              </div>
+            </SwipeableBottomSheet>
+          )}
+        </div>
+      )}
+
+      {/* FULLSCREEN QUEUE MODAL */}
+      {renderFullscreenQueue && currentTrack && (
+        <div
+          className={fullscreenQueueClosing ? "fade-exit" : "fade-enter"}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.72)",
+            backdropFilter: "blur(14px)",
+            display: "flex",
+            alignItems: isDesktop ? "center" : "flex-end",
+            justifyContent: "center",
+            zIndex: 10005,
+            padding: isDesktop ? "24px" : "0"
+          }}
+          onClick={() => setShowFullscreenQueueModal(false)}
+        >
+          {isDesktop ? (
+            <div
+              className={`${fullscreenQueueClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`}
+              style={{
+                background: dominantColor
+                  ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #070B12 100%)`
+                  : "radial-gradient(circle at 50% 15%, #182844 0%, #070B12 100%)",
+                backdropFilter: "blur(24px)",
+                border: "1px solid rgba(255, 255, 255, 0.16)",
+                padding: "26px 28px",
+                borderRadius: "22px",
+                width: "100%",
+                maxWidth: "460px",
+                position: "relative",
+                maxHeight: "82vh",
+                overflowY: "auto",
+                boxShadow: "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)",
+                color: "#FFFFFF",
+                display: "flex",
+                flexDirection: "column"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <ListMusic size={22} color="#FFFFFF" />
+                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.3px" }}>Queue</h2>
+                  {userQueue.length > 0 && (
+                    <span style={{ background: COLORS.spotifyGreen, color: "#FFFFFF", borderRadius: "12px", padding: "2px 8px", fontSize: "11px", fontWeight: "700" }}>
+                      {userQueue.length}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowFullscreenQueueModal(false)}
+                  style={{
+                    background: "rgba(255, 255, 255, 0.12)",
+                    border: "none",
+                    color: "#FFFFFF",
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  className="hover-effect"
+                  title="Close"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ flex: 1, minHeight: 0 }}>
+                {renderQueueBlock(false, "transparent")}
+              </div>
+            </div>
+          ) : (
+            <SwipeableBottomSheet
+              onClose={() => setShowFullscreenQueueModal(false)}
+              className={`${fullscreenQueueClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`}
+              style={{
+                background: dominantColor
+                  ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #070B12 100%)`
+                  : COLORS.bgPanel,
+                padding: "24px",
+                borderRadius: "24px 24px 0 0",
+                width: "100%",
+                maxWidth: "500px",
+                position: "relative",
+                maxHeight: "82vh",
+                overflowY: "auto",
+                boxShadow: "0 -10px 40px rgba(0,0,0,0.5)",
+                color: dominantColor ? "#FFFFFF" : COLORS.textMain
+              }}
+            >
+              <div style={{ width: "40px", height: "4px", background: dominantColor ? "rgba(255,255,255,0.3)" : COLORS.border, borderRadius: "2px", margin: "0 auto 20px" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <ListMusic size={22} color={dominantColor ? "#FFFFFF" : COLORS.primary} />
+                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: dominantColor ? "#FFFFFF" : COLORS.primary }}>Queue</h2>
+                  {userQueue.length > 0 && (
+                    <span style={{ background: COLORS.spotifyGreen, color: "#FFFFFF", borderRadius: "12px", padding: "2px 8px", fontSize: "11px", fontWeight: "700" }}>
+                      {userQueue.length}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowFullscreenQueueModal(false)}
+                  style={{
+                    background: dominantColor ? "rgba(255, 255, 255, 0.12)" : "transparent",
+                    border: "none",
+                    color: dominantColor ? "#FFFFFF" : COLORS.textMuted,
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer"
+                  }}
+                  className="hover-effect"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div style={{ flex: 1, minHeight: 0 }}>
+                {renderQueueBlock(true, "transparent")}
               </div>
             </SwipeableBottomSheet>
           )}
@@ -3527,10 +3670,7 @@ export default function App() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: "16px", fontWeight: "800", color: "#FFFFFF" }}>Next in queue</span>
                       <button
-                        onClick={() => {
-                          setIsDesktopFullscreen(false);
-                          setShowQueue(true);
-                        }}
+                        onClick={() => setShowFullscreenQueueModal(true)}
                         style={{
                           background: "transparent",
                           border: "none",
@@ -3785,6 +3925,20 @@ export default function App() {
                 className="hover-effect"
               >
                 <SlidersHorizontal size={18} />
+              </button>
+              <button
+                onClick={() => setShowFullscreenQueueModal(v => !v)}
+                title="Queue"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: showFullscreenQueueModal ? COLORS.spotifyGreen : "rgba(255,255,255,0.7)",
+                  cursor: "pointer",
+                  padding: "4px"
+                }}
+                className="hover-effect"
+              >
+                <ListMusic size={18} />
               </button>
               
               {/* Volume controls */}
