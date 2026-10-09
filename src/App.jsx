@@ -1116,14 +1116,14 @@ export default function App() {
   }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken]);
 
   useEffect(() => {
-    if (showMixer && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
+    if ((showMixer || (isDesktopFullscreen && fullscreenView === "mixer")) && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime;
       if (vocalsRef.current) vocalsRef.current.currentTime = t;
       if (drumsRef.current)  drumsRef.current.currentTime  = t;
       if (bassRef.current)   bassRef.current.currentTime   = t;
       if (otherRef.current)  otherRef.current.currentTime  = t;
     }
-  }, [showMixer, currentTrack, stemsBroken]);
+  }, [showMixer, isDesktopFullscreen, fullscreenView, currentTrack, stemsBroken]);
 
   
   const prefetchedSignatureRef = useRef("");
@@ -1943,10 +1943,10 @@ export default function App() {
     );
   };
 
-  const renderMixerBlock = (isMobile) => {
-    const sliderHeight = isMobile ? 145 : 185;
+  const renderMixerBlock = (isMobile, customHeight, customBg) => {
+    const sliderHeight = customHeight || (isMobile ? 145 : 185);
     return (
-    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: "rgba(10, 15, 26, 0.75)", backdropFilter: "blur(20px)", borderRadius: "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
+    <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "18px", background: customBg !== undefined ? customBg : "rgba(10, 15, 26, 0.75)", backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: customBg !== undefined ? "0" : "12px", textAlign: "center", color: "#FFFFFF", display: "flex", flexDirection: "column" }}>
       {!currentTrack?.stem_vocals || stemsBroken ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
           {isGeneratingStems ? (
@@ -3192,7 +3192,7 @@ export default function App() {
                 <button
                   onClick={() => {
                     setIsDesktopFullscreen(true);
-                    setFullscreenView("art");
+                    setFullscreenView(showMixer ? "mixer" : showLyrics ? "lyrics" : "art");
                   }}
                   title="Full screen"
                   style={{
@@ -3479,31 +3479,32 @@ export default function App() {
                 <Mic2 size={15} />
                 <span>Lyrics</span>
               </button>
+
+              <button
+                onClick={() => setFullscreenView("mixer")}
+                style={{
+                  background: fullscreenView === "mixer" ? "rgba(255, 255, 255, 0.22)" : "transparent",
+                  color: fullscreenView === "mixer" ? "#FFFFFF" : "rgba(255, 255, 255, 0.65)",
+                  border: fullscreenView === "mixer" ? "1px solid rgba(255,255,255,0.2)" : "1px solid transparent",
+                  borderRadius: "24px",
+                  padding: "8px 18px",
+                  fontSize: "13px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "all 0.2s cubic-bezier(0.25, 1, 0.5, 1)"
+                }}
+                className="hover-effect"
+              >
+                <SlidersHorizontal size={15} />
+                <span>Mixer</span>
+              </button>
             </div>
 
             {/* Right: Actions & Exit Fullscreen */}
             <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end", minWidth: "220px" }}>
-              <button
-                onClick={toggleStemMixer}
-                title="Stem Mixer"
-                style={{
-                  background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.1)",
-                  border: "none",
-                  color: "#FFFFFF",
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  backdropFilter: "blur(6px)",
-                  transition: "all 0.2s"
-                }}
-                className="hover-effect"
-              >
-                <SlidersHorizontal size={16} />
-              </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setShowTrackOptionsModal(true); }}
                 title="Options"
@@ -3599,6 +3600,165 @@ export default function App() {
                   ) : (
                     <ImageIcon size={100} color="rgba(255,255,255,0.3)" />
                   )}
+                </div>
+
+                {/* Dual Cards: Credits & Next in queue */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "18px",
+                    width: "100%",
+                    maxWidth: "680px",
+                    marginTop: "28px",
+                    flexShrink: 0
+                  }}
+                >
+                  {/* Card 1: Credits */}
+                  <div
+                    style={{
+                      background: "rgba(18, 22, 32, 0.7)",
+                      backdropFilter: "blur(20px)",
+                      borderRadius: "14px",
+                      padding: "16px 20px",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      minHeight: "92px",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.3)"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "16px", fontWeight: "800", color: "#FFFFFF" }}>Credits</span>
+                      <button
+                        onClick={() => setShowTrackArtistsModal(true)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "rgba(255,255,255,0.65)",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          cursor: "pointer",
+                          padding: 0
+                        }}
+                        className="hover-effect"
+                      >
+                        Show all
+                      </button>
+                    </div>
+                    <div style={{ marginTop: "10px" }}>
+                      <div style={{ fontSize: "15px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {currentTrack.artist}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        Main Artist {currentTrack.album ? `• ${currentTrack.album}` : ""}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Next in queue */}
+                  <div
+                    style={{
+                      background: "rgba(18, 22, 32, 0.7)",
+                      backdropFilter: "blur(20px)",
+                      borderRadius: "14px",
+                      padding: "16px 20px",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      minHeight: "92px",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.3)"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "16px", fontWeight: "800", color: "#FFFFFF" }}>Next in queue</span>
+                      <button
+                        onClick={() => setShowFullscreenQueueModal(true)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "rgba(255,255,255,0.65)",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          cursor: "pointer",
+                          padding: 0
+                        }}
+                        className="hover-effect"
+                      >
+                        Open queue
+                      </button>
+                    </div>
+                    <div style={{ marginTop: "10px" }}>
+                      {nextTrackInLine ? (
+                        <div
+                          onClick={() => {
+                            if (userQueue.length > 0) playFromQueue(0);
+                            else if (upcomingSourceList.length > 0) handlePlaySong(upcomingSourceList[0].originalIndex, playbackQueue, playbackSourceName);
+                          }}
+                          style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
+                          className="hover-effect"
+                          title="Play next track now"
+                        >
+                          <div style={{ width: "36px", height: "36px", borderRadius: "6px", overflow: "hidden", backgroundColor: "#222", flexShrink: 0 }}>
+                            {nextTrackInLine.poster_url ? (
+                              <img src={nextTrackInLine.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ) : (
+                              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={16} color="#888" /></div>
+                            )}
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: "14px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {nextTrackInLine.title}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {nextTrackInLine.artist}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}>
+                          Queue is empty
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : fullscreenView === "mixer" ? (
+              /* STEM MIXER VIEW (IMAGE 2 IN FULLSCREEN) */
+              <div
+                className="fade-enter custom-scrollbar"
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "20px 32px 30px 32px"
+                }}
+              >
+                {/* Centered Stem Mixer Card */}
+                <div
+                  style={{
+                    width: "min(380px, 38vh)",
+                    height: "min(380px, 38vh)",
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    boxShadow: "0 24px 60px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5)",
+                    backgroundColor: "rgba(18, 22, 32, 0.75)",
+                    backdropFilter: "blur(20px)",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0
+                  }}
+                >
+                  {renderMixerBlock(false, 195, "transparent")}
                 </div>
 
                 {/* Dual Cards: Credits & Next in queue */}
