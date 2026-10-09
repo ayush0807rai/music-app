@@ -66,8 +66,8 @@ const SortableSourceItem = ({ item, playSong, sourceName, isDarkMode = true }) =
           {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} /> : <ImageIcon size={16} color="#888" />}
         </div>
         <div onClick={(e) => { e.stopPropagation(); playSong(); }} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
-          <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
-          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
+          <div style={{ fontSize: "13px", fontWeight: "600", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
+          <div style={{ fontSize: "11px", color: isDarkMode ? "rgba(255,255,255,0.65)" : "#64748B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
         </div>
 
       </div>
@@ -105,14 +105,14 @@ const SortableQueueItem = ({ song, index, activeId, playFromQueue, removeFromQue
           cursor: isDragging ? "grabbing" : "pointer"
         }}
       >
-        <div onClick={(e) => { e.stopPropagation(); playFromQueue(index); }} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "#222", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} /> : <ImageIcon size={16} color="#888" />}
+        <div onClick={(e) => { e.stopPropagation(); playFromQueue(index); }} style={{ width: "36px", height: "36px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: isDarkMode ? "#222" : "rgba(26,43,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+          {song.poster_url ? <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", pointerEvents: "none" }} /> : <ImageIcon size={16} color={isDarkMode ? "#888" : "#64748B"} />}
         </div>
         <div onClick={(e) => { e.stopPropagation(); playFromQueue(index); }} style={{ minWidth: 0, flex: 1, cursor: "pointer" }}>
-          <div style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
-          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
+          <div style={{ fontSize: "13px", fontWeight: "600", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.title}</div>
+          <div style={{ fontSize: "11px", color: isDarkMode ? "rgba(255,255,255,0.65)" : "#64748B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", pointerEvents: "none" }}>{song.artist}</div>
         </div>
-        <button onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.45)", cursor: "pointer", padding: "8px", flexShrink: 0 }} className="hover-effect">
+        <button onClick={(e) => { e.stopPropagation(); removeFromQueue(index, e); }} style={{ background: "transparent", border: "none", color: isDarkMode ? "rgba(255,255,255,0.45)" : "rgba(26,43,76,0.45)", cursor: "pointer", padding: "8px", flexShrink: 0 }} className="hover-effect">
           <X size={14} />
         </button>
 
@@ -1977,7 +1977,9 @@ export default function App() {
                       WebkitAppearance: "none", 
                       width: `${sliderHeight}px`, 
                       height: "30px", /* Expanded bounding box to prevent clipping and transform-origin shift */
-                      background: `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`, 
+                      background: isDarkMode
+                        ? `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`
+                        : `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(26,43,76,0.15) ${stemVolumes[stemType] * 100}%)`, 
                       backgroundSize: "100% 4px",
                       backgroundPosition: "center",
                       backgroundRepeat: "no-repeat",
@@ -1987,9 +1989,9 @@ export default function App() {
                       margin: 0,
                       padding: 0
                     }}
-                    className="stem-fader" />
+                    className={isDarkMode ? "stem-fader" : "stem-fader-light"} />
                 </div>
-                <span style={{ fontSize: "11px", fontWeight: "bold", textTransform: "capitalize", color: stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#FFFFFF", marginTop: "12px", letterSpacing: "0.2px" }}>{stemType}</span>
+                <span style={{ fontSize: "11px", fontWeight: "bold", textTransform: "capitalize", color: isDarkMode ? (stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#FFFFFF") : (stemVolumes[stemType] === 0 ? "rgba(26,43,76,0.4)" : COLORS.primary), marginTop: "12px", letterSpacing: "0.2px" }}>{stemType}</span>
               </div>
             ))}
           </div>
@@ -2039,17 +2041,17 @@ export default function App() {
 
   const renderQueueBlock = (isMobile, customBg) => {
     return (
-      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: customBg !== undefined ? "4px 0" : (isMobile ? "16px" : "18px"), overflowY: "auto", background: customBg !== undefined ? customBg : (isDarkMode ? "rgba(10, 15, 26, 0.75)" : "rgba(250, 250, 247, 0.85)"), backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: "12px", textAlign: "left", color: "#FFFFFF" }}>
+      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: customBg !== undefined ? "4px 0" : (isMobile ? "16px" : "18px"), overflowY: "auto", background: customBg !== undefined ? customBg : (isDarkMode ? "rgba(10, 15, 26, 0.75)" : "rgba(250, 250, 247, 0.85)"), backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: "12px", textAlign: "left", color: isDarkMode ? "#FFFFFF" : COLORS.primary }}>
         <div style={{ marginBottom: "22px" }}>
-          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.7)" }}>Now Playing</h4>
+          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>Now Playing</h4>
           {currentTrack && (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "8px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)" }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color="rgba(255,255,255,0.6)" />}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "8px", background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.06)", border: isDarkMode ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(26,43,76,0.08)" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(26,43,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color={isDarkMode ? "rgba(255,255,255,0.6)" : COLORS.textMuted} />}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</div>
-                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.artist}</div>
+                <div style={{ fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.artist}</div>
               </div>
               {isPlaying && (
                 <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px" }}>
@@ -2064,10 +2066,10 @@ export default function App() {
 
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-            <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.7)" }}>
+            <h4 style={{ margin: 0, fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>
               Next In Queue {userQueue.length > 0 && <span style={{ background: COLORS.spotifyGreen, color: "#fff", borderRadius: "10px", padding: "1px 7px", fontSize: "11px", marginLeft: "6px" }}>{userQueue.length}</span>}
             </h4>
-            {userQueue.length > 0 && <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.7)", fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
+            {userQueue.length > 0 && <button onClick={clearQueue} style={{ background: "transparent", border: "none", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted, fontSize: "12px", fontWeight: "bold", cursor: "pointer", textDecoration: "underline" }}>Clear</button>}
           </div>
           {userQueue.length > 0 ? (
             <DndContext id="dnd-user-queue" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -2083,24 +2085,24 @@ export default function App() {
                       index={qIndex}
                       playFromQueue={playFromQueue}
                       removeFromQueue={removeFromQueue}
-                      isDarkMode={true}
+                      isDarkMode={isDarkMode}
                     />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
           ) : (
-            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontStyle: "italic", padding: "4px 0" }}>
+            <div style={{ fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.5)" : COLORS.textMuted, fontStyle: "italic", padding: "4px 0" }}>
               No songs queued. Tap <ListPlus size={12} style={{ verticalAlign: "middle", margin: "0 2px" }} /> next to any song to add it.
             </div>
           )}
           {userQueue.length > 0 && (
-            <p style={{ margin: "8px 0 0 0", fontSize: "11px", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Drag <GripVertical size={10} style={{ verticalAlign: "middle" }} /> to reorder • Tap a song to play it now</p>
+            <p style={{ margin: "8px 0 0 0", fontSize: "11px", color: isDarkMode ? "rgba(255,255,255,0.4)" : COLORS.textMuted, fontStyle: "italic" }}>Drag <GripVertical size={10} style={{ verticalAlign: "middle" }} /> to reorder • Tap a song to play it now</p>
           )}
         </div>
 
         <div>
-          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: "rgba(255,255,255,0.7)" }}>Next From: {playbackSourceName}</h4>
+          <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>Next From: {playbackSourceName}</h4>
           {upcomingSourceList.length > 0 ? (
             <DndContext id="dnd-source-list" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSourceDragEnd}>
               <SortableContext 
@@ -2114,14 +2116,14 @@ export default function App() {
                       item={item}
                       playSong={() => handlePlaySong(item.originalIndex, playbackQueue, playbackSourceName)}
                       sourceName={playbackSourceName}
-                      isDarkMode={true}
+                      isDarkMode={isDarkMode}
                     />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
           ) : (
-            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontStyle: "italic" }}>End of playlist.</div>
+            <div style={{ fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.5)" : COLORS.textMuted, fontStyle: "italic" }}>End of playlist.</div>
           )}
         </div>
       </div>
