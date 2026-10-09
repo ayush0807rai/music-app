@@ -466,6 +466,56 @@ export default function App() {
     localStorage.setItem("euphony_dark_mode", isDarkMode);
   }, [isDarkMode]);
 
+  const toggleDarkMode = (e) => {
+    const nextDark = !isDarkMode;
+    if (!document.startViewTransition) {
+      setIsDarkMode(nextDark);
+      return;
+    }
+
+    const x = e?.clientX ?? (window.innerWidth / 2);
+    const y = e?.clientY ?? (window.innerHeight / 2);
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+      setIsDarkMode(nextDark);
+    });
+
+    transition.ready.then(() => {
+      try {
+        const anim = document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`
+            ]
+          },
+          {
+            duration: 450,
+            easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+            pseudoElement: "::view-transition-new(root)"
+          }
+        );
+        if (!anim) {
+          document.documentElement.animate(
+            { opacity: [0, 1] },
+            { duration: 350, easing: "ease", pseudoElement: "::view-transition-new(root)" }
+          );
+        }
+      } catch (err) {
+        try {
+          document.documentElement.animate(
+            { opacity: [0, 1] },
+            { duration: 350, easing: "ease", pseudoElement: "::view-transition-new(root)" }
+          );
+        } catch (e2) {}
+      }
+    }).catch(() => {});
+  };
+
   const COLORS = isDarkMode ? {
     bgBase: "#121A2F",
     bgPanel: "#1A2B4C",
@@ -2301,9 +2351,28 @@ export default function App() {
     <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: COLORS.bgBase, color: COLORS.textMain, fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <style>{`
         :root { max-width: none !important; }
-        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; transition: background-color 0.35s ease; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         input, textarea { -webkit-user-select: auto; -moz-user-select: auto; user-select: auto; outline: none; }
+        
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+          animation: none;
+          mix-blend-mode: normal;
+        }
+        ::view-transition-old(root) {
+          z-index: 1;
+        }
+        ::view-transition-new(root) {
+          z-index: 9999;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          ::view-transition-group(*),
+          ::view-transition-old(*),
+          ::view-transition-new(*) {
+            animation: none !important;
+          }
+        }
         
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
@@ -3012,7 +3081,7 @@ export default function App() {
           <button className="hover-effect" onClick={() => window.location.reload()} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <RefreshCw size={16} />{isDesktop && " Refresh"}
           </button>
-          <button className="hover-effect" onClick={() => setIsDarkMode(!isDarkMode)} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+          <button className="hover-effect" onClick={toggleDarkMode} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             {isDesktop && (isDarkMode ? " Light" : " Dark")}
           </button>
