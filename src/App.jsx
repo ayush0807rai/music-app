@@ -21,7 +21,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc, Maximize2, Minimize2
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -517,6 +517,11 @@ export default function App() {
   const mobileMiniProgressRef = useRef(null);
   const animationFrameRef = useRef(null);
   const [isMobilePlayerOpen, setIsMobilePlayerOpen] = useState(false);
+  const [isDesktopFullscreen, setIsDesktopFullscreen] = useState(false);
+  const [fullscreenView, setFullscreenView] = useState("art"); // "art" | "lyrics"
+  const fullscreenLyricsContainerRef = useRef(null);
+  const fullscreenLyricRefs = useRef([]);
+  const fullscreenProgressRef = useRef(null);
 
   const [userQueue, setUserQueue] = useState(() => {
     try {
@@ -600,6 +605,7 @@ export default function App() {
   const { render: renderMobilePlayer, isClosing: mobilePlayerClosing } = useAnimatedPresence(isMobilePlayerOpen, null, 400);
   const { render: renderQueueToast, isClosing: queueToastClosing, data: safeQueueToast } = useAnimatedPresence(!!queueToast, queueToast, 300);
   const { render: renderExitToast, isClosing: exitToastClosing } = useAnimatedPresence(showExitToast, null, 300);
+  const { render: renderDesktopFullscreen, isClosing: desktopFullscreenClosing } = useAnimatedPresence(isDesktop && !!currentTrack && isDesktopFullscreen, null, 250);
 
   const rawViewedSongs = viewedPlaylistId === null ? playlist : playlistSongs;
   const currentSortKey = sortOrders[viewedPlaylistId ?? "global"] ?? null;
@@ -642,6 +648,7 @@ export default function App() {
 
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
+  const nextTrackInLine = userQueue.length > 0 ? userQueue[0] : (upcomingSourceList.length > 0 ? upcomingSourceList[0].track : null);
 
   useEffect(() => {
     if (currentTrack?.poster_url) {
@@ -711,6 +718,10 @@ export default function App() {
     if (desktopProgressRef.current) {
       desktopProgressRef.current.value = time;
       desktopProgressRef.current.style.background = gradient;
+    }
+    if (fullscreenProgressRef.current) {
+      fullscreenProgressRef.current.value = time;
+      fullscreenProgressRef.current.style.background = gradient;
     }
     if (mobileProgressRef.current) {
       mobileProgressRef.current.value = time;
@@ -1360,6 +1371,60 @@ export default function App() {
       requestAnimationFrame(animateScroll);
     }
   }, [activeLyricIndex]);
+
+  useEffect(() => {
+    if (isDesktopFullscreen) {
+      setTimeout(updateProgressVisuals, 10);
+      setTimeout(updateProgressVisuals, 100);
+      const handleKeyDown = (e) => {
+        if (e.key === "Escape") {
+          setIsDesktopFullscreen(false);
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [isDesktopFullscreen]);
+
+  useEffect(() => {
+    if (isDesktopFullscreen && fullscreenView === "lyrics" && activeLyricIndex !== -1 && fullscreenLyricRefs.current[activeLyricIndex] && fullscreenLyricsContainerRef.current) {
+      const container = fullscreenLyricsContainerRef.current;
+      const target = fullscreenLyricRefs.current[activeLyricIndex];
+      if (!target) return;
+      const targetY = target.offsetTop - (container.offsetHeight / 2) + (target.offsetHeight / 2);
+      
+      const startY = container.scrollTop;
+      const distance = targetY - startY;
+      if (Math.abs(distance) < 2) return;
+      
+      const startTime = performance.now();
+      const duration = 600;
+
+      const easeInOutQuart = (t, b, c, d) => {
+        t /= d / 2;
+        if (t < 1) return c / 2 * t * t * t * t + b;
+        t -= 2;
+        return -c / 2 * (t * t * t * t - 2) + b;
+      };
+
+      let animationFrame;
+      const animateScroll = (currentTime) => {
+        const timeElapsed = currentTime - startTime;
+        const next = easeInOutQuart(timeElapsed, startY, distance, duration);
+        container.scrollTop = next;
+        if (timeElapsed < duration) {
+          animationFrame = requestAnimationFrame(animateScroll);
+        } else {
+          container.scrollTop = targetY;
+        }
+      };
+      
+      animationFrame = requestAnimationFrame(animateScroll);
+      return () => {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+      };
+    }
+  }, [activeLyricIndex, isDesktopFullscreen, fullscreenView]);
 
   const handleGenerateStemsClick = async () => {
     if (!currentTrack) return;
@@ -2804,6 +2869,60 @@ export default function App() {
             )}
             
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
+              {/* TOP HEADER WITH MAXIMIZE BUTTON (Desktop Only) */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexShrink: 0 }}>
+                <span style={{ fontSize: "13px", fontWeight: "700", color: "#FFFFFF", letterSpacing: "0.5px", textShadow: "0 1px 4px rgba(0,0,0,0.7)", textTransform: "uppercase" }}>
+                  Now Playing
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setShowTrackOptionsModal(true); }}
+                    title="Track options"
+                    style={{
+                      background: "rgba(255,255,255,0.12)",
+                      border: "none",
+                      color: "#FFFFFF",
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      backdropFilter: "blur(4px)",
+                      transition: "all 0.2s ease"
+                    }}
+                    className="hover-effect"
+                  >
+                    <MoreVertical size={15} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsDesktopFullscreen(true);
+                      setFullscreenView("art");
+                    }}
+                    title="Full screen"
+                    style={{
+                      background: "rgba(255,255,255,0.12)",
+                      border: "none",
+                      color: "#FFFFFF",
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      backdropFilter: "blur(4px)",
+                      transition: "all 0.2s ease"
+                    }}
+                    className="hover-effect"
+                  >
+                    <Maximize2 size={15} />
+                  </button>
+                </div>
+              </div>
+
               {/* ARTWORK / DYNAMIC PLAYER VIEW */}
               <div style={{ width: "100%", flex: 1, minHeight: 0, marginBottom: "20px", display: "flex", flexDirection: "column" }}>
                 <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(26,43,76,0.05)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 30px rgba(26,43,76,0.12)", position: "relative" }}>
@@ -2942,6 +3061,627 @@ export default function App() {
                 {userQueue.length > 0 && (
                   <span style={{ position: "absolute", top: "2px", right: "2px", background: COLORS.spotifyGreen, color: "#FFFFFF", fontSize: "10px", fontWeight: "bold", borderRadius: "50%", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>{userQueue.length}</span>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DESKTOP FULLSCREEN PLAYER OVERLAY (Desktop Only) */}
+      {renderDesktopFullscreen && currentTrack && (
+        <div
+          className={desktopFullscreenClosing ? "fade-exit" : "fade-enter"}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "#0A0E17",
+            background: dominantColor
+              ? `radial-gradient(ellipse at 50% 25%, ${dominantColor} 0%, #060910 100%)`
+              : "radial-gradient(ellipse at 50% 25%, #182844 0%, #060910 100%)",
+            overflow: "hidden",
+            color: "#FFFFFF",
+            fontFamily: "inherit"
+          }}
+        >
+          {/* Ambient blurred backdrop image */}
+          {currentTrack.poster_url && (
+            <div
+              style={{
+                position: "absolute",
+                top: "-15%",
+                left: "-15%",
+                width: "130%",
+                height: "130%",
+                backgroundImage: `url(${currentTrack.poster_url})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "blur(90px) brightness(0.55) saturate(130%)",
+                opacity: 0.35,
+                zIndex: 0,
+                pointerEvents: "none"
+              }}
+            />
+          )}
+
+          {/* FULLSCREEN TOP BAR */}
+          <div
+            style={{
+              position: "relative",
+              zIndex: 2,
+              padding: "20px 36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexShrink: 0
+            }}
+          >
+            {/* Left: Source badge */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: "220px" }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1.2px", color: "rgba(255,255,255,0.5)" }}>
+                  Playing From
+                </span>
+                <span style={{ fontSize: "13px", fontWeight: "600", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "260px" }}>
+                  {playbackSourceName}
+                </span>
+              </div>
+            </div>
+
+            {/* Center: Segmented Pill Switcher (Cover Art vs Full Screen Lyrics) */}
+            <div
+              style={{
+                background: "rgba(0, 0, 0, 0.45)",
+                backdropFilter: "blur(16px)",
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                borderRadius: "30px",
+                padding: "4px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.3)"
+              }}
+            >
+              <button
+                onClick={() => setFullscreenView("art")}
+                style={{
+                  background: fullscreenView === "art" ? "rgba(255, 255, 255, 0.22)" : "transparent",
+                  color: fullscreenView === "art" ? "#FFFFFF" : "rgba(255, 255, 255, 0.65)",
+                  border: fullscreenView === "art" ? "1px solid rgba(255,255,255,0.2)" : "1px solid transparent",
+                  borderRadius: "24px",
+                  padding: "8px 18px",
+                  fontSize: "13px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "all 0.2s cubic-bezier(0.25, 1, 0.5, 1)"
+                }}
+                className="hover-effect"
+              >
+                <ImageIcon size={15} />
+                <span>Cover Art</span>
+              </button>
+
+              <button
+                onClick={() => setFullscreenView("lyrics")}
+                style={{
+                  background: fullscreenView === "lyrics" ? "rgba(255, 255, 255, 0.22)" : "transparent",
+                  color: fullscreenView === "lyrics" ? "#FFFFFF" : "rgba(255, 255, 255, 0.65)",
+                  border: fullscreenView === "lyrics" ? "1px solid rgba(255,255,255,0.2)" : "1px solid transparent",
+                  borderRadius: "24px",
+                  padding: "8px 18px",
+                  fontSize: "13px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "all 0.2s cubic-bezier(0.25, 1, 0.5, 1)"
+                }}
+                className="hover-effect"
+              >
+                <Mic2 size={15} />
+                <span>Lyrics</span>
+              </button>
+            </div>
+
+            {/* Right: Actions & Exit Fullscreen */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end", minWidth: "220px" }}>
+              <button
+                onClick={toggleStemMixer}
+                title="Stem Mixer"
+                style={{
+                  background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.1)",
+                  border: "none",
+                  color: "#FFFFFF",
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  backdropFilter: "blur(6px)",
+                  transition: "all 0.2s"
+                }}
+                className="hover-effect"
+              >
+                <SlidersHorizontal size={16} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowTrackOptionsModal(true); }}
+                title="Options"
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  border: "none",
+                  color: "#FFFFFF",
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  backdropFilter: "blur(6px)",
+                  transition: "all 0.2s"
+                }}
+                className="hover-effect"
+              >
+                <MoreVertical size={16} />
+              </button>
+              <button
+                onClick={() => setIsDesktopFullscreen(false)}
+                title="Exit full screen (Esc)"
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  border: "none",
+                  color: "#FFFFFF",
+                  width: "36px",
+                  height: "36px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  backdropFilter: "blur(6px)",
+                  transition: "all 0.2s"
+                }}
+                className="hover-effect"
+              >
+                <Minimize2 size={17} />
+              </button>
+            </div>
+          </div>
+
+          {/* FULLSCREEN MAIN CONTENT AREA */}
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden"
+            }}
+          >
+            {fullscreenView === "art" ? (
+              /* COVER ART VIEW (IMAGE 2) */
+              <div
+                className="fade-enter custom-scrollbar"
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "20px 32px 30px 32px"
+                }}
+              >
+                {/* Centered Large Album Art */}
+                <div
+                  style={{
+                    width: "min(380px, 38vh)",
+                    height: "min(380px, 38vh)",
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    boxShadow: "0 24px 60px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5)",
+                    backgroundColor: "rgba(255,255,255,0.05)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0
+                  }}
+                >
+                  {currentTrack.poster_url ? (
+                    <img
+                      src={currentTrack.poster_url}
+                      alt={currentTrack.title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <ImageIcon size={100} color="rgba(255,255,255,0.3)" />
+                  )}
+                </div>
+
+                {/* Dual Cards: Credits & Next in queue */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "18px",
+                    width: "100%",
+                    maxWidth: "680px",
+                    marginTop: "28px",
+                    flexShrink: 0
+                  }}
+                >
+                  {/* Card 1: Credits */}
+                  <div
+                    style={{
+                      background: "rgba(18, 22, 32, 0.7)",
+                      backdropFilter: "blur(20px)",
+                      borderRadius: "14px",
+                      padding: "16px 20px",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      minHeight: "92px",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.3)"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "16px", fontWeight: "800", color: "#FFFFFF" }}>Credits</span>
+                      <button
+                        onClick={() => setShowTrackArtistsModal(true)}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "rgba(255,255,255,0.65)",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          cursor: "pointer",
+                          padding: 0
+                        }}
+                        className="hover-effect"
+                      >
+                        Show all
+                      </button>
+                    </div>
+                    <div style={{ marginTop: "10px" }}>
+                      <div style={{ fontSize: "15px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {currentTrack.artist}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        Main Artist {currentTrack.album ? `• ${currentTrack.album}` : ""}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Next in queue */}
+                  <div
+                    style={{
+                      background: "rgba(18, 22, 32, 0.7)",
+                      backdropFilter: "blur(20px)",
+                      borderRadius: "14px",
+                      padding: "16px 20px",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      minHeight: "92px",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.3)"
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "16px", fontWeight: "800", color: "#FFFFFF" }}>Next in queue</span>
+                      <button
+                        onClick={() => {
+                          setIsDesktopFullscreen(false);
+                          setShowQueue(true);
+                        }}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "rgba(255,255,255,0.65)",
+                          fontSize: "12px",
+                          fontWeight: "700",
+                          cursor: "pointer",
+                          padding: 0
+                        }}
+                        className="hover-effect"
+                      >
+                        Open queue
+                      </button>
+                    </div>
+                    <div style={{ marginTop: "10px" }}>
+                      {nextTrackInLine ? (
+                        <div
+                          onClick={() => {
+                            if (userQueue.length > 0) playFromQueue(0);
+                            else if (upcomingSourceList.length > 0) handlePlaySong(upcomingSourceList[0].originalIndex, playbackQueue, playbackSourceName);
+                          }}
+                          style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}
+                          className="hover-effect"
+                          title="Play next track now"
+                        >
+                          <div style={{ width: "36px", height: "36px", borderRadius: "6px", overflow: "hidden", backgroundColor: "#222", flexShrink: 0 }}>
+                            {nextTrackInLine.poster_url ? (
+                              <img src={nextTrackInLine.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ) : (
+                              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={16} color="#888" /></div>
+                            )}
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: "14px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {nextTrackInLine.title}
+                            </div>
+                            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {nextTrackInLine.artist}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}>
+                          Queue is empty
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* FULL SCREEN LYRICS VIEW (IMAGE 3) */
+              <div
+                ref={fullscreenLyricsContainerRef}
+                className="fade-enter custom-scrollbar"
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  overflowX: "hidden",
+                  padding: "200px 60px 260px 60px",
+                  scrollBehavior: "auto"
+                }}
+              >
+                <div style={{ maxWidth: "860px", margin: "0 auto", textAlign: "left" }}>
+                  {parsedLyrics.length > 0 ? (
+                    parsedLyrics.map((lyric, index) => {
+                      const isActiveLine = index === activeLyricIndex;
+                      return (
+                        <div
+                          key={index}
+                          ref={el => fullscreenLyricRefs.current[index] = el}
+                          onClick={(e) => handleLyricClick(lyric.time, e)}
+                          style={{
+                            fontSize: "34px",
+                            fontWeight: "800",
+                            lineHeight: "1.55",
+                            letterSpacing: "-0.5px",
+                            color: isActiveLine ? "#FFFFFF" : "rgba(255, 255, 255, 0.35)",
+                            textShadow: isActiveLine ? "0 0 24px rgba(255,255,255,0.6)" : "none",
+                            padding: "12px 0",
+                            cursor: "pointer",
+                            transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+                            transform: isActiveLine ? "scale(1.03)" : "scale(1)",
+                            transformOrigin: "left center",
+                            willChange: "transform, color, text-shadow"
+                          }}
+                        >
+                          {lyric.words ? lyric.words.map((wordObj, wIndex) => {
+                            const isActiveWord = isActiveLine && wIndex === activeWordIndex;
+                            const isPastWord = isActiveLine && wIndex < activeWordIndex;
+                            return (
+                              <span
+                                key={wIndex}
+                                onClick={(e) => handleLyricClick(wordObj.time, e)}
+                                style={{
+                                  color: (isActiveWord || isPastWord) ? "#FFFFFF" : (isActiveLine ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.35)"),
+                                  textShadow: isActiveWord ? "0 0 20px rgba(255,255,255,0.8)" : "none",
+                                  transition: "all 0.25s ease",
+                                  marginRight: "6px",
+                                  cursor: "pointer"
+                                }}
+                              >
+                                {wordObj.text}
+                              </span>
+                            );
+                          }) : lyric.text}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "20px", fontWeight: "600", lineHeight: "1.8", whiteSpace: "pre-line", padding: "60px 0" }}>
+                      {currentTrack.lyrics || "No synchronized lyrics available for this song."}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* FULLSCREEN BOTTOM DOCKED PLAYER BAR */}
+          <div
+            style={{
+              position: "relative",
+              zIndex: 2,
+              padding: "16px 36px 20px 36px",
+              background: "rgba(8, 12, 18, 0.88)",
+              backdropFilter: "blur(24px)",
+              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+              display: "grid",
+              gridTemplateColumns: "280px 1fr 280px",
+              alignItems: "center",
+              flexShrink: 0
+            }}
+          >
+            {/* Left: Track Info & Like */}
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0 }}>
+              <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.1)", flexShrink: 0, boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}>
+                {currentTrack.poster_url ? (
+                  <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <ImageIcon size={22} color="rgba(255,255,255,0.4)" />
+                )}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ fontSize: "14px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {currentTrack.title}
+                </div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
+                  {currentTrack.artist}
+                </div>
+              </div>
+              <button
+                title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === currentTrack.id) ? "Unlike" : "Like"}
+                onClick={(e) => handleToggleLike(currentTrack, e)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: likedPlaylist?.playlist_songs?.some(ps => ps.song_id === currentTrack.id) ? COLORS.spotifyGreen : "rgba(255,255,255,0.7)",
+                  cursor: "pointer",
+                  padding: "6px",
+                  display: "flex",
+                  alignItems: "center"
+                }}
+                className="hover-effect"
+              >
+                <Heart size={18} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === currentTrack.id) ? COLORS.spotifyGreen : "none"} />
+              </button>
+            </div>
+
+            {/* Center: Playback Controls & Scrubber */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px", margin: "0 auto" }}>
+              {/* Buttons row */}
+              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "8px" }}>
+                <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer" }} className="hover-effect" title={`Mode: ${playMode}`}>
+                  {renderModeIcon("#FFFFFF")}
+                </button>
+                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex" }} className="hover-effect" title="Previous">
+                  <SkipBack size={20} fill="currentColor" />
+                </button>
+                <button
+                  onClick={handlePlayPause}
+                  className="hover-effect"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "42px",
+                    height: "42px",
+                    borderRadius: "50%",
+                    border: "none",
+                    backgroundColor: "#FFFFFF",
+                    color: "#1A2B4C",
+                    cursor: "pointer",
+                    boxShadow: "0 6px 16px rgba(0,0,0,0.4)"
+                  }}
+                  title={isPlaying ? "Pause" : "Play"}
+                >
+                  {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" style={{ marginLeft: "2px" }} />}
+                </button>
+                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex" }} className="hover-effect" title="Next">
+                  <SkipForward size={20} fill="currentColor" />
+                </button>
+              </div>
+
+              {/* Scrubber row */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
+                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)", minWidth: "34px", textAlign: "right", fontWeight: "600" }}>
+                  {formatTime(currentTime)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  defaultValue={0}
+                  ref={fullscreenProgressRef}
+                  onChange={handleSeek}
+                  className="glow-slider"
+                  style={{ flex: 1 }}
+                />
+                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)", minWidth: "34px", textAlign: "left", fontWeight: "600" }}>
+                  {formatTime(duration)}
+                </span>
+              </div>
+            </div>
+
+            {/* Right: Quick Toggles, Volume, Minimize */}
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setFullscreenView(v => v === "lyrics" ? "art" : "lyrics")}
+                title={fullscreenView === "lyrics" ? "Switch to Cover Art" : "Switch to Lyrics"}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: fullscreenView === "lyrics" ? COLORS.spotifyGreen : "rgba(255,255,255,0.7)",
+                  cursor: "pointer",
+                  padding: "4px"
+                }}
+                className="hover-effect"
+              >
+                <Mic2 size={18} />
+              </button>
+              <button
+                onClick={toggleStemMixer}
+                title="Stem Mixer"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.7)",
+                  cursor: "pointer",
+                  padding: "4px"
+                }}
+                className="hover-effect"
+              >
+                <SlidersHorizontal size={18} />
+              </button>
+              
+              {/* Volume controls */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <button
+                  onClick={toggleMute}
+                  style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.8)", cursor: "pointer", padding: "4px" }}
+                  className="hover-effect"
+                  title={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={isMuted ? 0 : volume}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    setVolume(v);
+                    if (isMuted && v > 0) setIsMuted(false);
+                  }}
+                  className="glow-slider"
+                  style={{ width: "80px" }}
+                />
+              </div>
+
+              <button
+                onClick={() => setIsDesktopFullscreen(false)}
+                title="Exit full screen (Esc)"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "rgba(255,255,255,0.8)",
+                  cursor: "pointer",
+                  padding: "4px",
+                  marginLeft: "4px"
+                }}
+                className="hover-effect"
+              >
+                <Minimize2 size={18} />
               </button>
             </div>
           </div>
