@@ -3896,51 +3896,8 @@ export default function App() {
               </div>
             </div>
 
-            {/* Right: Quick Toggles, Volume, Minimize */}
+            {/* Right: Volume & Minimize */}
             <div style={{ display: "flex", alignItems: "center", gap: "14px", justifyContent: "flex-end" }}>
-              <button
-                onClick={() => setFullscreenView(v => v === "lyrics" ? "art" : "lyrics")}
-                title={fullscreenView === "lyrics" ? "Switch to Cover Art" : "Switch to Lyrics"}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: fullscreenView === "lyrics" ? COLORS.spotifyGreen : "rgba(255,255,255,0.7)",
-                  cursor: "pointer",
-                  padding: "4px"
-                }}
-                className="hover-effect"
-              >
-                <Mic2 size={18} />
-              </button>
-              <button
-                onClick={toggleStemMixer}
-                title="Stem Mixer"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.7)",
-                  cursor: "pointer",
-                  padding: "4px"
-                }}
-                className="hover-effect"
-              >
-                <SlidersHorizontal size={18} />
-              </button>
-              <button
-                onClick={() => setShowFullscreenQueueModal(v => !v)}
-                title="Queue"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: showFullscreenQueueModal ? COLORS.spotifyGreen : "rgba(255,255,255,0.7)",
-                  cursor: "pointer",
-                  padding: "4px"
-                }}
-                className="hover-effect"
-              >
-                <ListMusic size={18} />
-              </button>
-              
               {/* Volume controls */}
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <button
