@@ -1387,6 +1387,10 @@ export default function App() {
             setShowTrackArtistsModal(false);
           } else if (showTrackOptionsModal) {
             setShowTrackOptionsModal(false);
+          } else if (showSleepTimerModal) {
+            setShowSleepTimerModal(false);
+          } else if (songForPlaylistModal) {
+            setSongForPlaylistModal(null);
           } else {
             setIsDesktopFullscreen(false);
           }
@@ -1395,7 +1399,7 @@ export default function App() {
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
     }
-  }, [isDesktopFullscreen, showFullscreenQueueModal, showTrackArtistsModal, showTrackOptionsModal]);
+  }, [isDesktopFullscreen, showFullscreenQueueModal, showTrackArtistsModal, showTrackOptionsModal, showSleepTimerModal, songForPlaylistModal]);
 
   useEffect(() => {
     if (isDesktopFullscreen && fullscreenView === "lyrics" && activeLyricIndex !== -1 && fullscreenLyricRefs.current[activeLyricIndex] && fullscreenLyricsContainerRef.current) {
@@ -2360,12 +2364,12 @@ export default function App() {
 
       {/* TOASTS */}
       {renderQueueToast && (
-        <div className={queueToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
+        <div className={queueToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 10010, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
           {safeQueueToast}
         </div>
       )}
       {renderExitToast && (
-        <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 9999, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)", whiteSpace: "nowrap" }}>
+        <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 10010, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)", whiteSpace: "nowrap" }}>
           Press back again to exit
         </div>
       )}
@@ -2432,12 +2436,12 @@ export default function App() {
   
         {/* CREATE PLAYLIST MODAL */}
       {renderPlaylistModal && (
-        <div className={playlistModalClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setShowPlaylistModal(false)}>
-          <div className={playlistModalClosing ? "pop-exit" : "pop-enter"} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Create Private Playlist</h2>
+        <div className={playlistModalClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: (isDesktopFullscreen || dominantColor) ? "rgba(0, 0, 0, 0.72)" : COLORS.invertedShadow, backdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowPlaylistModal(false)}>
+          <div className={`${playlistModalClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: (isDesktopFullscreen || dominantColor) ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #080C14 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #080C14 100%)") : COLORS.bgPanel, backdropFilter: "blur(24px)", border: (isDesktopFullscreen || dominantColor) ? "1px solid rgba(255, 255, 255, 0.16)" : `1px solid ${COLORS.border}`, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "380px", position: "relative", boxShadow: "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.textMain }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowPlaylistModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "800" }}><FolderPlus color={(isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary} /> Create Private Playlist</h2>
             <form onSubmit={handleCreatePlaylist}>
-              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input glass-row" />
+              <input type="text" placeholder="Playlist Name *" required value={newPlaylistName} onChange={e => setNewPlaylistName(e.target.value)} className="upload-input glass-row" style={{ color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : undefined }} />
               <button type="submit" style={{ width: "100%", padding: "14px" }} className="glass-btn-primary">Save Playlist</button>
             </form>
           </div>
@@ -2446,18 +2450,18 @@ export default function App() {
 
       {/* SLEEP TIMER MODAL */}
       {renderSleepTimer && (
-        <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: "rgba(0, 0, 0, 0.7)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
-          <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><Moon color={COLORS.primary} /> Sleep Timer</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: "rgba(0, 0, 0, 0.72)", backdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setShowSleepTimerModal(false)}>
+          <div className={`${sleepTimerClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: (isDesktopFullscreen || dominantColor) ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #080C14 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #080C14 100%)") : COLORS.bgPanel, backdropFilter: "blur(24px)", border: (isDesktopFullscreen || dominantColor) ? "1px solid rgba(255, 255, 255, 0.16)" : `1px solid ${COLORS.border}`, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.textMain }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowSleepTimerModal(false)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "800", letterSpacing: "-0.3px" }}><Moon color={(isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary} size={22} /> Sleep Timer</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[5, 10, 20, 30, 60, 120].map(mins => (
-                <div key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
+                <div key={mins} onClick={() => handleSetSleepTimer(mins)} className="glass-row hover-effect" style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "700", cursor: "pointer", textAlign: "left", background: (isDesktopFullscreen || dominantColor) ? "rgba(255, 255, 255, 0.08)" : undefined, border: (isDesktopFullscreen || dominantColor) ? "1px solid rgba(255, 255, 255, 0.1)" : undefined, transition: "all 0.2s" }}>
                   {mins === 60 ? "1 hour" : mins === 120 ? "2 hours" : `${mins} minutes`}
                 </div>
               ))}
-              <div style={{ margin: "8px 0", height: "1px", background: COLORS.border }} />
-              <button onClick={() => handleSetSleepTimer(0)} className={sleepTimerTarget ? "hover-effect" : "glass-row"} style={{ width: "100%", padding: "14px", borderRadius: sleepTimerTarget ? "8px" : undefined, background: sleepTimerTarget ? "#ffebee" : undefined, border: sleepTimerTarget ? "1px solid #ffcdd2" : undefined, color: sleepTimerTarget ? "#d32f2f" : COLORS.textMuted, fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
+              <div style={{ margin: "8px 0", height: "1px", background: (isDesktopFullscreen || dominantColor) ? "rgba(255, 255, 255, 0.12)" : COLORS.border }} />
+              <button onClick={() => handleSetSleepTimer(0)} className={sleepTimerTarget ? "hover-effect" : "glass-row"} style={{ width: "100%", padding: "14px", borderRadius: "14px", background: sleepTimerTarget ? ((isDesktopFullscreen || dominantColor) ? "rgba(239, 68, 68, 0.25)" : "#ffebee") : ((isDesktopFullscreen || dominantColor) ? "rgba(255, 255, 255, 0.04)" : undefined), border: sleepTimerTarget ? ((isDesktopFullscreen || dominantColor) ? "1px solid rgba(239, 68, 68, 0.5)" : "1px solid #ffcdd2") : ((isDesktopFullscreen || dominantColor) ? "1px solid rgba(255, 255, 255, 0.06)" : undefined), color: sleepTimerTarget ? ((isDesktopFullscreen || dominantColor) ? "#ff7b7b" : "#d32f2f") : ((isDesktopFullscreen || dominantColor) ? "rgba(255, 255, 255, 0.45)" : COLORS.textMuted), fontWeight: "bold", cursor: "pointer", textAlign: "left" }}>
                 Turn off timer
               </button>
             </div>
@@ -2488,7 +2492,7 @@ export default function App() {
               <div onClick={(e) => { addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListPlus size={18} /> Add to Queue
               </div>
-              <div onClick={() => { setShowQueue(true); setShowTrackOptionsModal(false); if(isMobilePlayerOpen) setIsMobilePlayerOpen(true); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div onClick={() => { if (isDesktopFullscreen) { setShowFullscreenQueueModal(true); } else { setShowQueue(true); if (isMobilePlayerOpen) setIsMobilePlayerOpen(true); } setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
                 <ListMusic size={18} /> Go to Queue
               </div>
               <div onClick={() => { setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); }} className="glass-row" style={{ width: "100%", padding: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
@@ -2832,22 +2836,22 @@ export default function App() {
 
       {/* ADD TO PLAYLIST MODAL */}
       {renderSongForPlaylist && (
-        <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: COLORS.invertedShadow, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 5500, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
-          <div className={`${songForPlaylistClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: COLORS.bgPanel, padding: "32px", borderRadius: "16px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 20px 40px rgba(0,0,0,0.3)" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: COLORS.primary }}><FolderPlus color={COLORS.primary} /> Add to Playlist</h2>
-            <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: COLORS.textMuted }}>"{safeSongForPlaylist?.title}"</p>
+        <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: (isDesktopFullscreen || dominantColor) ? "rgba(0, 0, 0, 0.72)" : COLORS.invertedShadow, backdropFilter: "blur(14px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => setSongForPlaylistModal(null)}>
+          <div className={`${songForPlaylistClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: (isDesktopFullscreen || dominantColor) ? (dominantColor ? `radial-gradient(circle at 50% 15%, ${dominantColor} 0%, #080C14 100%)` : "radial-gradient(circle at 50% 15%, #182844 0%, #080C14 100%)") : COLORS.bgPanel, backdropFilter: "blur(24px)", border: (isDesktopFullscreen || dominantColor) ? "1px solid rgba(255, 255, 255, 0.16)" : `1px solid ${COLORS.border}`, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.textMain }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSongForPlaylistModal(null)} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.textMuted, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "800" }}><FolderPlus color={(isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary} size={22} /> Add to Playlist</h2>
+            <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: (isDesktopFullscreen || dominantColor) ? "rgba(255, 255, 255, 0.7)" : COLORS.textMuted }}>"{safeSongForPlaylist?.title}"</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {userPlaylists.length > 0
                 ? userPlaylists.map(pl => (
-                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="glass-row" style={{ width: "100%", padding: "14px", color: COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px" }}>
-                      <ListMusic size={18} /> {pl.name}
+                    <button key={pl.id} onClick={() => { handleAddSongToPlaylist(pl.id, safeSongForPlaylist.id); setSongForPlaylistModal(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px 16px", borderRadius: "14px", color: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: (isDesktopFullscreen || dominantColor) ? "rgba(255, 255, 255, 0.08)" : undefined, border: (isDesktopFullscreen || dominantColor) ? "1px solid rgba(255, 255, 255, 0.1)" : undefined, transition: "all 0.2s" }}>
+                      <ListMusic size={18} color={(isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary} /> {pl.name}
                     </button>
                   ))
                 : (
                   <div style={{ textAlign: "center", padding: "16px 0" }}>
-                    <p style={{ color: COLORS.textMuted, fontSize: "14px", margin: "0 0 16px 0" }}>You don't have any playlists yet.</p>
-                    <button onClick={() => { setSongForPlaylistModal(null); setShowPlaylistModal(true); }} style={{ background: COLORS.primary, color: COLORS.bgPanel, border: "none", borderRadius: "8px", padding: "12px 20px", fontWeight: "bold", cursor: "pointer" }} className="hover-effect">
+                    <p style={{ color: (isDesktopFullscreen || dominantColor) ? "rgba(255,255,255,0.7)" : COLORS.textMuted, fontSize: "14px", margin: "0 0 16px 0" }}>You don't have any playlists yet.</p>
+                    <button onClick={() => { setSongForPlaylistModal(null); setShowPlaylistModal(true); }} style={{ background: (isDesktopFullscreen || dominantColor) ? "#FFFFFF" : COLORS.primary, color: (isDesktopFullscreen || dominantColor) ? "#070B12" : COLORS.bgPanel, border: "none", borderRadius: "12px", padding: "12px 20px", fontWeight: "bold", cursor: "pointer" }} className="hover-effect">
                       Create a Playlist
                     </button>
                   </div>
