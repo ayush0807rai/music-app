@@ -385,16 +385,16 @@ const getSongThemeGradients = (rgb, isDark) => {
   if (!rgb) {
     return {
       modalBg: isDark
-        ? "radial-gradient(circle at 50% 0%, #1A2844 0%, #07090E 100%)"
+        ? "radial-gradient(circle at 50% -10%, rgba(60, 75, 105, 0.45) 0%, rgba(20, 25, 38, 0.20) 38%, rgba(13, 17, 26, 0.96) 80%, #07090E 100%)"
         : "radial-gradient(circle at 50% 0%, rgba(26, 43, 76, 0.08) 0%, #FAFAF7 70%, #F3F0E6 100%)",
       modalOverlay: isDark
-        ? "rgba(0, 0, 0, 0.72)"
+        ? "radial-gradient(circle at 50% 40%, rgba(30, 40, 60, 0.25) 0%, rgba(0, 0, 0, 0.80) 65%, rgba(0, 0, 0, 0.92) 100%)"
         : "rgba(18, 26, 47, 0.42)",
       modalBorder: isDark
-        ? "1px solid rgba(255, 255, 255, 0.15)"
+        ? "1px solid rgba(255, 255, 255, 0.18)"
         : "1px solid rgba(26, 43, 76, 0.12)",
       modalShadow: isDark
-        ? "0 28px 70px rgba(0,0,0,0.85), 0 4px 18px rgba(0,0,0,0.5)"
+        ? "0 28px 70px rgba(0,0,0,0.85), 0 0 40px rgba(40, 60, 100, 0.2)"
         : "0 20px 50px rgba(26, 43, 76, 0.16)",
       playerBg: isDark
         ? "radial-gradient(ellipse 95% 75% at 50% 32%, rgba(28, 45, 75, 0.65) 0%, rgba(7, 10, 17, 0.88) 75%, #070A11 100%)"
@@ -416,18 +416,18 @@ const getSongThemeGradients = (rgb, isDark) => {
   const { r, g, b } = rgb;
   if (isDark) {
     return {
-      modalBg: `radial-gradient(circle at 50% -10%, rgba(${r}, ${g}, ${b}, 0.50) 0%, rgba(${r}, ${g}, ${b}, 0.20) 38%, rgba(13, 17, 26, 0.96) 80%, #07090E 100%)`,
-      modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.24) 0%, rgba(0, 0, 0, 0.78) 65%, rgba(0, 0, 0, 0.90) 100%)`,
-      modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.35)`,
-      modalShadow: `0 28px 70px rgba(0,0,0,0.85), 0 0 45px rgba(${r}, ${g}, ${b}, 0.28)`,
+      modalBg: `radial-gradient(circle at 50% -10%, rgba(${r}, ${g}, ${b}, 0.58) 0%, rgba(${r}, ${g}, ${b}, 0.24) 40%, rgba(13, 17, 26, 0.97) 82%, #07090E 100%)`,
+      modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.32) 0%, rgba(0, 0, 0, 0.80) 65%, rgba(0, 0, 0, 0.92) 100%)`,
+      modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.42)`,
+      modalShadow: `0 28px 70px rgba(0,0,0,0.85), 0 0 50px rgba(${r}, ${g}, ${b}, 0.35)`,
       playerBg: `radial-gradient(ellipse 95% 75% at 50% 32%, rgba(${r}, ${g}, ${b}, 0.55) 0%, rgba(${r}, ${g}, ${b}, 0.22) 48%, rgba(7, 10, 17, 0.88) 78%, #070A11 100%)`,
       mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.52) 0%, rgba(${r}, ${g}, ${b}, 0.20) 45%, rgba(7, 10, 17, 0.88) 75%, #070A11 100%)`,
       sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.35) 0%, rgba(10, 14, 22, 0.95) 70%, #070A10 100%)`,
       textColor: "#FFFFFF",
       textMuted: "rgba(255, 255, 255, 0.65)",
       rowBg: "rgba(255, 255, 255, 0.08)",
-      rowBorder: "1px solid rgba(255, 255, 255, 0.12)",
-      accentGlow: `rgba(${r}, ${g}, ${b}, 0.35)`
+      rowBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.25)`,
+      accentGlow: `rgba(${r}, ${g}, ${b}, 0.40)`
     };
   } else {
     // Light Mode Variant
@@ -538,9 +538,22 @@ export default function App() {
   });
   const [playbackIndex, setPlaybackIndex] = useState(() => parseInt(localStorage.getItem("euphony_playback_index")) || 0);
   const [playbackSourceName, setPlaybackSourceName] = useState(() => localStorage.getItem("euphony_playback_source") || "Global Library");
-    const [preloadSrc, setPreloadSrc] = useState(null);
-  const [dominantColor, setDominantColor] = useState(null);
-  const [dominantRgb, setDominantRgb] = useState(null);
+  const [dominantRgb, setDominantRgb] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_last_dominant_rgb");
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) { return null; }
+  });
+  const [dominantColor, setDominantColor] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_last_dominant_rgb");
+      if (saved) {
+        const p = JSON.parse(saved);
+        return `rgb(${p.r}, ${p.g}, ${p.b})`;
+      }
+      return null;
+    } catch (e) { return null; }
+  });
   const songTheme = getSongThemeGradients(dominantRgb, isDarkMode);
 
   const CACHE_NAME = 'euphony-media-blobs';
@@ -887,69 +900,132 @@ export default function App() {
   }, [playlist, playbackQueue.length, currentTrack?.id, playbackSourceName, queueCurrentTrack?.id]);
 
   useEffect(() => {
-    if (currentTrack?.poster_url) {
-      const img = new Image();
-      img.crossOrigin = "Anonymous";
-      img.onload = () => {
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = 24;
-          canvas.height = 24;
-          const ctx = canvas.getContext("2d", { willReadFrequently: true });
-          ctx.drawImage(img, 0, 0, 24, 24);
-          const imgData = ctx.getImageData(0, 0, 24, 24).data;
-          
-          let bestR = 24, bestG = 40, bestB = 68;
-          let maxScore = -1;
-          let totalR = 0, totalG = 0, totalB = 0, count = 0;
-          
-          for (let i = 0; i < imgData.length; i += 4) {
-            const r = imgData[i];
-            const g = imgData[i + 1];
-            const b = imgData[i + 2];
-            const a = imgData[i + 3];
-            if (a < 128) continue;
-            
-            totalR += r; totalG += g; totalB += b; count++;
-            
-            const max = Math.max(r, g, b);
-            const min = Math.min(r, g, b);
-            const delta = max - min;
-            const lightness = (max + min) / 2;
-            
-            if (lightness > 18 && lightness < 240) {
-              const saturation = delta / (255 - Math.abs(2 * lightness - 255) || 1);
-              const score = saturation * 2.5 + (1 - Math.abs(lightness - 120) / 120);
-              if (score > maxScore) {
-                maxScore = score;
-                bestR = r; bestG = g; bestB = b;
-              }
-            }
-          }
-          
-          if (maxScore < 0.25 && count > 0) {
-            bestR = Math.round(totalR / count);
-            bestG = Math.round(totalG / count);
-            bestB = Math.round(totalB / count);
-          }
-          
-          setDominantColor(`rgb(${bestR}, ${bestG}, ${bestB})`);
-          setDominantRgb({ r: bestR, g: bestG, b: bestB });
-        } catch (e) {
-          setDominantColor(null);
-          setDominantRgb(null);
-        }
-      };
-      img.onerror = () => {
-        setDominantColor(null);
-        setDominantRgb(null);
-      };
-      img.src = currentTrack.poster_url;
-    } else {
+    if (!currentTrack?.poster_url) {
       setDominantColor(null);
       setDominantRgb(null);
+      return;
     }
-  }, [currentTrack?.poster_url]);
+
+    let isSubscribed = true;
+    const trackId = currentTrack.id || currentTrack.title || "active_track";
+    const cacheKey = `euphony_color_${trackId}`;
+
+    // 1. Instant check from localStorage
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.r !== undefined && parsed?.g !== undefined && parsed?.b !== undefined) {
+          setDominantRgb(parsed);
+          setDominantColor(`rgb(${parsed.r}, ${parsed.g}, ${parsed.b})`);
+        }
+      }
+    } catch (e) {}
+
+    const processImageData = (imgData) => {
+      let bestR = 24, bestG = 40, bestB = 68;
+      let maxScore = -1;
+      let totalR = 0, totalG = 0, totalB = 0, count = 0;
+      
+      for (let i = 0; i < imgData.length; i += 4) {
+        const r = imgData[i];
+        const g = imgData[i + 1];
+        const b = imgData[i + 2];
+        const a = imgData[i + 3];
+        if (a < 128) continue;
+        
+        totalR += r; totalG += g; totalB += b; count++;
+        
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const delta = max - min;
+        const lightness = (max + min) / 2;
+        
+        if (lightness > 18 && lightness < 240) {
+          const saturation = delta / (255 - Math.abs(2 * lightness - 255) || 1);
+          const score = saturation * 2.5 + (1 - Math.abs(lightness - 120) / 120);
+          if (score > maxScore) {
+            maxScore = score;
+            bestR = r; bestG = g; bestB = b;
+          }
+        }
+      }
+      
+      if (maxScore < 0.25 && count > 0) {
+        bestR = Math.round(totalR / count);
+        bestG = Math.round(totalG / count);
+        bestB = Math.round(totalB / count);
+      }
+
+      if (!isSubscribed) return;
+
+      const rgbObj = { r: bestR, g: bestG, b: bestB };
+      setDominantColor(`rgb(${bestR}, ${bestG}, ${bestB})`);
+      setDominantRgb(rgbObj);
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(rgbObj));
+        localStorage.setItem("euphony_last_dominant_rgb", JSON.stringify(rgbObj));
+      } catch (e) {}
+    };
+
+    const extractFromImage = (imageElement) => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 24;
+        canvas.height = 24;
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        ctx.drawImage(imageElement, 0, 0, 24, 24);
+        const imgData = ctx.getImageData(0, 0, 24, 24).data;
+        processImageData(imgData);
+        return true;
+      } catch (err) {
+        return false;
+      }
+    };
+
+    const rawUrl = currentTrack.poster_url;
+    // Specialized thumbnail transformation prevents Chromium non-CORS cache collision
+    const targetUrl = rawUrl.includes("res.cloudinary.com") && rawUrl.includes("/image/upload/")
+      ? rawUrl.replace("/image/upload/", "/image/upload/w_32,c_scale/")
+      : (rawUrl.includes("?") ? `${rawUrl}&color_extract=1` : `${rawUrl}?color_extract=1`);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const ok = extractFromImage(img);
+      if (!ok) {
+        tryFetchFallback();
+      }
+    };
+    img.onerror = () => {
+      tryFetchFallback();
+    };
+
+    const tryFetchFallback = () => {
+      fetch(targetUrl, { mode: 'cors' })
+        .then(res => res.blob())
+        .then(blob => {
+          if (!isSubscribed) return;
+          const blobUrl = URL.createObjectURL(blob);
+          const blobImg = new Image();
+          blobImg.onload = () => {
+            extractFromImage(blobImg);
+            URL.revokeObjectURL(blobUrl);
+          };
+          blobImg.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+          };
+          blobImg.src = blobUrl;
+        })
+        .catch(() => {});
+    };
+
+    img.src = targetUrl;
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [currentTrack?.id, currentTrack?.poster_url]);
 
   useEffect(() => {
     let metaTheme = document.querySelector('meta[name="theme-color"]');
