@@ -1342,11 +1342,13 @@ export default function App() {
       const [songsRes, artistsRes, playlistRes] = await Promise.all([pSongs, pArtists, pPlaylists]);
       
       if (songsRes.data) {
-        setPlaylist(songsRes.data);
+        const uniqueSongs = Array.from(new Map(songsRes.data.map(s => [s.id, s])).values());
+        setPlaylist(uniqueSongs);
       }
       
       if (!artistsRes.error && artistsRes.data && artistsRes.data.length > 0) {
-        setTopArtists(artistsRes.data);
+        const uniqueArtists = Array.from(new Map(artistsRes.data.map(a => [a.name.trim().toLowerCase(), a])).values());
+        setTopArtists(uniqueArtists);
       } else {
         setTopArtists([
           { name: "Arijit Singh", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Arijit_Singh_performance_at_Chandigarh_2025.jpg/500px-Arijit_Singh_performance_at_Chandigarh_2025.jpg" },
@@ -1363,8 +1365,9 @@ export default function App() {
       }
 
       if (playlistRes.data) {
-        let hasLiked = playlistRes.data.some(p => p.name === "Liked Songs");
-        let finalPlaylists = [...playlistRes.data];
+        const uniquePlaylists = Array.from(new Map(playlistRes.data.map(p => [p.id, p])).values());
+        let hasLiked = uniquePlaylists.some(p => p.name === "Liked Songs");
+        let finalPlaylists = [...uniquePlaylists];
         if (!hasLiked) {
           const { data: newLiked } = await supabase.from("playlists").insert([{ name: "Liked Songs", user_id: session.user.id }]).select("*, playlist_songs(song_id, songs(poster_url))");
           if (newLiked && newLiked.length > 0) {
@@ -2057,7 +2060,7 @@ export default function App() {
       }]).select();
       if (dbError) throw dbError;
 
-      setPlaylist(prev => [...prev, dbData[0]]);
+      setPlaylist(prev => prev.some(s => s.id === dbData[0].id) ? prev : [...prev, dbData[0]]);
       setShowUploadModal(false);
       setUploadTitle(""); setUploadArtist(""); setUploadAlbum(""); setUploadLyrics(""); setUploadFile(null); setUploadPoster(null);
       alert("Song uploaded successfully to Cloudinary!");
