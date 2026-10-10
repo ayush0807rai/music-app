@@ -22,7 +22,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc, Maximize2, Minimize2
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc, Maximize2, Minimize2, Keyboard
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -648,6 +648,7 @@ export default function App() {
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
   const [showMixer, setShowMixer] = useState(false);
@@ -766,6 +767,7 @@ export default function App() {
   const { render: renderMobilePlayer, isClosing: mobilePlayerClosing } = useAnimatedPresence(isMobilePlayerOpen, null, 400);
   const { render: renderQueueToast, isClosing: queueToastClosing, data: safeQueueToast } = useAnimatedPresence(!!queueToast, queueToast, 300);
   const { render: renderExitToast, isClosing: exitToastClosing } = useAnimatedPresence(showExitToast, null, 300);
+  const { render: renderShortcuts, isClosing: shortcutsClosing } = useAnimatedPresence(showShortcutsModal, null, 250);
 
   const rawViewedSongs = viewedPlaylistId === null ? playlist : playlistSongs;
   const currentSortKey = sortOrders[viewedPlaylistId ?? "global"] ?? null;
@@ -1734,49 +1736,230 @@ export default function App() {
       setTimeout(updateProgressVisuals, 10);
       setTimeout(updateProgressVisuals, 100);
     }
-    const hasActiveModalOrFullscreen = isDesktopFullscreen || showFullscreenQueueModal || showTrackArtistsModal || showTrackOptionsModal || showSleepTimerModal || !!songForPlaylistModal;
-    if (hasActiveModalOrFullscreen) {
-      const handleKeyDown = (e) => {
-        if (e.key === "Escape") {
-          if (window.history.state?.page === 'modal') {
-            window.history.back();
-          } else {
-            if (showFullscreenQueueModal) {
-              setShowFullscreenQueueModal(false);
-              if (openedFromTrackOptionsRef.current) {
-                openedFromTrackOptionsRef.current = false;
-                setShowTrackOptionsModal(true);
-              }
-            } else if (showTrackArtistsModal) {
-              setShowTrackArtistsModal(false);
-              if (openedFromTrackOptionsRef.current) {
-                openedFromTrackOptionsRef.current = false;
-                setShowTrackOptionsModal(true);
-              }
-            } else if (showSleepTimerModal) {
-              setShowSleepTimerModal(false);
-              if (openedFromTrackOptionsRef.current) {
-                openedFromTrackOptionsRef.current = false;
-                setShowTrackOptionsModal(true);
-              }
-            } else if (songForPlaylistModal) {
-              setSongForPlaylistModal(null);
-              if (openedFromTrackOptionsRef.current) {
-                openedFromTrackOptionsRef.current = false;
-                setShowTrackOptionsModal(true);
-              }
-            } else if (showTrackOptionsModal) {
-              setShowTrackOptionsModal(false);
-            } else if (isDesktopFullscreen) {
-              setIsDesktopFullscreen(false);
+  }, [isDesktopFullscreen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // 1. Ignore if user is typing in any input field or textarea
+      const target = e.target;
+      const isTextInput = target && (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable ||
+        target.getAttribute?.("role") === "textbox"
+      );
+      if (isTextInput) return;
+
+      // 2. Ignore Ctrl / Meta / Alt combos to preserve native browser shortcuts
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      // 3. Handle Escape key for closing modals & fullscreen
+      if (e.key === "Escape") {
+        if (showShortcutsModal) {
+          setShowShortcutsModal(false);
+          return;
+        }
+        if (window.history.state?.page === 'modal') {
+          window.history.back();
+        } else {
+          if (showFullscreenQueueModal) {
+            setShowFullscreenQueueModal(false);
+            if (openedFromTrackOptionsRef.current) {
+              openedFromTrackOptionsRef.current = false;
+              setShowTrackOptionsModal(true);
             }
+          } else if (showTrackArtistsModal) {
+            setShowTrackArtistsModal(false);
+            if (openedFromTrackOptionsRef.current) {
+              openedFromTrackOptionsRef.current = false;
+              setShowTrackOptionsModal(true);
+            }
+          } else if (showSleepTimerModal) {
+            setShowSleepTimerModal(false);
+            if (openedFromTrackOptionsRef.current) {
+              openedFromTrackOptionsRef.current = false;
+              setShowTrackOptionsModal(true);
+            }
+          } else if (songForPlaylistModal) {
+            setSongForPlaylistModal(null);
+            if (openedFromTrackOptionsRef.current) {
+              openedFromTrackOptionsRef.current = false;
+              setShowTrackOptionsModal(true);
+            }
+          } else if (showTrackOptionsModal) {
+            setShowTrackOptionsModal(false);
+          } else if (showUploadModal) {
+            setShowUploadModal(false);
+          } else if (showPlaylistModal) {
+            setShowPlaylistModal(false);
+          } else if (isDesktopFullscreen) {
+            setIsDesktopFullscreen(false);
           }
         }
-      };
-      window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
-    }
-  }, [isDesktopFullscreen, showFullscreenQueueModal, showTrackArtistsModal, showTrackOptionsModal, showSleepTimerModal, songForPlaylistModal]);
+        return;
+      }
+
+      // If text/form modals are open, do not trigger playback hotkeys
+      if (showUploadModal || showPlaylistModal || showPasswordResetModal) return;
+
+      // 4. Space: Play / Pause
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        handlePlayPause();
+        return;
+      }
+
+      // 5. Left / Right Arrow: Seek 5s backward / forward (Shift + Arrow: Prev / Next track)
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleNext();
+        } else if (audioRef.current && currentTrack) {
+          const cur = audioRef.current.currentTime || 0;
+          const dur = duration || audioRef.current.duration || 0;
+          const target = dur > 0 ? Math.min(dur, cur + 5) : cur + 5;
+          audioRef.current.currentTime = target;
+          if (currentTrack.stem_vocals && !stemsBroken) {
+            if (vocalsRef.current) vocalsRef.current.currentTime = target;
+            if (drumsRef.current) drumsRef.current.currentTime = target;
+            if (bassRef.current) bassRef.current.currentTime = target;
+            if (otherRef.current) otherRef.current.currentTime = target;
+          }
+          setCurrentTime(target);
+          updateProgressVisuals();
+          triggerToast("+5s");
+        }
+        return;
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handlePrev();
+        } else if (audioRef.current && currentTrack) {
+          const cur = audioRef.current.currentTime || 0;
+          const target = Math.max(0, cur - 5);
+          audioRef.current.currentTime = target;
+          if (currentTrack.stem_vocals && !stemsBroken) {
+            if (vocalsRef.current) vocalsRef.current.currentTime = target;
+            if (drumsRef.current) drumsRef.current.currentTime = target;
+            if (bassRef.current) bassRef.current.currentTime = target;
+            if (otherRef.current) otherRef.current.currentTime = target;
+          }
+          setCurrentTime(target);
+          updateProgressVisuals();
+          triggerToast("-5s");
+        }
+        return;
+      }
+
+      // 6. Up / Down Arrow: Volume control
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (isMuted) setIsMuted(false);
+        setVolume(prev => {
+          const next = Math.min(1, Math.round((prev + 0.05) * 100) / 100);
+          triggerToast(`Volume: ${Math.round(next * 100)}%`);
+          return next;
+        });
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setVolume(prev => {
+          const next = Math.max(0, Math.round((prev - 0.05) * 100) / 100);
+          if (next === 0) setIsMuted(true);
+          triggerToast(`Volume: ${Math.round(next * 100)}%`);
+          return next;
+        });
+        return;
+      }
+
+      // 7. M / m: Mute / Unmute
+      if (e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        toggleMute();
+        triggerToast(!isMuted ? "Muted" : `Volume: ${Math.round((previousVolume || 0.5) * 100)}%`);
+        return;
+      }
+
+      // 8. L / l: Toggle Lyrics
+      if (e.key.toLowerCase() === "l") {
+        e.preventDefault();
+        if (isDesktopFullscreen) {
+          setFullscreenView(prev => (prev === "lyrics" ? "art" : "lyrics"));
+        } else {
+          setShowLyrics(prev => {
+            const next = !prev;
+            if (next) {
+              setShowQueue(false);
+              setShowMixer(false);
+            }
+            return next;
+          });
+        }
+        return;
+      }
+
+      // 9. S / s: Toggle Stem Mixer
+      if (e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (isDesktopFullscreen) {
+          setFullscreenView(prev => (prev === "mixer" ? "art" : "mixer"));
+        } else {
+          toggleStemMixer();
+        }
+        return;
+      }
+
+      // 10. F / f: Toggle Fullscreen Player
+      if (e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        if (currentTrack) {
+          setIsDesktopFullscreen(prev => !prev);
+        }
+        return;
+      }
+
+      // 11. ? (Shift + /): Toggle Shortcuts Cheat Sheet
+      if (e.key === "?") {
+        e.preventDefault();
+        setShowShortcutsModal(prev => !prev);
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    currentTrack,
+    duration,
+    isPlaying,
+    volume,
+    isMuted,
+    previousVolume,
+    isDesktopFullscreen,
+    fullscreenView,
+    showLyrics,
+    showMixer,
+    showShortcutsModal,
+    showFullscreenQueueModal,
+    showTrackArtistsModal,
+    showTrackOptionsModal,
+    showSleepTimerModal,
+    songForPlaylistModal,
+    showUploadModal,
+    showPlaylistModal,
+    showPasswordResetModal,
+    stemsBroken,
+    handlePlayPause,
+    handleNext,
+    handlePrev,
+    toggleMute,
+    toggleStemMixer
+  ]);
 
   useEffect(() => {
     if (isDesktopFullscreen && fullscreenView === "lyrics" && activeLyricIndex !== -1 && fullscreenLyricRefs.current[activeLyricIndex] && fullscreenLyricsContainerRef.current) {
@@ -1865,7 +2048,12 @@ export default function App() {
     }
   };
 
-  const triggerToast = (msg) => { setQueueToast(msg); setTimeout(() => setQueueToast(""), 2200); };
+  const toastTimeoutRef = useRef(null);
+  const triggerToast = (msg) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setQueueToast(msg);
+    toastTimeoutRef.current = setTimeout(() => setQueueToast(""), 1600);
+  };
 
   const addToQueue = (song, e) => { if (e) e.stopPropagation(); setUserQueue(prev => [...prev, { ...song, queue_id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) }]); triggerToast(`Added "${song.title}" to Queue`); };
   const removeFromQueue = (index, e) => { if (e) e.stopPropagation(); setUserQueue(prev => prev.filter((_, i) => i !== index)); };
@@ -3109,6 +3297,51 @@ export default function App() {
         </div>
       )}
 
+      {/* KEYBOARD SHORTCUTS MODAL */}
+      {renderShortcuts && (
+        <div 
+          className={shortcutsClosing ? "fade-exit" : "fade-enter"} 
+          style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10006, padding: "20px" }} 
+          onClick={() => setShowShortcutsModal(false)}
+        >
+          <div 
+            className={`${shortcutsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} 
+            style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "28px", borderRadius: "20px", width: "100%", maxWidth: "440px", position: "relative", boxShadow: songTheme.modalShadow, color: songTheme.textColor, maxHeight: "90vh", overflowY: "auto" }} 
+            onClick={e => e.stopPropagation()}
+          >
+            <button onClick={() => setShowShortcutsModal(false)} style={{ position: "absolute", top: "18px", right: "18px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect">
+              <X size={20} />
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+              <Keyboard size={22} color={COLORS.spotifyGreen} />
+              <h2 style={{ margin: 0, fontSize: "19px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Keyboard Shortcuts</h2>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {[
+                { key: "Space", label: "Play / Pause" },
+                { key: "←  /  →", label: "Seek backward / forward 5s" },
+                { key: "Shift + ←  /  →", label: "Previous / Next track" },
+                { key: "↑  /  ↓", label: "Volume up / down (5%)" },
+                { key: "M", label: "Mute / Unmute" },
+                { key: "L", label: "Toggle Lyrics" },
+                { key: "S", label: "Toggle Stem Mixer" },
+                { key: "F", label: "Toggle Fullscreen Player" },
+                { key: "?", label: "Toggle this guide" },
+                { key: "Esc", label: "Close modal / Fullscreen" }
+              ].map((item, idx) => (
+                <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px" }}>
+                  <span style={{ fontSize: "13px", color: songTheme.textColor, fontWeight: "500" }}>{item.label}</span>
+                  <kbd style={{ background: isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(26,43,76,0.1)", border: isDarkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(26,43,76,0.18)", borderRadius: "6px", padding: "3px 8px", fontSize: "12px", fontWeight: "700", fontFamily: "monospace", color: isDarkMode ? "#FFFFFF" : COLORS.primary, boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+                    {item.key}
+                  </kbd>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SLEEP TIMER MODAL */}
       {renderSleepTimer && (
         <div className={sleepTimerClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setShowSleepTimerModal(false); }}>
@@ -3532,6 +3765,11 @@ export default function App() {
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             {isDesktop && (isDarkMode ? " Light" : " Dark")}
           </button>
+          {isDesktop && (
+            <button className="hover-effect" onClick={() => setShowShortcutsModal(true)} title="Keyboard Shortcuts (?)" style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 14px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+              <Keyboard size={16} /> Shortcuts
+            </button>
+          )}
           <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <Plus size={16} color={COLORS.bgPanel} />{isDesktop && " Add Globally"}
           </button>
