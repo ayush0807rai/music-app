@@ -596,6 +596,7 @@ export default function App() {
           url: s.url,
           poster_url: s.poster_url,
           duration: s.duration,
+          lyrics: s.lyrics,
           stem_vocals: s.stem_vocals,
           stem_drums: s.stem_drums,
           stem_bass: s.stem_bass,
@@ -817,7 +818,7 @@ export default function App() {
   const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
-  // Ensure playbackQueue is always hydrated with songs from the library if empty or trapped with <= 1 song
+  // Ensure playbackQueue is always hydrated with songs from the library if empty, trapped, or missing lyrics
   useEffect(() => {
     if (playlist.length > 0) {
       const shouldHydrate = playbackQueue.length === 0 || 
@@ -833,9 +834,37 @@ export default function App() {
             setQueueCurrentTrack(null);
           }
         }
+      } else {
+        const hasMissingLyrics = playbackQueue.some(item => !item.lyrics);
+        if (hasMissingLyrics) {
+          const songMap = new Map(playlist.map(s => [s.id, s]));
+          setPlaybackQueue(prevQueue =>
+            prevQueue.map(item => {
+              const fullSong = songMap.get(item.id);
+              if (!fullSong) return item;
+              return {
+                ...fullSong,
+                ...item,
+                lyrics: fullSong.lyrics || item.lyrics,
+                stem_vocals: fullSong.stem_vocals || item.stem_vocals,
+                stem_drums: fullSong.stem_drums || item.stem_drums,
+                stem_bass: fullSong.stem_bass || item.stem_bass,
+                stem_other: fullSong.stem_other || item.stem_other,
+                duration: fullSong.duration || item.duration
+              };
+            })
+          );
+        }
+      }
+
+      if (queueCurrentTrack && !queueCurrentTrack.lyrics) {
+        const fullSong = playlist.find(s => s.id === queueCurrentTrack.id);
+        if (fullSong?.lyrics) {
+          setQueueCurrentTrack(prev => prev ? { ...fullSong, ...prev, lyrics: fullSong.lyrics } : prev);
+        }
       }
     }
-  }, [playlist, playbackQueue.length, currentTrack?.id, playbackSourceName]);
+  }, [playlist, playbackQueue.length, currentTrack?.id, playbackSourceName, queueCurrentTrack?.id]);
 
   useEffect(() => {
     if (currentTrack?.poster_url) {
@@ -1372,6 +1401,40 @@ export default function App() {
       if (songsRes.data) {
         const uniqueSongs = Array.from(new Map(songsRes.data.map(s => [s.id, s])).values());
         setPlaylist(uniqueSongs);
+
+        const songMap = new Map(uniqueSongs.map(s => [s.id, s]));
+        setPlaybackQueue(prevQueue => {
+          if (!prevQueue || prevQueue.length === 0) return uniqueSongs.map(s => ({ ...s, _play_id: Math.random().toString() }));
+          return prevQueue.map(item => {
+            const fresh = songMap.get(item.id);
+            if (!fresh) return item;
+            return {
+              ...fresh,
+              ...item,
+              lyrics: fresh.lyrics || item.lyrics,
+              stem_vocals: fresh.stem_vocals || item.stem_vocals,
+              stem_drums: fresh.stem_drums || item.stem_drums,
+              stem_bass: fresh.stem_bass || item.stem_bass,
+              stem_other: fresh.stem_other || item.stem_other,
+              duration: fresh.duration || item.duration
+            };
+          });
+        });
+
+        setQueueCurrentTrack(prev => {
+          if (!prev) return prev;
+          const fresh = songMap.get(prev.id);
+          if (!fresh) return prev;
+          return {
+            ...fresh,
+            ...prev,
+            lyrics: fresh.lyrics || prev.lyrics,
+            stem_vocals: fresh.stem_vocals || prev.stem_vocals,
+            stem_drums: fresh.stem_drums || prev.stem_drums,
+            stem_bass: fresh.stem_bass || prev.stem_bass,
+            stem_other: fresh.stem_other || prev.stem_other
+          };
+        });
       }
       
       if (!artistsRes.error && artistsRes.data && artistsRes.data.length > 0) {
@@ -1451,14 +1514,22 @@ export default function App() {
     fetchPlaylistSongs();
   }, [viewedPlaylistId]);
 
+  const effectiveTrackLyrics = currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics;
+
   useEffect(() => {
     setStemsBroken(false);
     setShowLyrics(false);
     setActiveLyricIndex(-1);
     setActiveWordIndex(-1);
     setStemVolumes({ vocals: 1, drums: 1, bass: 1, other: 1 });
-    setParsedLyrics(currentTrack?.lyrics ? parseLyrics(currentTrack.lyrics) : []);
-  }, [currentTrack]);
+    setParsedLyrics(effectiveTrackLyrics ? parseLyrics(effectiveTrackLyrics) : []);
+  }, [currentTrack?.id]);
+
+  useEffect(() => {
+    if (effectiveTrackLyrics && parsedLyrics.length === 0) {
+      setParsedLyrics(parseLyrics(effectiveTrackLyrics));
+    }
+  }, [effectiveTrackLyrics, parsedLyrics.length]);
 
   const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
   const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
@@ -1831,7 +1902,13 @@ export default function App() {
     }
   };
 
-  const addToQueue = (song, e) => { if (e) e.stopPropagation(); setUserQueue(prev => [...prev, { ...song, queue_id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) }]); triggerToast(`Added "${song.title}" to Queue`); };
+  const addToQueue = (song, e) => {
+    if (e) e.stopPropagation();
+    const full = playlist.find(s => s.id === song.id);
+    const enriched = (full?.lyrics && !song.lyrics) ? { ...song, lyrics: full.lyrics } : song;
+    setUserQueue(prev => [...prev, { ...enriched, queue_id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) }]);
+    triggerToast(`Added "${song.title}" to Queue`);
+  };
   const removeFromQueue = (index, e) => { if (e) e.stopPropagation(); setUserQueue(prev => prev.filter((_, i) => i !== index)); };
   const clearQueue = (e) => { if (e) e.stopPropagation(); setUserQueue([]); };
   
@@ -1921,7 +1998,9 @@ export default function App() {
 
   const playFromQueue = (index, e) => {
     if (e) e.stopPropagation();
-    const song = userQueue[index];
+    const rawSong = userQueue[index];
+    const full = playlist.find(s => s.id === rawSong?.id);
+    const song = (full?.lyrics && !rawSong?.lyrics) ? { ...rawSong, lyrics: full.lyrics } : rawSong;
     setUserQueue(prev => prev.filter((_, i) => i !== index));
     setQueueCurrentTrack(song);
     resetPlaybackTime();
@@ -1976,7 +2055,12 @@ export default function App() {
       }
     }
 
-    const queueWithIds = queueToSet.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+    const songMap = playlist.length > 0 ? new Map(playlist.map(item => [item.id, item])) : null;
+    const queueWithIds = queueToSet.map(s => {
+      const full = songMap?.get(s.id);
+      const withLyrics = (full?.lyrics && !s.lyrics) ? { ...s, lyrics: full.lyrics } : s;
+      return withLyrics._play_id ? withLyrics : { ...withLyrics, _play_id: Math.random().toString() };
+    });
     const track = queueWithIds[actualIndex] || clickedTrack;
     setPlaybackHistory(prev => [...prev, playbackIndex]);
     setPlaybackQueue(queueWithIds);
@@ -2164,7 +2248,9 @@ export default function App() {
     if (e) e.stopPropagation();
     
     if (userQueue.length > 0) {
-      const nextSong = userQueue[0];
+      const rawNextSong = userQueue[0];
+      const full = playlist.find(s => s.id === rawNextSong?.id);
+      const nextSong = (full?.lyrics && !rawNextSong?.lyrics) ? { ...rawNextSong, lyrics: full.lyrics } : rawNextSong;
       setUserQueue(prev => prev.slice(1));
       setQueueCurrentTrack(nextSong);
       resetPlaybackTime();
@@ -2281,7 +2367,9 @@ export default function App() {
     }
     
     if (userQueue.length > 0) {
-      const nextSong = userQueue[0];
+      const rawNextSong = userQueue[0];
+      const full = playlist.find(s => s.id === rawNextSong?.id);
+      const nextSong = (full?.lyrics && !rawNextSong?.lyrics) ? { ...rawNextSong, lyrics: full.lyrics } : rawNextSong;
       setUserQueue(prev => prev.slice(1));
       setQueueCurrentTrack(nextSong);
       resetPlaybackTime();
@@ -2725,6 +2813,7 @@ export default function App() {
     const inactiveColor = "rgba(255, 255, 255, 0.45)";
     const activeShadow = "0 0 16px rgba(255,255,255,0.8)";
     const inactiveShadow = "none";
+    const trackLyrics = currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics;
 
     return (
       <div ref={lyricsContainerRef} className="custom-scrollbar" style={{ position: "relative", width: "100%", height: "100%", padding: "24px 16px", overflowY: "auto", overflowX: "hidden", background: "transparent", textAlign: "center", borderRadius: "12px", WebkitOverflowScrolling: "touch", scrollBehavior: "auto" }}>
@@ -2751,7 +2840,7 @@ export default function App() {
           </div>
         ) : (
           <div style={{ color: inactiveColor, textShadow: inactiveShadow, opacity: 0.8, fontSize: "15px", fontWeight: "600", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {currentTrack?.lyrics ? currentTrack.lyrics : "No synchronized lyrics available."}
+            {trackLyrics ? trackLyrics : "No synchronized lyrics available."}
           </div>
         )}
       </div>
@@ -4912,7 +5001,7 @@ export default function App() {
                     })
                   ) : (
                     <div style={{ color: isDarkMode ? "rgba(255,255,255,0.6)" : "#64748B", fontSize: "20px", fontWeight: "600", lineHeight: "1.8", whiteSpace: "pre-line", padding: "60px 0" }}>
-                      {currentTrack.lyrics || "No synchronized lyrics available for this song."}
+                      {(currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics) || "No synchronized lyrics available for this song."}
                     </div>
                   )}
                 </div>
