@@ -2960,11 +2960,11 @@ export default function App() {
   const renderQueueBlock = (isMobile, customBg) => {
     const isDark = isDarkMode || customBg === "transparent";
     return (
-      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: customBg !== undefined ? "4px 0" : (isMobile ? "16px" : "18px"), overflowY: "auto", background: customBg !== undefined ? customBg : (isDarkMode ? "rgba(10, 15, 26, 0.75)" : "rgba(250, 250, 247, 0.85)"), backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: "12px", textAlign: "left", color: isDark ? "#FFFFFF" : COLORS.primary }}>
+      <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: customBg !== undefined ? "4px 0" : (isMobile ? "16px" : "18px"), overflowY: "auto", background: customBg !== undefined ? customBg : songTheme.modalBg, backdropFilter: customBg !== undefined ? "none" : "blur(24px)", WebkitBackdropFilter: customBg !== undefined ? "none" : "blur(24px)", border: customBg !== undefined ? "none" : songTheme.modalBorder, boxShadow: customBg !== undefined ? "none" : songTheme.modalShadow, borderRadius: "12px", textAlign: "left", color: songTheme.textColor }}>
         <div style={{ marginBottom: "22px" }}>
           <h4 style={{ margin: "0 0 10px 0", fontSize: "13px", textTransform: "uppercase", letterSpacing: "1px", color: isDark ? "rgba(255,255,255,0.7)" : COLORS.textMuted }}>Now Playing</h4>
           {currentTrack && (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "8px", background: isDark ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.06)", border: isDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(26,43,76,0.08)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "12px", background: songTheme.rowBg, border: songTheme.rowBorder }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(26,43,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color={isDark ? "rgba(255,255,255,0.6)" : COLORS.textMuted} />}
               </div>
@@ -3984,8 +3984,8 @@ export default function App() {
             {isDesktop && (isDarkMode ? " Light" : " Dark")}
           </button>
           {isDesktop && (
-            <button className="hover-effect" onClick={() => setShowShortcutsModal(true)} title="Keyboard Shortcuts (?)" style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 14px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
-              <Keyboard size={16} /> Shortcuts
+            <button className="hover-effect" onClick={() => setShowShortcutsModal(true)} title="Keyboard Shortcuts (?)" style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: "8px 16px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+              <Keyboard size={16} color={COLORS.bgPanel} /> Shortcuts
             </button>
           )}
           <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
