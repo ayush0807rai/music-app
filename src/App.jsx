@@ -547,11 +547,31 @@ export default function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   
 
-  const [playlist, setPlaylist] = useState([]);
-  const [topArtists, setTopArtists] = useState([]);
-  const [userPlaylists, setUserPlaylists] = useState([]);
+  const [playlist, setPlaylist] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_cached_playlist");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+  const [topArtists, setTopArtists] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_cached_artists");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+  const [userPlaylists, setUserPlaylists] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_cached_playlists");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
   const [playlistSongs, setPlaylistSongs] = useState([]);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(() => {
+    try {
+      const saved = localStorage.getItem("euphony_cached_playlist");
+      return !saved || JSON.parse(saved).length === 0;
+    } catch (e) { return true; }
+  });
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
@@ -1347,16 +1367,14 @@ export default function App() {
 
   useEffect(() => {
     let isActive = true;
+    if (currentSortKey !== "duration") return;
     
     const fetchDurationsInBatches = async () => {
-      // Delay fetching by just 2 seconds to not block initial render
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       const tracksToProcess = [...playlist, ...playlistSongs].filter(t => 
         !t.duration && !songDurations[t.id] && !fetchingDurationsRef.current.has(t.id) && t.url
       );
       
-      const BATCH_SIZE = 5;
+      const BATCH_SIZE = 4;
       for (let i = 0; i < tracksToProcess.length; i += BATCH_SIZE) {
         if (!isActive) break;
         const batch = tracksToProcess.slice(i, i + BATCH_SIZE);
@@ -1370,27 +1388,21 @@ export default function App() {
               if (isActive) setSongDurations(prev => ({ ...prev, [track.id]: audio.duration }));
               resolve();
             };
-            audio.onerror = resolve; // Continue even if one fails
+            audio.onerror = resolve;
             audio.src = getCdnUrl(track.url);
-            
-            // Timeout in case metadata gets stuck loading
-            setTimeout(resolve, 3000); 
+            setTimeout(resolve, 2500); 
           });
         }));
       }
     };
     
     fetchDurationsInBatches();
-    
     return () => { isActive = false; };
-  }, [playlist, playlistSongs]);
+  }, [playlist, playlistSongs, currentSortKey]);
 
   const fetchAllData = useCallback(async (showToastNotice = false) => {
     if (!session?.user?.id) return;
     try {
-      if (typeof window !== 'undefined' && 'caches' in window) {
-        await caches.delete('euphony-audio-cache').catch(() => {});
-      }
       setIsRefreshing(true);
       const pSongs = supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
       const pArtists = supabase.from("artists").select("*").order("created_at", { ascending: true });
@@ -1401,6 +1413,9 @@ export default function App() {
       if (songsRes.data) {
         const uniqueSongs = Array.from(new Map(songsRes.data.map(s => [s.id, s])).values());
         setPlaylist(uniqueSongs);
+        try {
+          localStorage.setItem("euphony_cached_playlist", JSON.stringify(uniqueSongs));
+        } catch (e) {}
 
         const songMap = new Map(uniqueSongs.map(s => [s.id, s]));
         setPlaybackQueue(prevQueue => {
@@ -1440,8 +1455,11 @@ export default function App() {
       if (!artistsRes.error && artistsRes.data && artistsRes.data.length > 0) {
         const uniqueArtists = Array.from(new Map(artistsRes.data.map(a => [a.name.trim().toLowerCase(), a])).values());
         setTopArtists(uniqueArtists);
+        try {
+          localStorage.setItem("euphony_cached_artists", JSON.stringify(uniqueArtists));
+        } catch (e) {}
       } else {
-        setTopArtists([
+        const defaultArtists = [
           { name: "Arijit Singh", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Arijit_Singh_performance_at_Chandigarh_2025.jpg/500px-Arijit_Singh_performance_at_Chandigarh_2025.jpg" },
           { name: "Armaan Malik", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/15/Armaan_Malik_2016.jpg/500px-Armaan_Malik_2016.jpg" },
           { name: "AR Rahman", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg/500px-AR_Rahman_at_Premier_Futsal_Press_Meet_%28cropped%29.jpg" },
@@ -1452,7 +1470,8 @@ export default function App() {
           { name: "Shawn Mendes", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png/500px-191125_Shawn_Mendes_at_the_2019_American_Music_Awards.png" },
           { name: "Shreya Ghoshal", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg/500px-Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg" },
           { name: "Atif Aslam", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Atif_Aslam_at_Badlapur_%28cropped%29.jpg/500px-Atif_Aslam_at_Badlapur_%28cropped%29.jpg" }
-        ]);
+        ];
+        setTopArtists(defaultArtists);
       }
 
       if (playlistRes.data) {
@@ -1466,6 +1485,9 @@ export default function App() {
           }
         }
         setUserPlaylists(finalPlaylists);
+        try {
+          localStorage.setItem("euphony_cached_playlists", JSON.stringify(finalPlaylists));
+        } catch (e) {}
       }
       setIsInitialLoad(false);
       if (showToastNotice) {
@@ -1533,6 +1555,7 @@ export default function App() {
 
   const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
   const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
+  const shouldLoadStems = Boolean((showMixer || (isDesktopFullscreen && fullscreenView === "mixer") || isMixerActive) && currentTrack?.stem_vocals);
 
   useEffect(() => {
     const setVol = (ref, targetVol, targetMuted) => {
@@ -1546,17 +1569,23 @@ export default function App() {
     setVol(drumsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.drums === 0);
     setVol(bassRef, isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.bass === 0);
     setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.other === 0);
-  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken]);
+  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken, isMixerActive]);
 
   useEffect(() => {
-    if ((showMixer || (isDesktopFullscreen && fullscreenView === "mixer")) && currentTrack?.stem_vocals && audioRef.current && !stemsBroken) {
+    if (shouldLoadStems && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime;
       if (vocalsRef.current) vocalsRef.current.currentTime = t;
       if (drumsRef.current)  drumsRef.current.currentTime  = t;
       if (bassRef.current)   bassRef.current.currentTime   = t;
       if (otherRef.current)  otherRef.current.currentTime  = t;
+      if (isPlaying) {
+        vocalsRef.current?.play().catch(e => e);
+        drumsRef.current?.play().catch(e => e);
+        bassRef.current?.play().catch(e => e);
+        otherRef.current?.play().catch(e => e);
+      }
     }
-  }, [showMixer, isDesktopFullscreen, fullscreenView, currentTrack, stemsBroken]);
+  }, [shouldLoadStems, isPlaying, stemsBroken]);
 
   
   const prefetchedSignatureRef = useRef("");
@@ -1570,7 +1599,7 @@ export default function App() {
     const checkPrefetch = async () => {
         if (!audioRef.current || !currentTrack?.url) return;
         
-        const targetTime = 1;
+        const targetTime = 10;
         
         if (audioRef.current.currentTime >= targetTime) {
           if (prefetchedSignatureRef.current === currentTrack.url) return;
@@ -1630,7 +1659,7 @@ export default function App() {
         if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
           audioRef.current.play().catch(e => e);
         }
-        if (currentTrack?.stem_vocals && !stemsBroken) {
+        if (shouldLoadStems && !stemsBroken) {
           vocalsRef.current?.play().catch(e => e);
           drumsRef.current?.play().catch(e => e);
           bassRef.current?.play().catch(e => e);
@@ -1645,7 +1674,7 @@ export default function App() {
       }
     };
     syncPlayState();
-  }, [isPlaying, stemsBroken, currentTrack]);
+  }, [isPlaying, stemsBroken, currentTrack, shouldLoadStems]);
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
@@ -3299,12 +3328,12 @@ export default function App() {
         onEnded={() => { handleTrackEnded(); }}
         onCanPlay={handleCanPlay}
         onWaiting={() => {
-          if (currentTrack?.stem_vocals && !stemsBroken) {
+          if (shouldLoadStems && !stemsBroken) {
             vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
           }
         }}
         onPlaying={() => {
-          if (isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
+          if (isPlaying && shouldLoadStems && !stemsBroken) {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
           }
         }}
@@ -3314,10 +3343,10 @@ export default function App() {
         loop={playMode === 'repeat-one'}
         className="loop-audio-fix"
       />
-      <audio ref={vocalsRef} src={getCdnUrl(currentTrack?.stem_vocals) || undefined} preload="auto" playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={drumsRef}  src={getCdnUrl(currentTrack?.stem_drums)  || undefined} preload="auto" playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={bassRef}   src={getCdnUrl(currentTrack?.stem_bass)   || undefined} preload="auto" playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={otherRef}  src={getCdnUrl(currentTrack?.stem_other)  || undefined} preload="auto" playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_other  && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={drumsRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={bassRef}   src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={otherRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_other  && setStemsBroken(true)} className="loop-audio-fix" />
 
       {/* TOASTS */}
       {renderQueueToast && (
@@ -4011,7 +4040,7 @@ export default function App() {
                               <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                               <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
                                 <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                  {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
+                                  {track.poster_url ? <img src={track.poster_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                                 </div>
                                 <div style={{ minWidth: 0, flex: 1 }}>
                                   <div style={{ fontSize: "15px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
@@ -4058,6 +4087,8 @@ export default function App() {
                                <img 
                                  src={artist.image_url} 
                                  alt={artist.name} 
+                                 loading="lazy"
+                                 decoding="async"
                                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
                                  onError={(e) => {
                                    e.target.onerror = null;
@@ -4133,7 +4164,7 @@ export default function App() {
                           <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
                             <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                              {track.poster_url ? <img src={track.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
+                              {track.poster_url ? <img src={track.poster_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>

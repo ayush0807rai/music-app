@@ -31,16 +31,31 @@ export default defineConfig({
         clientsClaim: true,
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*$/,
+            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*\/image\/upload\/.*$/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'euphony-cloudinary-media',
+              cacheName: 'euphony-cloudinary-images',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 14 // 14 days
+                maxEntries: 150,
+                maxAgeSeconds: 60 * 60 * 24 * 30
               },
               cacheableResponse: {
                 statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*\/video\/upload\/.*$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'euphony-cloudinary-audio',
+              rangeRequests: true,
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 7
+              },
+              cacheableResponse: {
+                statuses: [0, 200, 206]
               }
             }
           }
