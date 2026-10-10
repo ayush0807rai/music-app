@@ -43,21 +43,6 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
-          },
-          {
-            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*\/video\/upload\/.*$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'euphony-cloudinary-audio',
-              rangeRequests: true,
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24 * 7
-              },
-              cacheableResponse: {
-                statuses: [0, 200, 206]
-              }
-            }
           }
         ]
       }

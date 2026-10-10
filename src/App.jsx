@@ -620,6 +620,13 @@ export default function App() {
   });
 
   useEffect(() => {
+    if (typeof window !== "undefined" && "caches" in window) {
+      caches.delete("euphony-cloudinary-audio").catch(() => {});
+      caches.delete("euphony-media-blobs").catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem("euphony_play_mode", playMode);
   }, [playMode]);
 
@@ -1672,64 +1679,8 @@ export default function App() {
   const prefetchedSignatureRef = useRef("");
   
   useEffect(() => {
-    // Reset signature when track changes so we can prefetch for the new track
     prefetchedSignatureRef.current = "";
   }, [currentTrack?.url]);
-
-  useEffect(() => {
-    const checkPrefetch = async () => {
-        if (!audioRef.current || !currentTrack?.url) return;
-        
-        const targetTime = 10;
-        
-        if (audioRef.current.currentTime >= targetTime) {
-          if (prefetchedSignatureRef.current === currentTrack.url) return;
-          prefetchedSignatureRef.current = currentTrack.url;
-        let nextTracks = [];
-        if (userQueue.length > 0) {
-          nextTracks = userQueue.slice(0, 2);
-        }
-        if (nextTracks.length < 2 && upcomingSourceList.length > 0) {
-          const needed = 2 - nextTracks.length;
-          const upc = upcomingSourceList.slice(0, needed).map(item => playbackQueue[item.originalIndex]).filter(Boolean);
-          nextTracks = [...nextTracks, ...upc];
-        }
-        
-        const signature = nextTracks.map(t => t.url).join(",");
-        if (prefetchedSignatureRef.current === signature) return;
-        prefetchedSignatureRef.current = signature;
-        
-        for (const track of nextTracks) {
-          if (!track.url) continue;
-          const cUrl = getCdnUrl(track.url);
-          if (!blobCacheRef.current.has(cUrl)) {
-            try {
-              const cache = await caches.open(CACHE_NAME);
-              let match = await cache.match(cUrl);
-              if (!match) {
-                await cache.add(cUrl);
-                match = await cache.match(cUrl);
-              }
-              if (match) {
-                const blob = await match.blob();
-                blobCacheRef.current.set(cUrl, URL.createObjectURL(blob));
-              }
-            } catch(e) {}
-          }
-        }
-      }
-    };
-
-    const audioEl = audioRef.current;
-    if (audioEl) {
-      // Native timeupdate fires even when the screen is locked on mobile devices (unlike setTimeout/setInterval)
-      audioEl.addEventListener("timeupdate", checkPrefetch);
-    }
-    
-    return () => {
-      if (audioEl) audioEl.removeEventListener("timeupdate", checkPrefetch);
-    };
-  }, [playbackQueue, userQueue, upcomingSourceList, currentTrack?.url]);
 
   useEffect(() => {
     const syncPlayState = async () => {
@@ -2124,11 +2075,10 @@ export default function App() {
   const resetPlaybackTime = () => {
     setCurrentTime(0);
     localStorage.setItem("euphony_current_time", 0);
-    if (audioRef.current) audioRef.current.currentTime = 0;
-    if (vocalsRef.current) vocalsRef.current.currentTime = 0;
-    if (drumsRef.current) drumsRef.current.currentTime = 0;
-    if (bassRef.current) bassRef.current.currentTime = 0;
-    if (otherRef.current) otherRef.current.currentTime = 0;
+    if (vocalsRef.current && vocalsRef.current.src) vocalsRef.current.currentTime = 0;
+    if (drumsRef.current && drumsRef.current.src) drumsRef.current.currentTime = 0;
+    if (bassRef.current && bassRef.current.src) bassRef.current.currentTime = 0;
+    if (otherRef.current && otherRef.current.src) otherRef.current.currentTime = 0;
   };
 
   const playTrackWithMetadata = (track, audioEl, cacheMap) => {
@@ -2144,7 +2094,9 @@ export default function App() {
     }
     const cdnUrl = getCdnUrl(track.url);
     const objUrl = cacheMap?.get(cdnUrl) || cdnUrl;
-    audioEl.src = objUrl;
+    if (audioEl.src !== objUrl) {
+      audioEl.src = objUrl;
+    }
     audioEl.play().catch(e=>console.log(e));
   };
   
@@ -3418,7 +3370,7 @@ export default function App() {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
           }
         }}
-        preload="auto"
+        preload="metadata"
         playsInline
         muted={isMixerActive || isMuted}
         loop={playMode === 'repeat-one'}
