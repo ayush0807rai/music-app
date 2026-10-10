@@ -382,7 +382,7 @@ const getCdnUrl = (url) => {
 };
 
 const getSongThemeGradients = (rgb, isDark) => {
-  if (!rgb) {
+  if (!rgb || typeof rgb !== "object" || typeof rgb.r !== "number" || typeof rgb.g !== "number" || typeof rgb.b !== "number") {
     return {
       modalBg: isDark
         ? "radial-gradient(circle at 50% -10%, rgba(60, 75, 105, 0.45) 0%, rgba(20, 25, 38, 0.20) 38%, rgba(13, 17, 26, 0.96) 80%, #07090E 100%)"
@@ -538,10 +538,13 @@ export default function App() {
   });
   const [playbackIndex, setPlaybackIndex] = useState(() => parseInt(localStorage.getItem("euphony_playback_index")) || 0);
   const [playbackSourceName, setPlaybackSourceName] = useState(() => localStorage.getItem("euphony_playback_source") || "Global Library");
+  const [preloadSrc, setPreloadSrc] = useState(null);
   const [dominantRgb, setDominantRgb] = useState(() => {
     try {
       const saved = localStorage.getItem("euphony_last_dominant_rgb");
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      return (parsed && typeof parsed.r === 'number' && typeof parsed.g === 'number' && typeof parsed.b === 'number') ? parsed : null;
     } catch (e) { return null; }
   });
   const [dominantColor, setDominantColor] = useState(() => {
@@ -549,7 +552,9 @@ export default function App() {
       const saved = localStorage.getItem("euphony_last_dominant_rgb");
       if (saved) {
         const p = JSON.parse(saved);
-        return `rgb(${p.r}, ${p.g}, ${p.b})`;
+        if (p && typeof p.r === 'number' && typeof p.g === 'number' && typeof p.b === 'number') {
+          return `rgb(${p.r}, ${p.g}, ${p.b})`;
+        }
       }
       return null;
     } catch (e) { return null; }
