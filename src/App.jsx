@@ -654,7 +654,27 @@ export default function App() {
   const [isGeneratingStems, setIsGeneratingStems] = useState(false);
   const [generationStatus, setGenerationStatus] = useState("");
   const [stemVolumes, setStemVolumes] = useState({ vocals: 1, drums: 1, bass: 1, other: 1 });
+  const [activeStems, setActiveStems] = useState({});
   const [stemsBroken, setStemsBroken] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalRelease = () => {
+      setActiveStems(prev => {
+        if (Object.keys(prev).length === 0) return prev;
+        return {};
+      });
+    };
+    window.addEventListener("pointerup", handleGlobalRelease);
+    window.addEventListener("touchend", handleGlobalRelease);
+    window.addEventListener("pointercancel", handleGlobalRelease);
+    window.addEventListener("touchcancel", handleGlobalRelease);
+    return () => {
+      window.removeEventListener("pointerup", handleGlobalRelease);
+      window.removeEventListener("touchend", handleGlobalRelease);
+      window.removeEventListener("pointercancel", handleGlobalRelease);
+      window.removeEventListener("touchcancel", handleGlobalRelease);
+    };
+  }, []);
 
   const [showExitToast, setShowExitToast] = useState(false);
   const exitWarningRef = useRef(false);
@@ -2427,34 +2447,84 @@ export default function App() {
       ) : (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden" }}>
           <div style={{ display: "flex", justifyContent: "space-evenly", width: "100%", flex: 1, padding: "20px 0 10px 0", alignItems: "center", overflow: "hidden" }}>
-            {["vocals", "drums", "bass", "other"].map((stemType) => (
-              <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", height: "100%", flex: 1 }}>
-                <div style={{ position: "relative", width: "30px", height: `${sliderHeight}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
-                    onChange={(e) => setStemVolumes({ ...stemVolumes, [stemType]: parseFloat(e.target.value) })}
-                    style={{ 
-                      position: "absolute", 
-                      appearance: "none", 
-                      WebkitAppearance: "none", 
-                      width: `${sliderHeight}px`, 
-                      height: "30px", /* Expanded bounding box to prevent clipping and transform-origin shift */
-                      background: isDarkMode
-                        ? `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`
-                        : `linear-gradient(to right, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(26,43,76,0.15) ${stemVolumes[stemType] * 100}%)`, 
-                      backgroundSize: "100% 4px",
-                      backgroundPosition: "center",
-                      backgroundRepeat: "no-repeat",
-                      transform: "rotate(-90deg)", 
-                      transformOrigin: "center", 
-                      borderRadius: "12px", 
-                      margin: 0,
-                      padding: 0
-                    }}
-                    className={isDarkMode ? "stem-fader" : "stem-fader-light"} />
+            {["vocals", "drums", "bass", "other"].map((stemType) => {
+              const isBroad = !!activeStems[stemType];
+              return (
+                <div key={stemType} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px", height: "100%", flex: 1 }}>
+                  <div className="stem-slider-container" style={{ position: "relative", width: "32px", height: `${sliderHeight}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div 
+                      className={`stem-track ${isBroad ? "is-broad" : ""}`}
+                      style={{
+                        position: "absolute",
+                        height: `${sliderHeight}px`,
+                        width: isBroad ? "26px" : "4px",
+                        borderRadius: isBroad ? "13px" : "4px",
+                        background: isDarkMode
+                          ? `linear-gradient(to top, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(255,255,255,0.2) ${stemVolumes[stemType] * 100}%)`
+                          : `linear-gradient(to top, ${COLORS.spotifyGreen} ${stemVolumes[stemType] * 100}%, rgba(26,43,76,0.15) ${stemVolumes[stemType] * 100}%)`,
+                        transition: "width 0.25s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.25s cubic-bezier(0.25, 1, 0.5, 1)",
+                        pointerEvents: "none",
+                        zIndex: 1
+                      }}
+                    />
+                    <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
+                      onChange={(e) => setStemVolumes({ ...stemVolumes, [stemType]: parseFloat(e.target.value) })}
+                      onPointerDown={(e) => {
+                        try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
+                        setActiveStems(prev => ({ ...prev, [stemType]: true }));
+                      }}
+                      onPointerUp={(e) => {
+                        try { e.currentTarget.releasePointerCapture?.(e.pointerId); } catch (_) {}
+                        setActiveStems(prev => {
+                          if (!prev[stemType]) return prev;
+                          const next = { ...prev };
+                          delete next[stemType];
+                          return next;
+                        });
+                      }}
+                      onPointerCancel={() => {
+                        setActiveStems(prev => {
+                          if (!prev[stemType]) return prev;
+                          const next = { ...prev };
+                          delete next[stemType];
+                          return next;
+                        });
+                      }}
+                      onTouchStart={() => setActiveStems(prev => ({ ...prev, [stemType]: true }))}
+                      onTouchEnd={() => setActiveStems(prev => {
+                        if (!prev[stemType]) return prev;
+                        const next = { ...prev };
+                        delete next[stemType];
+                        return next;
+                      })}
+                      onTouchCancel={() => setActiveStems(prev => {
+                        if (!prev[stemType]) return prev;
+                        const next = { ...prev };
+                        delete next[stemType];
+                        return next;
+                      })}
+                      style={{ 
+                        position: "absolute", 
+                        appearance: "none", 
+                        WebkitAppearance: "none", 
+                        width: `${sliderHeight}px`, 
+                        height: "32px",
+                        background: "transparent",
+                        transform: "rotate(-90deg)", 
+                        transformOrigin: "center", 
+                        margin: 0,
+                        padding: 0,
+                        outline: "none",
+                        cursor: "pointer",
+                        zIndex: 2,
+                        touchAction: "none"
+                      }}
+                      className={isDarkMode ? "stem-fader" : "stem-fader-light"} />
+                  </div>
+                  <span style={{ fontSize: "11px", fontWeight: "bold", textTransform: "capitalize", color: isDarkMode ? (stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#FFFFFF") : (stemVolumes[stemType] === 0 ? "rgba(26,43,76,0.4)" : COLORS.primary), marginTop: "12px", letterSpacing: "0.2px" }}>{stemType}</span>
                 </div>
-                <span style={{ fontSize: "11px", fontWeight: "bold", textTransform: "capitalize", color: isDarkMode ? (stemVolumes[stemType] === 0 ? "rgba(255,255,255,0.4)" : "#FFFFFF") : (stemVolumes[stemType] === 0 ? "rgba(26,43,76,0.4)" : COLORS.primary), marginTop: "12px", letterSpacing: "0.2px" }}>{stemType}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -2827,6 +2897,27 @@ export default function App() {
           transition: transform 0.1s ease; 
         }
         
+        .stem-slider-container {
+          position: relative;
+        }
+
+        .stem-track {
+          transition: width 0.25s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+          will-change: width, border-radius;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+          .stem-slider-container:hover .stem-track {
+            width: 26px !important;
+            border-radius: 13px !important;
+          }
+        }
+
+        .stem-track.is-broad {
+          width: 26px !important;
+          border-radius: 13px !important;
+        }
+
         .stem-fader { -webkit-appearance: none; appearance: none; outline: none; cursor: pointer; }
         .stem-fader::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
         .stem-fader::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
