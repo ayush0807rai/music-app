@@ -22,8 +22,8 @@ from demucs.pretrained import get_model
 from supabase import create_client, Client
 
 # --- Configuration ---
-SUPABASE_URL = "https://rlojwqncfcbcszgdyjyz.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsb2p3cW5jZmNiY3N6Z2R5anl6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4NzczODksImV4cCI6MjEwNTQ1MzM4OX0.tF04P2BoUycmDmCdnE9Z4vXk7Uunhcxm8MRnaBmKMjY"
+SUPABASE_URL = "https://gbkaflawosewcrmjkmrt.supabase.co"
+SUPABASE_KEY = "sb_publishable_6XDSsjzOs-pig92lW5wvJQ_BYFEzikN"
 
 CLOUDINARY_CLOUD_NAME = "cpsimhz1"
 CLOUDINARY_PRESET = "app_songs"
@@ -42,11 +42,12 @@ print(f"✅ Demucs model ready on {device.upper()}!")
 
 def upload_stem_to_cloudinary(file_path: str, filename: str) -> str:
     """Uploads an audio file directly to Cloudinary using unsigned preset."""
+    mime = "audio/wav" if filename.endswith(".wav") else "audio/mpeg"
     with open(file_path, "rb") as f:
         res = requests.post(
             CLOUDINARY_UPLOAD_URL,
             data={"upload_preset": CLOUDINARY_PRESET},
-            files={"file": (filename, f, "audio/mpeg")}
+            files={"file": (filename, f, mime)}
         )
     if res.status_code != 200:
         raise Exception(f"Cloudinary upload failed: {res.text}")
@@ -97,8 +98,13 @@ def process_song(song):
             stem_filename = f"{song_id}_{stem_name}_{int(time.time())}.mp3"
             stem_path = os.path.join(temp_dir, stem_filename)
             
-            # Save audio
-            torchaudio.save(stem_path, sources[idx].cpu(), sr)
+            # Save audio (with fallback to wav if mp3 encoder is unavailable)
+            try:
+                torchaudio.save(stem_path, sources[idx].cpu(), sr)
+            except Exception:
+                stem_filename = f"{song_id}_{stem_name}_{int(time.time())}.wav"
+                stem_path = os.path.join(temp_dir, stem_filename)
+                torchaudio.save(stem_path, sources[idx].cpu(), sr)
             
             # Upload to Cloudinary
             print(f"   ☁️ Uploading {stem_name} stem to Cloudinary...")
