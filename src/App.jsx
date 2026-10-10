@@ -3263,6 +3263,25 @@ export default function App() {
           border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 255, 255, 1)"};
           box-shadow: ${isDarkMode ? "0 8px 24px rgba(0, 0, 0, 0.4)" : "0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)"};
         }
+        
+        .song-stack-row {
+          background: ${isDarkMode ? "#1B3B78" : "rgba(0, 0, 0, 0.12)"} !important;
+          border: 1px solid ${isDarkMode ? "rgba(80, 135, 220, 0.3)" : "rgba(255, 255, 255, 0.5)"} !important;
+          border-top: 1px solid ${isDarkMode ? "rgba(130, 185, 255, 0.45)" : "rgba(255, 255, 255, 0.9)"} !important;
+          box-shadow: ${isDarkMode ? "0 4px 14px rgba(10, 22, 50, 0.35)" : "0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4)"} !important;
+        }
+        .song-stack-row:hover {
+          background: ${isDarkMode ? "#22468E" : "rgba(0, 0, 0, 0.16)"} !important;
+          border: 1px solid ${isDarkMode ? "rgba(100, 160, 255, 0.45)" : "rgba(255, 255, 255, 0.6)"} !important;
+          border-top: 1px solid ${isDarkMode ? "rgba(150, 205, 255, 0.65)" : "rgba(255, 255, 255, 1)"} !important;
+          box-shadow: ${isDarkMode ? "0 6px 18px rgba(15, 30, 70, 0.45)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"} !important;
+        }
+        .song-stack-row.active {
+          background: ${isDarkMode ? "#2C55A8" : "rgba(0, 0, 0, 0.22)"} !important;
+          border: 1px solid ${isDarkMode ? "rgba(120, 180, 255, 0.5)" : "rgba(255, 255, 255, 0.8)"} !important;
+          border-top: 1px solid ${isDarkMode ? "rgba(170, 220, 255, 0.75)" : "rgba(255, 255, 255, 1)"} !important;
+          box-shadow: ${isDarkMode ? "0 8px 24px rgba(20, 50, 120, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)" : "0 8px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.8)"} !important;
+        }
       `}</style>
 
       {/* ── AUDIO ELEMENTS ── */}
@@ -3988,7 +4007,7 @@ export default function App() {
                         const isSelected = currentTrack?.id === track.id;
                         return (
                           <SwipeableTrack key={track.id} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
-                            <div className={`glass-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center", padding: "10px 16px", cursor: "pointer" }}>
+                            <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center", padding: "10px 16px", cursor: "pointer" }}>
                               <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                               <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
                                 <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -4110,7 +4129,7 @@ export default function App() {
                     const isSelected = currentTrack?.id === track.id;
                     return (
                       <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
-                        <div className={`glass-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, "Global Library")} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
+                        <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, "Global Library")} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
                           <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
                             <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
