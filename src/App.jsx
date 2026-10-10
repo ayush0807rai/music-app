@@ -645,6 +645,12 @@ export default function App() {
   });
   const [showQueue, setShowQueue] = useState(false);
   const [queueToast, setQueueToast] = useState("");
+  const toastTimeoutRef = useRef(null);
+  const triggerToast = useCallback((msg) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setQueueToast(msg);
+    toastTimeoutRef.current = setTimeout(() => setQueueToast(""), 1600);
+  }, []);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
@@ -1739,229 +1745,6 @@ export default function App() {
   }, [isDesktopFullscreen]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      // 1. Ignore if user is typing in any input field or textarea
-      const target = e.target;
-      const isTextInput = target && (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.tagName === "SELECT" ||
-        target.isContentEditable ||
-        target.getAttribute?.("role") === "textbox"
-      );
-      if (isTextInput) return;
-
-      // 2. Ignore Ctrl / Meta / Alt combos to preserve native browser shortcuts
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
-
-      // 3. Handle Escape key for closing modals & fullscreen
-      if (e.key === "Escape") {
-        if (showShortcutsModal) {
-          setShowShortcutsModal(false);
-          return;
-        }
-        if (window.history.state?.page === 'modal') {
-          window.history.back();
-        } else {
-          if (showFullscreenQueueModal) {
-            setShowFullscreenQueueModal(false);
-            if (openedFromTrackOptionsRef.current) {
-              openedFromTrackOptionsRef.current = false;
-              setShowTrackOptionsModal(true);
-            }
-          } else if (showTrackArtistsModal) {
-            setShowTrackArtistsModal(false);
-            if (openedFromTrackOptionsRef.current) {
-              openedFromTrackOptionsRef.current = false;
-              setShowTrackOptionsModal(true);
-            }
-          } else if (showSleepTimerModal) {
-            setShowSleepTimerModal(false);
-            if (openedFromTrackOptionsRef.current) {
-              openedFromTrackOptionsRef.current = false;
-              setShowTrackOptionsModal(true);
-            }
-          } else if (songForPlaylistModal) {
-            setSongForPlaylistModal(null);
-            if (openedFromTrackOptionsRef.current) {
-              openedFromTrackOptionsRef.current = false;
-              setShowTrackOptionsModal(true);
-            }
-          } else if (showTrackOptionsModal) {
-            setShowTrackOptionsModal(false);
-          } else if (showUploadModal) {
-            setShowUploadModal(false);
-          } else if (showPlaylistModal) {
-            setShowPlaylistModal(false);
-          } else if (isDesktopFullscreen) {
-            setIsDesktopFullscreen(false);
-          }
-        }
-        return;
-      }
-
-      // If text/form modals are open, do not trigger playback hotkeys
-      if (showUploadModal || showPlaylistModal || showPasswordResetModal) return;
-
-      // 4. Space: Play / Pause
-      if (e.code === "Space" || e.key === " ") {
-        e.preventDefault();
-        handlePlayPause();
-        return;
-      }
-
-      // 5. Left / Right Arrow: Seek 5s backward / forward (Shift + Arrow: Prev / Next track)
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        if (e.shiftKey) {
-          handleNext();
-        } else if (audioRef.current && currentTrack) {
-          const cur = audioRef.current.currentTime || 0;
-          const dur = duration || audioRef.current.duration || 0;
-          const target = dur > 0 ? Math.min(dur, cur + 5) : cur + 5;
-          audioRef.current.currentTime = target;
-          if (currentTrack.stem_vocals && !stemsBroken) {
-            if (vocalsRef.current) vocalsRef.current.currentTime = target;
-            if (drumsRef.current) drumsRef.current.currentTime = target;
-            if (bassRef.current) bassRef.current.currentTime = target;
-            if (otherRef.current) otherRef.current.currentTime = target;
-          }
-          setCurrentTime(target);
-          updateProgressVisuals();
-          triggerToast("+5s");
-        }
-        return;
-      }
-
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        if (e.shiftKey) {
-          handlePrev();
-        } else if (audioRef.current && currentTrack) {
-          const cur = audioRef.current.currentTime || 0;
-          const target = Math.max(0, cur - 5);
-          audioRef.current.currentTime = target;
-          if (currentTrack.stem_vocals && !stemsBroken) {
-            if (vocalsRef.current) vocalsRef.current.currentTime = target;
-            if (drumsRef.current) drumsRef.current.currentTime = target;
-            if (bassRef.current) bassRef.current.currentTime = target;
-            if (otherRef.current) otherRef.current.currentTime = target;
-          }
-          setCurrentTime(target);
-          updateProgressVisuals();
-          triggerToast("-5s");
-        }
-        return;
-      }
-
-      // 6. Up / Down Arrow: Volume control
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        if (isMuted) setIsMuted(false);
-        setVolume(prev => {
-          const next = Math.min(1, Math.round((prev + 0.05) * 100) / 100);
-          triggerToast(`Volume: ${Math.round(next * 100)}%`);
-          return next;
-        });
-        return;
-      }
-
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setVolume(prev => {
-          const next = Math.max(0, Math.round((prev - 0.05) * 100) / 100);
-          if (next === 0) setIsMuted(true);
-          triggerToast(`Volume: ${Math.round(next * 100)}%`);
-          return next;
-        });
-        return;
-      }
-
-      // 7. M / m: Mute / Unmute
-      if (e.key.toLowerCase() === "m") {
-        e.preventDefault();
-        toggleMute();
-        triggerToast(!isMuted ? "Muted" : `Volume: ${Math.round((previousVolume || 0.5) * 100)}%`);
-        return;
-      }
-
-      // 8. L / l: Toggle Lyrics
-      if (e.key.toLowerCase() === "l") {
-        e.preventDefault();
-        if (isDesktopFullscreen) {
-          setFullscreenView(prev => (prev === "lyrics" ? "art" : "lyrics"));
-        } else {
-          setShowLyrics(prev => {
-            const next = !prev;
-            if (next) {
-              setShowQueue(false);
-              setShowMixer(false);
-            }
-            return next;
-          });
-        }
-        return;
-      }
-
-      // 9. S / s: Toggle Stem Mixer
-      if (e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        if (isDesktopFullscreen) {
-          setFullscreenView(prev => (prev === "mixer" ? "art" : "mixer"));
-        } else {
-          toggleStemMixer();
-        }
-        return;
-      }
-
-      // 10. F / f: Toggle Fullscreen Player
-      if (e.key.toLowerCase() === "f") {
-        e.preventDefault();
-        if (currentTrack) {
-          setIsDesktopFullscreen(prev => !prev);
-        }
-        return;
-      }
-
-      // 11. ? (Shift + /): Toggle Shortcuts Cheat Sheet
-      if (e.key === "?") {
-        e.preventDefault();
-        setShowShortcutsModal(prev => !prev);
-        return;
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    currentTrack,
-    duration,
-    isPlaying,
-    volume,
-    isMuted,
-    previousVolume,
-    isDesktopFullscreen,
-    fullscreenView,
-    showLyrics,
-    showMixer,
-    showShortcutsModal,
-    showFullscreenQueueModal,
-    showTrackArtistsModal,
-    showTrackOptionsModal,
-    showSleepTimerModal,
-    songForPlaylistModal,
-    showUploadModal,
-    showPlaylistModal,
-    showPasswordResetModal,
-    stemsBroken,
-    handlePlayPause,
-    handleNext,
-    handlePrev,
-    toggleMute,
-    toggleStemMixer
-  ]);
-
-  useEffect(() => {
     if (isDesktopFullscreen && fullscreenView === "lyrics" && activeLyricIndex !== -1 && fullscreenLyricRefs.current[activeLyricIndex] && fullscreenLyricsContainerRef.current) {
       const container = fullscreenLyricsContainerRef.current;
       const target = fullscreenLyricRefs.current[activeLyricIndex];
@@ -2046,13 +1829,6 @@ export default function App() {
       console.error("Stem request error:", err); alert("Database Error:\n" + err.message);
       setIsGeneratingStems(false); setGenerationStatus("");
     }
-  };
-
-  const toastTimeoutRef = useRef(null);
-  const triggerToast = (msg) => {
-    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    setQueueToast(msg);
-    toastTimeoutRef.current = setTimeout(() => setQueueToast(""), 1600);
   };
 
   const addToQueue = (song, e) => { if (e) e.stopPropagation(); setUserQueue(prev => [...prev, { ...song, queue_id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) }]); triggerToast(`Added "${song.title}" to Queue`); };
@@ -2582,6 +2358,230 @@ export default function App() {
     setShowMixer(willShow);
     if (willShow) { setShowLyrics(false); setShowQueue(false); }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // 1. Ignore if user is typing in any input field or textarea
+      const target = e.target;
+      const isTextInput = target && (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable ||
+        target.getAttribute?.("role") === "textbox"
+      );
+      if (isTextInput) return;
+
+      // 2. Ignore Ctrl / Meta / Alt combos to preserve native browser shortcuts
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      // 3. Handle Escape key for closing modals & fullscreen
+      if (e.key === "Escape") {
+        if (showShortcutsModal) {
+          setShowShortcutsModal(false);
+          return;
+        }
+        if (window.history.state?.page === 'modal') {
+          window.history.back();
+        } else {
+          if (showFullscreenQueueModal) {
+            setShowFullscreenQueueModal(false);
+            if (openedFromTrackOptionsRef.current) {
+              openedFromTrackOptionsRef.current = false;
+              setShowTrackOptionsModal(true);
+            }
+          } else if (showTrackArtistsModal) {
+            setShowTrackArtistsModal(false);
+            if (openedFromTrackOptionsRef.current) {
+              openedFromTrackOptionsRef.current = false;
+              setShowTrackOptionsModal(true);
+            }
+          } else if (showSleepTimerModal) {
+            setShowSleepTimerModal(false);
+            if (openedFromTrackOptionsRef.current) {
+              openedFromTrackOptionsRef.current = false;
+              setShowTrackOptionsModal(true);
+            }
+          } else if (songForPlaylistModal) {
+            setSongForPlaylistModal(null);
+            if (openedFromTrackOptionsRef.current) {
+              openedFromTrackOptionsRef.current = false;
+              setShowTrackOptionsModal(true);
+            }
+          } else if (showTrackOptionsModal) {
+            setShowTrackOptionsModal(false);
+          } else if (showUploadModal) {
+            setShowUploadModal(false);
+          } else if (showPlaylistModal) {
+            setShowPlaylistModal(false);
+          } else if (isDesktopFullscreen) {
+            setIsDesktopFullscreen(false);
+          }
+        }
+        return;
+      }
+
+      // If text/form modals are open, do not trigger playback hotkeys
+      if (showUploadModal || showPlaylistModal || showPasswordResetModal) return;
+
+      // 4. Space: Play / Pause
+      if (e.code === "Space" || e.key === " ") {
+        e.preventDefault();
+        handlePlayPause();
+        return;
+      }
+
+      // 5. Left / Right Arrow: Seek 5s backward / forward (Shift + Arrow: Prev / Next track)
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleNext();
+        } else if (audioRef.current && currentTrack) {
+          const cur = audioRef.current.currentTime || 0;
+          const dur = duration || audioRef.current.duration || 0;
+          const target = dur > 0 ? Math.min(dur, cur + 5) : cur + 5;
+          audioRef.current.currentTime = target;
+          if (currentTrack.stem_vocals && !stemsBroken) {
+            if (vocalsRef.current) vocalsRef.current.currentTime = target;
+            if (drumsRef.current) drumsRef.current.currentTime = target;
+            if (bassRef.current) bassRef.current.currentTime = target;
+            if (otherRef.current) otherRef.current.currentTime = target;
+          }
+          setCurrentTime(target);
+          updateProgressVisuals();
+          triggerToast("+5s");
+        }
+        return;
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handlePrev();
+        } else if (audioRef.current && currentTrack) {
+          const cur = audioRef.current.currentTime || 0;
+          const target = Math.max(0, cur - 5);
+          audioRef.current.currentTime = target;
+          if (currentTrack.stem_vocals && !stemsBroken) {
+            if (vocalsRef.current) vocalsRef.current.currentTime = target;
+            if (drumsRef.current) drumsRef.current.currentTime = target;
+            if (bassRef.current) bassRef.current.currentTime = target;
+            if (otherRef.current) otherRef.current.currentTime = target;
+          }
+          setCurrentTime(target);
+          updateProgressVisuals();
+          triggerToast("-5s");
+        }
+        return;
+      }
+
+      // 6. Up / Down Arrow: Volume control
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (isMuted) setIsMuted(false);
+        setVolume(prev => {
+          const next = Math.min(1, Math.round((prev + 0.05) * 100) / 100);
+          triggerToast(`Volume: ${Math.round(next * 100)}%`);
+          return next;
+        });
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setVolume(prev => {
+          const next = Math.max(0, Math.round((prev - 0.05) * 100) / 100);
+          if (next === 0) setIsMuted(true);
+          triggerToast(`Volume: ${Math.round(next * 100)}%`);
+          return next;
+        });
+        return;
+      }
+
+      // 7. M / m: Mute / Unmute
+      if (e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        toggleMute();
+        triggerToast(!isMuted ? "Muted" : `Volume: ${Math.round((previousVolume || 0.5) * 100)}%`);
+        return;
+      }
+
+      // 8. L / l: Toggle Lyrics
+      if (e.key.toLowerCase() === "l") {
+        e.preventDefault();
+        if (isDesktopFullscreen) {
+          setFullscreenView(prev => (prev === "lyrics" ? "art" : "lyrics"));
+        } else {
+          setShowLyrics(prev => {
+            const next = !prev;
+            if (next) {
+              setShowQueue(false);
+              setShowMixer(false);
+            }
+            return next;
+          });
+        }
+        return;
+      }
+
+      // 9. S / s: Toggle Stem Mixer
+      if (e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (isDesktopFullscreen) {
+          setFullscreenView(prev => (prev === "mixer" ? "art" : "mixer"));
+        } else {
+          toggleStemMixer();
+        }
+        return;
+      }
+
+      // 10. F / f: Toggle Fullscreen Player
+      if (e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        if (currentTrack) {
+          setIsDesktopFullscreen(prev => !prev);
+        }
+        return;
+      }
+
+      // 11. ? (Shift + /): Toggle Shortcuts Cheat Sheet
+      if (e.key === "?") {
+        e.preventDefault();
+        setShowShortcutsModal(prev => !prev);
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    currentTrack,
+    duration,
+    isPlaying,
+    volume,
+    isMuted,
+    previousVolume,
+    isDesktopFullscreen,
+    fullscreenView,
+    showLyrics,
+    showMixer,
+    showShortcutsModal,
+    showFullscreenQueueModal,
+    showTrackArtistsModal,
+    showTrackOptionsModal,
+    showSleepTimerModal,
+    songForPlaylistModal,
+    showUploadModal,
+    showPlaylistModal,
+    showPasswordResetModal,
+    stemsBroken,
+    handlePlayPause,
+    handleNext,
+    handlePrev,
+    toggleMute,
+    toggleStemMixer,
+    triggerToast
+  ]);
 
   const formatTime = (secs) => {
     if (!secs || isNaN(secs)) return "0:00";
