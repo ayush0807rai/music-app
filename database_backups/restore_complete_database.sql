@@ -1,6 +1,6 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-11T14:15:19.867Z
+-- Generated: 2026-10-11T14:44:06.066Z
 -- Total: 118 songs, 71 artists, 17 playlists, 63 playlist_songs
 -- ====================================================
 
@@ -976,11 +976,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528233/r1smstonwnje7dkunbxy.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528234/wk26okc74gh2lup2hxmz.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728308/cu52fb1gfud4k9qagd8u.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728286/xzpdebyvtmn3awcfmxgz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728293/zfjoxnxbunrasqfblgan.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728301/v9qutpsphfmcll8u4rxy.mp3',
+  FALSE,
   '2026-09-21T11:26:28.899242+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5992,11 +5992,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530340/cmjtfodgm2bnm5o1b78i.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530342/nsfdwmbxttzj2drgpfdb.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728263/vt7vsteioigt17pamjau.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728240/rrekzi97tuqvypaykspk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728248/uewrtdbccxnybg1qwzxh.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728255/e6zugodgtfbzqwqsex4d.mp3',
+  FALSE,
   '2026-09-28T19:31:55.492781+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -6682,11 +6682,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530767/cmtbmmumm7m3r4x7p6vs.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530768/mtmgxrstwv1pj0xiew7x.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728219/uif7ne2rvzaeu2icdn9u.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728192/o2qhzzcjxfnvpytvnh2p.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728201/kkvda9qxthpy4bmgnrvt.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728211/ouzvtdwx3pfpdxandnfq.mp3',
+  FALSE,
   '2026-09-30T17:34:58.03575+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -7242,11 +7242,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791568787/dtpw5vcwhutjqsn2ydlw.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791568789/k8j7duxfmvnab4wfnla5.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728167/vcul5wni0261r6mpuguo.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728134/celyjkbh9i8sfmkrnmwt.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728146/sea52a6dvotspmfxwlpk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728156/irb7ugatc1tlruoni7q6.mp3',
+  FALSE,
   '2026-10-09T17:59:49.947986+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (

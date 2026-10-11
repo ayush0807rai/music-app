@@ -892,8 +892,17 @@ export default function App() {
 
   // Pre-hydrate in-memory Blob Cache from persistent CacheStorage on app launch
   // Guarantees repeat plays of 320kbps songs are served directly from device disk with 0 Cloudinary bandwidth
+  // Fully compatible across Chrome, Brave, Safari (WebKit), and Comet
   useEffect(() => {
-    if (typeof window === "undefined" || !('caches' in window)) return;
+    if (typeof window === "undefined") return;
+
+    // Request persistent storage to prevent Safari ITP or mobile battery savers from evicting cached audio
+    if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().catch(() => {});
+    }
+
+    if (!('caches' in window)) return;
+
     caches.open(AUDIO_CACHE_NAME).then(async cache => {
       try {
         const keys = await cache.keys();
@@ -903,7 +912,9 @@ export default function App() {
             if (match && !blobCacheRef.current.has(req.url)) {
               const blob = await match.blob();
               if (blob.size > 50000) {
-                const bUrl = URL.createObjectURL(blob);
+                // Ensure explicit audio/mpeg type for Safari (WebKit) seeking and scrub support
+                const safeBlob = blob.type && blob.type.includes('audio') ? blob : new Blob([blob], { type: 'audio/mpeg' });
+                const bUrl = URL.createObjectURL(safeBlob);
                 blobCacheRef.current.set(req.url, bUrl);
               }
             }
@@ -1351,7 +1362,8 @@ export default function App() {
           if (blob.size > 50000) {
             await cache.put(cdnUrl, res);
             if (!blobCacheRef.current.has(cdnUrl)) {
-              const objUrl = URL.createObjectURL(blob);
+              const safeBlob = blob.type && blob.type.includes('audio') ? blob : new Blob([blob], { type: 'audio/mpeg' });
+              const objUrl = URL.createObjectURL(safeBlob);
               blobCacheRef.current.set(cdnUrl, objUrl);
               return objUrl;
             }
@@ -1367,7 +1379,8 @@ export default function App() {
             return null;
           }
           if (!blobCacheRef.current.has(cdnUrl)) {
-            const objUrl = URL.createObjectURL(blob);
+            const safeBlob = blob.type && blob.type.includes('audio') ? blob : new Blob([blob], { type: 'audio/mpeg' });
+            const objUrl = URL.createObjectURL(safeBlob);
             blobCacheRef.current.set(cdnUrl, objUrl);
             return objUrl;
           }
@@ -2136,7 +2149,8 @@ export default function App() {
             if (match && !blobCacheRef.current.has(cdnUrl)) {
               const blob = await match.blob();
               if (blob.size > 50000) {
-                const bUrl = URL.createObjectURL(blob);
+                const safeBlob = blob.type && blob.type.includes('audio') ? blob : new Blob([blob], { type: 'audio/mpeg' });
+                const bUrl = URL.createObjectURL(safeBlob);
                 blobCacheRef.current.set(cdnUrl, bUrl);
                 if (audioRef.current && (!audioRef.current.src || audioRef.current.src === cdnUrl || audioRef.current.error || !navigator.onLine)) {
                   const cur = audioRef.current.currentTime || 0;
@@ -2507,7 +2521,8 @@ export default function App() {
         if (match && !cacheMap?.has(cdnUrl)) {
           const blob = await match.blob();
           if (blob.size > 50000) {
-            const bUrl = URL.createObjectURL(blob);
+            const safeBlob = blob.type && blob.type.includes('audio') ? blob : new Blob([blob], { type: 'audio/mpeg' });
+            const bUrl = URL.createObjectURL(safeBlob);
             cacheMap?.set(cdnUrl, bUrl);
             // Do NOT swap audioEl.src while track is already actively playing.
             // This prevents audio interruptions and glitches. bUrl will be used on next play/loop.
