@@ -606,6 +606,10 @@ export default function App() {
   const [uploadLyrics, setUploadLyrics] = useState("");
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadPoster, setUploadPoster] = useState(null);
+  const [showArtistSuggestions, setShowArtistSuggestions] = useState(false);
+  const [showAlbumSuggestions, setShowAlbumSuggestions] = useState(false);
+  const [activeArtistIndex, setActiveArtistIndex] = useState(-1);
+  const [activeAlbumIndex, setActiveAlbumIndex] = useState(-1);
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -2350,6 +2354,130 @@ export default function App() {
     playTrackWithMetadata(track, audioRef.current, blobCacheRef.current);
   };
 
+  // ── ARTIST & ALBUM AUTO-RECOMMENDATIONS FOR UPLOAD MODAL ──────────────────
+  const allKnownArtists = useMemo(() => {
+    const artistMap = new Map();
+    (topArtists || []).forEach(a => {
+      if (a?.name && a.name.trim()) {
+        const clean = a.name.trim();
+        artistMap.set(clean.toLowerCase(), clean);
+      }
+    });
+    (playlist || []).forEach(s => {
+      if (s?.artist) {
+        s.artist.split(',').forEach(part => {
+          const clean = part.trim();
+          if (clean && !artistMap.has(clean.toLowerCase())) {
+            artistMap.set(clean.toLowerCase(), clean);
+          }
+        });
+      }
+    });
+    return Array.from(artistMap.values()).sort((a, b) => a.localeCompare(b));
+  }, [topArtists, playlist]);
+
+  const allKnownAlbums = useMemo(() => {
+    const albumMap = new Map();
+    (playlist || []).forEach(s => {
+      if (s?.album && s.album.trim()) {
+        const clean = s.album.trim();
+        if (!albumMap.has(clean.toLowerCase())) {
+          albumMap.set(clean.toLowerCase(), clean);
+        }
+      }
+    });
+    return Array.from(albumMap.values()).sort((a, b) => a.localeCompare(b));
+  }, [playlist]);
+
+  // Extract the active token being typed (after the last comma)
+  const currentArtistToken = useMemo(() => {
+    if (!uploadArtist) return "";
+    const parts = uploadArtist.split(',');
+    return parts[parts.length - 1].trim();
+  }, [uploadArtist]);
+
+  const artistSuggestions = useMemo(() => {
+    if (!currentArtistToken) return [];
+    const query = currentArtistToken.toLowerCase();
+
+    // Exclude artists already typed in preceding comma sections
+    const parts = uploadArtist.split(',').map(p => p.trim().toLowerCase());
+    const alreadySelected = new Set(parts.slice(0, -1).filter(Boolean));
+
+    // Priority 1: Prefix match (starts with typed letters, as requested)
+    const startsWithMatches = allKnownArtists.filter(a => {
+      const lower = a.toLowerCase();
+      return lower.startsWith(query) && !alreadySelected.has(lower) && lower !== query;
+    });
+
+    // Priority 2: Substring/word match
+    const containsMatches = allKnownArtists.filter(a => {
+      const lower = a.toLowerCase();
+      return !lower.startsWith(query) && lower.includes(query) && !alreadySelected.has(lower);
+    });
+
+    return [...startsWithMatches, ...containsMatches].slice(0, 8);
+  }, [currentArtistToken, uploadArtist, allKnownArtists]);
+
+  const isCurrentArtistNew = useMemo(() => {
+    if (!currentArtistToken) return false;
+    const lower = currentArtistToken.toLowerCase();
+    return !allKnownArtists.some(a => a.toLowerCase() === lower);
+  }, [currentArtistToken, allKnownArtists]);
+
+  const handleSelectArtist = (artistName) => {
+    const parts = uploadArtist.split(',');
+    // Replace the current token with the chosen artist
+    parts[parts.length - 1] = (parts.length > 1 ? ' ' : '') + artistName;
+    const formatted = parts.map((p, idx) => idx === 0 ? p.trim() : ' ' + p.trim()).join(',');
+    setUploadArtist(formatted);
+    setShowArtistSuggestions(false);
+    setActiveArtistIndex(-1);
+  };
+
+  const handleAddNewArtist = async (nameToAdd) => {
+    const clean = (nameToAdd || currentArtistToken).trim();
+    if (!clean) return;
+    handleSelectArtist(clean);
+    try {
+      const { data, error } = await supabase.from("artists").insert([{ name: clean }]).select();
+      if (!error && data && data[0]) {
+        setTopArtists(prev => {
+          if (prev.some(a => a.name.toLowerCase() === clean.toLowerCase())) return prev;
+          const updated = [...prev, data[0]];
+          try { localStorage.setItem("euphony_cached_artists", JSON.stringify(updated)); } catch (e) {}
+          return updated;
+        });
+        triggerToast(`Added "${clean}" to artists database!`);
+      }
+    } catch (e) {
+      console.warn("Could not insert artist into database:", e);
+    }
+  };
+
+  const albumSuggestions = useMemo(() => {
+    if (!uploadAlbum || !uploadAlbum.trim()) return [];
+    const query = uploadAlbum.trim().toLowerCase();
+
+    const startsWithMatches = allKnownAlbums.filter(a => {
+      const lower = a.toLowerCase();
+      return lower.startsWith(query) && lower !== query;
+    });
+
+    const containsMatches = allKnownAlbums.filter(a => {
+      const lower = a.toLowerCase();
+      return !lower.startsWith(query) && lower.includes(query);
+    });
+
+    return [...startsWithMatches, ...containsMatches].slice(0, 6);
+  }, [uploadAlbum, allKnownAlbums]);
+
+  const handleSelectAlbum = (albumName) => {
+    setUploadAlbum(albumName);
+    setShowAlbumSuggestions(false);
+    setActiveAlbumIndex(-1);
+  };
+
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist || !uploadPoster) return alert("Please fill in all required fields, including the poster image.");
@@ -2406,9 +2534,34 @@ export default function App() {
       }]).select();
       if (dbError) throw dbError;
 
+      // 4. Ensure any newly entered artists are saved into the Supabase artists table
+      const enteredArtistNames = uploadArtist.split(',').map(a => a.trim()).filter(Boolean);
+      for (const aName of enteredArtistNames) {
+        const lower = aName.toLowerCase();
+        const exists = allKnownArtists.some(k => k.toLowerCase() === lower);
+        if (!exists) {
+          try {
+            const { data: newArt } = await supabase.from("artists").insert([{ 
+              name: aName,
+              image_url: posterUrl || null
+            }]).select();
+            if (newArt && newArt[0]) {
+              setTopArtists(prev => {
+                const next = [...prev, newArt[0]];
+                try { localStorage.setItem("euphony_cached_artists", JSON.stringify(next)); } catch (e) {}
+                return next;
+              });
+            }
+          } catch (e) {
+            console.warn("Could not insert artist into database:", e);
+          }
+        }
+      }
+
       setPlaylist(prev => prev.some(s => s.id === dbData[0].id) ? prev : [...prev, dbData[0]]);
       setShowUploadModal(false);
       setUploadTitle(""); setUploadArtist(""); setUploadAlbum(""); setUploadLyrics(""); setUploadFile(null); setUploadPoster(null);
+      setShowArtistSuggestions(false); setShowAlbumSuggestions(false);
       alert("Song uploaded successfully to Cloudinary!");
     } catch (error) { 
       alert("Error uploading: " + error.message); 
@@ -3660,8 +3813,208 @@ export default function App() {
             <h2 style={{ margin: "0 0 24px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "8px", color: songTheme.textColor }}><UploadCloud color={songTheme.textColor} /> Add Song Globally</h2>
             <form onSubmit={handleUploadSubmit}>
               <input type="text" placeholder="Song Title *" required value={uploadTitle} onChange={e => setUploadTitle(e.target.value)} className="upload-input glass-row" style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
-              <input type="text" placeholder="Artist Name *" required value={uploadArtist} onChange={e => setUploadArtist(e.target.value)} className="upload-input glass-row" style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
-              <input type="text" placeholder="Album Name (Optional)" value={uploadAlbum} onChange={e => setUploadAlbum(e.target.value)} className="upload-input glass-row" style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
+              {/* Artist Name Input with Multi-Artist Auto-Recommendation */}
+              <div style={{ position: "relative", marginBottom: "16px" }}>
+                <input
+                  type="text"
+                  placeholder="Artist Name (e.g. Arijit Singh, Shreya Ghoshal) *"
+                  required
+                  value={uploadArtist}
+                  onFocus={() => setShowArtistSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowArtistSuggestions(false), 220)}
+                  onKeyDown={(e) => {
+                    if (!showArtistSuggestions) return;
+                    const totalOptions = artistSuggestions.length + (currentArtistToken && isCurrentArtistNew ? 1 : 0);
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setActiveArtistIndex(prev => (prev + 1) % (totalOptions || 1));
+                    } else if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setActiveArtistIndex(prev => (prev - 1 + (totalOptions || 1)) % (totalOptions || 1));
+                    } else if (e.key === "Enter" && activeArtistIndex >= 0) {
+                      e.preventDefault();
+                      if (activeArtistIndex < artistSuggestions.length) {
+                        handleSelectArtist(artistSuggestions[activeArtistIndex]);
+                      } else if (currentArtistToken && isCurrentArtistNew) {
+                        handleAddNewArtist(currentArtistToken);
+                      }
+                    } else if (e.key === "Escape") {
+                      setShowArtistSuggestions(false);
+                      setActiveArtistIndex(-1);
+                    }
+                  }}
+                  onChange={e => {
+                    setUploadArtist(e.target.value);
+                    setShowArtistSuggestions(true);
+                    setActiveArtistIndex(-1);
+                  }}
+                  className="upload-input glass-row"
+                  style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder, marginBottom: 0, width: "100%" }}
+                />
+                {showArtistSuggestions && (artistSuggestions.length > 0 || (currentArtistToken && isCurrentArtistNew)) && (
+                  <div
+                    className="custom-scrollbar"
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: 0,
+                      right: 0,
+                      background: isDarkMode ? "rgba(22, 28, 45, 0.98)" : "rgba(255, 255, 255, 0.98)",
+                      backdropFilter: "blur(24px)",
+                      border: songTheme.modalBorder,
+                      borderRadius: "14px",
+                      boxShadow: isDarkMode ? "0 12px 32px rgba(0,0,0,0.6)" : "0 12px 32px rgba(0,0,0,0.15)",
+                      maxHeight: "190px",
+                      overflowY: "auto",
+                      zIndex: 6000,
+                      padding: "6px"
+                    }}
+                  >
+                    {artistSuggestions.map((artist, idx) => {
+                      const isHighlighted = idx === activeArtistIndex;
+                      return (
+                        <div
+                          key={artist}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSelectArtist(artist);
+                          }}
+                          className="hover-effect"
+                          style={{
+                            padding: "9px 12px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            color: songTheme.textColor,
+                            background: isHighlighted ? (isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") : "transparent",
+                            transition: "background 0.15s ease"
+                          }}
+                          onMouseEnter={() => setActiveArtistIndex(idx)}
+                        >
+                          <User size={14} style={{ opacity: 0.6 }} />
+                          <span>{artist}</span>
+                        </div>
+                      );
+                    })}
+                    {currentArtistToken && isCurrentArtistNew && (
+                      <div
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleAddNewArtist(currentArtistToken);
+                        }}
+                        className="hover-effect"
+                        style={{
+                          padding: "9px 12px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          fontSize: "13px",
+                          fontWeight: "600",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          color: COLORS.spotifyGreen,
+                          borderTop: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.06)",
+                          marginTop: artistSuggestions.length > 0 ? "4px" : 0,
+                          background: activeArtistIndex === artistSuggestions.length ? (isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") : "transparent"
+                        }}
+                        onMouseEnter={() => setActiveArtistIndex(artistSuggestions.length)}
+                      >
+                        <Plus size={14} />
+                        <span>Add &quot;{currentArtistToken}&quot; as new artist</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Album Name Input with Auto-Recommendation */}
+              <div style={{ position: "relative", marginBottom: "16px" }}>
+                <input
+                  type="text"
+                  placeholder="Album Name (Optional)"
+                  value={uploadAlbum}
+                  onFocus={() => setShowAlbumSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowAlbumSuggestions(false), 220)}
+                  onKeyDown={(e) => {
+                    if (!showAlbumSuggestions || albumSuggestions.length === 0) return;
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setActiveAlbumIndex(prev => (prev + 1) % albumSuggestions.length);
+                    } else if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setActiveAlbumIndex(prev => (prev - 1 + albumSuggestions.length) % albumSuggestions.length);
+                    } else if (e.key === "Enter" && activeAlbumIndex >= 0) {
+                      e.preventDefault();
+                      handleSelectAlbum(albumSuggestions[activeAlbumIndex]);
+                    } else if (e.key === "Escape") {
+                      setShowAlbumSuggestions(false);
+                      setActiveAlbumIndex(-1);
+                    }
+                  }}
+                  onChange={e => {
+                    setUploadAlbum(e.target.value);
+                    setShowAlbumSuggestions(true);
+                    setActiveAlbumIndex(-1);
+                  }}
+                  className="upload-input glass-row"
+                  style={{ color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder, marginBottom: 0, width: "100%" }}
+                />
+                {showAlbumSuggestions && albumSuggestions.length > 0 && (
+                  <div
+                    className="custom-scrollbar"
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: 0,
+                      right: 0,
+                      background: isDarkMode ? "rgba(22, 28, 45, 0.98)" : "rgba(255, 255, 255, 0.98)",
+                      backdropFilter: "blur(24px)",
+                      border: songTheme.modalBorder,
+                      borderRadius: "14px",
+                      boxShadow: isDarkMode ? "0 12px 32px rgba(0,0,0,0.6)" : "0 12px 32px rgba(0,0,0,0.15)",
+                      maxHeight: "170px",
+                      overflowY: "auto",
+                      zIndex: 6000,
+                      padding: "6px"
+                    }}
+                  >
+                    {albumSuggestions.map((album, idx) => {
+                      const isHighlighted = idx === activeAlbumIndex;
+                      return (
+                        <div
+                          key={album}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSelectAlbum(album);
+                          }}
+                          className="hover-effect"
+                          style={{
+                            padding: "9px 12px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontSize: "13px",
+                            fontWeight: "500",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            color: songTheme.textColor,
+                            background: isHighlighted ? (isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") : "transparent",
+                            transition: "background 0.15s ease"
+                          }}
+                          onMouseEnter={() => setActiveAlbumIndex(idx)}
+                        >
+                          <Disc size={14} style={{ opacity: 0.6 }} />
+                          <span>{album}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input glass-row custom-scrollbar" style={{ minHeight: "100px", resize: "vertical", color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
               <div className="glass-row" style={{ marginBottom: "16px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: songTheme.textMuted, fontSize: "14px" }}>Poster Image *</label>
