@@ -1324,26 +1324,32 @@ export default function App() {
     return null;
   };
 
-  // Automatic Cache Eviction: keeps only active window (current + next 2 + previous 1), evicts the rest
+  // Persistent Audio Caching: keeps songs persistently in CacheStorage (up to 200 tracks) so replaying never re-downloads
   const pruneUnusedAudioCache = async (allowedRawUrls) => {
     if (typeof window === "undefined" || !('caches' in window)) return;
     try {
       const allowedCdnSet = new Set(allowedRawUrls.filter(Boolean).map(u => getCdnUrl(u)));
 
-      // 1. Evict from memory Map and revoke object URLs to prevent RAM leaks
-      for (const [cachedCdnUrl, blobUrl] of blobCacheRef.current.entries()) {
-        if (!allowedCdnSet.has(cachedCdnUrl)) {
-          try { URL.revokeObjectURL(blobUrl); } catch (e) {}
-          blobCacheRef.current.delete(cachedCdnUrl);
+      // 1. Maintain in-memory Blob URL Map: only revoke older blob URLs if memory exceeds 15 tracks
+      if (blobCacheRef.current.size > 15) {
+        for (const [cachedCdnUrl, blobUrl] of blobCacheRef.current.entries()) {
+          if (!allowedCdnSet.has(cachedCdnUrl)) {
+            try { URL.revokeObjectURL(blobUrl); } catch (e) {}
+            blobCacheRef.current.delete(cachedCdnUrl);
+            if (blobCacheRef.current.size <= 15) break;
+          }
         }
       }
 
-      // 2. Evict old entries from CacheStorage
+      // 2. CacheStorage: keep tracks permanently, only evicting the oldest entries if over 200 items
       const cache = await caches.open(AUDIO_CACHE_NAME);
       const keys = await cache.keys();
-      for (const request of keys) {
-        if (!allowedCdnSet.has(request.url)) {
-          await cache.delete(request);
+      if (keys.length > 200) {
+        const excessCount = keys.length - 200;
+        for (let i = 0; i < excessCount; i++) {
+          if (!allowedCdnSet.has(keys[i].url)) {
+            await cache.delete(keys[i]);
+          }
         }
       }
     } catch (e) {
@@ -2361,20 +2367,23 @@ export default function App() {
     updateProgressVisuals();
     audioEl.play().catch(e => console.log(e));
 
-    // If objUrl was fallback cdnUrl, check CacheStorage asynchronously in case it's in storage (e.g. offline recovery)
+    // If objUrl was fallback cdnUrl, check CacheStorage immediately to switch to local blob
     if (objUrl === cdnUrl && typeof window !== "undefined" && 'caches' in window) {
       caches.open(AUDIO_CACHE_NAME).then(c => c.match(cdnUrl)).then(async match => {
         if (match && !cacheMap?.has(cdnUrl)) {
           const blob = await match.blob();
           const bUrl = URL.createObjectURL(blob);
           cacheMap?.set(cdnUrl, bUrl);
-          // If offline or network error occurred, seamlessly switch audio element to the offline cached blob
-          if (audioEl && (audioEl.error || !navigator.onLine || audioEl.networkState === 3)) {
+          if (audioEl && audioEl.src !== bUrl) {
             const curTime = audioEl.currentTime || 0;
+            const wasPlaying = !audioEl.paused;
             audioEl.src = bUrl;
             try { audioEl.currentTime = curTime; } catch (e) {}
-            audioEl.play().catch(e => console.log(e));
+            if (wasPlaying) audioEl.play().catch(e => console.log(e));
           }
+        } else if (!match) {
+          // Save to CacheStorage in background so subsequent plays are completely free
+          cacheAudioTrack(cdnUrl);
         }
       }).catch(() => {});
     }

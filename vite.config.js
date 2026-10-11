@@ -31,13 +31,31 @@ export default defineConfig({
         clientsClaim: true,
         runtimeCaching: [
           {
+            // Audio files (songs + stems on Cloudinary are served under /video/upload/)
+            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*\/video\/upload\/.*$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'euphony-cloudinary-audio-v1',
+              expiration: {
+                maxEntries: 250,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year permanent cache
+                purgeOnQuotaError: true
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              },
+              rangeRequests: true
+            }
+          },
+          {
+            // Images (cover art, album covers, artist photos)
             urlPattern: /^https:\/\/res\.cloudinary\.com\/.*\/image\/upload\/.*$/i,
-            handler: 'StaleWhileRevalidate',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'euphony-cloudinary-images',
               expiration: {
-                maxEntries: 150,
-                maxAgeSeconds: 60 * 60 * 24 * 30
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 60 // 60 days
               },
               cacheableResponse: {
                 statuses: [0, 200]
