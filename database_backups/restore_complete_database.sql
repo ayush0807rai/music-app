@@ -1,7 +1,7 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-11T15:12:39.513Z
--- Total: 118 songs, 71 artists, 17 playlists, 63 playlist_songs
+-- Generated: 2026-10-11T17:07:59.511Z
+-- Total: 129 songs, 83 artists, 17 playlists, 63 playlist_songs
 -- ====================================================
 
 -- 1. Schema Definitions
@@ -49,7 +49,7 @@ ALTER TABLE public.artists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlist_songs DISABLE ROW LEVEL SECURITY;
 
--- 2. Restore Artists (71 rows)
+-- 2. Restore Artists (83 rows)
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b2b72353-374f-4aab-864d-d0fcce615d56', 'Darshan Raval', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610309/darshan.jpg', '2026-09-24T08:48:14.272076+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('68c3f5d9-7ae8-4c6c-ac6b-754ea8f572b6', 'Sonu Nigam', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610542/sonu.webp', '2026-09-24T08:50:09.640436+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('69327c50-1d5e-4a38-a24d-576fb4463f96', 'Neeti Mohan', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791609585/q3wjlfr21srcuzddmfo9.jpg', '2026-09-24T09:03:20.194298+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
@@ -121,8 +121,20 @@ INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('c5da52c1-b
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('3b80fc94-65da-4942-8e71-446ce9fbdd09', 'Kumaar', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791701450/kumaar.jpg', '2026-10-11T06:51:09.831158+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('5c99a8d6-a58b-4d86-b435-c04155860fdf', 'Prasoon Joshi', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791701517/prasoon.png', '2026-10-11T06:52:24.381336+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('d0b4ebc2-b018-4c8e-a2c4-01410d012b79', 'Swanand Kirkire', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791701607/swanand.jpg', '2026-10-11T06:53:38.469654+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('6fdc9c12-960d-4afe-92a0-586c3478d1c2', 'Rajesh Roshan', NULL, '2026-10-11T16:29:46.898524+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('312ae71d-bd68-4f38-984d-8158bfa43e98', 'Sadhana Sargam', NULL, '2026-10-11T16:30:40.968458+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('024b7ac0-0f3e-4f94-9056-b15b0d659d19', 'Indivar', NULL, '2026-10-11T16:31:06.555189+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('9d9905f0-7478-4be3-9859-add232f59a4a', 'Madan Mohan', NULL, '2026-10-11T16:35:12.672889+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('98b617d1-5255-47f1-8a12-2e636dabfeb8', 'Anil Pandey', NULL, '2026-10-11T16:41:54.987929+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('e4e25adc-e9c4-4f7d-9d61-94a89dd89aed', 'Shantanu Moitra', NULL, '2026-10-11T16:45:37.221519+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('3de7e714-25de-433c-8b0d-2b2cf8533480', 'Javed Bashir', NULL, '2026-10-11T16:55:52.933868+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('09e97872-c729-43c7-a1a2-50b42b539fa0', 'Rajat Arora', NULL, '2026-10-11T16:56:04.898015+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('1d000822-590a-4085-aae0-b6cc9ec3a6b4', 'Chinmayi Sripaada', NULL, '2026-10-11T16:59:02.149478+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b0790e8e-1598-44cb-9336-383695560537', 'Amitabh Varma', NULL, '2026-10-11T17:03:20.807726+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('5cfdd6bb-3952-4b6e-b8be-c2df964faec8', 'Clinton Cerejo', NULL, '2026-10-11T17:05:53.599791+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('aed577a8-e0b7-47cf-9db8-5e4305e46a68', 'Ash King', NULL, '2026-10-11T17:06:00.017633+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 
--- 3. Restore Songs (118 rows)
+-- 3. Restore Songs (129 rows)
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
   '49b5b3e7-060a-4367-b2f9-83e4b7b2e096',
   'Asal Mein',
@@ -5488,12 +5500,12 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [01:15.82]Ek dil hai
 [01:25.80]Ishq bhi tu, mera pyaar bhi tu
 [01:27.50]Meri baat, saath, jazbaat bhi tu
-[01:30.22]Parwaaz bhi tu, ruhan saaz bhi tu
+[01:30.22]Parwaaz bhi tu, ruh-e-saaz bhi tu
 [01:32.48]Meri saans, naas aur hayaat bhi tu
-[01:35.03]Mera raaz bhi tu, tu khuraaj bhi tu
-[01:37.38]Meri pyaas, pyaash aur libaas bhi tu
+[01:35.03]Mera raaz bhi tu, tu pukhaaj bhi tu
+[01:37.38]Meri aas, pyaas aur libaas bhi tu
 [01:39.95]Meri jeet bhi tu, meri haar bhi tu
-[01:42.22]Mera raaj, raaj aur mijaaj bhi tu
+[01:42.22]Mera taaj, raaj aur mijaaj bhi tu
 [01:49.81]Mere ishq ke
 [01:54.67]Har makaam mein
 [02:00.08]Har subah mein
@@ -7798,6 +7810,182 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791702062/gmcad3hgqsotchsx2y5e.mp3',
   FALSE,
   '2026-10-11T04:33:12.906104+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '7abc6aed-540e-4cce-9fd5-5d59d45a360a',
+  ' Jab Koi Baat Bigad Jaye',
+  'Rajesh Roshan, Kumar Sanu, Sadhana Sargam, Indivar',
+  'Jurm',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736305/oebwzq04u0phzmnufx2z.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791736305/eofkuuxbyolfjf72dhh9.jpg',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736722/ov3r03ryqbcewupedqc8.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736687/cqfsvfs5d5abzkpdutry.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736698/az9vp6wedqc1kmrcbf8q.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736711/m1ehpftjts0t5qny9xvf.mp3',
+  FALSE,
+  '2026-10-11T16:31:46.755786+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'cd1fd534-4f13-443d-966d-3021ba004440',
+  ' Main Yahaan Hoon',
+  'Madan Mohan, Udit Narayan, Javed Akhtar',
+  'Veer-Zaara',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736565/pikwlepeghd0cppajr6t.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791736566/qkbxndwoaaxpcclawfzf.png',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736791/cxoshjkan72ojqgydrak.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736765/vyr1l7sokzwvfj0pald2.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736774/fq4z8d4wn83iyrojxzlt.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736782/olxhftkx24g5roo0gif1.mp3',
+  FALSE,
+  '2026-10-11T16:36:07.099826+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'ee60c07f-468b-419b-ad09-1ae770e2fbc4',
+  'Suraj Hua Maddham',
+  'Sandesh Shandilya, Sonu Nigam, Alka Yagnik, Anil Pandey',
+  'Kabhi Khushi Kabhie Gham',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736988/lfw3nstbzrzolbusjrjv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791736989/lstxnixmq5fzhihotvl6.png',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737075/pernt5jfami5obllcthr.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737039/lhqlmcwhdius35n5xwkz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737050/zvzxi6trzbeskebutd3y.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737063/ebssloxfhv5e4ulsrgxv.mp3',
+  FALSE,
+  '2026-10-11T16:43:10.583875+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '918ee6bd-06b4-4288-a58c-f89f0389c978',
+  'Aal Izz Well',
+  'Shantanu Moitra, Sonu Nigam, Shaan, Swanand Kirkire',
+  '3 Idiots',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737197/ocpildxzzr6pnu15fekw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737199/nnh3vpmqv4ele6tv6mio.jpg',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737255/j1bcxe8kjsaqggga36ri.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737229/fs0atxy5bqxssyknzoam.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737237/rr4u8ilbltsd53tdqhfd.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737246/b1bpam6jv8zcwbivayzb.mp3',
+  FALSE,
+  '2026-10-11T16:46:39.890154+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '30ad7c9d-0182-444d-b05f-3acac2f9ef35',
+  'Zoobi Doobi',
+  'Shantanu Moitra, Sonu Nigam, Shreya Ghoshal, Swanand Kirkire',
+  '3 Idiots',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737323/dtkpz9eau5oxvgy5a8jb.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737324/jrbyyutopnlerrubdvrm.jpg',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737413/bhmmzor8ke4rytidokni.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737389/kkqcphjgjx6ea4cfey0r.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737398/mhpruuzeukwv2khsc8ap.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737405/wun4u991gcrmecedvxp0.mp3',
+  FALSE,
+  '2026-10-11T16:48:45.581093+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'ccd7fabf-d277-4420-84a8-4e5ff5b66d67',
+  'Behti Hawa Sa Tha Woh',
+  'Shantanu Moitra, Shaan, Swanand Kirkire',
+  '3 Idiots',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737449/abhpfbsnf2tctbbgnw5q.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737451/r07ry5ubzf3kxtjqd44l.jpg',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737736/nktfphzxysvcweph3jho.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737710/pk4zdmsgvbgo34tzajt5.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737718/kwvbqkq26a7rjuyeollh.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737728/biwsukheum9u1tv6texo.mp3',
+  FALSE,
+  '2026-10-11T16:50:52.379424+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'ab99af69-2ebc-4543-a1fd-37895121e02f',
+  'Chaar Kadam',
+  'Shantanu Moitra, Shaan, Shreya Ghoshal, Swanand Kirkire',
+  'PK',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737594/rlhpuph9msztpcygxbmn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737595/fqocblpkqcyxjfejz7mm.png',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737648/un1q5ryrd0tw40fiyowk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737626/ypg0qqbwydw2c9gibmpa.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737633/negm8nfbjlftimj3kcs2.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737641/bptbh5g057gwpns2srq6.mp3',
+  FALSE,
+  '2026-10-11T16:53:16.655932+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '6144cc42-418f-4439-b2e7-3b3eb73c49ed',
+  'Ye Tune Kya Kiya',
+  'Pritam, Javed Bashir, Rajat Arora',
+  'Once Upon Ay Time In Mumbai Dobaara !',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737808/cbchsj56stqafeq5thwa.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737810/fh0pscq3a3osvrt5vmwe.png',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738084/jexnzcjsyvfgcw7albkn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738055/fpd4xzoh6s1fczow3t3z.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738064/cwxfjvzorbhvvsbbww6b.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738074/tkxvenwolvbhyuskahhi.mp3',
+  FALSE,
+  '2026-10-11T16:56:51.154873+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '1b04a96c-f7ab-4f85-9e0b-082d8edd71b2',
+  'Main Rang Sharbaton Ka',
+  'Pritam, Atif Aslam, Chinmayi Sripaada, Irshad Kamil',
+  'Phata Poster Nikhla Hero',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737978/nhrbdojxauicd7x6omnt.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737980/jlolq3kk5wrfualtp1r7.png',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738317/gqfnsvlkgndobxa69skw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738270/o0v28snadgjioc0gkvfm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738282/ystfqkbdjh7sguvcv4vf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738308/axkppw9m8fey1jbexw7p.mp3',
+  FALSE,
+  '2026-10-11T16:59:40.980376+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '9e36f778-6b04-4cb3-a674-e4960347cda8',
+  ' Love Is A Waste Of Time',
+  'Shantanu Moitra, Sonu Nigam, Shreya Ghoshal, Amitabh Varma',
+  'PK',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738227/c229ppl954qn93omb9lv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738231/gww4rbkz8j53ptaogwob.png',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  FALSE,
+  '2026-10-11T17:03:51.674666+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc',
+  'I Love You',
+  'Clinton Cerejo, Ash King, Neelesh Misra',
+  'Bodyguard',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738473/i25sko639cyprkytr4gf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738474/kapj0jui420mkg62rart.png',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  FALSE,
+  '2026-10-11T17:07:55.370017+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 4. Restore Playlists (17 rows)

@@ -691,6 +691,7 @@ export default function App() {
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const isPlayingRef = useRef(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
@@ -2045,11 +2046,12 @@ export default function App() {
   }, [currentTrack?.url]);
 
   useEffect(() => {
+    isPlayingRef.current = isPlaying;
     const syncPlayState = async () => {
-        if ('mediaSession' in navigator) {
-          navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-        }
-        if (isPlaying && currentTrack) {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+      }
+      if (isPlaying && currentTrack) {
         if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
           audioRef.current.play().catch(e => e);
         }
@@ -2060,11 +2062,16 @@ export default function App() {
           otherRef.current?.play().catch(e => e);
         }
       } else {
+        if (stallRecoveryTimerRef.current) {
+          clearTimeout(stallRecoveryTimerRef.current);
+          stallRecoveryTimerRef.current = null;
+        }
         audioRef.current?.pause();
         vocalsRef.current?.pause();
         drumsRef.current?.pause();
         bassRef.current?.pause();
         otherRef.current?.pause();
+        silentAudioRef.current?.pause();
       }
     };
     syncPlayState();
@@ -2211,10 +2218,10 @@ export default function App() {
     if (pendingAutoPlayRef.current) {
       pendingAutoPlayRef.current = false;
     }
-    if (isPlaying && audioRef.current && audioRef.current.paused) {
+    if (isPlayingRef.current && isPlaying && audioRef.current && audioRef.current.paused) {
       audioRef.current.play().catch(e => console.log("canplay-play err:", e));
     }
-    if (isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
+    if (isPlayingRef.current && isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
       vocalsRef.current?.play().catch(e => e);
       drumsRef.current?.play().catch(e => e);
       bassRef.current?.play().catch(e => e);
@@ -2223,7 +2230,14 @@ export default function App() {
   };
 
   const handleStalledOrWaiting = () => {
-    if (!isPlaying || !audioRef.current || audioRef.current.ended) return;
+    // If user clicked pause or playback is stopped, NEVER attempt to recover or auto-play!
+    if (!isPlayingRef.current || !isPlaying || !audioRef.current || audioRef.current.ended) {
+      if (stallRecoveryTimerRef.current) {
+        clearTimeout(stallRecoveryTimerRef.current);
+        stallRecoveryTimerRef.current = null;
+      }
+      return;
+    }
     if (preloadAbortRef.current) {
       preloadAbortRef.current.abort();
       preloadAbortRef.current = null;
@@ -2231,10 +2245,10 @@ export default function App() {
     if (shouldLoadStems && !stemsBroken) {
       vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
     }
-    // Auto-recover from background network stalls on mobile (Android Doze / iOS background)
+    // Auto-recover from background network stalls on mobile (Android Doze / iOS background) ONLY while user wants playback
     if (stallRecoveryTimerRef.current) clearTimeout(stallRecoveryTimerRef.current);
     stallRecoveryTimerRef.current = setTimeout(() => {
-      if (isPlaying && audioRef.current && !audioRef.current.ended) {
+      if (isPlayingRef.current && isPlaying && audioRef.current && !audioRef.current.ended) {
         if (audioRef.current.paused || audioRef.current.readyState < 3) {
           audioRef.current.play().catch(() => {
             const cur = audioRef.current?.currentTime || 0;
@@ -2913,6 +2927,11 @@ export default function App() {
     if (!currentTrack) return;
     
     if (!isPlaying) {
+      if (stallRecoveryTimerRef.current) {
+        clearTimeout(stallRecoveryTimerRef.current);
+        stallRecoveryTimerRef.current = null;
+      }
+      isPlayingRef.current = true;
       setIsPlaying(true);
       if (audioRef.current.src && audioRef.current.src !== window.location.href) {
         if (audioRef.current.readyState === 0) audioRef.current.load();
@@ -2923,8 +2942,18 @@ export default function App() {
         audioRef.current.play().catch(e=>e);
       }
     } else {
+      if (stallRecoveryTimerRef.current) {
+        clearTimeout(stallRecoveryTimerRef.current);
+        stallRecoveryTimerRef.current = null;
+      }
+      isPlayingRef.current = false;
       setIsPlaying(false);
       audioRef.current.pause();
+      vocalsRef.current?.pause();
+      drumsRef.current?.pause();
+      bassRef.current?.pause();
+      otherRef.current?.pause();
+      silentAudioRef.current?.pause();
     }
   };
 
@@ -4000,7 +4029,6 @@ export default function App() {
         onCanPlay={handleCanPlay}
         onWaiting={handleStalledOrWaiting}
         onStalled={handleStalledOrWaiting}
-        onSuspend={handleStalledOrWaiting}
         onPlaying={() => {
           if (isPlaying && shouldLoadStems && !stemsBroken) {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
@@ -4013,6 +4041,10 @@ export default function App() {
           }
         }}
         onPause={() => {
+          if (stallRecoveryTimerRef.current) {
+            clearTimeout(stallRecoveryTimerRef.current);
+            stallRecoveryTimerRef.current = null;
+          }
           if (preloadAbortRef.current) {
             preloadAbortRef.current.abort();
             preloadAbortRef.current = null;
