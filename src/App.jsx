@@ -3859,11 +3859,12 @@ export default function App() {
                       top: "calc(100% + 4px)",
                       left: 0,
                       right: 0,
-                      background: isDarkMode ? "rgba(22, 28, 45, 0.98)" : "rgba(255, 255, 255, 0.98)",
-                      backdropFilter: "blur(24px)",
+                      background: songTheme.modalBg,
+                      backdropFilter: "blur(28px)",
+                      WebkitBackdropFilter: "blur(28px)",
                       border: songTheme.modalBorder,
                       borderRadius: "14px",
-                      boxShadow: isDarkMode ? "0 12px 32px rgba(0,0,0,0.6)" : "0 12px 32px rgba(0,0,0,0.15)",
+                      boxShadow: songTheme.modalShadow,
                       maxHeight: "190px",
                       overflowY: "auto",
                       zIndex: 6000,
@@ -3890,7 +3891,7 @@ export default function App() {
                             alignItems: "center",
                             gap: "8px",
                             color: songTheme.textColor,
-                            background: isHighlighted ? (isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") : "transparent",
+                            background: isHighlighted ? songTheme.rowBg : "transparent",
                             transition: "background 0.15s ease"
                           }}
                           onMouseEnter={() => setActiveArtistIndex(idx)}
@@ -3917,9 +3918,9 @@ export default function App() {
                           alignItems: "center",
                           gap: "8px",
                           color: COLORS.spotifyGreen,
-                          borderTop: isDarkMode ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.06)",
+                          borderTop: songTheme.rowBorder,
                           marginTop: artistSuggestions.length > 0 ? "4px" : 0,
-                          background: activeArtistIndex === artistSuggestions.length ? (isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") : "transparent"
+                          background: activeArtistIndex === artistSuggestions.length ? songTheme.rowBg : "transparent"
                         }}
                         onMouseEnter={() => setActiveArtistIndex(artistSuggestions.length)}
                       >
@@ -3971,11 +3972,12 @@ export default function App() {
                       top: "calc(100% + 4px)",
                       left: 0,
                       right: 0,
-                      background: isDarkMode ? "rgba(22, 28, 45, 0.98)" : "rgba(255, 255, 255, 0.98)",
-                      backdropFilter: "blur(24px)",
+                      background: songTheme.modalBg,
+                      backdropFilter: "blur(28px)",
+                      WebkitBackdropFilter: "blur(28px)",
                       border: songTheme.modalBorder,
                       borderRadius: "14px",
-                      boxShadow: isDarkMode ? "0 12px 32px rgba(0,0,0,0.6)" : "0 12px 32px rgba(0,0,0,0.15)",
+                      boxShadow: songTheme.modalShadow,
                       maxHeight: "170px",
                       overflowY: "auto",
                       zIndex: 6000,
@@ -4002,7 +4004,7 @@ export default function App() {
                             alignItems: "center",
                             gap: "8px",
                             color: songTheme.textColor,
-                            background: isHighlighted ? (isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") : "transparent",
+                            background: isHighlighted ? songTheme.rowBg : "transparent",
                             transition: "background 0.15s ease"
                           }}
                           onMouseEnter={() => setActiveAlbumIndex(idx)}
