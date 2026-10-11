@@ -538,7 +538,6 @@ export default function App() {
   });
   const [playbackIndex, setPlaybackIndex] = useState(() => parseInt(localStorage.getItem("euphony_playback_index")) || 0);
   const [playbackSourceName, setPlaybackSourceName] = useState(() => localStorage.getItem("euphony_playback_source") || "Global Library");
-  const [preloadSrc, setPreloadSrc] = useState(null);
   const [dominantRgb, setDominantRgb] = useState(() => {
     try {
       const saved = localStorage.getItem("euphony_last_dominant_rgb");
@@ -561,7 +560,7 @@ export default function App() {
   });
   const songTheme = getSongThemeGradients(dominantRgb, isDarkMode);
 
-  const CACHE_NAME = 'euphony-media-blobs';
+  const AUDIO_CACHE_NAME = 'euphony-audio-cache';
   const [isRefreshing, setIsRefreshing] = useState(false);
   
 
@@ -798,8 +797,8 @@ export default function App() {
 
   const silentAudioRef = useRef(null);
   const audioRef = useRef(null);
-  const preloadAudioRef = useRef(null);
   const blobCacheRef = useRef(new Map());
+  const preloadAbortRef = useRef(null);
 
 
 
@@ -1171,29 +1170,185 @@ export default function App() {
     setSortOrders(prev => ({ ...prev, [key]: SORT_CYCLE[(idx + 1) % SORT_CYCLE.length] }));
   };
 
-  useEffect(() => {
-    let nextUrl = null;
-    if (userQueue.length > 0) {
-      nextUrl = userQueue[0].url;
-    } else if (upcomingSourceList.length > 0) {
-      const idx = upcomingSourceList[0].originalIndex;
-      if (playbackQueue[idx]) nextUrl = playbackQueue[idx].url;
-    } else if (playbackQueue.length > 1) {
-      const nextIdx = (playbackIndex + 1) % playbackQueue.length;
-      if (playbackQueue[nextIdx]) nextUrl = playbackQueue[nextIdx].url;
-    }
-    
-    if (nextUrl) {
-      const cdnUrl = getCdnUrl(nextUrl);
-      setPreloadSrc(cdnUrl);
-      if (preloadAudioRef.current) {
-        preloadAudioRef.current.src = cdnUrl;
-        preloadAudioRef.current.load();
+  // ── BACKGROUND AUDIO CACHE & OFFLINE PRELOADER ───────────────────────────
+  // Helper to determine the next 2 upcoming tracks in playback order
+  const getNextTwoUpcomingTracks = useCallback(() => {
+    const list = [];
+    const seenIds = new Set();
+    if (currentTrack?.id) seenIds.add(currentTrack.id);
+
+    // 1. Prioritize user-added queue songs first
+    if (userQueue && userQueue.length > 0) {
+      for (const song of userQueue) {
+        if (song?.url && !seenIds.has(song.id)) {
+          seenIds.add(song.id);
+          list.push(song);
+          if (list.length >= 2) return list;
+        }
       }
-    } else {
-      setPreloadSrc(null);
     }
-  }, [currentTrack, userQueue, upcomingSourceList, playbackQueue, playbackIndex]);
+
+    // 2. Upcoming playlist/source order (respects shuffle and custom queues)
+    if (upcomingSourceList && upcomingSourceList.length > 0) {
+      for (const item of upcomingSourceList) {
+        const t = item?.track;
+        if (t?.url && !seenIds.has(t.id)) {
+          seenIds.add(t.id);
+          list.push(t);
+          if (list.length >= 2) return list;
+        }
+      }
+    }
+
+    // 3. Fallback sequential active queue sequence
+    const activeQ = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
+    if (activeQ && activeQ.length > 1) {
+      for (let step = 1; step <= activeQ.length; step++) {
+        const idx = (playbackIndex + step) % activeQ.length;
+        const t = activeQ[idx];
+        if (t?.url && !seenIds.has(t.id)) {
+          seenIds.add(t.id);
+          list.push(t);
+          if (list.length >= 2) return list;
+        }
+      }
+    }
+
+    return list;
+  }, [currentTrack?.id, userQueue, upcomingSourceList, playbackQueue, playlist, playbackIndex]);
+
+  // Caching a single audio file with AbortController signal and low fetch priority
+  const cacheAudioTrack = async (rawUrl, signal) => {
+    if (!rawUrl) return null;
+    const cdnUrl = getCdnUrl(rawUrl);
+    if (blobCacheRef.current.has(cdnUrl)) {
+      return blobCacheRef.current.get(cdnUrl);
+    }
+    if (typeof window === "undefined" || !('caches' in window)) return null;
+
+    try {
+      const cache = await caches.open(AUDIO_CACHE_NAME);
+      let match = await cache.match(cdnUrl);
+      if (!match) {
+        if (signal?.aborted) return null;
+        if (typeof navigator !== "undefined" && !navigator.onLine) return null;
+
+        const res = await fetch(cdnUrl, {
+          signal,
+          mode: 'cors',
+          priority: 'low',
+          credentials: 'omit'
+        });
+        if (res.ok) {
+          await cache.put(cdnUrl, res.clone());
+          match = res;
+        }
+      }
+      if (match && !signal?.aborted) {
+        const blob = await match.blob();
+        if (!blobCacheRef.current.has(cdnUrl)) {
+          const objUrl = URL.createObjectURL(blob);
+          blobCacheRef.current.set(cdnUrl, objUrl);
+          return objUrl;
+        }
+      }
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        console.warn("Background audio cache warning:", e.message);
+      }
+    }
+    return null;
+  };
+
+  // Automatic Cache Eviction: keeps only active window (current + next 2 + previous 1), evicts the rest
+  const pruneUnusedAudioCache = async (allowedRawUrls) => {
+    if (typeof window === "undefined" || !('caches' in window)) return;
+    try {
+      const allowedCdnSet = new Set(allowedRawUrls.filter(Boolean).map(u => getCdnUrl(u)));
+
+      // 1. Evict from memory Map and revoke object URLs to prevent RAM leaks
+      for (const [cachedCdnUrl, blobUrl] of blobCacheRef.current.entries()) {
+        if (!allowedCdnSet.has(cachedCdnUrl)) {
+          try { URL.revokeObjectURL(blobUrl); } catch (e) {}
+          blobCacheRef.current.delete(cachedCdnUrl);
+        }
+      }
+
+      // 2. Evict old entries from CacheStorage
+      const cache = await caches.open(AUDIO_CACHE_NAME);
+      const keys = await cache.keys();
+      for (const request of keys) {
+        if (!allowedCdnSet.has(request.url)) {
+          await cache.delete(request);
+        }
+      }
+    } catch (e) {
+      console.warn("Audio cache pruning warning:", e);
+    }
+  };
+
+  useEffect(() => {
+    // 1. Immediately abort any in-flight background download whenever current track changes.
+    // This grants 100% network bandwidth to the current song so it loads and plays without delay.
+    if (preloadAbortRef.current) {
+      preloadAbortRef.current.abort();
+      preloadAbortRef.current = null;
+    }
+
+    if (!currentTrack) return;
+
+    const controller = new AbortController();
+    preloadAbortRef.current = controller;
+
+    // 2. Wait 3 seconds of playback before prefetching upcoming tracks.
+    // This ensures the current track has already established connection and buffered smoothly.
+    const timer = setTimeout(async () => {
+      if (controller.signal.aborted) return;
+
+      const nextTracks = getNextTwoUpcomingTracks();
+      const prevTrack = playbackHistory.length > 0 && playbackQueue[playbackHistory[playbackHistory.length - 1]];
+
+      // Sequentially cache next track 1, then next track 2
+      for (const track of nextTracks) {
+        if (controller.signal.aborted) break;
+        if (track?.url) {
+          await cacheAudioTrack(track.url, controller.signal);
+        }
+      }
+
+      // Ensure current track is also cached for seamless offline replay
+      if (!controller.signal.aborted && currentTrack?.url) {
+        await cacheAudioTrack(currentTrack.url, controller.signal);
+      }
+
+      // Automatically prune unused songs outside the active window
+      if (!controller.signal.aborted) {
+        const allowedUrls = [
+          currentTrack?.url,
+          ...nextTracks.map(t => t?.url),
+          prevTrack?.url
+        ];
+        await pruneUnusedAudioCache(allowedUrls);
+      }
+    }, 3000);
+
+    // 3. Online/offline listener: when network returns (e.g. out of the metro), immediately cache the next 2 songs
+    const handleOnline = () => {
+      if (!controller.signal.aborted) {
+        const nextTracks = getNextTwoUpcomingTracks();
+        for (const track of nextTracks) {
+          if (track?.url) cacheAudioTrack(track.url, controller.signal);
+        }
+      }
+    };
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [currentTrack?.id, playbackIndex, userQueue, upcomingSourceList, isPlaying, getNextTwoUpcomingTracks]);
 
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
@@ -1777,8 +1932,26 @@ export default function App() {
 
   useEffect(() => {
     if (isFirstRender.current && audioRef.current && currentTrack) {
-      if (!audioRef.current.src || audioRef.current.src === window.location.href) {
-        audioRef.current.src = getCdnUrl(currentTrack.url);
+      const cdnUrl = getCdnUrl(currentTrack.url);
+      const cachedBlob = blobCacheRef.current?.get(cdnUrl);
+      if (cachedBlob) {
+        audioRef.current.src = cachedBlob;
+      } else if (!audioRef.current.src || audioRef.current.src === window.location.href) {
+        audioRef.current.src = cdnUrl;
+        if (typeof window !== "undefined" && 'caches' in window) {
+          caches.open(AUDIO_CACHE_NAME).then(c => c.match(cdnUrl)).then(async match => {
+            if (match && !blobCacheRef.current.has(cdnUrl)) {
+              const blob = await match.blob();
+              const bUrl = URL.createObjectURL(blob);
+              blobCacheRef.current.set(cdnUrl, bUrl);
+              if (audioRef.current && (!audioRef.current.src || audioRef.current.src === cdnUrl || audioRef.current.error || !navigator.onLine)) {
+                const cur = audioRef.current.currentTime || 0;
+                audioRef.current.src = bUrl;
+                try { audioRef.current.currentTime = cur; } catch (e) {}
+              }
+            }
+          }).catch(() => {});
+        }
       }
       const savedTime = localStorage.getItem("euphony_current_time");
       if (savedTime && !isNaN(parseFloat(savedTime)) && parseFloat(savedTime) > 0) {
@@ -2070,10 +2243,7 @@ export default function App() {
     setQueueCurrentTrack(song);
     resetPlaybackTime();
     setIsPlaying(true);
-    if (audioRef.current && song) {
-      audioRef.current.src = getCdnUrl(song.url);
-      audioRef.current.play().catch(err => console.log(err));
-    }
+    playTrackWithMetadata(song, audioRef.current, blobCacheRef.current);
   };
 
   const resetPlaybackTime = () => {
@@ -2126,6 +2296,24 @@ export default function App() {
     
     updateProgressVisuals();
     audioEl.play().catch(e => console.log(e));
+
+    // If objUrl was fallback cdnUrl, check CacheStorage asynchronously in case it's in storage (e.g. offline recovery)
+    if (objUrl === cdnUrl && typeof window !== "undefined" && 'caches' in window) {
+      caches.open(AUDIO_CACHE_NAME).then(c => c.match(cdnUrl)).then(async match => {
+        if (match && !cacheMap?.has(cdnUrl)) {
+          const blob = await match.blob();
+          const bUrl = URL.createObjectURL(blob);
+          cacheMap?.set(cdnUrl, bUrl);
+          // If offline or network error occurred, seamlessly switch audio element to the offline cached blob
+          if (audioEl && (audioEl.error || !navigator.onLine || audioEl.networkState === 3)) {
+            const curTime = audioEl.currentTime || 0;
+            audioEl.src = bUrl;
+            try { audioEl.currentTime = curTime; } catch (e) {}
+            audioEl.play().catch(e => console.log(e));
+          }
+        }
+      }).catch(() => {});
+    }
   };
   
   const handlePlaySong = (index, listToSet, sourceName) => {
@@ -3408,6 +3596,35 @@ export default function App() {
         playsInline
         muted={isMixerActive || isMuted}
         loop={playMode === 'repeat-one'}
+        onError={async () => {
+          if (!currentTrack?.url) return;
+          const cdn = getCdnUrl(currentTrack.url);
+          if (blobCacheRef.current.has(cdn)) {
+            const bUrl = blobCacheRef.current.get(cdn);
+            if (audioRef.current && audioRef.current.src !== bUrl) {
+              const cur = audioRef.current.currentTime || 0;
+              audioRef.current.src = bUrl;
+              try { audioRef.current.currentTime = cur; } catch (e) {}
+              if (isPlaying) audioRef.current.play().catch(e => console.log(e));
+            }
+          } else if (typeof window !== "undefined" && 'caches' in window) {
+            try {
+              const cache = await caches.open(AUDIO_CACHE_NAME);
+              const match = await cache.match(cdn);
+              if (match) {
+                const blob = await match.blob();
+                const bUrl = URL.createObjectURL(blob);
+                blobCacheRef.current.set(cdn, bUrl);
+                if (audioRef.current && audioRef.current.src !== bUrl) {
+                  const cur = audioRef.current.currentTime || 0;
+                  audioRef.current.src = bUrl;
+                  try { audioRef.current.currentTime = cur; } catch (e) {}
+                  if (isPlaying) audioRef.current.play().catch(e => console.log(e));
+                }
+              }
+            } catch (e) {}
+          }
+        }}
         className="loop-audio-fix"
       />
       <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
