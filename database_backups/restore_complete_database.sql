@@ -1,7 +1,7 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-11T17:07:59.511Z
--- Total: 129 songs, 83 artists, 17 playlists, 63 playlist_songs
+-- Generated: 2026-10-11T18:27:30.015Z
+-- Total: 132 songs, 88 artists, 17 playlists, 63 playlist_songs
 -- ====================================================
 
 -- 1. Schema Definitions
@@ -49,7 +49,7 @@ ALTER TABLE public.artists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlist_songs DISABLE ROW LEVEL SECURITY;
 
--- 2. Restore Artists (83 rows)
+-- 2. Restore Artists (88 rows)
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b2b72353-374f-4aab-864d-d0fcce615d56', 'Darshan Raval', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610309/darshan.jpg', '2026-09-24T08:48:14.272076+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('68c3f5d9-7ae8-4c6c-ac6b-754ea8f572b6', 'Sonu Nigam', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610542/sonu.webp', '2026-09-24T08:50:09.640436+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('69327c50-1d5e-4a38-a24d-576fb4463f96', 'Neeti Mohan', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791609585/q3wjlfr21srcuzddmfo9.jpg', '2026-09-24T09:03:20.194298+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
@@ -126,15 +126,20 @@ INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('312ae71d-b
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('024b7ac0-0f3e-4f94-9056-b15b0d659d19', 'Indivar', NULL, '2026-10-11T16:31:06.555189+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('9d9905f0-7478-4be3-9859-add232f59a4a', 'Madan Mohan', NULL, '2026-10-11T16:35:12.672889+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('98b617d1-5255-47f1-8a12-2e636dabfeb8', 'Anil Pandey', NULL, '2026-10-11T16:41:54.987929+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
-INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('e4e25adc-e9c4-4f7d-9d61-94a89dd89aed', 'Shantanu Moitra', NULL, '2026-10-11T16:45:37.221519+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('e4e25adc-e9c4-4f7d-9d61-94a89dd89aed', 'Shantanu Moitra', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791741945/Shantunu_moitra.jpg', '2026-10-11T16:45:37.221519+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('3de7e714-25de-433c-8b0d-2b2cf8533480', 'Javed Bashir', NULL, '2026-10-11T16:55:52.933868+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('09e97872-c729-43c7-a1a2-50b42b539fa0', 'Rajat Arora', NULL, '2026-10-11T16:56:04.898015+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
-INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('1d000822-590a-4085-aae0-b6cc9ec3a6b4', 'Chinmayi Sripaada', NULL, '2026-10-11T16:59:02.149478+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('1d000822-590a-4085-aae0-b6cc9ec3a6b4', 'Chinmayi Sripaada', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791742575/chinmayi.jpg', '2026-10-11T16:59:02.149478+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b0790e8e-1598-44cb-9336-383695560537', 'Amitabh Varma', NULL, '2026-10-11T17:03:20.807726+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('5cfdd6bb-3952-4b6e-b8be-c2df964faec8', 'Clinton Cerejo', NULL, '2026-10-11T17:05:53.599791+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
-INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('aed577a8-e0b7-47cf-9db8-5e4305e46a68', 'Ash King', NULL, '2026-10-11T17:06:00.017633+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('aed577a8-e0b7-47cf-9db8-5e4305e46a68', 'Ash King', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791742367/ash.jpg', '2026-10-11T17:06:00.017633+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('627d2bb2-a407-4c95-a083-dbb5932e14c6', 'Salim-Sulaiman', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791741672/salimsulaiman2.jpg', '2026-10-11T17:11:41.124083+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('9ce7cd87-baa4-4b13-a89c-079d7857007e', 'Jaideep Sahni', NULL, '2026-10-11T17:12:23.884206+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ae95a592-5b54-4f45-8d30-4dbcb50242bf', 'Anu Malik', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791742452/anumalik.jpg', '2026-10-11T17:18:28.710475+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('67101032-5383-4218-ba86-c1f536194c94', 'Sabri Brothers', NULL, '2026-10-11T17:18:51.537337+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('79c7d0de-34b8-4322-975d-25cadb01eea4', 'Roop Kumar Rathod', NULL, '2026-10-11T18:26:01.417126+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 
--- 3. Restore Songs (129 rows)
+-- 3. Restore Songs (132 rows)
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
   '49b5b3e7-060a-4367-b2f9-83e4b7b2e096',
   'Asal Mein',
@@ -7832,7 +7837,38 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Main Yahaan Hoon',
   'Madan Mohan, Udit Narayan, Javed Akhtar',
   'Veer-Zaara',
-  NULL,
+  '[00:04.53] Jaanam, dekh lo, mit gayi dooriyan
+[00:15.35] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[00:28.29] 
+[00:57.55] Jaanam, dekh lo, mit gayi dooriyan
+[01:02.91] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[01:08.57] Jaanam, dekh lo, mit gayi dooriyan
+[01:14.18] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[01:19.81] Kaisi sarhadein? Kaisi majbooriyan?
+[01:25.39] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[01:33.05] 
+[01:55.86] Tum chhupa na sakogi, main woh raaz hoon
+[02:01.52] Tum bhula na sakogi, woh andaaz hoon
+[02:12.74] Gunjta hoon jo dil mein to hairaan ho kyun?
+[02:18.11] Main tumhaare hi dil ki to aawaaz hoon
+[02:23.87] Sun sako to suno dhadkanon ki zabaan
+[02:29.50] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[02:35.30] Kaisi sarhadein? Kaisi majbooriyan?
+[02:40.69] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[02:47.09] 
+[03:22.52] Main hi main ab tumhare khayaalon mein hoon
+[03:27.94] Main jawaabon mein hoon, main sawaalon mein hoon
+[03:39.19] Main tumhare har ek khwaab mein hoon basa
+[03:44.86] Main tumhari nazar ke ujaalon mein hoon
+[03:50.34] Dekhti ho mujhe, dekhti ho jahaan
+[03:55.91] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[04:01.79] Jaanam, dekh lo, mit gayi dooriyan
+[04:07.03] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[04:12.89] Kaisi sarhadein? Kaisi majbooriyan?
+[04:18.36] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[04:25.94] 
+[04:39.62] Main yahaan hoon, yahaan hoon, yahaan hoon, yahaan
+[04:52.91] ',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736565/pikwlepeghd0cppajr6t.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791736566/qkbxndwoaaxpcclawfzf.png',
   NULL,
@@ -7848,7 +7884,49 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Suraj Hua Maddham',
   'Sandesh Shandilya, Sonu Nigam, Alka Yagnik, Anil Pandey',
   'Kabhi Khushi Kabhie Gham',
-  NULL,
+  '[00:36.60] सूरज हुआ मद्धम, चाँद जलने लगा
+[00:42.66] आसमाँ ये, हाय, क्यूँ पिघलने लगा?
+[00:49.00] 
+[00:54.58] सूरज हुआ मद्धम, चाँद जलने लगा
+[01:00.49] आसमाँ ये, हाय, क्यूँ पिघलने लगा?
+[01:06.76] मैं ठहरा रहा, ज़मीं चलने लगी
+[01:12.94] धड़का ये दिल, साँस थमने लगी
+[01:18.35] हो, क्या ये मेरा पहला-पहला प्यार है?
+[01:24.15] सजना, क्या ये मेरा पहला-पहला प्यार है?
+[01:32.13] 
+[01:44.14] सूरज हुआ मद्धम, चाँद जलने लगा
+[01:50.28] आसमाँ ये, हाय, क्यूँ पिघलने लगा?
+[01:56.34] मैं ठहरी रही, ज़मीं चलने लगी
+[02:02.72] धड़का ये दिल, साँस थमने लगी
+[02:07.68] हाँ, क्या ये मेरा पहला-पहला प्यार है?
+[02:13.52] सजना, क्या ये मेरा पहला-पहला प्यार है?
+[02:21.68] 
+[03:13.72] है ख़ूबसूरत ये पल, सब कुछ रहा है बदल
+[03:19.64] सपने हक़ीक़त में जो ढल रहे हैं
+[03:25.67] क्या सदियों से पुराना है रिश्ता ये हमारा?
+[03:31.78] कि जिस तरह तुमसे हम मिल रहें हैं
+[03:38.20] यूँ ही रहे हर-दम प्यार का मौसम
+[03:44.18] यूँ ही मिलो हमसे तुम जनम-जनम
+[03:50.12] Mmm, मैं ठहरा रहा, ज़मीं चलने लगी
+[03:56.72] धड़का ये दिल, साँस थमने लगी
+[04:01.39] हाँ, क्या ये मेरा पहला-पहला प्यार है?
+[04:07.48] सजना, क्या ये मेरा पहला-पहला प्यार है?
+[04:15.41] 
+[05:03.60] तेरे ही रंग से यूँ मैं तो रंगी हूँ, सनम
+[05:12.50] पा के तुझे ख़ुद से ही खो रही हूँ, सनम
+[05:21.86] ओ, माहिया, वे तेरे इश्क़ में
+[05:27.73] हाँ, डूब के पार मैं हो रही हूँ, सनम
+[05:36.76] सागर हुआ प्यासा, रात जगने लगी
+[05:42.52] शोलों के दिल में भी आग जलने लगी
+[05:48.96] मैं ठहरी रही, ज़मीं चलने लगी
+[05:55.06] धड़का ये दिल, साँस थमने लगी
+[06:01.18] क्या ये मेरा पहला-पहला प्यार है?
+[06:06.27] सजना, क्या ये मेरा पहला-पहला प्यार है?
+[06:14.17] सूरज हुआ मद्धम, चाँद जलने लगा
+[06:20.28] आसमाँ ये, हाय, क्यूँ पिघलने लगा?
+[06:26.56] 
+[06:52.97] सजना, क्या ये मेरा पहला-पहला प्यार है?
+[07:06.63] ',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736988/lfw3nstbzrzolbusjrjv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791736989/lstxnixmq5fzhihotvl6.png',
   NULL,
@@ -7864,7 +7942,79 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Aal Izz Well',
   'Shantanu Moitra, Sonu Nigam, Shaan, Swanand Kirkire',
   '3 Idiots',
-  NULL,
+  '[00:48.17]Jab life ho out of control
+[00:49.92]Honto ko karke gol
+[00:55.92]Honto ko karke gol
+[00:57.92]Siti bajaake bol
+[01:03.67]Jab life ho out of control
+[01:05.92]Honto ko karke gol
+[01:07.92]Honto ko karke gol
+[01:09.92]Siti bajaake bol
+[01:11.68]Aal izz well
+[01:15.93]Murgi ka jaane
+[01:16.92]Ande ka kya hoga
+[01:19.42]Are life milegi ya
+[01:20.92]Tave pe fry hoga
+[01:23.92]Koyi na jaane apna
+[01:25.42]Future kya hoga
+[01:27.43]Hont ghuma siti
+[01:28.92]Baja siti bajaake bol
+[01:31.17]Bhaiya aal izz well
+[01:35.17]Are bhaiya aal izz well
+[01:39.25]Are chaachu aal izz well
+[01:42.75]Are bhaiya aal izz well
+[01:56.00]Confusion hi confusion hai
+[01:57.75]Solution kuchh pata nahi
+[01:59.76]Solution jo mile toh saala
+[02:01.75]Question kya tha pata nahi
+[02:04.00]Dil jo tere baat
+[02:05.25]Baat pe ghabraaye
+[02:07.00]Dil pe rakh ke haath
+[02:09.00]Use tu fusala le
+[02:11.25]Dil idiot hai pyaar se
+[02:13.50]Usako samajha le
+[02:15.25]Hont ghuma siti baja
+[02:17.75]Siti bajaake bol
+[02:19.50]Bhaiya aal izz well
+[02:23.26]Are bhaiya aal izz well
+[02:27.00]Are chaachu aal izz well
+[02:31.25]Are bhaiya aal izz well
+[02:44.23]Scholarship ki piya daaru
+[02:46.23]Ghum toh phir bhi mita nahi
+[02:47.99]Agar battiya raakh ho gayi
+[02:49.98]God toh phir bhi dikha nahi
+[02:53.98]Bakara kya jaane usaki
+[02:55.74]Jaan ka kya hoga
+[02:57.73]Seekh ghusegi
+[02:58.99]Ya saala kima hoga
+[03:01.98]Koyi na jaane apna
+[03:03.73]Future kya hoga
+[03:05.98]Toh hont ghuma siti baja
+[03:07.98]Siti bajaake bol
+[03:09.48]Bhaiya aal izz well
+[03:13.49]Are bhaiya aal izz well
+[03:17.24]Are chaachu aal izz well
+[03:21.48]Are bhaiya aal izz well
+[03:25.74]Jab life ho out of control
+[03:27.48]Honto ko karke gol
+[03:32.23]Honto ko karke gol
+[03:33.74]Siti bajaake bol
+[03:36.23]Aal izz well
+[03:39.98]Murgi ka jaane ande ka
+[03:41.95]Kya hoga kya hoga
+[03:43.99]Are life milegi ya tave pe
+[03:45.74]Fry hoga ho ho ho
+[03:47.99]Koyi na jaane apna future
+[03:50.20]Kya hoga kya hoga
+[03:52.24]Hont ghuma siti baja
+[03:53.74]Siti bajaake bol
+[03:55.46]Bhaiya aal izz well
+[03:59.21]Are murgi aal izz well
+[04:03.20]Are bakare aal izz well
+[04:07.20]Are bhaiya aal izz well
+[04:11.45]Na na na na na
+[04:19.46]Are bhaiya aal izz well
+[04:23.15]Are bhaiya aal izz well.',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737197/ocpildxzzr6pnu15fekw.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737199/nnh3vpmqv4ele6tv6mio.jpg',
   NULL,
@@ -7880,7 +8030,66 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Zoobi Doobi',
   'Shantanu Moitra, Sonu Nigam, Shreya Ghoshal, Swanand Kirkire',
   '3 Idiots',
-  NULL,
+  '[00:03.55]गुनगुनाती हैं ये हवाएँ
+[00:12.38]गुनगुनाता है गगन
+[00:19.76]गा रहा है ये सारा आलम
+[00:27.09]ज़ूबी-डू, पा-रम-पम
+[00:37.43]ज़ूबी-डूबी, ज़ूबी-डूबी, पम-पा-रा
+[00:40.18]ज़ूबी-डूबी, पा-रम-पम
+[00:42.83]ज़ूबी-डूबी, ज़ूबी-डूबी
+[00:44.18]नाचे क्यूँ पागल, stupid मन?
+[00:47.86]Hey, ज़ूबी-डूबी, ज़ूबी-डूबी, पम-पा-रा
+[00:50.84]ज़ूबी-डूबी, पा-रम-पम
+[00:53.38]Hey, ज़ूबी-डूबी, ज़ूबी-डूबी
+[00:54.87]नाचे क्यूँ पागल, stupid मन?
+[00:58.25]शाख़ों पे पत्ते गा रहे हैं, फूलों पे भँवरे गा रहे
+[01:03.66]दीवानी किरणें गा रही हैं, ये पंछी गा रहे
+[01:08.26]Whoa, बगिया में दो फूलों की हो रही है गुफ़्तगू
+[01:14.46]जैसा फ़िल्मों में होता है, हो रहा है हूबहू
+[01:19.27]आई-आई-आई
+[01:20.13]ज़ूबी-डूबी, ज़ूबी-डूबी, पम-पा-रा
+[01:22.69]ज़ूबी-डूबी, पा-रम-पम
+[01:25.64]ज़ूबी-डूबी, ज़ूबी-डूबी
+[01:26.85]नाचे क्यूँ पागल, stupid मन?
+[01:30.94]ज़ूबी-डूबी, ज़ूबी-डूबी, पम-पा-रा
+[01:33.38]ज़ूबी-डूबी, पा-रम-पम
+[01:36.04]ज़ूबी-डूबी, ज़ूबी-डूबी
+[01:37.43]नाचे क्यूँ पागल, stupid मन?
+[01:41.19]
+[02:02.24]हाँ, रिमझिम, रिमझिम, रिमझिम
+[02:05.10]सन-सन, सन-सन हवा
+[02:07.89]टिप-टिप, टिप-टिप-टिप बूँदे
+[02:10.48]गुर्राती बिजलियाँ
+[02:12.53]Mmm, भीगी-भीगी साड़ी में यूँ ठुमके लगाती तू
+[02:18.33]जैसा फ़िल्मों में होता है, हो रहा है हूबहू
+[02:23.23]आई-आई-आई
+[02:24.12]ज़ूबी-डूबी, डूबी, पम-पा-रा
+[02:26.80]ज़ूबी-डूबी, पा-रम-पम
+[02:29.32]ज़ूबी-डूबी, ज़ूबी-डूबी
+[02:30.74]नाचे क्यूँ पागल, stupid मन?
+[02:34.57]Hey, ज़ूबी-डूबी, ज़ूबी-डूबी, पम-पा-रा
+[02:37.35]ज़ूबी-डूबी, पा-रम-पम
+[02:40.03]ज़ूबी-डूबी, ज़ूबी-डूबी
+[02:41.42]नाचे क्यूँ पागल, stupid मन? Hey
+[02:45.48]
+[03:06.59]अंबर का चाँद ज़मीं पर इतरा के गा रहा
+[03:11.69]एक टिम-टिम टूटा तारा इठला के गा रहा
+[03:17.10]है रात अकेली-तनहा, मुझे छू ले आ के तू
+[03:22.53]जैसा फ़िल्मों में होता है, हो रहा है हूबहू
+[03:27.06]आई-आई-आई
+[03:28.06]ज़ूबी-डूबी, ज़ूबी-डूबी, पम-पा-रा
+[03:30.89]ज़ूबी-डूबी, पा-रम-पम
+[03:33.33]Ayy, ज़ूबी-डूबी, ज़ूबी-डूबी
+[03:34.88]नाचे क्यूँ पागल, stupid मन?
+[03:38.78]ज़ूबी-डूबी, ज़ूबी-डूबी, पम-पा-रा
+[03:41.37]ज़ूबी-डूबी, पा-रम-पम
+[03:43.93]ज़ूबी-डूबी, ज़ूबी-डूबी
+[03:45.44]नाचे क्यूँ पागल, stupid मन?
+[03:49.44]ज़ूबी-डूबी, डूबी, डूबी, डूबी
+[03:52.17]पागल, stupid मन
+[03:54.85]ज़ूबी-डूबी, डूबी, पम-पा-रा
+[03:57.69]पागल, stupid मन
+[04:02.78]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737323/dtkpz9eau5oxvgy5a8jb.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737324/jrbyyutopnlerrubdvrm.jpg',
   NULL,
@@ -7896,7 +8105,42 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Behti Hawa Sa Tha Woh',
   'Shantanu Moitra, Shaan, Swanand Kirkire',
   '3 Idiots',
-  NULL,
+  '[00:19.80]बहती हवा सा था वो
+[00:27.08]उड़ती पतंग सा था वो
+[00:34.28]कहाँ गया? उसे ढूँढो
+[00:40.72]
+[01:19.55]बहती हवा सा था वो
+[01:24.65]उड़ती पतंग सा था वो
+[01:29.79]कहाँ गया? उसे ढूँढो
+[01:35.04]Hmm, हमको तो राहें थी चलाती
+[01:39.92]वो ख़ुद अपनी राह बनाता
+[01:43.30]गिरता-सँभलता, मस्ती में चलता था वो
+[01:50.05]हमको कल की फ़िक्र सताती
+[01:53.53]वो बस आज का जश्न मनाता
+[01:56.92]हर लम्हे को खुल के जीता था वो
+[02:04.05]कहाँ से आया था वो?
+[02:10.89]छू के हमारे दिल को
+[02:17.65]कहाँ गया? उसे ढूँढो
+[02:21.85]
+[02:51.79]सुलगती धूप में छाँव के जैसा
+[02:55.34]रेगिस्तान में गाँव के जैसा
+[02:58.75]मन के घाव पे मरहम जैसा था वो
+[03:05.70]हम सहमे से रहते कुएँ में
+[03:09.09]वो नदिया में गोते लगाता
+[03:12.56]उल्टी धारा चीर के तैरता था वो
+[03:19.54]बादल आवारा था वो
+[03:24.72]यार हमारा था वो
+[03:29.73]कहाँ गया? उसे ढूँढो
+[03:36.47]हमको तो राहें थी चलाती
+[03:39.95]वो खुद अपनी राह बनाता
+[03:43.35]गिरता-सँभलता, मस्ती में चलता था वो
+[03:50.10]हमको कल की फ़िक्र सताती
+[03:53.66]वो बस आज का जश्न मनाता
+[03:57.01]हर लम्हे को खुल के जीता था वो
+[04:04.19]कहाँ से आया था वो
+[04:10.87]छू के हमारे दिल को
+[04:17.78]कहाँ गया? उसे ढूँढो
+[04:24.08]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737449/abhpfbsnf2tctbbgnw5q.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737451/r07ry5ubzf3kxtjqd44l.jpg',
   NULL,
@@ -7912,7 +8156,29 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Chaar Kadam',
   'Shantanu Moitra, Shaan, Shreya Ghoshal, Swanand Kirkire',
   'PK',
-  NULL,
+  '[00:00.00] 
+[00:06.00] bin pooche mera naam aur pata rasmon ko rakh ke pare
+[00:19.49] chaar qadam bas chaar qadam chal do naa saath mere
+[00:31.26] 
+[00:41.34] bin pooche mera naam aur pata rasmon ko rakh ke pare
+[00:49.29] chaar qadam bas chaar qadam chal do naa saath mere
+[00:57.26] bin kuch kahe bin kuch sune haathon mein haath liye
+[01:05.34] chaar qadam bas chaar qadam chal do naa saath mere
+[01:12.80] Hey bin kuch kahe bin kuch sune haathon mein haath liye
+[01:21.27] chaar qadam bas chaar qadam chal do naa saath mere
+[01:29.21] 
+[01:49.27] raahoon mein tum ko jo dhoop sataae chhaanv bicha denge hum
+[01:57.19] andhere daraayen to jaa kar falak pe chaand sajaa denge hum
+[02:05.33] chhae udaasi latife sunaa kar tujh ko hansaa denge hum
+[02:13.29] hanste-hansaate yoon hee gunagunaate chal denge chaar qadam
+[02:21.90] 
+[02:33.23] tum sa milee jo koyi rahaguzar duniyaa se kaun dare
+[02:41.49] chaar qadam kya saaree umr chal duungi saath tere
+[02:49.29] bin kuch kahe bin kuch sune haathon mein haath liye
+[02:57.34] chaar qadam bas chaar qadam chal do naa saath mere
+[03:05.34] bin kuch kahe bin kuch sune haathon mein haath liye
+[03:13.20] chaar qadam bas chaar qadam chal do naa saath mere
+[03:21.59] ',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737594/rlhpuph9msztpcygxbmn.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737595/fqocblpkqcyxjfejz7mm.png',
   NULL,
@@ -7928,7 +8194,80 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Ye Tune Kya Kiya',
   'Pritam, Javed Bashir, Rajat Arora',
   'Once Upon Ay Time In Mumbai Dobaara !',
-  NULL,
+  '[00:02.64] Ishq woh bala hai (bala hai)
+[00:06.33] Ishq woh bala hai (bala hai)
+[00:09.12] Jisko chhua isne woh jala hai (jala hai)
+[00:13.42] Dil se hota hai shuru (dil se hota hai shuru)
+[00:16.58] Dil se hota hai shuru
+[00:18.27] Par kambakht sar pe chadha hai (chadha hai)
+[00:21.54] Kabhi khud se kabhi khuda se
+[00:24.65] Kabhi zamaane se lada hai (lada hai)
+[00:28.90] Itna hua badnaam phir bhi (badnaam phir bhi)
+[00:31.58] Har zubaan pe ada hai (ada hai)
+[00:45.57] Ishq ki saazishein
+[00:56.13] Ishq ki baaziyan
+[01:06.51] Haara main khel ke
+[01:16.84] Do dilon ka juaa
+[01:27.28] Kyun tuune meri fursat ki
+[01:29.92] Kyun dil mein itni harkat ki
+[01:32.53] Ishaq mein itni barkat ki
+[01:35.17] Ye tuune kya kiya
+[01:37.75] Phiroon ab maara maara main
+[01:40.32] Chaand se bichda taara main
+[01:42.91] Dil se itna kyun haara main
+[01:45.60] Ye tuune kya kiya
+[01:48.39] Saari duniya se jeet ke main
+[01:51.94] Aaya hoon idhar
+[01:53.61] Tere aage hi main haara
+[01:56.24] Kiya tuune kya asar
+[01:58.65] Main dil ka raaz kehta hoon ke jab jab saansein leta hoon
+[02:03.78] Tera hi naam leta hoon
+[02:06.41] Ye tune kya kiya
+[02:09.85] 
+[02:09.85] ...
+[02:30.41] 
+[02:30.41] Meri baahon ko teri saanson ki joh
+[02:33.72] Aadatein lagi hain waisi
+[02:36.42] Jee leta hoon ab main thoda aur
+[02:40.82] Mere dil ki ret pe aankhon ki joh pade parchai teri
+[02:46.73] Pee leta hoon tab main thoda aur
+[02:50.95] Jaane kaun hai tu meri main na jaanu ye magar
+[02:56.11] Jahaan jaun main karoon main wahan
+[02:59.78] Tera hi zikar
+[03:01.20] Mujhe tu raazi lagti hai
+[03:03.78] Jeeti hui baazi lagti hai
+[03:06.36] Tabiyat taazi lagti hai ye tune kya kiya
+[03:11.72] 
+[03:11.72] Main dil ka raaz kehta hoon
+[03:14.29] Ke jab jab saansein leta hoon
+[03:16.86] Tera hi naam leta hoon
+[03:19.49] Ye tuune kya kiya
+[03:22.97] 
+[03:22.97] ...
+[03:43.40] 
+[03:43.40] Dil karta hai teri baatein sunu
+[03:46.74] Saude main adhoore chunu
+[03:49.31] Muft ka hua ye fayda
+[03:53.88] Kyun khud ko main barbaad karoon
+[03:57.16] Fanaa hoke tujhse miloon
+[03:59.79] Ishq ka ajab hai qayda
+[04:04.67] Teri raahon se joh guzri hain meri dagar
+[04:09.17] Main bhi aage badh gaya hoon hoke thoda befikar
+[04:14.25] Kaho toh kis se marzi loon
+[04:16.82] Kaho toh kis ko arzi doon
+[04:19.49] Hasta ab thoda farzi hoon
+[04:22.10] Ye tuune kya kiya
+[04:24.75] Main dil ka raaz kehta hoon
+[04:27.23] Ke jab jab saansein leta hoon
+[04:29.87] Tera hi naam leta hoon ye tune kya kiya (Ishq ki)
+[04:35.14] Kyun tuune meri fursat ki (Saazishein)
+[04:37.66] Kyun dil mein itni harkat ki
+[04:40.30] Ishaq mein itni barkat ki ye tuune kya kiya (Isha ki)
+[04:45.69] Phiroon ab maara maara main (Bajiyaan)
+[04:48.33] Chaand se bichda taara main
+[04:50.79] Dil se itna kyun haara main ye tune kya kiya (Haara main khel ke)
+[05:01.23] Do dilon ka juaa
+',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737808/cbchsj56stqafeq5thwa.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737810/fh0pscq3a3osvrt5vmwe.png',
   NULL,
@@ -7944,7 +8283,41 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Main Rang Sharbaton Ka',
   'Pritam, Atif Aslam, Chinmayi Sripaada, Irshad Kamil',
   'Phata Poster Nikhla Hero',
-  NULL,
+  '[00:01.63] ख़्वाब है तू, नींद हूँ मैं, दोनों मिले, रात बने
+[00:10.91] रोज़ यही माँगूँ दुआ, तेरी-मेरी बात बने, बात बने
+[00:33.44] मैं रंग शरबतों का, तू मीठे घाट का पानी
+[00:39.16] मैं रंग शरबतों का, तू मीठे घाट का पानी
+[00:44.61] मुझे ख़ुद में घोल दे तो मेरे यार, बात बन जानी
+[00:50.33] रंग शरबतों का, तू मीठे घाट का पानी
+[00:55.42] मैं रंग शरबतों का, तू मीठे घाट का पानी
+[01:00.55] मुझे ख़ुद में घोल दे तो मेरे यार, बात बन जानी
+[01:06.43] रंग शरबतों का, तू मीठे घाट का पानी
+[01:11.46] मैं रंग शरबतों का, तू मीठे घाट का पानी
+[01:16.60] ਹੋ, ਯਾਰਾ, ਤੁਝੇ ਪਿਆਰ ਕੀ ਬਤੀਆਂ ਕਿਆ ਸਮਝਾਵਾਂ
+[01:20.30] ਜਾਗ ਕੇ ਰਤੀਆਂ ਰੋਜ਼ ਬਿਤਾਵਾਂ, ਇਸਸੇ ਆਗੇ ਅਬ ਮੈਂ ਕਿਆ ਕਹੂੰ?
+[01:27.16] ਹੋ, ਯਾਰਾ, ਤੁਝੇ ਬੋਲਦੀ ਅੱਖੀਆਂ ਸਦਕੇ ਜਾਵਾਂ
+[01:30.79] ਮਾਂਗ ਲੇ ਪੱਕੀਆਂ ਆਜ ਦੁਆਵਾਂ, ਇਸਸੇ ਆਗੇ ਅਬ ਮੈਂ ਕਿਆ ਕਹੂੰ?
+[01:49.20] मैंने तो धीरे से, नींदों के धागे से बाँधा है ख़्वाब को तेरे
+[01:58.76] मैं ना जहाँ चाहूँ, ना आसमाँ चाहूँ, आजा हिस्से में तू मेरे
+[02:09.24] तू ढंग चाहतों का, मैं जैसे कोई नादानी
+[02:15.54] तू ढंग चाहतों का, मैं जैसे कोई नादानी
+[02:20.94] मुझे ख़ुद से जोड़ दे तो मेरे यार, बात बन जानी
+[02:26.35] रंग शरबतों का, तू मीठे घाट का पानी
+[02:31.48] मैं रंग शरबतों का, तू मीठे घाट का पानी
+[02:59.35] तेरे ख़यालों से तेरे ख़यालों तक मेरा तो है आना-जाना
+[03:08.62] मेरा तो जो भी है, तू ही था, तू ही है, बाक़ी जहाँ है बेगाना
+[03:19.27] तुम एक मुसाफ़िर हो, मैं कोई राह अंजानी
+[03:24.53] तुम एक मुसाफ़िर हो, मैं कोई राह अंजानी
+[03:29.92] मन चाहा मोड़ दे तो मेरे यार, बात बन जानी
+[03:35.74] रंग शरबतों का, तू मीठे घाट का पानी
+[03:40.87] मैं रंग शरबतों का, तू मीठे घाट का पानी
+[03:45.88] मुझे ख़ुद में घोल दे तो मेरे यार, बात बन जानी
+[03:51.99] रंग शरबतों का, तू मीठे घाट का पानी
+[03:56.88] ਹੋ, ਯਾਰਾ, ਤੁਝੇ ਪਿਆਰ ਕੀ ਬਤੀਆਂ ਕਿਆ ਸਮਝਾਵਾਂ
+[03:59.42] ਜਾਗ ਕੇ ਰਤੀਆਂ ਰੋਜ਼ ਬਿਤਾਵਾਂ, ਇਸਸੇ ਆਗੇ ਅਬ ਮੈਂ ਕਿਆ ਕਹੂੰ?
+[04:06.03] ਹੋ, ਯਾਰਾ, ਤੁਝੇ ਬੋਲਦੀ ਅੱਖੀਆਂ ਸਦਕੇ ਜਾਵਾਂ
+[04:10.38] ਮਾਂਗ ਲੇ ਪੱਕੀਆਂ ਆਜ ਦੁਆਵਾਂ, ਇਸਸੇ ਆਗੇ ਅਬ ਮੈਂ ਕਿਆ ਕਹੂੰ?
+[04:23.29] ',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737978/nhrbdojxauicd7x6omnt.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737980/jlolq3kk5wrfualtp1r7.png',
   NULL,
@@ -7960,14 +8333,62 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Love Is A Waste Of Time',
   'Shantanu Moitra, Sonu Nigam, Shreya Ghoshal, Amitabh Varma',
   'PK',
-  NULL,
+  '[00:00.87] 
+[00:13.06] Tujhe Tak Tak Tak Takte Rehna
+[00:16.10] Teri Bak Bak Bak Sunte Rehna
+[00:19.32] Kaam-kaaj Sab Bhool Bhula Ke
+[00:22.52] Tere Piche Piche Chalte Rehna
+[00:25.80] Ee To Hai Waste Of Time
+[00:28.93] Love Is A Waste Of Time
+[00:32.04] Pyaar Vyaar Waste Of Time
+[00:35.20] Ee Love Is Waste Of Time
+[00:38.62] Aa Aa Aa...
+[00:45.02] Phir Bhi Soch Liya Hun Man Maa
+[00:48.13] Ek Baar Toh Iss Jeevan Maa
+[00:51.36] Kar Le Waste Of Time
+[00:54.36] Karna Hai Waste Of Time
+[00:57.64] I Want To Waste My Time
+[01:00.72] I Love This Bhaste Of Time
+[01:04.35] Aa Aa Aa...
+[01:16.90] 
+[01:33.17] Poore 75 Baar Mirror''wa Dekhe
+[01:39.34] 32 Baar Hum Apna Baal Banaaye
+[01:45.73] 8 Martaba Kapda Change Kiye Hum
+[01:52.10] Bhar Bhar Botal Badhiya Scent Lagaaye
+[01:58.59] Sajte Rahe, Sanwarte Rahe
+[02:01.56] Kiya Na Koi Bhi Kaam
+[02:04.87] Aaj Samajh Mein Aa Gaya Bhaiya
+[02:08.27] Love Is Waste Of Time
+[02:11.19] Phir Bhi Soch Liya Hun Man Maa
+[02:14.40] Ek Baar Toh Iss Jeevan Maa
+[02:17.70] Kar Le Waste Of Time
+[02:20.78] Karna Hai Waste Of Time
+[02:23.95] I Want To Waste My Time
+[02:26.85] I Love This Bhaste Of Time
+[02:30.46] Aa Aa-aa...
+[02:44.06] 
+[02:59.37] Ajab Ghajab Si Uthal Hai Man Maa
+[03:05.65] Kaisi Hai Ye Feeling Kaise Batayein
+[03:12.09] Baithe Baithe Bina Baat Muskaayein
+[03:18.49] Kya Hai Maajra Kuch Bhi Samajh Na Aaye
+[03:24.97] Udne Ka Mann Kare Mann Ki Jor Jor Chillaye
+[03:31.20] Aaj Samajh Mein Aa Gaya Bhaiya
+[03:34.35] Love Is Bhaste Of Time
+[03:37.66] Phir Bhi Soch Liya Hoon Man Maa
+[03:40.82] Ek Baar Toh Iss Jeevan Maa
+[03:43.99] Kar Le Waste Of Time
+[03:47.10] Karna Hai Bhaste Of Time
+[03:50.08] I Want To Bhaste My Time
+[03:53.57] I Love This Bhaste Of Time
+[03:56.90] Aa Aa-aa...
+[04:09.79] ',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738227/c229ppl954qn93omb9lv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738231/gww4rbkz8j53ptaogwob.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738538/pfrxxput47hkh0dss02r.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738513/yywaurgvzbdxulgohbbt.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738521/yudanpl8slt7umtkb7zt.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738530/buvbw8bn5lcbzmpcbnwv.mp3',
   FALSE,
   '2026-10-11T17:03:51.674666+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -7976,16 +8397,282 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'I Love You',
   'Clinton Cerejo, Ash King, Neelesh Misra',
   'Bodyguard',
-  NULL,
+  '[00:26.25] दिल का ये क्या राज़ है? जाने क्या कर गए
+[00:31.89] जैसे अँधेरों में तुम चाँदनी भर गए
+[00:37.81] 
+[00:47.83] दिल का ये क्या राज़ है? जाने क्या कर गए
+[00:52.97] जैसे अँधेरों में तुम चाँदनी भर गए
+[00:58.88] करें चाँद-तारों को मशहूर इतना क्यूँ?
+[01:04.16] कमबख्त, इनसे भी खूबसूरत है तू
+[01:08.97] I love you
+[01:10.21] तू-रू-रू, mmm, oh, रू
+[01:12.88] Yeah, yeah, yeah
+[01:14.24] I love you, ooh-ooh-ooh
+[01:16.90] Yeah
+[01:17.78] Yeah, yeah, yeah, yeah
+[01:19.86] I love you, you
+[01:22.79] 
+[01:31.33] दिन-भर करें बातें हम
+[01:34.21] फिर भी लगें बातें अधूरी आजकल
+[01:42.16] मन की दहलीज़ों पे कोई आए ना
+[01:47.61] बस तुम ज़रूरी आजकल
+[01:51.67] अब्र मैं हूँ, तू आसमाँ है
+[01:56.92] पास है तू पर कहाँ है?
+[02:02.57] ज़िद मेरी तू नहीं, मेरी आदत है तू
+[02:07.59] I love you
+[02:10.99] I love you (I love you), I love you
+[02:17.47] I love you
+[02:20.25] 
+[02:40.71] कभी-कभी मैं ख़ुद से हूँ ये पूछता
+[02:46.33] मैं तेरे क़ाबिल भी हूँ क्या?
+[02:51.42] इतना तो मुझे है मालूम
+[02:54.01] मिल के तुझे बेहतर मैं इंसाँ बन गया
+[03:01.19] थोड़ा-थोड़ा तुझ से सीखा प्यार करने का तरीक़ा
+[03:12.00] दिल के खुदा की मुझ पे इनायत है तू
+[03:16.85] I love you (I love you, I love you)
+[03:19.86] I love you (I love you, I lo-, I love you)
+[03:23.65] (I love you, I love you)
+[03:26.35] (I love you, I lo-, I love you)
+[03:27.99] दिल का ये क्या राज़ है? जाने क्या कर गए
+[03:33.12] जैसे अँधेरों में तुम चाँदनी भर गए
+[03:38.52] करें चाँद-तारों को मशहूर इतना क्यूँ?
+[03:43.83] कमबख्त, इनसे भी खूबसूरत है तू
+[03:48.79] I love you
+[03:54.33] I love you
+[03:57.21] I, I love you
+[04:05.03] I love you, I love you
+[04:10.43] I love you (I love you)
+[04:12.98] ',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738473/i25sko639cyprkytr4gf.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738474/kapj0jui420mkg62rart.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738596/y9vux7jhqsvvmt6p0xyq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738570/skzxmn6wz6gpxf7vipdw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738579/dx5nqx5zkphj3gdsfqnx.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738588/yqy0c3jcjqvvje6dzouy.mp3',
   FALSE,
   '2026-10-11T17:07:55.370017+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '6fe20cd3-69b5-44a0-a25a-d57c4fc1204c',
+  'Haule Haule',
+  'Salim-Sulaiman, Sukhwinder Singh, Jaideep Sahni',
+  'Rab Ne Bana Di Jodi',
+  '[00:05.50](हौले-हौले, हौले-हौले)
+[00:10.83](हौले-हौले, हौले-हौले)
+[00:16.41]हौले-हौले से हवा लगती है
+[00:19.02]हौले-हौले से दवा लगती है
+[00:21.73]हौले-हौले से दुआ लगती है ना
+[00:26.14]हाय, हौले-हौले चंदा बढ़ता है
+[00:29.84]हौले-हौले घूँघट उठता है
+[00:32.31]हौले-हौले से नशा चढ़ता है ना
+[00:36.96]तू सबर तो कर, मेरे यार
+[00:39.78]ज़रा साँस तो ले, दिलदार
+[00:42.26]ਚਲ ਫ਼ਿਕਰ ਨੂੰ ਗੋਲੀ ਮਾਰ
+[00:44.49]ਯਾਰ, ਹੈਂ ਦਿਨ ਜਿੰਦੜੀ ਦੇ ਚਾਰ
+[00:47.97](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[00:50.75](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[00:53.28](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[00:56.14](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[00:58.62](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ, ਹੌਲੇ-ਹੌਲੇ
+[01:01.52](ਹੌਲੇ-ਹੌਲੇ) ਹੋਏ, ਹੌਲੇ-ਹੌਲੇ, ਹੌਲੇ-ਹੌਲੇ
+[01:03.98](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[01:06.78](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[01:09.23]
+[01:36.34]ਇਸ਼ਕੇ ਦੀ ਗਲੀਆਂ ਤੰਗ ਹੈਂ
+[01:38.96]शर्मों-शर्मी में बंद हैं
+[01:41.65]ख़ुद से ख़ुद की कैसी ये जंग है?
+[01:47.04]पल-पल ये दिल घबराए
+[01:49.60]पल-पल ये दिल शरमाए
+[01:52.56]कुछ कहता है और कुछ कर जाए
+[01:56.91]कैसी ये पहेली?
+[01:59.67]मुआ दिल मर जाना
+[02:02.83]इश्क़ में जल्दी, बड़ा जुर्माना
+[02:07.88]तू सबर तो कर, मेरे यार
+[02:10.31]ज़रा साँस तो ले, दिलदार
+[02:12.95]ਚਲ ਫ਼ਿਕਰ ਨੂੰ ਗੋਲੀ ਮਾਰ
+[02:15.23]ਯਾਰ, ਹੈਂ ਦਿਨ ਜਿੰਦੜੀ ਦੇ ਚਾਰ
+[02:18.81](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[02:21.36](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[02:24.06](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[02:26.75](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[02:29.31](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ, ਹੌਲੇ-ਹੌਲੇ (ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ
+[02:33.27]ਹਾਏ, (ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[02:37.12](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[02:39.79]
+[03:12.39]ਰੱਬ ਦਾ ਵੀ ਰੱਬ ਕੋਈ ਹੋਣਾ
+[03:15.03]ਕਰੇ ਕੋਈ ਯੂੰ ਜਾਦੂ-ਟੋਣਾ
+[03:17.72]ਮੰਨ ਜਾਏ, ਮੰਨ ਜਾਏ, ਹਾਏ, ਮੇਰਾ ਸੋਹਣਾ
+[03:23.07]ਰੱਬ ਦੇ ਸਹਾਰੇ ਚੱਲ ਦੇ
+[03:25.79]ना हैं किनारे, चल दे
+[03:28.30]डोरी है ना, कहारे चल दे
+[03:33.01]क्या कह के गया था शायर वो सियाना
+[03:38.82]"आग का दरिया, डूब के जाना"
+[03:43.72]तू सबर तो कर, मेरे यार
+[03:46.30]ज़रा साँस तो ले, दिलदार
+[03:49.19]ਚਲ ਫ਼ਿਕਰ ਨੂੰ ਗੋਲੀ ਮਾਰ
+[03:51.16]ਯਾਰ, ਹੈਂ ਦਿਨ ਜਿੰਦੜੀ ਦੇ ਚਾਰ
+[03:54.86](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[03:57.44](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[03:59.91](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[04:02.87](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[04:05.41](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ, ਹੌਲੇ-ਹੌਲੇ (ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ
+[04:09.22]ਹਾਏ, (ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ, ਝੱਲਿਆ
+[04:13.54](ਹੌਲੇ-ਹੌਲੇ) ਹੌਲੇ-ਹੌਲੇ ਹੋ ਜਾਏਗਾ ਪਿਆਰ
+[04:16.35]हौले-हौले से दुआ लगती है ना
+[04:21.52]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738838/okhzlhr79k47m509pnfs.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738839/nyioi8enuvhrn1lhx2yq.png',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738905/unrpcuvbohki3h5k6qny.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738881/xypd09aaz0kq5mavnvie.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738889/jv8b1jkbk4hsfy3ntbsl.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738897/ulduqwcyqvj74i0iyhhv.mp3',
+  FALSE,
+  '2026-10-11T17:14:00.376134+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'b1beda6e-b846-478f-bae6-d92ec4128556',
+  'Tujh Mein Rab Dikhta Hai',
+  'Salim-Sulaiman, Roop Kumar Rathod, Jaideep Sahni',
+  'Rab Ne Bana Di Jodi',
+  '[00:16.11] तू ही तो जन्नत मेरी
+[00:18.98] तू ही मेरा जुनूँ
+[00:21.90] तू ही तो मन्नत मेरी
+[00:24.65] तू ही रूह का सुकूँ
+[00:27.95] तू ही अखियों की ठंडक, तू ही दिल की है दस्तक
+[00:33.55] और कुछ ना जानूँ मैं, बस इतना ही जानूँ
+[00:39.65] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[00:45.38] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[00:50.92] सज्दे सर झुकता है, यारा, मैं क्या करूँ?
+[00:56.52] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[01:03.36] 
+[01:30.43] कैसी है ये दूरी? कैसी मजबूरी?
+[01:35.58] मैंने नज़रों से तुझे छू लिया
+[01:40.93] हो-हो-हो, कभी तेरी ख़ुशबू, कभी तेरी बातें
+[01:46.90] बिन माँगे ये जहाँ पा लिया
+[01:52.62] तू ही दिल की है रौनक़, तू ही जन्मों की दौलत
+[01:58.23] और कुछ ना जानूँ, बस इतना ही जानूँ
+[02:04.38] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[02:09.97] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[02:15.65] सज्दे सर झुकता है, यारा, मैं क्या करूँ?
+[02:21.30] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[02:32.53] ਵੱਸਦੀ, ਵੱਸਦੀ, ਵੱਸਦੀ, ਦਿਲ ਦੀ ਦਿਲ ਵਿੱਚ ਵੱਸਦੀ
+[02:38.17] ਹੱਸਦੀ, ਹੱਸਦੀ, ਹੱਸਦੀ, ਦਿਲ ਰੋਵੇ ਤੇ ਹੱਸਦੀ
+[02:43.46] रब ने बना दी जोड़ी, हाय
+[02:55.15] ਵੱਸਦੀ, ਵੱਸਦੀ, ਵੱਸਦੀ, ਦਿਲ ਦੀ ਦਿਲ ਵਿੱਚ ਵੱਸਦੀ
+[03:00.73] ਹੱਸਦੀ, ਹੱਸਦੀ, ਹੱਸਦੀ, ਦਿਲ ਰੋਵੇ ਤੇ ਹੱਸਦੀ
+[03:06.45] छम-छम आए, मुझे तरसाए
+[03:11.64] तेरा साया छेड़ के चूमता
+[03:16.90] हो-हो-हो, तू जो मुस्काए, तू जो शरमाए
+[03:22.86] जैसे मेरा है ख़ुदा झूमता
+[03:28.57] तू ही मेरी है बरकत, तू ही मेरी इबादत
+[03:34.21] और कुछ ना जानूँ, बस इतना ही जानूँ
+[03:40.28] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[03:45.95] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[03:51.51] सज्दे सर झुकता है, यारा, मैं क्या करूँ?
+[03:57.33] तुझ में रब दिखता है, यारा, मैं क्या करूँ?
+[04:08.51] ਵੱਸਦੀ, ਵੱਸਦੀ, ਵੱਸਦੀ, ਦਿਲ ਦੀ ਦਿਲ ਵਿੱਚ ਵੱਸਦੀ
+[04:14.27] ਹੱਸਦੀ, ਹੱਸਦੀ, ਹੱਸਦੀ, ਦਿਲ ਰੋਵੇ ਤੇ ਹੱਸਦੀ
+[04:19.49] रब ने बना दी जोड़ी, हाय
+[04:34.69] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738972/jqwunkezod857nrdi5zy.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738973/ngqd1l5vljojfncea6iq.png',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739073/vbesmjqfvzz0uypphuho.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739046/e1xekyy6sznowimlc0ig.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739053/cog7xd3nxbirogscwhha.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739063/qhamshmikdegsjtfwb1g.mp3',
+  FALSE,
+  '2026-10-11T17:16:14.282074+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '6f2cc188-8453-4faa-853c-8c4a69917830',
+  'Tumse Milke Dil Ka',
+  'Anu Malik, Sonu Nigam, Sabri Brothers, Javed Akhtar',
+  'Main Hoon Na',
+  '[00:45.38] Ishq Jaise Hai Ek Aandhi
+[00:47.61] Ishq Hai Ek Toofaan
+[00:49.39] Ishq Ke Aage Bebas Hai
+[00:52.17] Duniya Mein Har Insaa
+[00:53.88] Ishq Mein Sab Deewane Hain
+[00:56.41] Ishq Mein Sab Hairaan
+[00:58.37] Ishq Mein Sab Kuchh Mushkil Hai
+[01:01.03] Ishq Mein Sab Aasaan
+[01:02.99] Dekho Pyare, Ye Nazare, Ye Deewane, Ye Parvane
+[01:05.12] Hai Ishq Mein Kaise Gum
+[01:07.86] Hayeeee
+[01:08.61] Tumse Milke Dil Ka Hai Jo Hal Kya Kahein
+[01:12.62] Ho Gaya Hai Kaisa Ye Kamaal Kya Kahein
+[01:17.69] Tumse Milke Dil Ka Hai Jo Hal Kya Kahein
+[01:22.06] Ho Gaya Hai Kaisa Ye Kamaal Kya Kahein
+[01:26.57] 
+[02:15.17] Dil To Hai Ek Raahi Jaana
+[02:17.49] Dil Ki Tum Manzil Ho
+[02:19.93] Dil To Hai Ek Kashti Jaana
+[02:21.97] Jiska Tum Saahil Ho
+[02:24.17] Dil Na Phir Kuchh Maange Jaana
+[02:26.50] Tum Agar Haasil Ho
+[02:28.42] Dil To Hai Mera Tanha Jaana
+[02:30.78] Aao Tum Mahfil Ho
+[02:33.29] 
+[02:37.42] Ishq Se Hi Saari Khushiyan
+[02:39.86] Ishq Hi Barbaadi
+[02:41.71] Ishq Hai Paabandi Lekin
+[02:44.24] Ishq Hi Aazaadi
+[02:46.17] Ishq Ki Duniya Mein Yaaron
+[02:48.69] Khwaboon Ki Aabaadi
+[02:50.69] Kho Gaya Wo Jisko Manzil
+[02:53.32] Ishq Ne Dikhladi
+[02:54.69] Dekho Pyare, Ye Nazaare, Ye Deewane, Ye Parvaane
+[02:57.17] Hai Ishq Mein Kaise Gum
+[03:00.23] Hayeeee
+[03:00.66] Tumse Milke Dil Ka Hai Jo Haal Kya Kahein
+[03:04.92] Ho Gaya Hai Kaisa Ye Kamaal Kyaa Kahein
+[03:09.74] Tumse Milke Dil Ka Hai Jo Haal Kya Kahein
+[03:14.30] Ho Gaya Hai Kaisa Ye Kamaal Kyaa Kahein
+[03:18.80] 
+[03:56.71] Tumko Pooja Hai
+[04:00.02] Tumhari Hi Ibaadat Ki Hai
+[04:08.41] Hamne Jab Ki Hai 
+[04:11.62] To Phir Aise Mohabbat Ki Hai...
+[04:19.20] Hamne Jab Ki Hai 
+[04:22.58] To Phir Aise Mohabbat Ki Hai...
+[04:30.04] 
+[04:34.28] Dil Mera Paagal Hai Jaana
+[04:36.27] Isko Tum Bahla Do
+[04:38.44] Dil Mein Kyun Halchal Hai Jaana
+[04:40.80] Mujhko Tum Samjha Do
+[04:42.98] Mahkaa Jo Aanchal Hai Jaana
+[04:45.14] Isko Tum Lahra Do
+[04:47.51] Roop Jo Baadal Hai Jaana
+[04:49.94] Mujhpe Tum Barsa Do 
+[04:52.32] 
+[04:56.39] Jaana Le Ke Aaya Hai 
+[04:58.57] Tera Ye Deewana
+[05:00.72] Jaana Tujhpe Mit Jaayega 
+[05:03.11] Tera Ye Parwana
+[05:05.18] Jaana Mere Dil Mein Kya Hai
+[05:07.51] Tum ne Ye Na Jaana
+[05:09.89] Jaana Tujhko Yaad Aayega
+[05:12.04] Mera Ye Afsana
+[05:13.95] Dekho Pyare, Ye Nazare, Ye Deewane, Ye Parwane
+[05:16.20] Hai Ishq Mein Kaise Gum
+[05:18.97] Hayeeee
+[05:19.95] Tumse Milke Dil Ka Hai Jo Haal Kya Kahein
+[05:23.73] Ho Gaya Hai Kaisa Ye Kamaal Kya Kahein
+[05:28.79] Tumse Milke Dil Ka Hai Jo Haal Kya Kahein
+[05:33.24] Ho Gaya Hai Kaisa Ye Kamaal Kya Kahein
+[05:37.90] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739175/yi4cu7xnkstfoest4kqy.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791739176/qv5vyvvbabytjsu1db4c.png',
+  NULL,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739251/gvg5atszk3wuyedpdxns.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739218/ybbuwhxlgaobqbhsmzwm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739229/t1msl3wzjqz233i60bty.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739240/s1np89ijrruuweppkp8t.mp3',
+  FALSE,
+  '2026-10-11T17:19:36.509067+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 
 -- 4. Restore Playlists (17 rows)

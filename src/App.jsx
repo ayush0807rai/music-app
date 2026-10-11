@@ -2810,7 +2810,7 @@ export default function App() {
       const enteredArtistNames = uploadArtist.split(',').map(a => a.trim()).filter(Boolean);
       for (const aName of enteredArtistNames) {
         const lower = aName.toLowerCase();
-        const exists = allKnownArtists.some(k => k.toLowerCase() === lower);
+        const exists = (dbArtists || []).some(k => k.name && k.name.toLowerCase() === lower);
         if (!exists) {
           try {
             const { data: newArt } = await supabase.from("artists").insert([{ 

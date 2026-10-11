@@ -458,7 +458,7 @@
   {
     "id": "e4e25adc-e9c4-4f7d-9d61-94a89dd89aed",
     "name": "Shantanu Moitra",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1791741945/Shantunu_moitra.jpg",
     "created_at": "2026-10-11T16:45:37.221519+00:00"
   },
   {
@@ -476,7 +476,7 @@
   {
     "id": "1d000822-590a-4085-aae0-b6cc9ec3a6b4",
     "name": "Chinmayi Sripaada",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1791742575/chinmayi.jpg",
     "created_at": "2026-10-11T16:59:02.149478+00:00"
   },
   {
@@ -494,7 +494,37 @@
   {
     "id": "aed577a8-e0b7-47cf-9db8-5e4305e46a68",
     "name": "Ash King",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1791742367/ash.jpg",
     "created_at": "2026-10-11T17:06:00.017633+00:00"
+  },
+  {
+    "id": "627d2bb2-a407-4c95-a083-dbb5932e14c6",
+    "name": "Salim-Sulaiman",
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1791741672/salimsulaiman2.jpg",
+    "created_at": "2026-10-11T17:11:41.124083+00:00"
+  },
+  {
+    "id": "9ce7cd87-baa4-4b13-a89c-079d7857007e",
+    "name": "Jaideep Sahni",
+    "image_url": null,
+    "created_at": "2026-10-11T17:12:23.884206+00:00"
+  },
+  {
+    "id": "ae95a592-5b54-4f45-8d30-4dbcb50242bf",
+    "name": "Anu Malik",
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1791742452/anumalik.jpg",
+    "created_at": "2026-10-11T17:18:28.710475+00:00"
+  },
+  {
+    "id": "67101032-5383-4218-ba86-c1f536194c94",
+    "name": "Sabri Brothers",
+    "image_url": null,
+    "created_at": "2026-10-11T17:18:51.537337+00:00"
+  },
+  {
+    "id": "79c7d0de-34b8-4322-975d-25cadb01eea4",
+    "name": "Roop Kumar Rathod",
+    "image_url": null,
+    "created_at": "2026-10-11T18:26:01.417126+00:00"
   }
 ]
