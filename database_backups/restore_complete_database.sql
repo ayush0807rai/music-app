@@ -1,6 +1,6 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-11T12:46:57.339Z
+-- Generated: 2026-10-11T14:15:19.867Z
 -- Total: 118 songs, 71 artists, 17 playlists, 63 playlist_songs
 -- ====================================================
 
@@ -358,11 +358,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528058/lwmkngnppw1g9cgbpfur.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528060/k2e5v8y8jmwvd05v19nt.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727797/ag07o040pcfew0d2awpa.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727763/jy0t0ao4btjpmxwk9vby.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727773/v2rvuzrkozl08es7gcc4.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727786/jeadrjyrwxrk6o3erosb.mp3',
+  FALSE,
   '2026-09-20T16:05:40.407042+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -1432,11 +1432,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528420/t8fllzgcr6ydxfnywjra.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528422/etvtmhqu5ssfupr71668.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726694/kayemoipbbvrq4lavxjj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726666/j2r1qmuvhccbhgnuxj9j.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726674/iqbhp5w7hayan3k5kufq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726684/wvfttpznlxld1s3yvifo.mp3',
+  FALSE,
   '2026-09-23T11:06:43.783945+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -1570,11 +1570,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528470/zmhtalikzui2uyeygiqp.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528471/fhyyf5whhkhixh9pbxcl.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726801/h6kath7ygybwl3oww3vs.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726777/vfqsacexu2z8c05y5ktn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726785/hrvdyuhtidl8ujbp6jbj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726794/xwdcczyvu7igum3ajiis.mp3',
+  FALSE,
   '2026-09-23T17:18:14.478741+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -1669,11 +1669,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528514/lzfazfjil6pjazsfgq3y.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528515/ywmbza8dtehbcr6vpgix.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728048/fs88b5ksnrjta6c7xn6g.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728024/q2piko0cqychawtegfvs.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728031/fpc4v2k4jlfyj9zyungq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728040/bagckayxj87jzjoeyaxb.mp3',
+  FALSE,
   '2026-09-23T17:32:07.887126+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -1731,11 +1731,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528541/ahgkhbrmbvg49uayem2q.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528543/xlvbxdlyahbkwwvzsp8u.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726857/rkmccvz8erkf3emgku6l.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726829/krzyz6lqhcievnecgxmx.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726838/xwen9gftwrk7vguuauph.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726848/q9gnlmyfw7lwgwham80x.mp3',
+  FALSE,
   '2026-09-23T17:35:19.127208+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -2160,11 +2160,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528753/iqskrvhl1phqaozges2g.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528756/m4vmpfnlyfvp6u9mkvae.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727410/ddkzyejxwzu9styeaijt.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727381/v6ez0eltmf4v1mbmobn5.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727389/iewghkfr4sx8vrl5qle6.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727400/i9ht3miantutegvyqral.mp3',
+  FALSE,
   '2026-09-24T06:07:00.955454+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -2201,11 +2201,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528782/s1umrve8aptgt4zgejmg.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528783/ssswt1xxv9htaay8nx2x.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727472/h1jiwg76w6lwih6a7pew.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727440/sdytskgsjqe9fmpuljlz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727450/h0r7prmzkjkg7fyus1w2.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727462/qlrznuhgbmhftmhfs1l2.mp3',
+  FALSE,
   '2026-09-24T06:11:50.086222+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -2433,11 +2433,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528859/rl30eeem6chga0yerxgf.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528862/mvb2qbizncyp656dgjsh.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726392/a8wur3skv4nwhf9ibld0.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726373/mb8zipya3kuxgswjfy6a.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726379/q3nvva08gzjpczvdhtjq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726386/ohi0r5lwnmc39wju69nq.mp3',
+  FALSE,
   '2026-09-24T06:37:19.867176+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -2482,11 +2482,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528879/rh82lxbaqha9rgsh683v.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528880/qtbhslgxqf2b4gh9ppaj.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726489/uao7ji3cis7v0vyf9m21.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726466/zv3gsyhoxggncplex4us.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726474/injsehyqgrm6mqqgjwai.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726482/u05oyfhcjdcn3lfaahbb.mp3',
+  FALSE,
   '2026-09-24T06:39:44.002146+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -2698,11 +2698,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528951/qggraoepggwl4m5vxjjj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528952/f2fhshjskrdw8ju1apqo.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727295/sberj2ism7pnwcsk6yda.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727262/ftvq4mpokvyus8pqtm7p.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727273/e1t28uxrgfyreynwaye0.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727284/hdqusorirpuh6cnbtrfw.mp3',
+  FALSE,
   '2026-09-24T06:55:09.824226+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -3056,11 +3056,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529057/fqszyyofhbmiyntdxfll.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529058/klwywusr2z7frhuxn7rr.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726555/cvn9dgxefunniyi4zxhz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726521/awnv0xrvymvrqpmjrmzp.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726531/s84x1wobrkxl8ef4vauu.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726544/p2aynvk9nuarb6n9bbfn.mp3',
+  FALSE,
   '2026-09-24T14:26:42.340424+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -3146,11 +3146,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529071/rx4ktnzashfyzy0fk4s7.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529073/rq8ivgpznmeul8gesyqq.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726639/wjjkuw2t87nv0uqa77hi.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726597/hvsmwrtukbla3w0deiss.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726612/tdzmkqmacwypqi3z3ngj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726627/kysqxj3mb7txu4j71lxq.mp3',
+  FALSE,
   '2026-09-24T14:30:55.751182+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -3198,11 +3198,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529092/tht7q9hhmivbuuwlg6fd.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529093/nh3hwhjuc5tomrcdxha0.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727350/znmh6nygzepcbx5gzksh.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727323/yhyyihkqdjcpmec4ulun.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727332/ulahwonaqb0og1quenel.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727341/hf0mlimrxgknkakf3cpo.mp3',
+  FALSE,
   '2026-09-24T14:34:30.243279+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -3362,11 +3362,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529147/qgcragad7keykt3pkpvd.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529148/mdierbgjbnbm1ad0jfuc.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726921/ychraey0o1ttxnigrarg.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726889/amejlu4egb9e1puyhpkf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726899/dstvhzb8od6zq6aaehqv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726910/tcs5arlejh3kryjxqcno.mp3',
+  FALSE,
   '2026-09-24T14:42:58.106913+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -4714,11 +4714,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529611/pzhgqa4npwkehbcaa26t.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529613/whqsuorb7ipjihqjo42q.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726445/mhacjfzstlcur82ldkli.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726419/cifoysyfulx7mbfh7ihc.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726428/tsaahhbqewmaek4yjeka.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726437/xjupzcoeugx6ztnfua7k.mp3',
+  FALSE,
   '2026-09-26T14:58:28.275741+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -4872,11 +4872,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529672/dd1p3pihdlypbhgoc6sf.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529674/s2wtzgdgg9yxd7ia8yxb.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727059/oz2gzlgqbtsjhhf31l9m.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727033/cmvs1ywz6psyddobv1yr.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727041/gvp0et6riyblujh9m6nd.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727050/r6dk8yofjfqs0vlle2hk.mp3',
+  FALSE,
   '2026-09-28T09:41:07.086787+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5035,11 +5035,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529751/yd2d8qheo9aslpnrlrb8.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529752/v9amonc6d08ylth5k4en.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727898/xm2gs1jz5zl2mofc8prb.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727874/evafrwrcuj7vhj2odtc2.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727882/ypsqdj1fuhsp9mmk5r9q.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727889/bsvsceuzq7pjq8e51ebx.mp3',
+  FALSE,
   '2026-09-28T09:51:42.603064+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5178,11 +5178,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529846/am6nqgfcfzvnadgh870y.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529847/rfedhsa4nlviok00rsw5.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727113/ujf7qgbcpq598vjyqxns.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727086/aoqqnrhgqkyetmq6wsfa.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727095/ozrx69rvnvt3u48fhvmv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727104/cjthoqsmyfsjei5xa20c.mp3',
+  FALSE,
   '2026-09-28T10:02:05.585634+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5325,11 +5325,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529899/bkytudrofkcbq7h4qrgv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529900/dz44m90td3qqsdvejyc7.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727511/iqntho0k66tpyhdqninf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727492/csj5hlhc269m1jdtutgy.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727497/rzbi2m8z42qj5rgugwud.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727505/buodithipfdsbubpqfiz.mp3',
+  FALSE,
   '2026-09-28T10:20:35.546375+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5462,11 +5462,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530027/nbzksbf6zwgivib7h9yv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530029/w03vulpehtnknrmsmnvs.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727232/in9ujuwhq976vsay4mns.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727203/px8bhl2nrvvwdblrx3zk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727212/njbxrvek2qsxhvxyhorq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727223/gs3ncclwutunxpzushq3.mp3',
+  FALSE,
   '2026-09-28T10:33:37.024481+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5478,11 +5478,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530068/jkl9afmacqdo9nmbcedh.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530069/boqlk8qqvxsqitjozxer.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726966/yt4h1dkam03ycjo45wca.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726943/y3duyplsv1yiph7sur2d.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726950/zico4bpebu84kugiwwa9.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726959/h5bvmcc1mrqsxrb9zqsc.mp3',
+  FALSE,
   '2026-09-28T10:36:31.93881+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5549,11 +5549,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530097/y0lvueesn2vjzrij1tzg.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530098/yv6edbywwvn3q8dsteer.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728104/weg4qh2ldoeq3odldrva.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728077/g7l2jxxmsy6e8rtdpq3i.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728086/xkjxdpmoz6ikdpgqqilm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728095/iuywsp4w8juroqtqdslu.mp3',
+  FALSE,
   '2026-09-28T10:39:36.782682+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5604,11 +5604,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530136/vbhq27hy5tnucgsjxbrk.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530137/yuvwwgkzh83hyhto7j5d.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728002/xh6q7mrbqxpeuddlnuif.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727971/alxuuzfr8iilkeq1ahnm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727981/wqibdd8ikropbudyokgw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727992/earh7gtbkysqwuoaejfi.mp3',
+  FALSE,
   '2026-09-28T10:42:17.439843+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5670,11 +5670,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530165/zjxqgr1w1xclwbb2ncas.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530166/lhos1biby48hoqekl5x2.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727585/yubdxihl9u8rrn9255hk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727548/rc7feoyazxayd0jkhrol.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727560/azbuxb6cbkzlhszon7as.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727573/uakcnoeez6ypn0akzvwy.mp3',
+  FALSE,
   '2026-09-28T10:45:12.031692+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5781,11 +5781,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530254/eri3y985gqjeqtgvwtwf.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530256/ujywf8jscszsywoqmhmu.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727175/lmxa7ps0vghr0gep07ip.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727145/nkfwhg02s7h7xyxjtbbz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727154/bxbujkngubiymk4nudtx.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727164/vsdybqdkgrfxxi4bogfh.mp3',
+  FALSE,
   '2026-09-28T10:51:22.083982+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -5944,11 +5944,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530315/ammvwzasrhatkjxzwx0b.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530316/dcbkh2269gi8rhte5v70.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726754/ly58ixxybytd3hhhrswp.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726722/afig8war3o8cgtiraw09.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726733/vffidhjws3fmmgwuuxhl.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726743/kkz2w5likhn4lufpw8bt.mp3',
+  FALSE,
   '2026-09-28T19:27:47.379505+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -6743,11 +6743,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530794/yvwo4kwlhlryd7ylsops.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530795/nsvawrzxec4frwi8tcrs.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727006/wfehfvf5sjhjrndpjxgi.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726985/apavemti3kldltculzfv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726992/h9ahadfi7y3nvpxhuroz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726998/c8zaf6cw6knnlsqgxyex.mp3',
+  FALSE,
   '2026-09-30T17:38:13.006391+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -6801,11 +6801,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530816/y0qt8h7a4j0frulrwzn4.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530817/mmhatpbheis80azoyyow.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727731/d2dbar9mygpgrwlatqpm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727710/ck2aff7c8j8cwsq7b8mz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727718/jm2ezxgm5e4oi9fcj4rd.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727725/w0zahflbb6rimokrk96b.mp3',
+  FALSE,
   '2026-09-30T17:39:42.480691+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -7058,11 +7058,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791548112/aqdyuqxafqwrjopwof3k.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791548114/d01zg2q0idrztdoex7bl.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727690/bp7vj0fyvr0t8fbim5o9.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727665/skcqphsx91i0oxmtc9ji.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727674/ytruxk80vjwjfgpubjbr.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727683/rptac9jpypmzwoybczve.mp3',
+  FALSE,
   '2026-10-09T12:15:15.161072+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -7444,11 +7444,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791582208/uurx38w92uqb9ntm952j.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791582209/gpvpi5qckclbw9voko38.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727643/liz9lti0ykn2hh7yi4zw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727613/p6xagl2xdvjzghcetyko.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727623/ndn25vpz2wpgvnh0mc5q.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727634/oaa0nwkjs1v5zbvcbnu6.mp3',
+  FALSE,
   '2026-10-09T21:43:30.031329+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -7485,11 +7485,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791637070/o0ikvrghisnooii4seit.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791637071/e3msgiuzx6icd5muzn8j.jpg',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727942/pv38xsp1iljnuhr8szkw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727919/eyu4gwxyyyrpxfbvs2py.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727926/hrlctmimd70a0d4df93f.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727935/okxatpui996zdpqqfhrw.mp3',
+  FALSE,
   '2026-10-10T12:57:52.99769+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
@@ -7567,11 +7567,11 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791637418/rirmxndwvjmuytkcgvcq.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791637419/ph4v3jdirft0nefzogu8.png',
   NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  TRUE,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727853/m5csbsai0hbtr7avzxq1.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727825/qkaa85jf6s2ex8iyecqw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727834/hz496r5dsp2u0ayglhzl.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727843/d8apjbxijwdhj67y5u78.mp3',
+  FALSE,
   '2026-10-10T13:03:41.240712+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (

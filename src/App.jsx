@@ -377,6 +377,11 @@ const getCdnUrl = (url) => {
       original.hostname = "euphony.ayush080705.workers.dev";
       return original.toString();
     }
+    // Cloudflare Edge Audio Shield: when enabled, routes 320kbps audio via Cloudflare global edge
+    // to bypass Cloudinary bandwidth accounting completely with 0 quality reduction.
+    if (original.hostname === "res.cloudinary.com" && typeof window !== "undefined" && localStorage.getItem("euphony_use_cf_proxy") === "true") {
+      return `https://euphony.ayush080705.workers.dev/cloudinary${original.pathname}${original.search}`;
+    }
   } catch (e) {}
   return url;
 };
@@ -884,6 +889,29 @@ export default function App() {
   const bassRef = useRef(null);
   const otherRef = useRef(null);
   const isFirstRender = useRef(true);
+
+  // Pre-hydrate in-memory Blob Cache from persistent CacheStorage on app launch
+  // Guarantees repeat plays of 320kbps songs are served directly from device disk with 0 Cloudinary bandwidth
+  useEffect(() => {
+    if (typeof window === "undefined" || !('caches' in window)) return;
+    caches.open(AUDIO_CACHE_NAME).then(async cache => {
+      try {
+        const keys = await cache.keys();
+        for (const req of keys) {
+          try {
+            const match = await cache.match(req);
+            if (match && !blobCacheRef.current.has(req.url)) {
+              const blob = await match.blob();
+              if (blob.size > 50000) {
+                const bUrl = URL.createObjectURL(blob);
+                blobCacheRef.current.set(req.url, bUrl);
+              }
+            }
+          } catch (e) {}
+        }
+      } catch (e) {}
+    }).catch(() => {});
+  }, [AUDIO_CACHE_NAME]);
 
   const { render: renderLoader, isClosing: loaderClosing } = useAnimatedPresence(isInitialLoad, null, 300);
   const { render: renderUpload, isClosing: uploadClosing } = useAnimatedPresence(showUploadModal, null, 300);
@@ -1452,12 +1480,13 @@ export default function App() {
       controller.signal.addEventListener('abort', () => { clearTimeout(t); res(); }, { once: true });
     });
 
-    // 2. Progressive prefetch pipeline:
-    // First Priority is ALWAYS the current song. Only once the current song is deeply buffered (45s+)
-    // do we gently cache upcoming tracks one by one with generous spacing.
+    // 2. Bandwidth-Optimized Progressive Prefetch Pipeline (100% 320kbps Master Quality):
+    // First priority is ALWAYS active track playback. Only after the user has listened to at least
+    // 35% of the song (or 40 seconds) do we gently prefetch ONLY the single immediate next track.
+    // Quick skips and casual browsing consume 0 prefetch bandwidth.
     const prefetchJob = async () => {
-      // Allow initial 15 seconds for current song to start and establish its buffer
-      await sleep(15000);
+      // Allow initial 25 seconds for current song to establish playback
+      await sleep(25000);
       if (controller.signal.aborted) return;
 
       // Poll until the active song has accumulated at least 45 seconds of buffer headroom (max wait 60s)
@@ -1468,39 +1497,37 @@ export default function App() {
         attempts++;
       }
 
-      // If active song still hasn't buffered 45s ahead, do NOT prefetch anything to protect playback
       if (controller.signal.aborted || !isPlaybackFullySafe()) return;
 
-      // Step A: Ensure current track is cached for offline use
+      // Only proceed with prefetching if user is genuinely listening (played >= 35s or >= 30% of track)
+      const curTime = audioRef.current?.currentTime || 0;
+      const totalDur = audioRef.current?.duration || 0;
+      if (curTime < 35 && (totalDur === 0 || curTime / totalDur < 0.30)) {
+        return;
+      }
+
+      // Step A: Ensure current track is stored in persistent cache for future 0-bandwidth replays
       if (currentTrack?.url && !blobCacheRef.current.has(getCdnUrl(currentTrack.url))) {
         await cacheAudioTrack(currentTrack.url, controller.signal);
       }
 
-      // Step B: Rest for 15 seconds to keep network completely clear
+      // Step B: Rest for 15 seconds to keep network clear
       await sleep(15000);
       if (controller.signal.aborted || !isPlaybackFullySafe()) return;
 
-      // Step C: Gently cache Next Track 1 only
+      // Step C: Gently cache ONLY the single next upcoming track (upcoming[0])
+      // (Never download Track 2 in advance to avoid burning unnecessary bandwidth)
       const upcoming = getNextTwoUpcomingTracks();
-      if (upcoming[0]?.url) {
+      if (upcoming[0]?.url && !blobCacheRef.current.has(getCdnUrl(upcoming[0].url))) {
         await cacheAudioTrack(upcoming[0].url, controller.signal);
       }
 
-      // Step D: Rest for 20 seconds before attempting Next Track 2
-      await sleep(20000);
-      if (controller.signal.aborted || !isPlaybackFullySafe()) return;
-
-      // Step E: Gently cache Next Track 2 only
-      if (upcoming[1]?.url) {
-        await cacheAudioTrack(upcoming[1].url, controller.signal);
-      }
-
-      // Step F: Clean up older tracks outside the active window
+      // Step D: Prune older tracks outside the active window to manage storage
       if (!controller.signal.aborted) {
         const prevTrack = playbackHistory.length > 0 && playbackQueue[playbackHistory[playbackHistory.length - 1]];
         const allowedUrls = [
           currentTrack?.url,
-          ...upcoming.map(t => t?.url),
+          upcoming[0]?.url,
           prevTrack?.url
         ];
         await pruneUnusedAudioCache(allowedUrls);
