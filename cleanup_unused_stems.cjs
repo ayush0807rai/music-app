@@ -1,5 +1,5 @@
 // cleanup_unused_stems.cjs
-// Utility to audit, export, and clean up unused / redundant stem files from Cloudinary and Supabase
+// Utility to audit, delete unused/redundant stem files from Cloudinary, and update Supabase
 
 const { createClient } = require('@supabase/supabase-js');
 
@@ -11,10 +11,31 @@ const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'cpsimhz1';
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
 
-async function auditStems() {
+async function fetchUsage() {
+  const auth = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
+  try {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/usage`, {
+      headers: { Authorization: `Basic ${auth}` }
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function runCleanup() {
   console.log('=====================================================');
   console.log('🔍 EUPHONY AUDIO & STEM AUDIT & CLEANUP TOOL');
   console.log('=====================================================\n');
+
+  const beforeUsage = await fetchUsage();
+  if (beforeUsage) {
+    console.log(`📊 Current Cloudinary Status:`);
+    console.log(`   • Credits: ${beforeUsage.credits?.usage} / ${beforeUsage.credits?.limit} (${beforeUsage.credits?.used_percent?.toFixed(1)}%)`);
+    console.log(`   • Storage: ${(beforeUsage.storage?.usage / (1024 * 1024 * 1024)).toFixed(2)} GB (${beforeUsage.storage?.credits_usage?.toFixed(2)} credits)`);
+    console.log(`   • Bandwidth: ${(beforeUsage.bandwidth?.usage / (1024 * 1024 * 1024)).toFixed(2)} GB (${beforeUsage.bandwidth?.credits_usage?.toFixed(2)} credits)\n`);
+  }
 
   // 1. Fetch songs
   const { data: songs, error: sErr } = await supabase.from('songs').select('id, title, artist, url, stem_vocals, stem_drums, stem_bass, stem_other');
@@ -27,9 +48,9 @@ async function auditStems() {
   const playlistSongIds = new Set((playlists || []).map(p => p.song_id));
 
   const songsWithStems = [];
-  const songsWithoutStems = [];
   const stemsNotInPlaylist = [];
   const allStemPublicIds = [];
+  const songsToClear = new Set();
 
   for (const song of songs) {
     const hasStems = song.stem_vocals || song.stem_drums || song.stem_bass || song.stem_other;
@@ -46,73 +67,81 @@ async function auditStems() {
             allStemPublicIds.push({ songId: song.id, songTitle: song.title, field: f, publicId: pubId, url: u });
             if (!isUsedInPlaylist) {
               stemsNotInPlaylist.push({ songId: song.id, songTitle: song.title, field: f, publicId: pubId, url: u });
+              songsToClear.add(song.id);
             }
           }
         }
       });
-    } else {
-      songsWithoutStems.push(song);
     }
   }
 
-  console.log(`📊 Total Songs in Database: ${songs.length}`);
-  console.log(`🎵 Songs with AI Stems: ${songsWithStems.length}`);
+  console.log(`📋 Total Songs: ${songs.length}`);
   console.log(`🎧 Songs in Playlists / Liked: ${playlistSongIds.size}`);
-  console.log(`📦 Total Stored Stem Audio Files: ${allStemPublicIds.length} files (~${((allStemPublicIds.length * 7.5) / 1024).toFixed(2)} GB storage)`);
-  console.log(`🗑️ Stems on songs NOT in any playlist: ${stemsNotInPlaylist.length} files (~${((stemsNotInPlaylist.length * 7.5) / 1024).toFixed(2)} GB storage)\n`);
+  console.log(`🎵 Songs with AI Stems: ${songsWithStems.length}`);
+  console.log(`📦 Total Stored Stem Audio Files: ${allStemPublicIds.length} files (~${((allStemPublicIds.length * 7.5) / 1024).toFixed(2)} GB)`);
+  console.log(`🗑️ Unlisted Stems (songs NOT in playlists): ${stemsNotInPlaylist.length} files (~${((stemsNotInPlaylist.length * 7.5) / 1024).toFixed(2)} GB across ${songsToClear.size} songs)\n`);
 
-  // Check if API credentials provided for automatic deletion
-  if (!CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-    console.log('ℹ️ Automatic Cloudinary deletion requires API Credentials.');
-    console.log('To run automated deletion from Cloudinary, run:');
-    console.log('  $env:CLOUDINARY_API_KEY="your_api_key"');
-    console.log('  $env:CLOUDINARY_API_SECRET="your_api_secret"');
-    console.log('  node cleanup_unused_stems.cjs --delete-unlisted\n');
-    console.log('💡 Or in Cloudinary Console:');
-    console.log('   Go to console.cloudinary.com -> Assets -> Video');
-    console.log('   Filter/Search audio stems to delete and reclaim storage credits.\n');
-    return;
-  }
-
-  const crypto = require('crypto');
   const action = process.argv.includes('--delete-all') ? 'all' : (process.argv.includes('--delete-unlisted') ? 'unlisted' : null);
 
   if (!action) {
-    console.log('⚠️ No action flag provided.');
-    console.log('Pass --delete-unlisted to delete stems for songs not in playlists, or --delete-all to delete all 464 stems.');
+    console.log('ℹ️ Dry run completed. To perform actual deletion:');
+    console.log('   node cleanup_unused_stems.cjs --delete-unlisted   (Deletes 256 unlisted stems, keeps playlist stems)');
+    console.log('   node cleanup_unused_stems.cjs --delete-all        (Deletes all 464 stems from Cloudinary)\n');
     return;
   }
 
   const targets = action === 'all' ? allStemPublicIds : stemsNotInPlaylist;
+  const targetSongIds = action === 'all' ? new Set(songsWithStems.map(s => s.id)) : songsToClear;
   console.log(`🚀 Starting deletion of ${targets.length} stem files from Cloudinary...`);
 
-  // Cloudinary delete helper using signed API
-  for (let i = 0; i < targets.length; i++) {
-    const item = targets[i];
-    const timestamp = Math.floor(Date.now() / 1000);
-    const toSign = `public_id=${item.publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
-    const signature = crypto.createHash('sha1').update(toSign).digest('hex');
+  const auth = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
+  const batchSize = 80;
+  let deletedCount = 0;
 
-    const form = new URLSearchParams();
-    form.append('public_id', item.publicId);
-    form.append('timestamp', timestamp.toString());
-    form.append('api_key', CLOUDINARY_API_KEY);
-    form.append('signature', signature);
-    form.append('resource_type', 'video');
+  for (let i = 0; i < targets.length; i += batchSize) {
+    const batch = targets.slice(i, i + batchSize);
+    const pubIds = batch.map(b => b.publicId);
+
+    const query = pubIds.map(id => `public_ids[]=${encodeURIComponent(id)}`).join('&');
+    const deleteUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/video/upload?${query}`;
 
     try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/destroy`, {
-        method: 'POST',
-        body: form
+      const res = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: { Authorization: `Basic ${auth}` }
       });
       const data = await res.json();
-      console.log(`[${i + 1}/${targets.length}] Deleted stem "${item.field}" for "${item.songTitle}":`, data.result || data);
+      const numDeleted = Object.values(data.deleted || {}).filter(v => v === 'deleted').length;
+      deletedCount += numDeleted;
+      console.log(`   Batch [${i + 1}-${Math.min(i + batchSize, targets.length)}/${targets.length}]: Deleted ${numDeleted} Cloudinary files.`);
     } catch (e) {
-      console.warn(`[${i + 1}/${targets.length}] Failed to delete ${item.publicId}:`, e.message);
+      console.warn(`   Batch error:`, e.message);
     }
   }
 
-  console.log('\n✅ Cloudinary stem cleanup complete!');
+  console.log(`\n✅ Cloudinary deletion finished: ${deletedCount} files removed from Cloudinary.`);
+
+  // 3. Update Supabase to nullify deleted stems
+  console.log(`🔄 Updating ${targetSongIds.size} songs in Supabase database...`);
+  let dbUpdated = 0;
+  for (const songId of targetSongIds) {
+    const { error: upErr } = await supabase.from('songs').update({
+      stem_vocals: null,
+      stem_drums: null,
+      stem_bass: null,
+      stem_other: null
+    }).eq('id', songId);
+    if (!upErr) dbUpdated++;
+  }
+  console.log(`✅ Supabase updated: ${dbUpdated} songs reset to clean state (can be re-generated on-demand in Colab).`);
+
+  const afterUsage = await fetchUsage();
+  if (afterUsage) {
+    console.log(`\n🎉 Updated Cloudinary Status:`);
+    console.log(`   • Credits: ${afterUsage.credits?.usage} / ${afterUsage.credits?.limit} (${afterUsage.credits?.used_percent?.toFixed(1)}%)`);
+    console.log(`   • Storage: ${(afterUsage.storage?.usage / (1024 * 1024 * 1024)).toFixed(2)} GB (${afterUsage.storage?.credits_usage?.toFixed(2)} credits)`);
+    console.log(`   • Bandwidth: ${(afterUsage.bandwidth?.usage / (1024 * 1024 * 1024)).toFixed(2)} GB (${afterUsage.bandwidth?.credits_usage?.toFixed(2)} credits)`);
+  }
 }
 
-auditStems().catch(console.error);
+runCleanup().catch(console.error);
