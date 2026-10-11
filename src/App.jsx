@@ -570,12 +570,17 @@ export default function App() {
       return saved ? JSON.parse(saved) : [];
     } catch (e) { return []; }
   });
-  const [topArtists, setTopArtists] = useState(() => {
+  const [dbArtists, setDbArtists] = useState(() => {
     try {
       const saved = localStorage.getItem("euphony_cached_artists");
       return saved ? JSON.parse(saved) : [];
     } catch (e) { return []; }
   });
+
+  // Top artists strictly include only artists with curated art covers (do not show artists stored only for suggestions)
+  const topArtists = useMemo(() => {
+    return (dbArtists || []).filter(a => a?.image_url && typeof a.image_url === "string" && a.image_url.trim() !== "");
+  }, [dbArtists]);
   const [userPlaylists, setUserPlaylists] = useState(() => {
     try {
       const saved = localStorage.getItem("euphony_cached_playlists");
@@ -1701,7 +1706,7 @@ export default function App() {
       
       if (!artistsRes.error && artistsRes.data && artistsRes.data.length > 0) {
         const uniqueArtists = Array.from(new Map(artistsRes.data.map(a => [a.name.trim().toLowerCase(), a])).values());
-        setTopArtists(uniqueArtists);
+        setDbArtists(uniqueArtists);
         try {
           localStorage.setItem("euphony_cached_artists", JSON.stringify(uniqueArtists));
         } catch (e) {}
@@ -1718,7 +1723,7 @@ export default function App() {
           { name: "Shreya Ghoshal", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg/500px-Shreya_Ghoshal_Behindwoods_Gold_Icons_Awards_2023_%28cropped%29.jpg" },
           { name: "Atif Aslam", image_url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Atif_Aslam_at_Badlapur_%28cropped%29.jpg/500px-Atif_Aslam_at_Badlapur_%28cropped%29.jpg" }
         ];
-        setTopArtists(defaultArtists);
+        setDbArtists(defaultArtists);
       }
 
       if (playlistRes.data) {
@@ -2357,7 +2362,7 @@ export default function App() {
   // ── ARTIST & ALBUM AUTO-RECOMMENDATIONS FOR UPLOAD MODAL ──────────────────
   const allKnownArtists = useMemo(() => {
     const artistMap = new Map();
-    (topArtists || []).forEach(a => {
+    (dbArtists || []).forEach(a => {
       if (a?.name && a.name.trim()) {
         const clean = a.name.trim();
         artistMap.set(clean.toLowerCase(), clean);
@@ -2374,7 +2379,7 @@ export default function App() {
       }
     });
     return Array.from(artistMap.values()).sort((a, b) => a.localeCompare(b));
-  }, [topArtists, playlist]);
+  }, [dbArtists, playlist]);
 
   const allKnownAlbums = useMemo(() => {
     const albumMap = new Map();
@@ -2440,15 +2445,16 @@ export default function App() {
     if (!clean) return;
     handleSelectArtist(clean);
     try {
-      const { data, error } = await supabase.from("artists").insert([{ name: clean }]).select();
+      // Stored in database for suggestion only, without creating art cover for top artist section
+      const { data, error } = await supabase.from("artists").insert([{ name: clean, image_url: null }]).select();
       if (!error && data && data[0]) {
-        setTopArtists(prev => {
+        setDbArtists(prev => {
           if (prev.some(a => a.name.toLowerCase() === clean.toLowerCase())) return prev;
           const updated = [...prev, data[0]];
           try { localStorage.setItem("euphony_cached_artists", JSON.stringify(updated)); } catch (e) {}
           return updated;
         });
-        triggerToast(`Added "${clean}" to artists database!`);
+        triggerToast(`Added "${clean}" for suggestions!`);
       }
     } catch (e) {
       console.warn("Could not insert artist into database:", e);
@@ -2534,7 +2540,7 @@ export default function App() {
       }]).select();
       if (dbError) throw dbError;
 
-      // 4. Ensure any newly entered artists are saved into the Supabase artists table
+      // 4. Ensure any newly entered artists are saved into the Supabase artists table for suggestions only (no top artist art cover)
       const enteredArtistNames = uploadArtist.split(',').map(a => a.trim()).filter(Boolean);
       for (const aName of enteredArtistNames) {
         const lower = aName.toLowerCase();
@@ -2543,10 +2549,10 @@ export default function App() {
           try {
             const { data: newArt } = await supabase.from("artists").insert([{ 
               name: aName,
-              image_url: posterUrl || null
+              image_url: null
             }]).select();
             if (newArt && newArt[0]) {
-              setTopArtists(prev => {
+              setDbArtists(prev => {
                 const next = [...prev, newArt[0]];
                 try { localStorage.setItem("euphony_cached_artists", JSON.stringify(next)); } catch (e) {}
                 return next;
@@ -4237,7 +4243,7 @@ export default function App() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
-                  const dbArtist = topArtists.find(a => a.name.toLowerCase() === artistName.toLowerCase());
+                  const dbArtist = (dbArtists || []).find(a => a.name.toLowerCase() === artistName.toLowerCase());
                   return (
                     <div
                       key={idx}
@@ -4324,7 +4330,7 @@ export default function App() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
-                  const dbArtist = topArtists.find(a => a.name.toLowerCase() === artistName.toLowerCase());
+                  const dbArtist = (dbArtists || []).find(a => a.name.toLowerCase() === artistName.toLowerCase());
                   return (
                     <div
                       key={idx}
