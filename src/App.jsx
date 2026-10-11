@@ -4785,22 +4785,22 @@ export default function App() {
                         className="hover-effect"
                         title="Shuffle artists"
                         style={{
-                          background: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(26, 43, 76, 0.06)",
+                          background: "transparent",
                           color: COLORS.primary,
-                          border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.16)" : "1px solid rgba(26, 43, 76, 0.14)",
+                          border: `1px solid ${COLORS.primary}`,
                           borderRadius: "20px",
-                          padding: "5px 12px",
+                          padding: isDesktop ? "6px 14px" : "6px 12px",
                           cursor: "pointer",
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "6px",
                           fontSize: "12px",
-                          fontWeight: "600",
+                          fontWeight: "bold",
                           transition: "all 0.2s ease",
                           flexShrink: 0
                         }}
                       >
-                        <Shuffle size={13} style={{ transition: "transform 0.4s ease", transform: isShufflingArtists ? "rotate(180deg)" : "rotate(0deg)" }} />
+                        <Shuffle size={14} style={{ transition: "transform 0.4s ease", transform: isShufflingArtists ? "rotate(180deg)" : "rotate(0deg)" }} />
                         <span>Shuffle</span>
                       </button>
                     </div>
