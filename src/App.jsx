@@ -581,6 +581,61 @@ export default function App() {
   const topArtists = useMemo(() => {
     return (dbArtists || []).filter(a => a?.image_url && typeof a.image_url === "string" && a.image_url.trim() !== "");
   }, [dbArtists]);
+
+  const [displayedTopArtists, setDisplayedTopArtists] = useState([]);
+  const [isShufflingArtists, setIsShufflingArtists] = useState(false);
+  const topArtistsScrollRef = useRef(null);
+
+  // Initialize displayed top artists with 10 random artists from the curated pool
+  useEffect(() => {
+    if (topArtists.length > 0 && displayedTopArtists.length === 0) {
+      const shuffled = [...topArtists];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      setDisplayedTopArtists(shuffled.slice(0, 10));
+    }
+  }, [topArtists]);
+
+  const visibleTopArtists = useMemo(() => {
+    if (displayedTopArtists.length > 0) {
+      const valid = displayedTopArtists.filter(d => topArtists.some(t => t.name.toLowerCase() === d.name.toLowerCase()));
+      if (valid.length > 0) return valid.slice(0, 10);
+    }
+    return topArtists.slice(0, 10);
+  }, [displayedTopArtists, topArtists]);
+
+  const handleShuffleTopArtists = useCallback(() => {
+    if (topArtists.length === 0) return;
+    setIsShufflingArtists(true);
+    setTimeout(() => setIsShufflingArtists(false), 400);
+
+    const currentNames = new Set(visibleTopArtists.map(a => a.name.toLowerCase()));
+    const unshown = topArtists.filter(a => !currentNames.has(a.name.toLowerCase()));
+
+    let nextSelection = [];
+    if (unshown.length >= 10) {
+      const shuffledUnshown = [...unshown];
+      for (let i = shuffledUnshown.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledUnshown[i], shuffledUnshown[j]] = [shuffledUnshown[j], shuffledUnshown[i]];
+      }
+      nextSelection = shuffledUnshown.slice(0, 10);
+    } else {
+      const shuffled = [...topArtists];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      nextSelection = shuffled.slice(0, 10);
+    }
+
+    setDisplayedTopArtists(nextSelection);
+    if (topArtistsScrollRef.current) {
+      topArtistsScrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+    }
+  }, [topArtists, visibleTopArtists]);
   const [userPlaylists, setUserPlaylists] = useState(() => {
     try {
       const saved = localStorage.getItem("euphony_cached_playlists");
@@ -4721,11 +4776,36 @@ export default function App() {
             ) : (
               /* GLOBAL LIBRARY VIEW */
               <div>
-                {topArtists.length > 0 && !searchQuery && !selectedArtist && !selectedAlbum && (
+                {visibleTopArtists.length > 0 && !searchQuery && !selectedArtist && !selectedAlbum && (
                   <div style={{ marginBottom: "32px", paddingLeft: isDesktop ? "16px" : "0" }}>
-                    <h3 style={{ fontSize: "20px", fontWeight: "bold", color: COLORS.primary, marginBottom: "16px" }}>Top Artists</h3>
-                    <div style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px" }} className="custom-scrollbar">
-                      {topArtists.map(artist => (
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                      <h3 style={{ fontSize: "20px", fontWeight: "bold", color: COLORS.primary, margin: 0 }}>Top Artists</h3>
+                      <button
+                        onClick={handleShuffleTopArtists}
+                        className="hover-effect"
+                        title="Shuffle artists"
+                        style={{
+                          background: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(26, 43, 76, 0.06)",
+                          color: COLORS.primary,
+                          border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.16)" : "1px solid rgba(26, 43, 76, 0.14)",
+                          borderRadius: "20px",
+                          padding: "5px 12px",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          transition: "all 0.2s ease",
+                          flexShrink: 0
+                        }}
+                      >
+                        <Shuffle size={13} style={{ transition: "transform 0.4s ease", transform: isShufflingArtists ? "rotate(180deg)" : "rotate(0deg)" }} />
+                        <span>Shuffle</span>
+                      </button>
+                    </div>
+                    <div ref={topArtistsScrollRef} style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px" }} className="custom-scrollbar">
+                      {visibleTopArtists.map(artist => (
                         <div key={artist.name} onClick={() => setSelectedArtist(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
                           <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.imageBg, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
                             {artist.image_url ? (
