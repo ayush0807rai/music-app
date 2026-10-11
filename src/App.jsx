@@ -560,8 +560,21 @@ export default function App() {
   });
   const songTheme = getSongThemeGradients(dominantRgb, isDarkMode);
 
-  const AUDIO_CACHE_NAME = 'euphony-audio-cache';
+  const AUDIO_CACHE_NAME = 'euphony-audio-cache-v2';
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Purge legacy caches on startup to clean up any aborted downloads or corrupted audio files
+  useEffect(() => {
+    if (typeof window !== "undefined" && 'caches' in window) {
+      caches.keys().then(keys => {
+        for (const k of keys) {
+          if (k === 'euphony-audio-cache' || k === 'euphony-cloudinary-audio-v1') {
+            caches.delete(k).catch(() => {});
+          }
+        }
+      }).catch(() => {});
+    }
+  }, []);
   
 
   const [playlist, setPlaylist] = useState(() => {
@@ -1303,17 +1316,33 @@ export default function App() {
           priority: 'low',
           credentials: 'omit'
         });
-        if (res.ok) {
-          await cache.put(cdnUrl, res.clone());
-          match = res;
+        if (res.ok && res.status === 200) {
+          const clone = res.clone();
+          const blob = await clone.blob();
+          // Ensure valid audio file size (> 50KB) before caching to prevent saving aborted/corrupt streams
+          if (blob.size > 50000) {
+            await cache.put(cdnUrl, res);
+            if (!blobCacheRef.current.has(cdnUrl)) {
+              const objUrl = URL.createObjectURL(blob);
+              blobCacheRef.current.set(cdnUrl, objUrl);
+              return objUrl;
+            }
+          }
+          return null;
         }
-      }
-      if (match && !signal?.aborted) {
-        const blob = await match.blob();
-        if (!blobCacheRef.current.has(cdnUrl)) {
-          const objUrl = URL.createObjectURL(blob);
-          blobCacheRef.current.set(cdnUrl, objUrl);
-          return objUrl;
+      } else {
+        if (match && !signal?.aborted) {
+          const blob = await match.blob();
+          if (blob.size < 50000) {
+            // Delete corrupt/truncated cache entry
+            await cache.delete(cdnUrl);
+            return null;
+          }
+          if (!blobCacheRef.current.has(cdnUrl)) {
+            const objUrl = URL.createObjectURL(blob);
+            blobCacheRef.current.set(cdnUrl, objUrl);
+            return objUrl;
+          }
         }
       }
     } catch (e) {
@@ -2012,12 +2041,16 @@ export default function App() {
           caches.open(AUDIO_CACHE_NAME).then(c => c.match(cdnUrl)).then(async match => {
             if (match && !blobCacheRef.current.has(cdnUrl)) {
               const blob = await match.blob();
-              const bUrl = URL.createObjectURL(blob);
-              blobCacheRef.current.set(cdnUrl, bUrl);
-              if (audioRef.current && (!audioRef.current.src || audioRef.current.src === cdnUrl || audioRef.current.error || !navigator.onLine)) {
-                const cur = audioRef.current.currentTime || 0;
-                audioRef.current.src = bUrl;
-                try { audioRef.current.currentTime = cur; } catch (e) {}
+              if (blob.size > 50000) {
+                const bUrl = URL.createObjectURL(blob);
+                blobCacheRef.current.set(cdnUrl, bUrl);
+                if (audioRef.current && (!audioRef.current.src || audioRef.current.src === cdnUrl || audioRef.current.error || !navigator.onLine)) {
+                  const cur = audioRef.current.currentTime || 0;
+                  audioRef.current.src = bUrl;
+                  try { audioRef.current.currentTime = cur; } catch (e) {}
+                }
+              } else {
+                caches.open(AUDIO_CACHE_NAME).then(c => c.delete(cdnUrl)).catch(() => {});
               }
             }
           }).catch(() => {});
@@ -2026,10 +2059,17 @@ export default function App() {
       const savedTime = localStorage.getItem("euphony_current_time");
       if (savedTime && !isNaN(parseFloat(savedTime)) && parseFloat(savedTime) > 0) {
         const restoreTime = () => {
-          if (audioRef.current) {
-            audioRef.current.currentTime = parseFloat(savedTime);
-            setCurrentTime(parseFloat(savedTime));
-            updateProgressVisuals();
+          if (audioRef.current && !audioRef.current.error) {
+            try {
+              const parsedTime = parseFloat(savedTime);
+              if (!audioRef.current.duration || parsedTime < audioRef.current.duration) {
+                audioRef.current.currentTime = parsedTime;
+                setCurrentTime(parsedTime);
+                updateProgressVisuals();
+              }
+            } catch (e) {
+              console.warn("Could not restore initial audio time:", e);
+            }
           }
           audioRef.current?.removeEventListener('loadedmetadata', restoreTime);
           restoreInitialTimeHandlerRef.current = null;
@@ -2372,14 +2412,19 @@ export default function App() {
       caches.open(AUDIO_CACHE_NAME).then(c => c.match(cdnUrl)).then(async match => {
         if (match && !cacheMap?.has(cdnUrl)) {
           const blob = await match.blob();
-          const bUrl = URL.createObjectURL(blob);
-          cacheMap?.set(cdnUrl, bUrl);
-          if (audioEl && audioEl.src !== bUrl) {
-            const curTime = audioEl.currentTime || 0;
-            const wasPlaying = !audioEl.paused;
-            audioEl.src = bUrl;
-            try { audioEl.currentTime = curTime; } catch (e) {}
-            if (wasPlaying) audioEl.play().catch(e => console.log(e));
+          if (blob.size > 50000) {
+            const bUrl = URL.createObjectURL(blob);
+            cacheMap?.set(cdnUrl, bUrl);
+            if (audioEl && audioEl.src !== bUrl) {
+              const curTime = audioEl.currentTime || 0;
+              const wasPlaying = !audioEl.paused;
+              audioEl.src = bUrl;
+              try { audioEl.currentTime = curTime; } catch (e) {}
+              if (wasPlaying) audioEl.play().catch(e => console.log(e));
+            }
+          } else {
+            // Delete corrupt/truncated cache entry
+            caches.open(AUDIO_CACHE_NAME).then(c => c.delete(cdnUrl)).catch(() => {});
           }
         } else if (!match) {
           // Save to CacheStorage in background so subsequent plays are completely free
@@ -3822,30 +3867,45 @@ export default function App() {
         onError={async () => {
           if (!currentTrack?.url) return;
           const cdn = getCdnUrl(currentTrack.url);
+          console.warn("⚠️ Audio playback error encountered for track:", currentTrack.title, cdn);
+
+          // 1. Evict potentially corrupted blob URL from memory
           if (blobCacheRef.current.has(cdn)) {
-            const bUrl = blobCacheRef.current.get(cdn);
-            if (audioRef.current && audioRef.current.src !== bUrl) {
-              const cur = audioRef.current.currentTime || 0;
-              audioRef.current.src = bUrl;
-              try { audioRef.current.currentTime = cur; } catch (e) {}
-              if (isPlaying) audioRef.current.play().catch(e => console.log(e));
-            }
-          } else if (typeof window !== "undefined" && 'caches' in window) {
+            const oldBUrl = blobCacheRef.current.get(cdn);
+            try { URL.revokeObjectURL(oldBUrl); } catch (e) {}
+            blobCacheRef.current.delete(cdn);
+          }
+
+          // 2. Purge from CacheStorage (both application cache & service worker caches)
+          if (typeof window !== "undefined" && 'caches' in window) {
             try {
-              const cache = await caches.open(AUDIO_CACHE_NAME);
-              const match = await cache.match(cdn);
-              if (match) {
-                const blob = await match.blob();
-                const bUrl = URL.createObjectURL(blob);
-                blobCacheRef.current.set(cdn, bUrl);
-                if (audioRef.current && audioRef.current.src !== bUrl) {
-                  const cur = audioRef.current.currentTime || 0;
-                  audioRef.current.src = bUrl;
-                  try { audioRef.current.currentTime = cur; } catch (e) {}
-                  if (isPlaying) audioRef.current.play().catch(e => console.log(e));
-                }
-              }
+              const appCache = await caches.open(AUDIO_CACHE_NAME);
+              await appCache.delete(cdn);
+              const swCache = await caches.open('euphony-cloudinary-audio-v2');
+              await swCache.delete(cdn);
+              const oldSwCache = await caches.open('euphony-cloudinary-audio-v1');
+              await oldSwCache.delete(cdn);
             } catch (e) {}
+          }
+
+          // 3. Clear stored position to prevent seeking into unbuffered/invalid duration
+          try {
+            localStorage.removeItem("euphony_current_time");
+          } catch (e) {}
+
+          // 4. Fallback to clean network stream with cache-busting timestamp to bypass corrupt client cache
+          if (audioRef.current) {
+            const separator = cdn.includes('?') ? '&' : '?';
+            const freshUrl = `${cdn}${separator}recovery_cb=${Date.now()}`;
+            console.log("🔄 Retrying audio directly from clean network URL:", freshUrl);
+            audioRef.current.src = freshUrl;
+            audioRef.current.currentTime = 0;
+            audioRef.current.load();
+            if (isPlaying) {
+              audioRef.current.play().catch(err => {
+                console.warn("Retry play after recovery notice:", err.message);
+              });
+            }
           }
         }}
         className="loop-audio-fix"

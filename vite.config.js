@@ -35,14 +35,14 @@ export default defineConfig({
             urlPattern: /^https:\/\/res\.cloudinary\.com\/.*\/video\/upload\/.*$/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'euphony-cloudinary-audio-v1',
+              cacheName: 'euphony-cloudinary-audio-v2',
               expiration: {
                 maxEntries: 250,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year permanent cache
                 purgeOnQuotaError: true
               },
               cacheableResponse: {
-                statuses: [0, 200]
+                statuses: [200]
               },
               rangeRequests: true
             }
