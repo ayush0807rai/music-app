@@ -1,6 +1,6 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-11T14:44:06.066Z
+-- Generated: 2026-10-11T15:12:39.513Z
 -- Total: 118 songs, 71 artists, 17 playlists, 63 playlist_songs
 -- ====================================================
 
@@ -2402,7 +2402,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Jab Tak',
   'Amaal Mallik, Armaan Malik, Manoj Muntashir',
   'M.S. Dhoni: The Untold Story',
-  '[00:06.00]🎵🎵🎵
+  '[00:06.00]
 [00:21.22]Jab tak tujhe pyar se
 [00:25.23]Beinteha main bhar na doon
 [00:29.26]Jab tak main duaaoon sa
@@ -2412,7 +2412,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [00:44.48]Mere sath tum raho
 [00:48.25]Jaane ki baat na karo
 [00:52.04]Wo…wo..Wo..Wo
-[01:08.15]🎵🎵🎵
+[01:08.15]
 [01:24.47]Tum aa gaye baazuon mein mere
 [01:31.49]Sau savere liye
 [01:35.23]Sau savere liye
@@ -4961,14 +4961,14 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Allah Maaf Kare',
   'Pritam, Sonu Nigam, Shilpa Rao, Irshad Kamil',
   'Desi Boyz',
-  '[00:00.647] 🎵🎵
+  '[00:00.647] 
 [00:14.302] तौबा-तौबा तेरे प्यार में
 [00:17.791] लुट गया इक़रार में
 [00:21.140] तुझ से मोहब्बत हो गई
 [00:23.474] अल्लाह माफ़ करे
 [00:26.400] तौबा क़यामत हो गई
 [00:28.669] अल्लाह माफ़ करे
-[00:30.929] 🎵🎵
+[00:30.929] 
 [00:37.455] हो, whoa
 [00:38.296] तुझ से मोहब्बत हो गई
 [00:40.568] अल्लाह माफ़ करे
@@ -4982,7 +4982,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [01:02.887] अल्लाह माफ़ करे
 [01:05.777] तौबा क़यामत हो गई
 [01:07.994] अल्लाह माफ़ करे
-[01:10.898] 🎵🎵🎵
+[01:10.898] 
 [01:31.688] ये दिन जवानी के
 [01:33.442] दिल की कहानी के
 [01:35.067] ऐसे बिताता हूँ मैं
@@ -5004,7 +5004,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:13.693] अल्लाह माफ़ करे
 [02:16.529] तुझ से मोहब्बत हो गई
 [02:18.790] अल्लाह...
-[02:19.634] 🎵🎵
+[02:19.634] 
 [02:33.461] माना ज़माना ये देता है ताना ये
 [02:36.784] थोड़ा आवारा हूँ मैं
 [02:40.241] जो भी हूँ
@@ -5474,7 +5474,43 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Ek Dil Ek Jaan',
   'Shivam Pathak, Sanjay Leela Bhansali, AM Turaz',
   'Padmaavat',
-  NULL,
+  '[00:21.43]Ek dil hai
+[00:27.75]Ek jaan hai
+[00:34.20]Dono tujhpe
+[00:40.40]Dono tujhpe
+[00:43.79]Qurban hai
+[00:53.48]Ek main hoon
+[00:58.33]Ek imaan hai
+[01:03.24]Dono tujhpe
+[01:05.41]Haan tujhpe
+[01:08.20]Dono tujhpe
+[01:10.87]Qurban hai
+[01:15.82]Ek dil hai
+[01:25.80]Ishq bhi tu, mera pyaar bhi tu
+[01:27.50]Meri baat, saath, jazbaat bhi tu
+[01:30.22]Parwaaz bhi tu, ruhan saaz bhi tu
+[01:32.48]Meri saans, naas aur hayaat bhi tu
+[01:35.03]Mera raaz bhi tu, tu khuraaj bhi tu
+[01:37.38]Meri pyaas, pyaash aur libaas bhi tu
+[01:39.95]Meri jeet bhi tu, meri haar bhi tu
+[01:42.22]Mera raaj, raaj aur mijaaj bhi tu
+[01:49.81]Mere ishq ke
+[01:54.67]Har makaam mein
+[02:00.08]Har subah mein
+[02:04.60]Har shaam mein
+[02:09.52]Ek rutba hai
+[02:14.37]Ek shaan hai
+[02:19.49]Dono tujhpe
+[02:21.57]Haan tujhpe
+[02:24.32]Dono tujhpe
+[02:26.54]Haan tujhpe
+[02:29.17]Dono tujhpe
+[02:31.54]Qurban hai
+[02:36.42]Ek dil hai
+[02:41.20]Ek jaan hai
+[02:46.33]Dono tujhpe
+[02:51.24]Dono tujhpe
+[02:53.86]Qurban hai',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530068/jkl9afmacqdo9nmbcedh.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530069/boqlk8qqvxsqitjozxer.jpg',
   NULL,

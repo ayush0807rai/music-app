@@ -881,8 +881,8 @@ export default function App() {
   const audioRef = useRef(null);
   const blobCacheRef = useRef(new Map());
   const preloadAbortRef = useRef(null);
-
-
+  const nextTrackPreloadAttemptedRef = useRef(null);
+  const stallRecoveryTimerRef = useRef(null);
 
   const vocalsRef = useRef(null);
   const drumsRef = useRef(null);
@@ -2041,6 +2041,7 @@ export default function App() {
   
   useEffect(() => {
     prefetchedSignatureRef.current = "";
+    nextTrackPreloadAttemptedRef.current = null;
   }, [currentTrack?.url]);
 
   useEffect(() => {
@@ -2093,6 +2094,19 @@ export default function App() {
               position: audioRef.current.currentTime
             });
           } catch(e) {}
+        }
+
+        // Screen-off background audio safety:
+        // Pre-buffer upcoming track to local disk via native audio timer so next song never stops midway
+        if (time >= 8 && isPlaying) {
+          const upcoming = getNextTwoUpcomingTracks();
+          if (upcoming[0]?.url && upcoming[0].id !== nextTrackPreloadAttemptedRef.current) {
+            nextTrackPreloadAttemptedRef.current = upcoming[0].id;
+            const nextCdn = getCdnUrl(upcoming[0].url);
+            if (!blobCacheRef.current.has(nextCdn)) {
+              cacheAudioTrack(upcoming[0].url, null).catch(() => {});
+            }
+          }
         }
 
       if (currentTrack?.stem_vocals && !stemsBroken) {
@@ -2196,14 +2210,43 @@ export default function App() {
   const handleCanPlay = () => {
     if (pendingAutoPlayRef.current) {
       pendingAutoPlayRef.current = false;
-      audioRef.current?.play().catch(e => console.log("canplay-play err:", e));
-      if (currentTrack?.stem_vocals && !stemsBroken) {
-        vocalsRef.current?.play().catch(e => e);
-        drumsRef.current?.play().catch(e => e);
-        bassRef.current?.play().catch(e => e);
-        otherRef.current?.play().catch(e => e);
-      }
     }
+    if (isPlaying && audioRef.current && audioRef.current.paused) {
+      audioRef.current.play().catch(e => console.log("canplay-play err:", e));
+    }
+    if (isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
+      vocalsRef.current?.play().catch(e => e);
+      drumsRef.current?.play().catch(e => e);
+      bassRef.current?.play().catch(e => e);
+      otherRef.current?.play().catch(e => e);
+    }
+  };
+
+  const handleStalledOrWaiting = () => {
+    if (!isPlaying || !audioRef.current || audioRef.current.ended) return;
+    if (preloadAbortRef.current) {
+      preloadAbortRef.current.abort();
+      preloadAbortRef.current = null;
+    }
+    if (shouldLoadStems && !stemsBroken) {
+      vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
+    }
+    // Auto-recover from background network stalls on mobile (Android Doze / iOS background)
+    if (stallRecoveryTimerRef.current) clearTimeout(stallRecoveryTimerRef.current);
+    stallRecoveryTimerRef.current = setTimeout(() => {
+      if (isPlaying && audioRef.current && !audioRef.current.ended) {
+        if (audioRef.current.paused || audioRef.current.readyState < 3) {
+          audioRef.current.play().catch(() => {
+            const cur = audioRef.current?.currentTime || 0;
+            if (audioRef.current?.src && !audioRef.current.src.startsWith('blob:')) {
+              audioRef.current.load();
+              try { audioRef.current.currentTime = cur; } catch (e) {}
+              audioRef.current.play().catch(() => {});
+            }
+          });
+        }
+      }
+    }, 2000);
   };
 
   const handleSeek = (e) => {
@@ -3075,9 +3118,14 @@ export default function App() {
     }
   };
 
-    useEffect(() => {
-    if (isPlaying && silentAudioRef.current && silentAudioRef.current.paused) {
-      silentAudioRef.current.play().catch(() => {});
+  useEffect(() => {
+    if (silentAudioRef.current) {
+      try { silentAudioRef.current.volume = 0.001; } catch (e) {}
+      if (isPlaying) {
+        silentAudioRef.current.play().catch(() => {});
+      } else {
+        silentAudioRef.current.pause();
+      }
     }
   }, [isPlaying]);
 
@@ -3931,8 +3979,8 @@ export default function App() {
       `}</style>
 
       {/* ── AUDIO ELEMENTS ── */}
-      <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay muted style={{ display: 'none' }} />
-            <audio
+      <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay style={{ display: 'none' }} />
+      <audio
         ref={audioRef}
         onLoadedMetadata={(e) => {
           setDuration(e.target.duration);
@@ -3950,15 +3998,9 @@ export default function App() {
         }}
         onEnded={() => { handleTrackEnded(); }}
         onCanPlay={handleCanPlay}
-        onWaiting={() => {
-          if (preloadAbortRef.current) {
-            preloadAbortRef.current.abort();
-            preloadAbortRef.current = null;
-          }
-          if (shouldLoadStems && !stemsBroken) {
-            vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
-          }
-        }}
+        onWaiting={handleStalledOrWaiting}
+        onStalled={handleStalledOrWaiting}
+        onSuspend={handleStalledOrWaiting}
         onPlaying={() => {
           if (isPlaying && shouldLoadStems && !stemsBroken) {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
