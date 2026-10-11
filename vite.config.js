@@ -31,23 +31,6 @@ export default defineConfig({
         clientsClaim: true,
         runtimeCaching: [
           {
-            // Audio files (songs + stems on Cloudinary are served under /video/upload/)
-            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*\/video\/upload\/.*$/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'euphony-cloudinary-audio-v2',
-              expiration: {
-                maxEntries: 250,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year permanent cache
-                purgeOnQuotaError: true
-              },
-              cacheableResponse: {
-                statuses: [200]
-              },
-              rangeRequests: true
-            }
-          },
-          {
             // Images (cover art, album covers, artist photos)
             urlPattern: /^https:\/\/res\.cloudinary\.com\/.*\/image\/upload\/.*$/i,
             handler: 'CacheFirst',

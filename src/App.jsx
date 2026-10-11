@@ -1387,67 +1387,82 @@ export default function App() {
   };
 
   useEffect(() => {
-    // 1. Immediately abort any in-flight background download whenever current track changes.
-    // This grants 100% network bandwidth to the current song so it loads and plays without delay.
+    // 1. Immediately abort any in-flight background download whenever current track changes or stops.
+    // This grants 100% network bandwidth to the current song so it starts instantly without delay.
     if (preloadAbortRef.current) {
       preloadAbortRef.current.abort();
       preloadAbortRef.current = null;
     }
 
-    if (!currentTrack) return;
+    if (!currentTrack || !isPlaying) return;
 
     const controller = new AbortController();
     preloadAbortRef.current = controller;
 
-    // 2. Wait 3 seconds of playback before prefetching upcoming tracks.
-    // This ensures the current track has already established connection and buffered smoothly.
-    const timer = setTimeout(async () => {
-      if (controller.signal.aborted) return;
+    // Helper: only proceed if audio element is actively and smoothly playing
+    const isAudioSmooth = () => {
+      if (!audioRef.current) return false;
+      if (audioRef.current.paused || audioRef.current.seeking || audioRef.current.readyState < 3) return false;
+      return true;
+    };
 
-      const nextTracks = getNextTwoUpcomingTracks();
-      const prevTrack = playbackHistory.length > 0 && playbackQueue[playbackHistory[playbackHistory.length - 1]];
+    // Helper: abortable pause
+    const sleep = (ms) => new Promise(res => {
+      if (controller.signal.aborted) return res();
+      const t = setTimeout(res, ms);
+      controller.signal.addEventListener('abort', () => { clearTimeout(t); res(); }, { once: true });
+    });
 
-      // Sequentially cache next track 1, then next track 2
-      for (const track of nextTracks) {
-        if (controller.signal.aborted) break;
-        if (track?.url) {
-          await cacheAudioTrack(track.url, controller.signal);
-        }
-      }
+    // 2. Gentle, progressive prefetching:
+    // Wait until the current track has been playing smoothly for 25 seconds before doing ANY background downloads.
+    // This allows the active song to buffer far ahead without network competition.
+    const prefetchJob = async () => {
+      // Step A: Incubation period - give active track 25 seconds of clear bandwidth
+      await sleep(25000);
+      if (controller.signal.aborted || !isAudioSmooth()) return;
 
-      // Ensure current track is also cached for seamless offline replay
-      if (!controller.signal.aborted && currentTrack?.url) {
+      // Step B: Ensure current track is cached in background (if not already cached)
+      if (currentTrack?.url && !blobCacheRef.current.has(getCdnUrl(currentTrack.url))) {
         await cacheAudioTrack(currentTrack.url, controller.signal);
       }
 
-      // Automatically prune unused songs outside the active window
+      // Step C: Wait 15 seconds before downloading Next Track 1
+      await sleep(15000);
+      if (controller.signal.aborted || !isAudioSmooth()) return;
+
+      const upcoming = getNextTwoUpcomingTracks();
+      if (upcoming[0]?.url) {
+        await cacheAudioTrack(upcoming[0].url, controller.signal);
+      }
+
+      // Step D: Wait another 15 seconds before downloading Next Track 2
+      await sleep(15000);
+      if (controller.signal.aborted || !isAudioSmooth()) return;
+
+      if (upcoming[1]?.url) {
+        await cacheAudioTrack(upcoming[1].url, controller.signal);
+      }
+
+      // Step E: Once background caching completes, prune unused tracks outside active window
       if (!controller.signal.aborted) {
+        const prevTrack = playbackHistory.length > 0 && playbackQueue[playbackHistory[playbackHistory.length - 1]];
         const allowedUrls = [
           currentTrack?.url,
-          ...nextTracks.map(t => t?.url),
+          ...upcoming.map(t => t?.url),
           prevTrack?.url
         ];
         await pruneUnusedAudioCache(allowedUrls);
       }
-    }, 3000);
-
-    // 3. Online/offline listener: when network returns (e.g. out of the metro), immediately cache the next 2 songs
-    const handleOnline = () => {
-      if (!controller.signal.aborted) {
-        const nextTracks = getNextTwoUpcomingTracks();
-        for (const track of nextTracks) {
-          if (track?.url) cacheAudioTrack(track.url, controller.signal);
-        }
-      }
     };
-    window.addEventListener('online', handleOnline);
+
+    prefetchJob().catch(e => {
+      if (e.name !== 'AbortError') console.warn('Background prefetch notice:', e.message);
+    });
 
     return () => {
-      clearTimeout(timer);
       controller.abort();
-      window.removeEventListener('online', handleOnline);
     };
-  }, [currentTrack?.id, playbackIndex, userQueue, upcomingSourceList, isPlaying, getNextTwoUpcomingTracks]);
+  }, [currentTrack?.id, isPlaying, getNextTwoUpcomingTracks]);
 
   useEffect(() => {
     if ('mediaSession' in navigator && currentTrack) {
@@ -2407,7 +2422,7 @@ export default function App() {
     updateProgressVisuals();
     audioEl.play().catch(e => console.log(e));
 
-    // If objUrl was fallback cdnUrl, check CacheStorage immediately to switch to local blob
+    // If objUrl was fallback cdnUrl, check CacheStorage in background to store in memory for future replays
     if (objUrl === cdnUrl && typeof window !== "undefined" && 'caches' in window) {
       caches.open(AUDIO_CACHE_NAME).then(c => c.match(cdnUrl)).then(async match => {
         if (match && !cacheMap?.has(cdnUrl)) {
@@ -2415,20 +2430,11 @@ export default function App() {
           if (blob.size > 50000) {
             const bUrl = URL.createObjectURL(blob);
             cacheMap?.set(cdnUrl, bUrl);
-            if (audioEl && audioEl.src !== bUrl) {
-              const curTime = audioEl.currentTime || 0;
-              const wasPlaying = !audioEl.paused;
-              audioEl.src = bUrl;
-              try { audioEl.currentTime = curTime; } catch (e) {}
-              if (wasPlaying) audioEl.play().catch(e => console.log(e));
-            }
+            // Do NOT swap audioEl.src while track is already actively playing.
+            // This prevents audio interruptions and glitches. bUrl will be used on next play/loop.
           } else {
-            // Delete corrupt/truncated cache entry
             caches.open(AUDIO_CACHE_NAME).then(c => c.delete(cdnUrl)).catch(() => {});
           }
-        } else if (!match) {
-          // Save to CacheStorage in background so subsequent plays are completely free
-          cacheAudioTrack(cdnUrl);
         }
       }).catch(() => {});
     }
@@ -3851,6 +3857,10 @@ export default function App() {
         onEnded={() => { handleTrackEnded(); }}
         onCanPlay={handleCanPlay}
         onWaiting={() => {
+          if (preloadAbortRef.current) {
+            preloadAbortRef.current.abort();
+            preloadAbortRef.current = null;
+          }
           if (shouldLoadStems && !stemsBroken) {
             vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
           }
@@ -3860,7 +3870,7 @@ export default function App() {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
           }
         }}
-        preload="metadata"
+        preload="auto"
         playsInline
         muted={isMixerActive || isMuted}
         loop={playMode === 'repeat-one'}
