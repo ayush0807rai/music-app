@@ -1388,7 +1388,7 @@ export default function App() {
 
   useEffect(() => {
     // 1. Immediately abort any in-flight background download whenever current track changes or stops.
-    // This grants 100% network bandwidth to the current song so it starts instantly without delay.
+    // 100% of network bandwidth is exclusively dedicated to the current song for instant start and smooth playback.
     if (preloadAbortRef.current) {
       preloadAbortRef.current.abort();
       preloadAbortRef.current = null;
@@ -1399,11 +1399,50 @@ export default function App() {
     const controller = new AbortController();
     preloadAbortRef.current = controller;
 
-    // Helper: only proceed if audio element is actively and smoothly playing
-    const isAudioSmooth = () => {
-      if (!audioRef.current) return false;
-      if (audioRef.current.paused || audioRef.current.seeking || audioRef.current.readyState < 3) return false;
+    // Helper: calculate exact seconds of audio buffered ahead of current playback position
+    const getBufferedAheadSeconds = () => {
+      if (!audioRef.current) return 0;
+      const audio = audioRef.current;
+      if (!audio.buffered || audio.buffered.length === 0) return 0;
+      const cur = audio.currentTime || 0;
+      const dur = audio.duration || 0;
+      for (let i = 0; i < audio.buffered.length; i++) {
+        const start = audio.buffered.start(i);
+        const end = audio.buffered.end(i);
+        if (start <= cur && cur <= end) {
+          // If buffered all the way to the end (within 1.5s), the song is 100% fully downloaded!
+          if (dur > 0 && end >= dur - 1.5) {
+            return 9999;
+          }
+          return end - cur;
+        }
+      }
+      return 0;
+    };
+
+    // Helper: verify network allows background downloads without choking active audio
+    const isNetworkSafeForPrefetch = () => {
+      if (typeof navigator === "undefined") return true;
+      if (!navigator.onLine) return false;
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (conn) {
+        if (conn.saveData) return false; // User has Data Saver enabled
+        if (conn.effectiveType === '2g' || conn.effectiveType === 'slow-2g' || conn.effectiveType === '3g') {
+          return false; // Connection too slow to risk background contention
+        }
+      }
       return true;
+    };
+
+    // Helper: verify current song is completely safe before any background download
+    const isPlaybackFullySafe = () => {
+      if (!audioRef.current) return false;
+      const a = audioRef.current;
+      if (a.paused || a.seeking || a.readyState < 3) return false;
+      if (!isNetworkSafeForPrefetch()) return false;
+      // FIRST PRIORITY: Active song MUST have at least 45 seconds buffered ahead (or be 100% buffered to end)
+      const ahead = getBufferedAheadSeconds();
+      return ahead >= 45;
     };
 
     // Helper: abortable pause
@@ -1413,37 +1452,50 @@ export default function App() {
       controller.signal.addEventListener('abort', () => { clearTimeout(t); res(); }, { once: true });
     });
 
-    // 2. Gentle, progressive prefetching:
-    // Wait until the current track has been playing smoothly for 25 seconds before doing ANY background downloads.
-    // This allows the active song to buffer far ahead without network competition.
+    // 2. Progressive prefetch pipeline:
+    // First Priority is ALWAYS the current song. Only once the current song is deeply buffered (45s+)
+    // do we gently cache upcoming tracks one by one with generous spacing.
     const prefetchJob = async () => {
-      // Step A: Incubation period - give active track 25 seconds of clear bandwidth
-      await sleep(25000);
-      if (controller.signal.aborted || !isAudioSmooth()) return;
+      // Allow initial 15 seconds for current song to start and establish its buffer
+      await sleep(15000);
+      if (controller.signal.aborted) return;
 
-      // Step B: Ensure current track is cached in background (if not already cached)
+      // Poll until the active song has accumulated at least 45 seconds of buffer headroom (max wait 60s)
+      let attempts = 0;
+      while (!isPlaybackFullySafe() && attempts < 12) {
+        if (controller.signal.aborted) return;
+        await sleep(5000);
+        attempts++;
+      }
+
+      // If active song still hasn't buffered 45s ahead, do NOT prefetch anything to protect playback
+      if (controller.signal.aborted || !isPlaybackFullySafe()) return;
+
+      // Step A: Ensure current track is cached for offline use
       if (currentTrack?.url && !blobCacheRef.current.has(getCdnUrl(currentTrack.url))) {
         await cacheAudioTrack(currentTrack.url, controller.signal);
       }
 
-      // Step C: Wait 15 seconds before downloading Next Track 1
+      // Step B: Rest for 15 seconds to keep network completely clear
       await sleep(15000);
-      if (controller.signal.aborted || !isAudioSmooth()) return;
+      if (controller.signal.aborted || !isPlaybackFullySafe()) return;
 
+      // Step C: Gently cache Next Track 1 only
       const upcoming = getNextTwoUpcomingTracks();
       if (upcoming[0]?.url) {
         await cacheAudioTrack(upcoming[0].url, controller.signal);
       }
 
-      // Step D: Wait another 15 seconds before downloading Next Track 2
-      await sleep(15000);
-      if (controller.signal.aborted || !isAudioSmooth()) return;
+      // Step D: Rest for 20 seconds before attempting Next Track 2
+      await sleep(20000);
+      if (controller.signal.aborted || !isPlaybackFullySafe()) return;
 
+      // Step E: Gently cache Next Track 2 only
       if (upcoming[1]?.url) {
         await cacheAudioTrack(upcoming[1].url, controller.signal);
       }
 
-      // Step E: Once background caching completes, prune unused tracks outside active window
+      // Step F: Clean up older tracks outside the active window
       if (!controller.signal.aborted) {
         const prevTrack = playbackHistory.length > 0 && playbackQueue[playbackHistory[playbackHistory.length - 1]];
         const allowedUrls = [
@@ -3868,6 +3920,18 @@ export default function App() {
         onPlaying={() => {
           if (isPlaying && shouldLoadStems && !stemsBroken) {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
+          }
+        }}
+        onSeeking={() => {
+          if (preloadAbortRef.current) {
+            preloadAbortRef.current.abort();
+            preloadAbortRef.current = null;
+          }
+        }}
+        onPause={() => {
+          if (preloadAbortRef.current) {
+            preloadAbortRef.current.abort();
+            preloadAbortRef.current = null;
           }
         }}
         preload="auto"
