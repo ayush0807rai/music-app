@@ -15,8 +15,8 @@ export function getRecentlyPlayedIds() {
 }
 
 /**
- * Spotify-standard qualified play recorder:
- * Called only when a track reaches >= 30 seconds of listening or completes playback.
+ * 1-minute qualified play recorder:
+ * Called only when a track reaches >= 60 seconds (1 minute) of listening or completes playback.
  * Updates Recently Played and increments device play counter.
  */
 export function recordQualifiedPlay(track) {
@@ -33,12 +33,6 @@ export function recordQualifiedPlay(track) {
     const counts = rawCounts ? JSON.parse(rawCounts) : {};
     counts[track.id] = (counts[track.id] || 0) + 1;
     localStorage.setItem(PLAY_COUNTS_KEY, JSON.stringify(counts));
-
-    // 3. Ensure at least 30 seconds logged for this qualified stream
-    const rawSeconds = localStorage.getItem(LISTEN_SECONDS_KEY);
-    const times = rawSeconds ? JSON.parse(rawSeconds) : {};
-    times[track.id] = Math.max(times[track.id] || 0, (counts[track.id] || 1) * 30);
-    localStorage.setItem(LISTEN_SECONDS_KEY, JSON.stringify(times));
   } catch (e) {
     console.warn("Could not record qualified play:", e);
   }
@@ -51,7 +45,7 @@ export function recordListeningDuration(trackId, seconds) {
   try {
     const raw = localStorage.getItem(LISTEN_SECONDS_KEY);
     const times = raw ? JSON.parse(raw) : {};
-    times[trackId] = (times[trackId] || 0) + Math.round(seconds);
+    times[trackId] = (times[trackId] || 0) + Math.round(seconds * 10) / 10;
     localStorage.setItem(LISTEN_SECONDS_KEY, JSON.stringify(times));
   } catch (e) {
     // Ignore storage errors
@@ -92,13 +86,17 @@ export function computeListeningStats(allSongs = [], getSongMoodsFn) {
   const moodPlayMap = {};
   const topTracksList = [];
 
+  // Calculate actual total listening time strictly from actively played seconds (no estimations)
+  for (const s of Object.values(rawSeconds)) {
+    const val = Number(s);
+    if (!isNaN(val) && val > 0) {
+      totalSeconds += val;
+    }
+  }
+
   for (const [id, count] of Object.entries(counts)) {
     const song = songMap.get(id);
     totalPlays += count;
-    
-    // Estimate seconds if not explicitly tracked: average 3.5 minutes (210s) per play
-    const songSecs = rawSeconds[id] || (count * 210);
-    totalSeconds += songSecs;
 
     if (song) {
       topTracksList.push({ ...song, playCount: count });
@@ -131,20 +129,30 @@ export function computeListeningStats(allSongs = [], getSongMoodsFn) {
   const sortedMoods = Object.entries(moodPlayMap).sort((a, b) => b[1] - a[1]);
   const topMood = sortedMoods.length > 0 ? sortedMoods[0][0] : null;
 
-  // Format total time
-  const totalMinutes = Math.round(totalSeconds / 60);
+  // Format total time calculated strictly from actual playback duration
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = Math.round(totalSeconds % 60);
   const hours = Math.floor(totalMinutes / 60);
   const mins = totalMinutes % 60;
-  const formattedTime = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+  let formattedTime = "0m";
+  if (hours > 0) {
+    formattedTime = `${hours}h ${mins}m`;
+  } else if (mins > 0) {
+    formattedTime = `${mins}m`;
+  } else if (totalSeconds > 0) {
+    formattedTime = `${remainingSeconds}s`;
+  }
 
   return {
     totalPlays,
+    totalSeconds: Math.round(totalSeconds),
     totalMinutes,
     formattedTime,
     topArtist,
     topArtistPlays,
     topMood,
     topTracks: topTracksList.slice(0, 10),
-    hasData: totalPlays > 0
+    hasData: totalPlays > 0 || totalSeconds > 0
   };
 }

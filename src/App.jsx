@@ -549,6 +549,9 @@ export default function App() {
   const [customMoodOverrides, setCustomMoodOverrides] = useState(() => getCustomMoodOverrides());
   const [trackForOptions, setTrackForOptions] = useState(null);
   const qualifiedPlayLoggedRef = useRef(null);
+  const sessionListenDurationRef = useRef(0);
+  const lastListenTickRef = useRef(null);
+  const pendingListenDurationRef = useRef(0);
   const [uploadMood, setUploadMood] = useState("");
 
   const [songDurations, setSongDurations] = useState({});
@@ -1059,8 +1062,16 @@ export default function App() {
 
   const listeningStats = useMemo(() => {
     return computeListeningStats(playlist, s => getSongMoods(s, customMoodOverrides));
-  }, [playlist, playCounts, customMoodOverrides]);
+  }, [playlist, playCounts, customMoodOverrides, showStatsModal]);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
+
+  const handleOpenStatsModal = () => {
+    if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+      recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+      pendingListenDurationRef.current = 0;
+    }
+    setShowStatsModal(true);
+  };
 
   // Ensure playbackQueue is always hydrated with songs from the library if empty, trapped, or missing lyrics
   useEffect(() => {
@@ -1734,6 +1745,10 @@ export default function App() {
   useEffect(() => {
     // Prevent accidental closure of the app when music is playing (adds OS-level protection)
     const handleBeforeUnload = (e) => {
+      if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+        recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+        pendingListenDurationRef.current = 0;
+      }
       if (stateRefs.current?.isPlaying) {
         e.preventDefault();
         e.returnValue = 'Music is playing. Are you sure you want to exit?';
@@ -1742,7 +1757,7 @@ export default function App() {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
+  }, [currentTrack]);
 
   useEffect(() => {
     // Only trap history AFTER a user gesture (like hitting play).
@@ -2180,16 +2195,32 @@ export default function App() {
         if (currentInt % 2 === 0 && currentInt !== lastSavedTimeRef.current) {
           localStorage.setItem("euphony_current_time", time);
           lastSavedTimeRef.current = currentInt;
-          if (currentTrack?.id) {
-            recordListeningDuration(currentTrack.id, 2);
-          }
         }
 
-        // Spotify-standard qualified play:
-        // A song counts as a qualified play only after listening for at least 30 seconds
-        // (or when reaching the end if song duration is under 30s).
+        // Continuous wall-clock listening duration accumulation (calculated per active second/minute)
+        const now = Date.now();
+        if (lastListenTickRef.current && isPlaying && audioRef.current && !audioRef.current.paused && currentTrack?.id) {
+          const delta = (now - lastListenTickRef.current) / 1000;
+          if (delta >= 0.1 && delta <= 3.0) {
+            sessionListenDurationRef.current += delta;
+            pendingListenDurationRef.current += delta;
+          }
+          lastListenTickRef.current = now;
+        } else if (isPlaying && audioRef.current && !audioRef.current.paused) {
+          lastListenTickRef.current = now;
+        }
+
+        // Flush accumulated duration in small increments (>= 1.0s) to keep stats accurate without excessive storage calls
+        if (pendingListenDurationRef.current >= 1.0 && currentTrack?.id) {
+          recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+          pendingListenDurationRef.current = 0;
+        }
+
+        // 1-minute qualified play:
+        // A song counts as a qualified play only after listening for at least 1 minute (60 seconds)
+        // (or when reaching the end if song duration is under 60s).
         const dur = audioRef.current.duration;
-        const isQualifiedTime = time >= 30 || (isFinite(dur) && dur > 0 && dur < 30 && time >= dur - 0.5);
+        const isQualifiedTime = sessionListenDurationRef.current >= 60 || (isFinite(dur) && dur > 0 && dur < 60 && time >= dur - 0.5);
         if (isQualifiedTime && currentTrack?.id && qualifiedPlayLoggedRef.current !== currentTrack.id) {
           qualifiedPlayLoggedRef.current = currentTrack.id;
           recordQualifiedPlay(currentTrack);
@@ -2641,6 +2672,12 @@ export default function App() {
 
   const playTrackWithMetadata = (track, audioEl, cacheMap) => {
     if (!audioEl || !track) return;
+    if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+      recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+      pendingListenDurationRef.current = 0;
+    }
+    sessionListenDurationRef.current = 0;
+    lastListenTickRef.current = Date.now();
     qualifiedPlayLoggedRef.current = null; // Reset per-playback qualified session
     if (restoreInitialTimeHandlerRef.current) {
       audioEl.removeEventListener('loadedmetadata', restoreInitialTimeHandlerRef.current);
@@ -3177,8 +3214,14 @@ export default function App() {
   };
 
   const handleTrackEnded = () => {
-    // Spotify qualification fallback: If song completes playback (e.g. track < 30s) and hasn't logged yet
-    if (currentTrack?.id && qualifiedPlayLoggedRef.current !== currentTrack.id) {
+    if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+      recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+      pendingListenDurationRef.current = 0;
+    }
+    // 1-minute qualification fallback: If song completes playback (e.g. short track < 60s) or reached 60s
+    const dur = audioRef.current?.duration;
+    const qualifiesOnEnd = sessionListenDurationRef.current >= 60 || (isFinite(dur) && dur > 0 && dur < 60);
+    if (qualifiesOnEnd && currentTrack?.id && qualifiedPlayLoggedRef.current !== currentTrack.id) {
       qualifiedPlayLoggedRef.current = currentTrack.id;
       recordQualifiedPlay(currentTrack);
       setRecentlyPlayedIds(getRecentlyPlayedIds());
@@ -3187,6 +3230,8 @@ export default function App() {
 
     if (playMode === "repeat-one") {
       qualifiedPlayLoggedRef.current = null; // Next repeat iteration can qualify again
+      sessionListenDurationRef.current = 0;
+      lastListenTickRef.current = Date.now();
       resetPlaybackTime();
       audioRef.current?.play().catch(() => {});
       if (currentTrack?.stem_vocals && !stemsBroken) {
@@ -4165,17 +4210,33 @@ export default function App() {
         onWaiting={handleStalledOrWaiting}
         onStalled={handleStalledOrWaiting}
         onPlaying={() => {
+          lastListenTickRef.current = Date.now();
           if (isPlaying && shouldLoadStems && !stemsBroken) {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
           }
         }}
         onSeeking={() => {
+          if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+            recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+            pendingListenDurationRef.current = 0;
+          }
+          lastListenTickRef.current = null;
           if (preloadAbortRef.current) {
             preloadAbortRef.current.abort();
             preloadAbortRef.current = null;
           }
         }}
+        onSeeked={() => {
+          if (isPlaying && audioRef.current && !audioRef.current.paused) {
+            lastListenTickRef.current = Date.now();
+          }
+        }}
         onPause={() => {
+          if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+            recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+            pendingListenDurationRef.current = 0;
+          }
+          lastListenTickRef.current = null;
           if (stallRecoveryTimerRef.current) {
             clearTimeout(stallRecoveryTimerRef.current);
             stallRecoveryTimerRef.current = null;
@@ -4643,7 +4704,7 @@ export default function App() {
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "11px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Time Listened</span>
                   <span style={{ fontSize: "24px", fontWeight: "800", color: COLORS.spotifyGreen }}>{listeningStats.formattedTime}</span>
-                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>~{listeningStats.totalMinutes} total minutes</span>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>{listeningStats.totalMinutes > 0 ? `~${listeningStats.totalMinutes} total minutes` : `${listeningStats.totalSeconds || 0} seconds played`}</span>
                 </div>
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "11px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Total Plays</span>
@@ -4669,6 +4730,8 @@ export default function App() {
                     onClick={() => {
                       if (window.confirm("Reset your listening stats on this device?")) {
                         clearListeningHistory();
+                        pendingListenDurationRef.current = 0;
+                        sessionListenDurationRef.current = 0;
                         setRecentlyPlayedIds([]);
                         setPlayCounts({});
                       }
@@ -4736,7 +4799,7 @@ export default function App() {
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "10px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Time Listened</span>
                   <span style={{ fontSize: "20px", fontWeight: "800", color: COLORS.spotifyGreen }}>{listeningStats.formattedTime}</span>
-                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>~{listeningStats.totalMinutes} mins</span>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>{listeningStats.totalMinutes > 0 ? `~${listeningStats.totalMinutes} mins` : `${listeningStats.totalSeconds || 0}s played`}</span>
                 </div>
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "10px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Total Plays</span>
@@ -4762,6 +4825,8 @@ export default function App() {
                     onClick={() => {
                       if (window.confirm("Reset your listening stats on this device?")) {
                         clearListeningHistory();
+                        pendingListenDurationRef.current = 0;
+                        sessionListenDurationRef.current = 0;
                         setRecentlyPlayedIds([]);
                         setPlayCounts({});
                       }
@@ -5297,7 +5362,7 @@ export default function App() {
               <div onClick={() => handleSwitchPlaylist("smart_most_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_most_played" ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
                 <Flame size={24} color={viewedPlaylistId === "smart_most_played" ? COLORS.primary : COLORS.textMuted} /> Most Played
               </div>
-              <div onClick={() => setShowStatsModal(true)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+              <div onClick={handleOpenStatsModal} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
                 <BarChart2 size={24} color={COLORS.textMuted} /> Listening Stats
               </div>
             </div>
@@ -5334,7 +5399,7 @@ export default function App() {
               <button onClick={() => handleSwitchPlaylist("smart_most_played")} style={{ background: viewedPlaylistId === "smart_most_played" ? COLORS.primary : "transparent", color: viewedPlaylistId === "smart_most_played" ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
                 <Flame size={14} /> Top
               </button>
-              <button onClick={() => setShowStatsModal(true)} style={{ background: "transparent", color: COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
+              <button onClick={handleOpenStatsModal} style={{ background: "transparent", color: COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
                 <BarChart2 size={14} /> Stats
               </button>
               {userPlaylists.filter(pl => pl.name !== "Liked Songs").map(pl => (
@@ -5524,7 +5589,7 @@ export default function App() {
                       {searchQuery
                         ? `No results for "${searchQuery}".`
                         : (viewedPlaylistId === "smart_most_played"
-                            ? "No tracks played yet! Listen to any song for 30 seconds or more to see it ranked here."
+                            ? "No tracks played yet! Listen to any song for 1 minute or more to see it ranked here."
                             : (viewedPlaylistId === "smart_recently_played"
                                 ? "No recently played tracks yet. Start listening to build your history!"
                                 : "This playlist is empty."))}
