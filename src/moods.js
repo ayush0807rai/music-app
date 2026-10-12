@@ -71,9 +71,14 @@ export function getMoodEmoji(moodId) {
   return match ? match.emoji : '🎵';
 }
 
+// Global owner-curated mood overrides baked into the application
+export const CURATED_MOOD_OVERRIDES = {
+  "0591dd49-6c49-40ee-8ec6-996c430b9691": "Energetic", // Shubhaarambh (Kai Po Che)
+};
+
 /**
  * Returns an array of moods (e.g. ['Romantic', 'Chill']) for a given song.
- * Prioritizes user custom override, then database mood tag, then falls back to keyword analysis.
+ * Prioritizes user custom override, then curated owner override, then database mood tag, then falls back to keyword analysis.
  */
 export function getSongMoods(song, customOverrides = null) {
   if (!song) return ['Chill'];
@@ -89,6 +94,11 @@ export function getSongMoods(song, customOverrides = null) {
         return [stored[song.id]];
       }
     } catch (e) {}
+  }
+
+  // 2. Curated owner overrides (guarantees correct classification across all users)
+  if (CURATED_MOOD_OVERRIDES[song.id]) {
+    return [CURATED_MOOD_OVERRIDES[song.id]];
   }
 
   // 2. Explicit mood stored on track (from database)

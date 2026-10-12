@@ -695,6 +695,18 @@ export default function App() {
   const [songForPlaylistModal, setSongForPlaylistModal] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [session, setSession] = useState(null);
+  const isOwner = useMemo(() => {
+    if (!session?.user) return false;
+    const email = (session.user.email || "").toLowerCase();
+    const envOwner = (import.meta.env.VITE_OWNER_EMAIL || "").toLowerCase();
+    if (email === "ayush080705@gmail.com" || (envOwner && email === envOwner)) {
+      return true;
+    }
+    if (session.user.id === "1427121b-efda-49c6-abdf-59ad35523935") {
+      return true;
+    }
+    return false;
+  }, [session?.user]);
   const [showPasswordResetModal, setShowPasswordResetModal] = useState(false);
   const [resetPasswordInput, setResetPasswordInput] = useState('');
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
@@ -804,6 +816,10 @@ export default function App() {
 
   const handleSetSongMood = useCallback((songId, moodId) => {
     if (!songId) return;
+    if (!isOwner) {
+      triggerToast("Only the owner can modify song categories.");
+      return;
+    }
     const updated = setCustomSongMood(songId, moodId);
     setCustomMoodOverrides({ ...updated });
     if (moodId) {
@@ -818,7 +834,7 @@ export default function App() {
         }
       });
     } catch (e) {}
-  }, [triggerToast]);
+  }, [isOwner, triggerToast]);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
@@ -4881,53 +4897,55 @@ export default function App() {
                 <div style={{ fontSize: "14px", color: songTheme.textMuted, marginTop: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{targetTrackForOptions.artist}</div>
               </div>
 
-              {/* CHANGE MOOD / CATEGORY SELECTOR */}
-              <div style={{ marginBottom: "16px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                  <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", color: songTheme.textMuted }}>
-                    Mood / Category
-                  </span>
-                  {hasManualOverride && (
-                    <button
-                      onClick={() => handleSetSongMood(targetTrackForOptions.id, null)}
-                      style={{ background: "transparent", border: "none", color: COLORS.textMuted, fontSize: "11px", cursor: "pointer", textDecoration: "underline", padding: 0 }}
-                    >
-                      Reset to auto
-                    </button>
-                  )}
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                  {AVAILABLE_MOODS.map(m => {
-                    const isSelected = currentAssignedMoods.includes(m.id);
-                    return (
+              {/* CHANGE MOOD / CATEGORY SELECTOR - EXCLUSIVE TO OWNER */}
+              {isOwner && (
+                <div style={{ marginBottom: "16px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                    <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", color: songTheme.textMuted, display: "flex", alignItems: "center", gap: "6px" }}>
+                      Mood / Category <span style={{ fontSize: "10px", color: COLORS.primary, background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)", padding: "1px 6px", borderRadius: "6px" }}>Owner</span>
+                    </span>
+                    {hasManualOverride && (
                       <button
-                        key={m.id}
-                        onClick={() => handleSetSongMood(targetTrackForOptions.id, m.id)}
-                        className="hover-effect"
-                        style={{
-                          background: isSelected ? `${m.color}25` : (isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(26,43,76,0.05)"),
-                          border: isSelected ? `2px solid ${m.color}` : `1px solid ${isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)"}`,
-                          borderRadius: "10px",
-                          padding: "8px 10px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "6px",
-                          color: isSelected ? (isDarkMode ? "#ffffff" : m.color) : songTheme.textColor,
-                          fontWeight: isSelected ? "bold" : "600",
-                          fontSize: "13px",
-                          cursor: "pointer",
-                          transition: "all 0.2s ease"
-                        }}
+                        onClick={() => handleSetSongMood(targetTrackForOptions.id, null)}
+                        style={{ background: "transparent", border: "none", color: COLORS.textMuted, fontSize: "11px", cursor: "pointer", textDecoration: "underline", padding: 0 }}
                       >
-                        <span>{m.emoji}</span>
-                        <span>{m.label}</span>
-                        {isSelected && <span style={{ marginLeft: "auto", fontSize: "12px", color: m.color, fontWeight: "bold" }}>✓</span>}
+                        Reset to auto
                       </button>
-                    );
-                  })}
+                    )}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                    {AVAILABLE_MOODS.map(m => {
+                      const isSelected = currentAssignedMoods.includes(m.id);
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => handleSetSongMood(targetTrackForOptions.id, m.id)}
+                          className="hover-effect"
+                          style={{
+                            background: isSelected ? `${m.color}25` : (isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(26,43,76,0.05)"),
+                            border: isSelected ? `2px solid ${m.color}` : `1px solid ${isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)"}`,
+                            borderRadius: "10px",
+                            padding: "8px 10px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                            color: isSelected ? (isDarkMode ? "#ffffff" : m.color) : songTheme.textColor,
+                            fontWeight: isSelected ? "bold" : "600",
+                            fontSize: "13px",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease"
+                          }}
+                        >
+                          <span>{m.emoji}</span>
+                          <span>{m.label}</span>
+                          {isSelected && <span style={{ marginLeft: "auto", fontSize: "12px", color: m.color, fontWeight: "bold" }}>✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
