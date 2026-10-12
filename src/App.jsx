@@ -933,41 +933,6 @@ export default function App() {
       triggerToast("Category reset to automatic");
     }
 
-    // Transfer song to that mood and make it play in that specific mood only
-    if (moodId) {
-      const targetMoodSongs = playlist.filter(s => getSongMoods(s, updated).includes(moodId));
-      const queueWithIds = targetMoodSongs.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
-      const moodSourceName = `${moodId} Mood`;
-
-      if (viewedPlaylistId === null) {
-        setSelectedMood(moodId);
-      }
-
-      if (currentTrack?.id === songId) {
-        const foundIdx = queueWithIds.findIndex(s => s.id === songId);
-        setPlaybackQueue(queueWithIds);
-        setPlaybackIndex(foundIdx !== -1 ? foundIdx : 0);
-        setPlaybackSourceName(moodSourceName);
-        setQueueCurrentTrack(null);
-      }
-    } else {
-      if (currentTrack?.id === songId && playbackSourceName?.includes("Mood")) {
-        const autoMood = getSongMoods(currentTrack, updated)[0];
-        if (autoMood) {
-          const autoMoodSongs = playlist.filter(s => getSongMoods(s, updated).includes(autoMood));
-          const queueWithIds = autoMoodSongs.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
-          const foundIdx = queueWithIds.findIndex(s => s.id === songId);
-          setPlaybackQueue(queueWithIds);
-          setPlaybackIndex(foundIdx !== -1 ? foundIdx : 0);
-          setPlaybackSourceName(`${autoMood} Mood`);
-          setQueueCurrentTrack(null);
-          if (viewedPlaylistId === null) {
-            setSelectedMood(autoMood);
-          }
-        }
-      }
-    }
-
     try {
       const targetSong = playlist.find(s => s.id === songId);
       if (targetSong) {
@@ -981,7 +946,7 @@ export default function App() {
         });
       }
     } catch (e) {}
-  }, [isOwner, triggerToast, playlist, currentTrack, viewedPlaylistId, playbackSourceName, session?.user?.id]);
+  }, [isOwner, triggerToast, playlist, session?.user?.id]);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
