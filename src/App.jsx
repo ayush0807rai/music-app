@@ -22,10 +22,19 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc, Maximize2, Minimize2, Keyboard
+  Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc, Maximize2, Minimize2, Keyboard,
+  History, Flame, BarChart2, Sparkles
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
+import { AVAILABLE_MOODS, getSongMoods, suggestMood } from "./moods";
+import {
+  getRecentlyPlayedIds,
+  recordSongPlay,
+  getPlayCounts,
+  clearListeningHistory,
+  computeListeningStats
+} from "./statsManager";
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 const SORT_CYCLE = [null, "title", "created_at", "duration"];
@@ -531,6 +540,11 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [selectedAlbum, setSelectedAlbum] = useState(null);
+  const [selectedMood, setSelectedMood] = useState(null);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [recentlyPlayedIds, setRecentlyPlayedIds] = useState(getRecentlyPlayedIds);
+  const [playCounts, setPlayCounts] = useState(getPlayCounts);
+  const [uploadMood, setUploadMood] = useState("");
 
   const [songDurations, setSongDurations] = useState({});
   const fetchingDurationsRef = useRef(new Set());
@@ -828,6 +842,7 @@ export default function App() {
     showTrackOptionsModal: false,
     showSleepTimerModal: false,
     showTrackArtistsModal: false,
+    showStatsModal: false,
     hasSongForPlaylist: false,
     hasViewedPlaylist: false,
     hasSelectedArtist: false,
@@ -846,6 +861,7 @@ export default function App() {
       showTrackOptionsModal,
       showSleepTimerModal,
       showTrackArtistsModal,
+      showStatsModal,
       hasSongForPlaylist: !!songForPlaylistModal,
       hasViewedPlaylist: viewedPlaylistId !== null,
       hasSelectedArtist: selectedArtist !== null,
@@ -868,7 +884,7 @@ export default function App() {
       }
     }
     prevModalState.current = currentState;
-  }, [isDesktopFullscreen, showFullscreenQueueModal, isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, songForPlaylistModal, viewedPlaylistId, selectedArtist, selectedAlbum]);
+  }, [isDesktopFullscreen, showFullscreenQueueModal, isMobilePlayerOpen, showQueue, showMixer, showUploadModal, showPlaylistModal, showTrackOptionsModal, showSleepTimerModal, showTrackArtistsModal, showStatsModal, songForPlaylistModal, viewedPlaylistId, selectedArtist, selectedAlbum]);
   const stateRefs = useRef({});
 
   const pendingAutoPlayRef = useRef(false);
@@ -936,47 +952,92 @@ export default function App() {
   const { render: renderQueueToast, isClosing: queueToastClosing, data: safeQueueToast } = useAnimatedPresence(!!queueToast, queueToast, 300);
   const { render: renderExitToast, isClosing: exitToastClosing } = useAnimatedPresence(showExitToast, null, 300);
   const { render: renderShortcuts, isClosing: shortcutsClosing } = useAnimatedPresence(showShortcutsModal, null, 250);
+  const { render: renderStats, isClosing: statsClosing } = useAnimatedPresence(showStatsModal, null, 300);
 
-  const rawViewedSongs = viewedPlaylistId === null ? playlist : playlistSongs;
+  const rawViewedSongs = useMemo(() => {
+    if (viewedPlaylistId === null) return playlist;
+    if (viewedPlaylistId === "smart_recently_played") {
+      const map = new Map((playlist || []).map(s => [s.id, s]));
+      return (recentlyPlayedIds || []).map(id => map.get(id)).filter(Boolean);
+    }
+    if (viewedPlaylistId === "smart_most_played") {
+      const map = new Map((playlist || []).map(s => [s.id, s]));
+      const sortedIds = Object.entries(playCounts || {})
+        .filter(([_, cnt]) => cnt > 0)
+        .sort((a, b) => b[1] - a[1])
+        .map(([id]) => id);
+      const res = sortedIds.map(id => map.get(id)).filter(Boolean);
+      return res.length > 0 ? res : (playlist || []).slice(0, 30);
+    }
+    return playlistSongs;
+  }, [viewedPlaylistId, playlist, playlistSongs, recentlyPlayedIds, playCounts]);
+
   const currentSortKey = sortOrders[viewedPlaylistId ?? "global"] ?? null;
 
-  const displayedSongs = [...rawViewedSongs]
-    .filter(track => {
-      if (selectedArtist) {
-        return (track.artist || "").toLowerCase().includes(selectedArtist.toLowerCase());
-      }
-      if (selectedAlbum) {
-        return (track.album || "").toLowerCase() === selectedAlbum.toLowerCase();
-      }
-      if (!searchQuery) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        (track.title || "").toLowerCase().includes(q) ||
-        (track.artist || "").toLowerCase().includes(q) ||
-        (track.album || "").toLowerCase().includes(q)
+  const displayedSongs = useMemo(() => {
+    return [...rawViewedSongs]
+      .filter(track => {
+        if (viewedPlaylistId === null && selectedMood) {
+          const songMoods = getSongMoods(track);
+          if (!songMoods.includes(selectedMood)) return false;
+        }
+        if (selectedArtist) {
+          return (track.artist || "").toLowerCase().includes(selectedArtist.toLowerCase());
+        }
+        if (selectedAlbum) {
+          return (track.album || "").toLowerCase() === selectedAlbum.toLowerCase();
+        }
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase();
+        return (
+          (track.title || "").toLowerCase().includes(q) ||
+          (track.artist || "").toLowerCase().includes(q) ||
+          (track.album || "").toLowerCase().includes(q)
         );
       })
-    .sort((a, b) => {
-      if (!currentSortKey) return 0;
-      if (currentSortKey === "created_at") {
-        const dateA = new Date(a.added_at || a.created_at).getTime();
-        const dateB = new Date(b.added_at || b.created_at).getTime();
-        return dateB - dateA;
-      }
-      if (currentSortKey === "duration") {
-        const durA = a.duration || songDurations[a.id] || Number.MAX_SAFE_INTEGER;
-        const durB = b.duration || songDurations[b.id] || Number.MAX_SAFE_INTEGER;
-        return durA - durB;
-      }
-      
-      const valA = (a[currentSortKey] || "").toString().trim().toLowerCase();
-      const valB = (b[currentSortKey] || "").toString().trim().toLowerCase();
-      return valA.localeCompare(valB);
+      .sort((a, b) => {
+        if (!currentSortKey) return 0;
+        if (currentSortKey === "created_at") {
+          const dateA = new Date(a.added_at || a.created_at).getTime();
+          const dateB = new Date(b.added_at || b.created_at).getTime();
+          return dateB - dateA;
+        }
+        if (currentSortKey === "duration") {
+          const durA = a.duration || songDurations[a.id] || Number.MAX_SAFE_INTEGER;
+          const durB = b.duration || songDurations[b.id] || Number.MAX_SAFE_INTEGER;
+          return durA - durB;
+        }
+        
+        const valA = (a[currentSortKey] || "").toString().trim().toLowerCase();
+        const valB = (b[currentSortKey] || "").toString().trim().toLowerCase();
+        return valA.localeCompare(valB);
+      });
+  }, [rawViewedSongs, viewedPlaylistId, selectedMood, selectedArtist, selectedAlbum, searchQuery, currentSortKey, songDurations]);
+
+  const activePlaylistObj = useMemo(() => {
+    if (viewedPlaylistId === "smart_recently_played") {
+      return { id: "smart_recently_played", name: "Recently Played", isSmart: true, type: "recently_played" };
+    }
+    if (viewedPlaylistId === "smart_most_played") {
+      return { id: "smart_most_played", name: "Most Played", isSmart: true, type: "most_played" };
+    }
+    return userPlaylists.find(p => p.id === viewedPlaylistId);
+  }, [viewedPlaylistId, userPlaylists]);
+
+  const moodCounts = useMemo(() => {
+    const counts = { Romantic: 0, Chill: 0, Energetic: 0, Sad: 0 };
+    (playlist || []).forEach(s => {
+      const moods = getSongMoods(s);
+      moods.forEach(m => {
+        if (counts[m] !== undefined) counts[m]++;
+      });
     });
+    return counts;
+  }, [playlist]);
 
-
-
-  const activePlaylistObj = userPlaylists.find(p => p.id === viewedPlaylistId);
+  const listeningStats = useMemo(() => {
+    return computeListeningStats(playlist, getSongMoods);
+  }, [playlist, playCounts]);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
   // Ensure playbackQueue is always hydrated with songs from the library if empty, trapped, or missing lyrics
@@ -1278,6 +1339,7 @@ export default function App() {
     setSearchQuery("");
     setSelectedArtist(null);
     setSelectedAlbum(null);
+    setSelectedMood(null);
   };
 
   const cycleSortKey = () => {
@@ -1619,6 +1681,7 @@ export default function App() {
       showSleepTimerModal,
       showTrackOptionsModal,
       showTrackArtistsModal,
+      showStatsModal,
       isMobilePlayerOpen,
       viewedPlaylistId,
       showQueue,
@@ -1636,6 +1699,7 @@ export default function App() {
     showSleepTimerModal,
     showTrackOptionsModal,
     showTrackArtistsModal,
+    showStatsModal,
     isMobilePlayerOpen,
     viewedPlaylistId,
     showQueue,
@@ -1690,8 +1754,11 @@ export default function App() {
       const s = stateRefs.current;
       let handled = false;
 
-      // Tier 1: Sub-modals opened on top (artists, sleep timer, fullscreen queue, add to playlist)
-      if (s.showTrackArtistsModal) {
+      // Tier 1: Sub-modals opened on top (artists, sleep timer, fullscreen queue, add to playlist, stats)
+      if (s.showStatsModal) {
+        setShowStatsModal(false);
+        handled = true;
+      } else if (s.showTrackArtistsModal) {
         setShowTrackArtistsModal(false);
         if (openedFromTrackOptionsRef.current) {
           openedFromTrackOptionsRef.current = false;
@@ -1975,7 +2042,7 @@ export default function App() {
   }, [session?.user?.id, fetchAllData]);
 
   useEffect(() => {
-    if (viewedPlaylistId === null) return;
+    if (viewedPlaylistId === null || (typeof viewedPlaylistId === "string" && viewedPlaylistId.startsWith("smart_"))) return;
     const fetchPlaylistSongs = async () => {
       const { data } = await supabase.from("playlist_songs").select("song_id, added_at, songs(*)").eq("playlist_id", viewedPlaylistId);
       if (data) {
@@ -2537,6 +2604,11 @@ export default function App() {
 
   const playTrackWithMetadata = (track, audioEl, cacheMap) => {
     if (!audioEl || !track) return;
+    try {
+      recordSongPlay(track);
+      setRecentlyPlayedIds(getRecentlyPlayedIds());
+      setPlayCounts(getPlayCounts());
+    } catch (e) {}
     if (restoreInitialTimeHandlerRef.current) {
       audioEl.removeEventListener('loadedmetadata', restoreInitialTimeHandlerRef.current);
       restoreInitialTimeHandlerRef.current = null;
@@ -2832,7 +2904,7 @@ export default function App() {
 
       setPlaylist(prev => prev.some(s => s.id === dbData[0].id) ? prev : [...prev, dbData[0]]);
       setShowUploadModal(false);
-      setUploadTitle(""); setUploadArtist(""); setUploadAlbum(""); setUploadLyrics(""); setUploadFile(null); setUploadPoster(null);
+      setUploadTitle(""); setUploadArtist(""); setUploadAlbum(""); setUploadLyrics(""); setUploadFile(null); setUploadPoster(null); setUploadMood("");
       setShowArtistSuggestions(false); setShowAlbumSuggestions(false);
       alert("Song uploaded successfully to Cloudinary!");
     } catch (error) { 
@@ -3685,9 +3757,30 @@ export default function App() {
 
   const renderPlaylistCover = () => {
     const size = isDesktop ? 180 : 140;
-    const validPosters = playlistSongs.map(s => s.poster_url).filter(Boolean);
+    const currentSongs = viewedPlaylistId !== null ? rawViewedSongs : playlistSongs;
+    const validPosters = currentSongs.map(s => s.poster_url).filter(Boolean);
 
-    if (playlistSongs.length === 0 || validPosters.length === 0) {
+    if (activePlaylistObj?.id === "smart_recently_played") {
+      if (validPosters.length === 0) {
+        return (
+          <div style={{ width: size, height: size, background: "linear-gradient(135deg, #4da6ff, #1a2b4c)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.2)", flexShrink: 0 }}>
+            <History size={isDesktop ? 72 : 56} color="#fff" />
+          </div>
+        );
+      }
+    }
+
+    if (activePlaylistObj?.id === "smart_most_played") {
+      if (validPosters.length === 0) {
+        return (
+          <div style={{ width: size, height: size, background: "linear-gradient(135deg, #ff7a18, #af002d)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.2)", flexShrink: 0 }}>
+            <Flame size={isDesktop ? 72 : 56} color="#fff" />
+          </div>
+        );
+      }
+    }
+
+    if (currentSongs.length === 0 || validPosters.length === 0) {
       return (
         <div style={{ width: size, height: size, backgroundColor: COLORS.primary, borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
           <FolderPlus size={isDesktop ? 72 : 56} color={COLORS.bgPanel} />
@@ -3695,7 +3788,7 @@ export default function App() {
       );
     }
 
-    if (playlistSongs.length < 4 || validPosters.length < 4) {
+    if (currentSongs.length < 4 || validPosters.length < 4) {
       return (
         <div style={{ width: size, height: size, borderRadius: "12px", overflow: "hidden", boxShadow: "0 12px 24px rgba(26,43,76,0.15)", flexShrink: 0 }}>
           <img src={validPosters[0]} alt="Cover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -4338,6 +4431,45 @@ export default function App() {
                 )}
               </div>
               <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input glass-row custom-scrollbar" style={{ minHeight: "100px", resize: "vertical", color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
+              
+              {/* Mood Selection Pills */}
+              <div style={{ marginBottom: "16px" }}>
+                <div style={{ fontSize: "12px", fontWeight: "600", color: songTheme.textMuted, marginBottom: "8px" }}>
+                  Mood / Vibe (Optional)
+                </div>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {AVAILABLE_MOODS.map(m => {
+                    const isSelected = uploadMood === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setUploadMood(isSelected ? "" : m.id)}
+                        style={{
+                          background: isSelected ? m.color : songTheme.rowBg,
+                          color: isSelected ? "#fff" : songTheme.textColor,
+                          border: isSelected ? `1px solid ${m.color}` : songTheme.rowBorder,
+                          borderRadius: "20px",
+                          padding: "6px 14px",
+                          fontSize: "12px",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          transition: "all 0.15s ease",
+                          boxShadow: isSelected ? `0 4px 10px ${m.color}40` : "none"
+                        }}
+                        className="hover-effect"
+                      >
+                        <span>{m.emoji}</span>
+                        <span>{m.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="glass-row" style={{ marginBottom: "16px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: songTheme.textMuted, fontSize: "14px" }}>Poster Image *</label>
                 <input type="file" accept="image/*" required onChange={e => setUploadPoster(e.target.files[0])} style={{ color: songTheme.textColor, width: "100%" }} />
@@ -4435,6 +4567,237 @@ export default function App() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* PERSONAL LISTENING STATS MODAL */}
+      {renderStats && (
+        <div 
+          className={statsClosing ? "fade-exit" : "fade-enter"} 
+          style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: isDesktop ? "center" : "flex-end", justifyContent: "center", zIndex: 10006, padding: isDesktop ? "20px" : "0" }} 
+          onClick={() => setShowStatsModal(false)}
+        >
+          {isDesktop ? (
+            <div 
+              className={`${statsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} 
+              style={{ background: songTheme.modalBg, backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "24px", width: "100%", maxWidth: "520px", position: "relative", boxShadow: songTheme.modalShadow, color: songTheme.textColor, maxHeight: "85vh", overflowY: "auto" }} 
+              onClick={e => e.stopPropagation()}
+            >
+              <button onClick={() => setShowStatsModal(false)} style={{ position: "absolute", top: "20px", right: "20px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect">
+                <X size={20} />
+              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+                <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "linear-gradient(135deg, #4da6ff, #9933ff)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <BarChart2 size={20} color="#fff" />
+                </div>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Listening Stats</h2>
+                  <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Your personal listening journey</span>
+                </div>
+              </div>
+
+              {/* 4 Metrics Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "24px" }}>
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Time Listened</span>
+                  <span style={{ fontSize: "24px", fontWeight: "800", color: COLORS.spotifyGreen }}>{listeningStats.formattedTime}</span>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>~{listeningStats.totalMinutes} total minutes</span>
+                </div>
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Total Plays</span>
+                  <span style={{ fontSize: "24px", fontWeight: "800", color: COLORS.primary }}>{listeningStats.totalPlays}</span>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>songs played</span>
+                </div>
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Top Artist</span>
+                  <span style={{ fontSize: "16px", fontWeight: "700", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{listeningStats.topArtist || "—"}</span>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>{listeningStats.topArtistPlays > 0 ? `${listeningStats.topArtistPlays} plays` : "No plays yet"}</span>
+                </div>
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Favorite Mood</span>
+                  <span style={{ fontSize: "16px", fontWeight: "700", color: songTheme.textColor }}>{listeningStats.topMood ? `${AVAILABLE_MOODS.find(m => m.id === listeningStats.topMood)?.emoji || ''} ${listeningStats.topMood}` : "—"}</span>
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>most listened vibe</span>
+                </div>
+              </div>
+
+              {/* Top Tracks On Repeat */}
+              {listeningStats.topTracks.length > 0 && (
+                <div style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "14px", fontWeight: "700", margin: "0 0 10px 0", color: songTheme.textColor }}>Top Tracks On Repeat</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {listeningStats.topTracks.slice(0, 5).map((song, i) => (
+                      <div
+                        key={song.id}
+                        onClick={() => {
+                          setShowStatsModal(false);
+                          const idx = playlist.findIndex(p => p.id === song.id);
+                          if (idx !== -1) handlePlaySong(idx, playlist, "Global Library");
+                        }}
+                        className="hover-effect"
+                        style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px", cursor: "pointer" }}
+                      >
+                        <span style={{ fontWeight: "800", fontSize: "13px", color: i === 0 ? "#ffb84d" : songTheme.textMuted, width: "16px" }}>{i + 1}</span>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "6px", overflow: "hidden", backgroundColor: COLORS.imageBg, flexShrink: 0 }}>
+                          {song.poster_url && <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: "13px", fontWeight: "600", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
+                          <div style={{ fontSize: "11px", color: songTheme.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
+                        </div>
+                        <div style={{ fontSize: "12px", fontWeight: "700", color: COLORS.spotifyGreen, padding: "2px 8px", background: "rgba(29, 185, 84, 0.12)", borderRadius: "10px" }}>
+                          {song.playCount} plays
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Reset Option */}
+              {listeningStats.hasData && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Reset your listening stats on this device?")) {
+                        clearListeningHistory();
+                        setRecentlyPlayedIds([]);
+                        setPlayCounts({});
+                      }
+                    }}
+                    style={{ background: "transparent", border: "none", color: songTheme.textMuted, fontSize: "12px", cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    Reset Listening Stats
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <SwipeableBottomSheet
+              onClose={() => setShowStatsModal(false)}
+              className={`${statsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`}
+              style={{
+                background: songTheme.modalBg,
+                backdropFilter: "blur(28px)",
+                WebkitBackdropFilter: "blur(28px)",
+                borderTop: songTheme.modalBorder,
+                padding: "24px",
+                borderRadius: "24px 24px 0 0",
+                width: "100%",
+                maxWidth: "520px",
+                position: "relative",
+                maxHeight: "85vh",
+                overflowY: "auto",
+                boxShadow: songTheme.modalShadow,
+                color: songTheme.textColor
+              }}
+            >
+              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(26,43,76,0.2)", borderRadius: "2px", margin: "0 auto 20px" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, #4da6ff, #9933ff)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <BarChart2 size={20} color="#fff" />
+                  </div>
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: "19px", fontWeight: "800", color: songTheme.textColor }}>Listening Stats</h2>
+                    <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Private stats on this device</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowStatsModal(false)}
+                  style={{
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
+                    border: "none",
+                    color: songTheme.textColor,
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer"
+                  }}
+                  className="hover-effect"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* 4 Metrics Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px" }}>
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Time Listened</span>
+                  <span style={{ fontSize: "20px", fontWeight: "800", color: COLORS.spotifyGreen }}>{listeningStats.formattedTime}</span>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>~{listeningStats.totalMinutes} mins</span>
+                </div>
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Total Plays</span>
+                  <span style={{ fontSize: "20px", fontWeight: "800", color: COLORS.primary }}>{listeningStats.totalPlays}</span>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>songs played</span>
+                </div>
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Top Artist</span>
+                  <span style={{ fontSize: "14px", fontWeight: "700", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{listeningStats.topArtist || "—"}</span>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>{listeningStats.topArtistPlays > 0 ? `${listeningStats.topArtistPlays} plays` : "No plays yet"}</span>
+                </div>
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Favorite Mood</span>
+                  <span style={{ fontSize: "14px", fontWeight: "700", color: songTheme.textColor }}>{listeningStats.topMood ? `${AVAILABLE_MOODS.find(m => m.id === listeningStats.topMood)?.emoji || ''} ${listeningStats.topMood}` : "—"}</span>
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>most listened</span>
+                </div>
+              </div>
+
+              {/* Top Tracks On Repeat */}
+              {listeningStats.topTracks.length > 0 && (
+                <div style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "14px", fontWeight: "700", margin: "0 0 10px 0", color: songTheme.textColor }}>Top Tracks On Repeat</h3>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {listeningStats.topTracks.slice(0, 5).map((song, i) => (
+                      <div
+                        key={song.id}
+                        onClick={() => {
+                          setShowStatsModal(false);
+                          const idx = playlist.findIndex(p => p.id === song.id);
+                          if (idx !== -1) handlePlaySong(idx, playlist, "Global Library");
+                        }}
+                        className="hover-effect"
+                        style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 10px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px", cursor: "pointer" }}
+                      >
+                        <span style={{ fontWeight: "800", fontSize: "12px", color: i === 0 ? "#ffb84d" : songTheme.textMuted, width: "14px" }}>{i + 1}</span>
+                        <div style={{ width: "32px", height: "32px", borderRadius: "6px", overflow: "hidden", backgroundColor: COLORS.imageBg, flexShrink: 0 }}>
+                          {song.poster_url && <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: "13px", fontWeight: "600", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
+                          <div style={{ fontSize: "11px", color: songTheme.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
+                        </div>
+                        <div style={{ fontSize: "11px", fontWeight: "700", color: COLORS.spotifyGreen, padding: "2px 6px", background: "rgba(29, 185, 84, 0.12)", borderRadius: "8px" }}>
+                          {song.playCount} plays
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Reset Option */}
+              {listeningStats.hasData && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Reset your listening stats on this device?")) {
+                        clearListeningHistory();
+                        setRecentlyPlayedIds([]);
+                        setPlayCounts({});
+                      }
+                    }}
+                    style={{ background: "transparent", border: "none", color: songTheme.textMuted, fontSize: "11px", cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    Reset Listening Stats
+                  </button>
+                </div>
+              )}
+            </SwipeableBottomSheet>
+          )}
         </div>
       )}
 
@@ -4893,6 +5256,15 @@ export default function App() {
                   <Heart size={24} color={viewedPlaylistId === likedPlaylist.id ? COLORS.primary : COLORS.textMuted} fill={viewedPlaylistId === likedPlaylist.id ? COLORS.primary : "none"} /> Liked Songs
                 </div>
               )}
+              <div onClick={() => handleSwitchPlaylist("smart_recently_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_recently_played" ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                <History size={24} color={viewedPlaylistId === "smart_recently_played" ? COLORS.primary : COLORS.textMuted} /> Recently Played
+              </div>
+              <div onClick={() => handleSwitchPlaylist("smart_most_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_most_played" ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                <Flame size={24} color={viewedPlaylistId === "smart_most_played" ? COLORS.primary : COLORS.textMuted} /> Most Played
+              </div>
+              <div onClick={() => setShowStatsModal(true)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                <BarChart2 size={24} color={COLORS.textMuted} /> Listening Stats
+              </div>
             </div>
             <hr style={{ border: "none", borderTop: `1px solid ${COLORS.border}`, margin: 0 }} />
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
@@ -4921,6 +5293,15 @@ export default function App() {
                   <Heart size={14} fill={viewedPlaylistId === likedPlaylist.id ? COLORS.bgPanel : "none"} /> Liked Songs
                 </button>
               )}
+              <button onClick={() => handleSwitchPlaylist("smart_recently_played")} style={{ background: viewedPlaylistId === "smart_recently_played" ? COLORS.primary : "transparent", color: viewedPlaylistId === "smart_recently_played" ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
+                <History size={14} /> Recent
+              </button>
+              <button onClick={() => handleSwitchPlaylist("smart_most_played")} style={{ background: viewedPlaylistId === "smart_most_played" ? COLORS.primary : "transparent", color: viewedPlaylistId === "smart_most_played" ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
+                <Flame size={14} /> Top
+              </button>
+              <button onClick={() => setShowStatsModal(true)} style={{ background: "transparent", color: COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
+                <BarChart2 size={14} /> Stats
+              </button>
               {userPlaylists.filter(pl => pl.name !== "Liked Songs").map(pl => (
                 <button key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} style={{ background: viewedPlaylistId === pl.id ? COLORS.primary : "transparent", color: viewedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                   🔒 {pl.name}
@@ -4936,9 +5317,15 @@ export default function App() {
               <div style={{ background: `linear-gradient(180deg, ${COLORS.heroTop} 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
                 {renderPlaylistCover()}
                 <div style={{ flex: 1, minWidth: 0, textAlign: isDesktop ? "left" : "center" }}>
-                  <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: COLORS.textMuted }}>Private Playlist</span>
+                  <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: COLORS.textMuted }}>
+                    {activePlaylistObj?.isSmart ? "Smart Playlist" : "Private Playlist"}
+                  </span>
                   <h2 style={{ margin: "8px 0 16px 0", fontSize: isDesktop ? "48px" : "32px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{activePlaylistObj.name}</h2>
-                  <p style={{ margin: 0, fontSize: "15px", color: COLORS.textMuted, fontWeight: "500" }}>Your personal collection • {playlistSongs.length} songs</p>
+                  <p style={{ margin: 0, fontSize: "15px", color: COLORS.textMuted, fontWeight: "500" }}>
+                    {activePlaylistObj?.isSmart
+                      ? (activePlaylistObj.id === "smart_recently_played" ? "Your latest listened songs" : "Your top tracks on repeat")
+                      : "Your personal collection"} • {rawViewedSongs.length} songs
+                  </p>
                 </div>
               </div>
             )}
@@ -4946,7 +5333,7 @@ export default function App() {
             {/* PLAYLIST VIEW */}
             {viewedPlaylistId !== null ? (
               <div style={{ width: "100%" }}>
-                {playlistSongs.length > 0 && (
+                {rawViewedSongs.length > 0 && (
                   <div style={{ display: "flex", flexDirection: isDesktop ? "row" : "column", alignItems: isDesktop ? "center" : "stretch", gap: "12px", marginBottom: "24px", width: "100%" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px", justifyContent: "space-between" }}>
                       {displayedSongs.length > 0 && (
@@ -4955,6 +5342,29 @@ export default function App() {
                         </button>
                       )}
                       {!isDesktop && renderSortButton(true)}
+                      {activePlaylistObj?.id === "smart_recently_played" && rawViewedSongs.length > 0 && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Clear your recently played listening history?")) {
+                              clearListeningHistory();
+                              setRecentlyPlayedIds([]);
+                            }
+                          }}
+                          style={{
+                            background: "transparent",
+                            color: COLORS.textMuted,
+                            border: `1px solid ${COLORS.border}`,
+                            borderRadius: "20px",
+                            padding: "6px 14px",
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            cursor: "pointer"
+                          }}
+                          className="hover-effect"
+                        >
+                          Clear History
+                        </button>
+                      )}
                     </div>
                     
                     <div onClick={() => document.getElementById("playlist-search-input")?.focus()} style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "10px 16px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, cursor: "text", width: isDesktop ? "180px" : "100%", boxSizing: "border-box" }}>
@@ -5011,7 +5421,9 @@ export default function App() {
                               <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "4px", flexShrink: 0 }}>
                                 <button title="Add to Queue" onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} /></button>
                                 <button title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} /></button>
-                                <button title="Remove from playlist" onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} /></button>
+                                {!activePlaylistObj?.isSmart && (
+                                  <button title="Remove from playlist" onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} /></button>
+                                )}
                                 {isSelected && isPlaying && (
                                   <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
                                     <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
@@ -5136,6 +5548,65 @@ export default function App() {
                         By {SORT_LABELS[currentSortKey]} &middot; <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
                       </span>
                     )}
+                  </div>
+                )}
+
+                {/* MOOD FILTER BAR */}
+                {viewedPlaylistId === null && !selectedArtist && !selectedAlbum && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", paddingLeft: isDesktop ? "16px" : 0 }} className="custom-scrollbar">
+                    <button
+                      onClick={() => setSelectedMood(null)}
+                      style={{
+                        background: selectedMood === null ? COLORS.primary : "transparent",
+                        color: selectedMood === null ? COLORS.bgPanel : COLORS.primary,
+                        border: `1px solid ${selectedMood === null ? COLORS.primary : COLORS.border}`,
+                        borderRadius: "20px",
+                        padding: "6px 14px",
+                        fontSize: "13px",
+                        fontWeight: "700",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        transition: "all 0.2s ease"
+                      }}
+                      className="hover-effect"
+                    >
+                      <span>All</span>
+                      <span style={{ fontSize: "11px", opacity: 0.75 }}>({playlist.length})</span>
+                    </button>
+                    {AVAILABLE_MOODS.map(m => {
+                      const isSelected = selectedMood === m.id;
+                      const count = moodCounts[m.id] || 0;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setSelectedMood(isSelected ? null : m.id)}
+                          style={{
+                            background: isSelected ? m.color : "transparent",
+                            color: isSelected ? "#fff" : COLORS.primary,
+                            border: `1px solid ${isSelected ? m.color : COLORS.border}`,
+                            borderRadius: "20px",
+                            padding: "6px 14px",
+                            fontSize: "13px",
+                            fontWeight: "700",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            transition: "all 0.2s ease",
+                            boxShadow: isSelected ? `0 4px 12px ${m.color}40` : "none"
+                          }}
+                          className="hover-effect"
+                        >
+                          <span>{m.emoji}</span>
+                          <span>{m.label}</span>
+                          <span style={{ fontSize: "11px", opacity: 0.75 }}>({count})</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
 

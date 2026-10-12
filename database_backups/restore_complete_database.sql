@@ -1,6 +1,6 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-11T18:27:30.015Z
+-- Generated: 2026-10-12T04:35:24.770Z
 -- Total: 132 songs, 88 artists, 17 playlists, 63 playlist_songs
 -- ====================================================
 
@@ -137,7 +137,7 @@ INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('627d2bb2-a
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('9ce7cd87-baa4-4b13-a89c-079d7857007e', 'Jaideep Sahni', NULL, '2026-10-11T17:12:23.884206+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ae95a592-5b54-4f45-8d30-4dbcb50242bf', 'Anu Malik', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791742452/anumalik.jpg', '2026-10-11T17:18:28.710475+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('67101032-5383-4218-ba86-c1f536194c94', 'Sabri Brothers', NULL, '2026-10-11T17:18:51.537337+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
-INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('79c7d0de-34b8-4322-975d-25cadb01eea4', 'Roop Kumar Rathod', NULL, '2026-10-11T18:26:01.417126+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('79c7d0de-34b8-4322-975d-25cadb01eea4', 'Roop Kumar Rathod', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791743415/RoopKumarRathod2.jpg', '2026-10-11T18:26:01.417126+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 
 -- 3. Restore Songs (132 rows)
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
