@@ -5474,7 +5474,7 @@ export default function App() {
                                   <div style={{ fontSize: "15px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
                                   <div style={{ fontSize: "13px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
                                     <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</span>
-                                    {viewedPlaylistId === "smart_most_played" ? (
+                                    {!isDesktop && viewedPlaylistId === "smart_most_played" ? (
                                       <span style={{ color: COLORS.primary, fontSize: "11px", fontWeight: "bold", background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)", border: `1px solid ${COLORS.border}`, padding: "1px 7px", borderRadius: "10px", flexShrink: 0, display: "inline-flex", alignItems: "center", gap: "3px" }}>
                                         🔥 {(playCounts && playCounts[track.id]) || 0} {((playCounts && playCounts[track.id]) === 1) ? 'play' : 'plays'}
                                       </span>
