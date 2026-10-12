@@ -14,7 +14,12 @@ export function getRecentlyPlayedIds() {
   }
 }
 
-export function recordSongPlay(track) {
+/**
+ * Spotify-standard qualified play recorder:
+ * Called only when a track reaches >= 30 seconds of listening or completes playback.
+ * Updates Recently Played and increments device play counter.
+ */
+export function recordQualifiedPlay(track) {
   if (!track || !track.id) return;
   try {
     // 1. Update Recently Played list (keep most recent first, max 60)
@@ -28,10 +33,18 @@ export function recordSongPlay(track) {
     const counts = rawCounts ? JSON.parse(rawCounts) : {};
     counts[track.id] = (counts[track.id] || 0) + 1;
     localStorage.setItem(PLAY_COUNTS_KEY, JSON.stringify(counts));
+
+    // 3. Ensure at least 30 seconds logged for this qualified stream
+    const rawSeconds = localStorage.getItem(LISTEN_SECONDS_KEY);
+    const times = rawSeconds ? JSON.parse(rawSeconds) : {};
+    times[track.id] = Math.max(times[track.id] || 0, (counts[track.id] || 1) * 30);
+    localStorage.setItem(LISTEN_SECONDS_KEY, JSON.stringify(times));
   } catch (e) {
-    console.warn("Could not record song play:", e);
+    console.warn("Could not record qualified play:", e);
   }
 }
+
+export const recordSongPlay = recordQualifiedPlay;
 
 export function recordListeningDuration(trackId, seconds) {
   if (!trackId || !seconds || seconds <= 0) return;

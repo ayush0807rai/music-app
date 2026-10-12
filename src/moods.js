@@ -33,14 +33,65 @@ export const MOOD_KEYWORDS = {
   ]
 };
 
+const CUSTOM_MOODS_KEY = "euphony_custom_song_moods";
+
+export function getCustomMoodOverrides() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_MOODS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function setCustomSongMood(songId, mood) {
+  if (!songId) return getCustomMoodOverrides();
+  try {
+    const current = getCustomMoodOverrides();
+    if (mood && typeof mood === 'string' && mood.trim()) {
+      current[songId] = mood.trim();
+    } else {
+      delete current[songId];
+    }
+    localStorage.setItem(CUSTOM_MOODS_KEY, JSON.stringify(current));
+    return current;
+  } catch (e) {
+    return {};
+  }
+}
+
+export function clearCustomSongMoods() {
+  try {
+    localStorage.removeItem(CUSTOM_MOODS_KEY);
+  } catch (e) {}
+}
+
+export function getMoodEmoji(moodId) {
+  const match = AVAILABLE_MOODS.find(m => m.id === moodId);
+  return match ? match.emoji : '🎵';
+}
+
 /**
  * Returns an array of moods (e.g. ['Romantic', 'Chill']) for a given song.
- * Prioritizes user/database mood tag, then falls back to keyword analysis.
+ * Prioritizes user custom override, then database mood tag, then falls back to keyword analysis.
  */
-export function getSongMoods(song) {
+export function getSongMoods(song, customOverrides = null) {
   if (!song) return ['Chill'];
 
-  // 1. Explicit mood stored on track
+  // 1. User manual override (highest priority)
+  if (customOverrides && customOverrides[song.id]) {
+    return [customOverrides[song.id]];
+  }
+  if (!customOverrides && typeof window !== 'undefined') {
+    try {
+      const stored = getCustomMoodOverrides();
+      if (stored && stored[song.id]) {
+        return [stored[song.id]];
+      }
+    } catch (e) {}
+  }
+
+  // 2. Explicit mood stored on track (from database)
   if (song.mood && typeof song.mood === 'string' && song.mood.trim()) {
     const raw = song.mood.split(',').map(m => m.trim()).filter(Boolean);
     if (raw.length > 0) return raw;

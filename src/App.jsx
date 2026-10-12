@@ -27,13 +27,15 @@ import {
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
-import { AVAILABLE_MOODS, getSongMoods, suggestMood } from "./moods";
+import { AVAILABLE_MOODS, getSongMoods, suggestMood, getCustomMoodOverrides, setCustomSongMood, getMoodEmoji } from "./moods";
 import {
   getRecentlyPlayedIds,
   recordSongPlay,
+  recordQualifiedPlay,
   getPlayCounts,
   clearListeningHistory,
-  computeListeningStats
+  computeListeningStats,
+  recordListeningDuration
 } from "./statsManager";
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
@@ -544,6 +546,9 @@ export default function App() {
   const [showStatsModal, setShowStatsModal] = useState(false);
   const [recentlyPlayedIds, setRecentlyPlayedIds] = useState(getRecentlyPlayedIds);
   const [playCounts, setPlayCounts] = useState(getPlayCounts);
+  const [customMoodOverrides, setCustomMoodOverrides] = useState(() => getCustomMoodOverrides());
+  const [trackForOptions, setTrackForOptions] = useState(null);
+  const qualifiedPlayLoggedRef = useRef(null);
   const [uploadMood, setUploadMood] = useState("");
 
   const [songDurations, setSongDurations] = useState({});
@@ -793,6 +798,24 @@ export default function App() {
     setQueueToast(msg);
     toastTimeoutRef.current = setTimeout(() => setQueueToast(""), 1600);
   }, []);
+
+  const handleSetSongMood = useCallback((songId, moodId) => {
+    if (!songId) return;
+    const updated = setCustomSongMood(songId, moodId);
+    setCustomMoodOverrides({ ...updated });
+    if (moodId) {
+      triggerToast(`Category set to ${getMoodEmoji(moodId)} ${moodId}`);
+    } else {
+      triggerToast("Category reset to automatic");
+    }
+    try {
+      supabase.from('songs').update({ mood: moodId || null }).eq('id', songId).then(({ error }) => {
+        if (error) {
+          // Local override is authoritative if remote schema cache does not have mood column
+        }
+      });
+    } catch (e) {}
+  }, [triggerToast]);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
@@ -966,8 +989,7 @@ export default function App() {
         .filter(([_, cnt]) => cnt > 0)
         .sort((a, b) => b[1] - a[1])
         .map(([id]) => id);
-      const res = sortedIds.map(id => map.get(id)).filter(Boolean);
-      return res.length > 0 ? res : (playlist || []).slice(0, 30);
+      return sortedIds.map(id => map.get(id)).filter(Boolean);
     }
     return playlistSongs;
   }, [viewedPlaylistId, playlist, playlistSongs, recentlyPlayedIds, playCounts]);
@@ -978,7 +1000,7 @@ export default function App() {
     return [...rawViewedSongs]
       .filter(track => {
         if (viewedPlaylistId === null && selectedMood) {
-          const songMoods = getSongMoods(track);
+          const songMoods = getSongMoods(track, customMoodOverrides);
           if (!songMoods.includes(selectedMood)) return false;
         }
         if (selectedArtist) {
@@ -1012,7 +1034,7 @@ export default function App() {
         const valB = (b[currentSortKey] || "").toString().trim().toLowerCase();
         return valA.localeCompare(valB);
       });
-  }, [rawViewedSongs, viewedPlaylistId, selectedMood, selectedArtist, selectedAlbum, searchQuery, currentSortKey, songDurations]);
+  }, [rawViewedSongs, viewedPlaylistId, selectedMood, selectedArtist, selectedAlbum, searchQuery, currentSortKey, songDurations, customMoodOverrides]);
 
   const activePlaylistObj = useMemo(() => {
     if (viewedPlaylistId === "smart_recently_played") {
@@ -1027,17 +1049,17 @@ export default function App() {
   const moodCounts = useMemo(() => {
     const counts = { Romantic: 0, Chill: 0, Energetic: 0, Sad: 0 };
     (playlist || []).forEach(s => {
-      const moods = getSongMoods(s);
+      const moods = getSongMoods(s, customMoodOverrides);
       moods.forEach(m => {
         if (counts[m] !== undefined) counts[m]++;
       });
     });
     return counts;
-  }, [playlist]);
+  }, [playlist, customMoodOverrides]);
 
   const listeningStats = useMemo(() => {
-    return computeListeningStats(playlist, getSongMoods);
-  }, [playlist, playCounts]);
+    return computeListeningStats(playlist, s => getSongMoods(s, customMoodOverrides));
+  }, [playlist, playCounts, customMoodOverrides]);
   const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
   // Ensure playbackQueue is always hydrated with songs from the library if empty, trapped, or missing lyrics
@@ -2158,6 +2180,21 @@ export default function App() {
         if (currentInt % 2 === 0 && currentInt !== lastSavedTimeRef.current) {
           localStorage.setItem("euphony_current_time", time);
           lastSavedTimeRef.current = currentInt;
+          if (currentTrack?.id) {
+            recordListeningDuration(currentTrack.id, 2);
+          }
+        }
+
+        // Spotify-standard qualified play:
+        // A song counts as a qualified play only after listening for at least 30 seconds
+        // (or when reaching the end if song duration is under 30s).
+        const dur = audioRef.current.duration;
+        const isQualifiedTime = time >= 30 || (isFinite(dur) && dur > 0 && dur < 30 && time >= dur - 0.5);
+        if (isQualifiedTime && currentTrack?.id && qualifiedPlayLoggedRef.current !== currentTrack.id) {
+          qualifiedPlayLoggedRef.current = currentTrack.id;
+          recordQualifiedPlay(currentTrack);
+          setRecentlyPlayedIds(getRecentlyPlayedIds());
+          setPlayCounts(getPlayCounts());
         }
 
         if ('mediaSession' in navigator && audioRef.current && isFinite(audioRef.current.duration) && audioRef.current.duration > 0) {
@@ -2604,11 +2641,7 @@ export default function App() {
 
   const playTrackWithMetadata = (track, audioEl, cacheMap) => {
     if (!audioEl || !track) return;
-    try {
-      recordSongPlay(track);
-      setRecentlyPlayedIds(getRecentlyPlayedIds());
-      setPlayCounts(getPlayCounts());
-    } catch (e) {}
+    qualifiedPlayLoggedRef.current = null; // Reset per-playback qualified session
     if (restoreInitialTimeHandlerRef.current) {
       audioEl.removeEventListener('loadedmetadata', restoreInitialTimeHandlerRef.current);
       restoreInitialTimeHandlerRef.current = null;
@@ -3144,7 +3177,16 @@ export default function App() {
   };
 
   const handleTrackEnded = () => {
+    // Spotify qualification fallback: If song completes playback (e.g. track < 30s) and hasn't logged yet
+    if (currentTrack?.id && qualifiedPlayLoggedRef.current !== currentTrack.id) {
+      qualifiedPlayLoggedRef.current = currentTrack.id;
+      recordQualifiedPlay(currentTrack);
+      setRecentlyPlayedIds(getRecentlyPlayedIds());
+      setPlayCounts(getPlayCounts());
+    }
+
     if (playMode === "repeat-one") {
+      qualifiedPlayLoggedRef.current = null; // Next repeat iteration can qualify again
       resetPlaybackTime();
       audioRef.current?.play().catch(() => {});
       if (currentTrack?.stem_vocals && !stemsBroken) {
@@ -4823,44 +4865,102 @@ export default function App() {
       )}
 
       {/* TRACK OPTIONS MODAL */}
-      {renderTrackOptions && currentTrack && (
-        <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); }}>
-          <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "340px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "24px", textAlign: "center" }}>
-              <div style={{ width: "140px", height: "140px", borderRadius: "16px", overflow: "hidden", marginBottom: "16px", boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.5)" : "0 8px 24px rgba(26,43,76,0.15)", backgroundColor: COLORS.imageBg }}>
-                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={32} color={COLORS.textMuted} />}
+      {renderTrackOptions && (trackForOptions || currentTrack) && (() => {
+        const targetTrackForOptions = trackForOptions || currentTrack;
+        const currentAssignedMoods = getSongMoods(targetTrackForOptions, customMoodOverrides);
+        const hasManualOverride = !!customMoodOverrides[targetTrackForOptions.id];
+        return (
+          <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); setTrackForOptions(null); }}>
+            <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "28px 24px", borderRadius: "20px", width: "100%", maxWidth: "350px", position: "relative", maxHeight: "85vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
+              <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); setTrackForOptions(null); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+              
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "20px", textAlign: "center" }}>
+                <div style={{ width: "120px", height: "120px", borderRadius: "16px", overflow: "hidden", marginBottom: "14px", boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.5)" : "0 8px 24px rgba(26,43,76,0.15)", backgroundColor: COLORS.imageBg }}>
+                  {targetTrackForOptions.poster_url ? <img src={targetTrackForOptions.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={32} color={COLORS.textMuted} />}
+                </div>
+                <h2 style={{ margin: "0", fontSize: "20px", fontWeight: "800", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{targetTrackForOptions.title}</h2>
+                <div style={{ fontSize: "14px", color: songTheme.textMuted, marginTop: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{targetTrackForOptions.artist}</div>
               </div>
-              <h2 style={{ margin: "0", fontSize: "22px", fontWeight: "800", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{currentTrack.title}</h2>
-            </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
-                <User size={18} /> Go to artists
+              {/* CHANGE MOOD / CATEGORY SELECTOR */}
+              <div style={{ marginBottom: "16px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.5px", color: songTheme.textMuted }}>
+                    Mood / Category
+                  </span>
+                  {hasManualOverride && (
+                    <button
+                      onClick={() => handleSetSongMood(targetTrackForOptions.id, null)}
+                      style={{ background: "transparent", border: "none", color: COLORS.textMuted, fontSize: "11px", cursor: "pointer", textDecoration: "underline", padding: 0 }}
+                    >
+                      Reset to auto
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                  {AVAILABLE_MOODS.map(m => {
+                    const isSelected = currentAssignedMoods.includes(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => handleSetSongMood(targetTrackForOptions.id, m.id)}
+                        className="hover-effect"
+                        style={{
+                          background: isSelected ? `${m.color}25` : (isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(26,43,76,0.05)"),
+                          border: isSelected ? `2px solid ${m.color}` : `1px solid ${isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)"}`,
+                          borderRadius: "10px",
+                          padding: "8px 10px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "6px",
+                          color: isSelected ? (isDarkMode ? "#ffffff" : m.color) : songTheme.textColor,
+                          fontWeight: isSelected ? "bold" : "600",
+                          fontSize: "13px",
+                          cursor: "pointer",
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        <span>{m.emoji}</span>
+                        <span>{m.label}</span>
+                        {isSelected && <span style={{ marginLeft: "auto", fontSize: "12px", color: m.color, fontWeight: "bold" }}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div onClick={() => { openedFromTrackOptionsRef.current = true; setSongForPlaylistModal(currentTrack); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
-                <FolderPlus size={18} /> Add to playlist
-              </div>
-              <div onClick={(e) => { openedFromTrackOptionsRef.current = false; addToQueue(currentTrack, e); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
-                <ListPlus size={18} /> Add to Queue
-              </div>
-              <div onClick={() => { openedFromTrackOptionsRef.current = true; if (isDesktopFullscreen) { setShowFullscreenQueueModal(true); } else { setShowQueue(true); if (isMobilePlayerOpen) setIsMobilePlayerOpen(true); } setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
-                <ListMusic size={18} /> Go to Queue
-              </div>
-              <div onClick={() => { openedFromTrackOptionsRef.current = false; setSelectedAlbum(currentTrack.album || currentTrack.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
-                <Disc size={18} /> Go to album
-              </div>
-              <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
-                <Clock size={18} /> Sleep timer
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowTrackArtistsModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                  <User size={18} /> Go to artists
+                </div>
+                <div onClick={() => { openedFromTrackOptionsRef.current = true; setSongForPlaylistModal(targetTrackForOptions); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                  <FolderPlus size={18} /> Add to playlist
+                </div>
+                <div onClick={(e) => { openedFromTrackOptionsRef.current = false; addToQueue(targetTrackForOptions, e); setShowTrackOptionsModal(false); setTrackForOptions(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                  <ListPlus size={18} /> Add to Queue
+                </div>
+                <div onClick={() => { openedFromTrackOptionsRef.current = true; if (isDesktopFullscreen) { setShowFullscreenQueueModal(true); } else { setShowQueue(true); if (isMobilePlayerOpen) setIsMobilePlayerOpen(true); } setShowTrackOptionsModal(false); setTrackForOptions(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                  <ListMusic size={18} /> Go to Queue
+                </div>
+                <div onClick={() => { openedFromTrackOptionsRef.current = false; setSelectedAlbum(targetTrackForOptions.album || targetTrackForOptions.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); setTrackForOptions(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                  <Disc size={18} /> Go to album
+                </div>
+                {currentTrack?.id === targetTrackForOptions.id && (
+                  <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                    <Clock size={18} /> Sleep timer
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* TRACK ARTISTS MODAL */}
-      {renderTrackArtists && currentTrack && (
+      {renderTrackArtists && (trackForOptions || currentTrack) && (() => {
+        const targetTrackForArtists = trackForOptions || currentTrack;
+        return (
         <div
           className={trackArtistsClosing ? "fade-exit" : "fade-enter"}
           style={{
@@ -4919,7 +5019,7 @@ export default function App() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
+                {(targetTrackForArtists.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
                   const dbArtist = (dbArtists || []).find(a => a.name.toLowerCase() === artistName.toLowerCase());
                   return (
                     <div
@@ -5006,7 +5106,7 @@ export default function App() {
                 </button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {(currentTrack.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
+                {(targetTrackForArtists.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
                   const dbArtist = (dbArtists || []).find(a => a.name.toLowerCase() === artistName.toLowerCase());
                   return (
                     <div
@@ -5052,7 +5152,8 @@ export default function App() {
             </SwipeableBottomSheet>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* FULLSCREEN QUEUE MODAL */}
       {renderFullscreenQueue && currentTrack && (
@@ -5365,6 +5466,30 @@ export default function App() {
                           Clear History
                         </button>
                       )}
+                      {activePlaylistObj?.id === "smart_most_played" && rawViewedSongs.length > 0 && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm("Reset your play counts and most played playlist on this device?")) {
+                              clearListeningHistory();
+                              setPlayCounts({});
+                              setRecentlyPlayedIds([]);
+                            }
+                          }}
+                          style={{
+                            background: "transparent",
+                            color: COLORS.textMuted,
+                            border: `1px solid ${COLORS.border}`,
+                            borderRadius: "20px",
+                            padding: "6px 14px",
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            cursor: "pointer"
+                          }}
+                          className="hover-effect"
+                        >
+                          Reset Plays
+                        </button>
+                      )}
                     </div>
                     
                     <div onClick={() => document.getElementById("playlist-search-input")?.focus()} style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "10px 16px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, cursor: "text", width: isDesktop ? "180px" : "100%", boxSizing: "border-box" }}>
@@ -5396,7 +5521,7 @@ export default function App() {
                       <span>#</span>
                       <span>Title</span>
                       {isDesktop && <span>Album</span>}
-                      {isDesktop && <span>Date added</span>}
+                      {isDesktop && <span>{viewedPlaylistId === "smart_most_played" ? "Plays" : "Date added"}</span>}
                       <span style={{ textAlign: "right" }}><Clock size={16} /></span>
                     </div>
 
@@ -5413,17 +5538,51 @@ export default function App() {
                                 </div>
                                 <div style={{ minWidth: 0, flex: 1 }}>
                                   <div style={{ fontSize: "15px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
-                                  <div style={{ fontSize: "13px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
+                                  <div style={{ fontSize: "13px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</span>
+                                    {viewedPlaylistId === "smart_most_played" ? (
+                                      <span style={{ color: COLORS.primary, fontSize: "11px", fontWeight: "bold", background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)", border: `1px solid ${COLORS.border}`, padding: "1px 7px", borderRadius: "10px", flexShrink: 0, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                                        🔥 {(playCounts && playCounts[track.id]) || 0} {((playCounts && playCounts[track.id]) === 1) ? 'play' : 'plays'}
+                                      </span>
+                                    ) : (
+                                      customMoodOverrides[track.id] && (
+                                        <span style={{ color: COLORS.primary, fontSize: "11px", fontWeight: "bold", background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)", border: `1px solid ${COLORS.border}`, padding: "1px 6px", borderRadius: "8px", flexShrink: 0 }}>
+                                          {getMoodEmoji(customMoodOverrides[track.id])} {customMoodOverrides[track.id]}
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                               {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || '-'}</span>}
-                              {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at || track.created_at)}</span>}
+                              {isDesktop && (
+                                viewedPlaylistId === "smart_most_played" ? (
+                                  <span style={{ color: COLORS.primary, fontSize: "14px", fontWeight: "700", paddingRight: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                    🔥 {(playCounts && playCounts[track.id]) || 0} {((playCounts && playCounts[track.id]) === 1) ? 'play' : 'plays'}
+                                  </span>
+                                ) : (
+                                  <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at || track.created_at)}</span>
+                                )
+                              )}
                               <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "4px", flexShrink: 0 }}>
                                 <button title="Add to Queue" onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} /></button>
                                 <button title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} /></button>
                                 {!activePlaylistObj?.isSmart && (
                                   <button title="Remove from playlist" onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} /></button>
                                 )}
+                                <button
+                                  title="Options & Category"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openedFromTrackOptionsRef.current = false;
+                                    setTrackForOptions(track);
+                                    setShowTrackOptionsModal(true);
+                                  }}
+                                  style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }}
+                                  className="hover-effect"
+                                >
+                                  <MoreVertical size={isDesktop ? 18 : 16} />
+                                </button>
                                 {isSelected && isPlaying && (
                                   <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
                                     <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
@@ -5440,7 +5599,15 @@ export default function App() {
                   </>
                 ) : (
                   <div style={{ textAlign: "center", padding: "80px 0", color: COLORS.textMuted }}>
-                    <p style={{ margin: 0, fontSize: "16px" }}>{searchQuery ? `No results for "${searchQuery}".` : "This playlist is empty."}</p>
+                    <p style={{ margin: 0, fontSize: "16px" }}>
+                      {searchQuery
+                        ? `No results for "${searchQuery}".`
+                        : (viewedPlaylistId === "smart_most_played"
+                            ? "No tracks played yet! Listen to any song for 30 seconds or more to see it ranked here."
+                            : (viewedPlaylistId === "smart_recently_played"
+                                ? "No recently played tracks yet. Start listening to build your history!"
+                                : "This playlist is empty."))}
+                    </p>
                   </div>
                 )}
               </div>
@@ -5623,7 +5790,14 @@ export default function App() {
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
-                              <div style={{ fontSize: "14px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</div>
+                              <div style={{ fontSize: "14px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
+                                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</span>
+                                {customMoodOverrides[track.id] && (
+                                  <span style={{ color: COLORS.primary, fontSize: "11px", fontWeight: "bold", background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)", border: `1px solid ${COLORS.border}`, padding: "1px 6px", borderRadius: "8px", flexShrink: 0 }}>
+                                    {getMoodEmoji(customMoodOverrides[track.id])} {customMoodOverrides[track.id]}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                           {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || '-'}</span>}
@@ -5640,6 +5814,19 @@ export default function App() {
                                 <FolderPlus size={isDesktop ? 18 : 16} />
                               </button>
                             )}
+                            <button
+                              title="Options & Category"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openedFromTrackOptionsRef.current = false;
+                                setTrackForOptions(track);
+                                setShowTrackOptionsModal(true);
+                              }}
+                              style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }}
+                              className="hover-effect"
+                            >
+                              <MoreVertical size={isDesktop ? 18 : 16} />
+                            </button>
                             {isSelected && isPlaying && (
                               <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
                                 <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
