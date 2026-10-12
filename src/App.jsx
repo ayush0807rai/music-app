@@ -5766,7 +5766,7 @@ export default function App() {
 
           {/* MOBILE QUICK ACTION PILLS (Recent, Top, Stats) - BETWEEN PLAYLIST SECTION AND TOP ARTIST SECTION */}
           {!isDesktop && !selectedArtist && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "20px", flexShrink: 0 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "28px", flexShrink: 0 }}>
               <button
                 onClick={() => handleSwitchPlaylist("smart_recently_played")}
                 className="hover-effect"
@@ -6021,7 +6021,7 @@ export default function App() {
               /* GLOBAL LIBRARY VIEW */
               <div>
                 {visibleTopArtists.length > 0 && !searchQuery && !selectedArtist && !selectedAlbum && (
-                  <div style={{ marginBottom: "32px", paddingLeft: isDesktop ? "16px" : "0" }}>
+                  <div style={{ marginBottom: isDesktop ? "32px" : "20px", paddingLeft: isDesktop ? "16px" : "0" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
                       <h3 style={{ fontSize: "20px", fontWeight: "bold", color: COLORS.primary, margin: 0 }}>Top Artists</h3>
                       <button
@@ -6048,7 +6048,7 @@ export default function App() {
                         <span>Shuffle</span>
                       </button>
                     </div>
-                    <div ref={handleTopArtistsRef} style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px" }} className="custom-scrollbar">
+                    <div ref={handleTopArtistsRef} style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: isDesktop ? "12px" : "8px" }} className="custom-scrollbar">
                       {visibleTopArtists.map(artist => (
                         <div key={artist.name} onClick={() => setSelectedArtist(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
                           <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.imageBg, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>

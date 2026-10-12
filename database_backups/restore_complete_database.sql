@@ -1,6 +1,6 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-12T17:40:34.526Z
+-- Generated: 2026-10-12T18:36:31.817Z
 -- Total: 132 songs, 88 artists, 19 playlists, 63 playlist_songs
 -- ====================================================
 
@@ -1546,7 +1546,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Kamariya',
   'Darshan Raval, Lijo George, Dj Chetas',
   'Mitron',
-  '[00:00.74] ઓ, હાલો
+  '[mood: Party]
+[00:00.74] ઓ, હાલો
 [00:03.41] કમરિયા, કમરિયા
 [00:11.23] કમરિયા, કમરિયા
 [00:17.48] 
@@ -1599,7 +1600,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:38.47] સૂતો સૂનીડો જાગ્યો જવાન લાગલ
 [03:42.35] ભંમરિયા રે, લાલ ભંમરિયા
 [03:46.00] ભંમરિયા રે, લાલ ભંમરિયા
-[03:50.13] ',
+[03:50.13]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528470/zmhtalikzui2uyeygiqp.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528471/fhyyf5whhkhixh9pbxcl.jpg',
   NULL,
@@ -2845,7 +2846,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Kiss Me More',
   'Doja Cat, SZA',
   'Planet Her',
-  '[00:09.18] We hug and, yes, we make love
+  '[mood: Pop]
+[00:09.18] We hug and, yes, we make love
 [00:12.31] And always just say, "Goodnight" (la-la-la, la-la-la)
 [00:17.03] And we cuddle, sure, I do love it
 [00:21.42] But I need your lips on mine
@@ -2911,7 +2913,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:10.35] Boy, you write your name, I can do the same
 [03:13.66] Ooh, I love the taste, oh-la-la-la-la-la
 [03:16.82] All on my tongue, I want it
-[03:18.35] ',
+[03:18.35]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529003/zst0t2cgzixzy1z0nuqv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529004/ahg3if1zmghup9wqvtyo.jpg',
   NULL,
@@ -2927,7 +2929,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Harleys In Hawaii',
   'Katy Perry',
   'Smile',
-  '[00:07.27] Boy, tell me, can you take my breath away?
+  '[mood: Energetic]
+[00:07.27] Boy, tell me, can you take my breath away?
 [00:11.26] Cruisin'' down a heart-shaped highway
 [00:13.94] Got you swervin'' lane-to-lane, don''t hit the brakes
 [00:18.06] ''Cause I''m feelin'' so safe
@@ -2976,7 +2979,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:52.54] Call me your baby, catch the same wave
 [02:54.59] Oh, whoa
 [02:57.19] We''re ridin'' Harleys in Hawaii-i
-[02:57.96] ',
+[02:57.96]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529018/ea3zwyph4dandh0o38zs.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529019/mqegtilwpu9i9vk2smpu.jpg',
   NULL,
@@ -2992,7 +2995,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Woman',
   'Doja Cat',
   'Planet Her',
-  '[00:06.92] Hey, woman
+  '[mood: Pop]
+[00:06.92] Hey, woman
 [00:09.91] Hey, woman
 [00:19.06] (Ay) woman, let me be your woman
 [00:22.66] Woman, woman, woman (ay)
@@ -3050,7 +3054,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:35.57] Eh (hey, woman)
 [02:40.50] Eh (hey, woman) mm
 [02:44.93] Mm, mm (hey, woman, hey, woman)
-[02:47.21] ',
+[02:47.21]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529037/j8jzr5nhoz7evmvfd0ct.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529039/zhdsgp0jgddtem0qnk6d.jpg',
   NULL,
@@ -3118,7 +3122,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Yun Hi Chala Chal',
   'A.R. Rahman, Udit Narayan, Hariharan, Kailash Kher, Javed Akhtar',
   'Swades',
-  '[00:14.74] पा मा, सा नि, नि धा, धा मा
+  '[mood: Classical]
+[00:14.74] पा मा, सा नि, नि धा, धा मा
 [00:19.15] पा मा, सा नि, नि धा, धा मा
 [00:21.96] 
 [00:46.15] यूँ ही चला-चल, राही, यूँ ही चला-चल, राही
@@ -3192,7 +3197,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [06:35.07] यूँ ही चला-चल, राही
 [06:39.51] सा नि सा सा, सा नि सा सा
 [06:42.18] कितनी हसीन ये दुनिया
-[06:47.93] ',
+[06:47.93]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529071/rx4ktnzashfyzy0fk4s7.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529073/rq8ivgpznmeul8gesyqq.png',
   NULL,
@@ -3208,7 +3213,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Chand Sifarish',
   'Jatin–Lalit, Shaan, Kailash Kher, Prasoon Joshi',
   'Fanaa',
-  '[00:22.92] सुभान अल्लाह, सुभान अल्लाह
+  '[mood: Romantic]
+[00:22.92] सुभान अल्लाह, सुभान अल्लाह
 [00:26.64] सुभान अल्लाह, सुभान अल्लाह
 [00:30.46] सुभान अल्लाह, सुभान अल्लाह
 [00:34.27] सुभान अल्लाह, सुभान अल्लाह
@@ -3244,7 +3250,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:03.88] करनी है हमको खता
 [04:07.55] ज़िद है अब तो है ख़ुद को मिटाना
 [04:11.53] होना हैं तुझमें फना
-[04:16.87] ',
+[04:16.87]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529092/tht7q9hhmivbuuwlg6fd.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529093/nh3hwhjuc5tomrcdxha0.png',
   NULL,
@@ -3260,7 +3266,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Bole Chudiyan',
   'Jatin-Lalit, Amit Kumar, Sonu Nigam, Alka Yagnik, Udit Narayan, Kavita Krishnamurthy, Sameer',
   'Kabhi Khushi Kabhie Gham',
-  '[00:00.56] बोलें चूड़ियाँ, बोले कंगना
+  '[mood: Energetic]
+[00:00.56] बोलें चूड़ियाँ, बोले कंगना
 [00:06.82] ਹਾਏ, ਮੈਂ ਹੋ ਗਈ ਤੇਰੀ, ਸਾਜਣਾ
 [00:13.42] ਤੇਰੇ ਬਿਨ ਜੀਉ ਨਹੀਓਂ ਲਗਦਾ
 [00:16.43] ਮੈਂ ਤੇ ਮਰ ਗਈਆਂ
@@ -3325,7 +3332,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [06:32.25] कभी खुशी, कभी ग़म
 [06:36.44] ना ज़ुदा होंगे हम
 [06:40.79] कभी खुशी, कभी ग़म
-[06:47.34] ',
+[06:47.34]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529116/cwncgc8ycstnxepcnjcv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529117/ko7rj7ixhtuhuibkezki.png',
   NULL,
@@ -3341,7 +3348,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' You Are My Soniya',
   'Sandesh Shandilya, Sonu Nigam, Alka Yagnik, Sameer',
   'Kabhi Khushi Kabhie Gham',
-  '[00:03.59] देखा तुमको जबसे, बस देखा तुमको, यारा
+  '[mood: Party]
+[00:03.59] देखा तुमको जबसे, बस देखा तुमको, यारा
 [00:12.99] तुमसे कोई अच्छा है ना तुमसे कोई प्यारा
 [00:17.87] 
 [00:22.36] यूँ नज़रें ना फेरो तुम, मेरे हो, मेरे तुम
@@ -3408,7 +3416,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [05:28.21] कह दिया, कह दिया, "You are my ਸੋਹਨਿਆ"
 [05:33.03] You are, you are my ਸੋਹਨਿਆ
 [05:37.34] You (you) are, (you are), you are my ਸੋਹਨਿਆ
-[05:41.24] ',
+[05:41.24]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529147/qgcragad7keykt3pkpvd.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529148/mdierbgjbnbm1ad0jfuc.png',
   NULL,
@@ -3424,7 +3432,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Sunflower',
   'Post Malone, Swae Lee',
   'Spider-Man: Into the Spider-Verse',
-  '[00:03.81] Ayy, ayy, ayy, ayy (ooh)
+  '[mood: Pop]
+[00:03.81] Ayy, ayy, ayy, ayy (ooh)
 [00:08.78] Ooh, ooh, ooh, oooh (ooh)
 [00:14.32] Ayy, ayy
 [00:19.33] Ooh, ooh, ooh, oooh
@@ -3473,7 +3482,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:19.46] You''re the sunflower
 [02:22.42] You''re the sunflower
 [02:24.80] Yeah
-[02:26.48] ',
+[02:26.48]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529160/yitg8fhg1b7gmvxh5r3y.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529161/vn5jghnmqchbs8pvjv9a.png',
   NULL,
@@ -3489,7 +3498,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Intentions',
   'Justin Bieber, Quavo',
   'Changes',
-  '[00:13.43] Picture perfect, you don''t need no filter
+  '[mood: Romantic]
+[00:13.43] Picture perfect, you don''t need no filter
 [00:16.75] Gorgeous, make ''em drop dead, you''re a killer
 [00:19.81] Shower you with all my attention
 [00:23.22] Yeah, these are my only intentions
@@ -3550,7 +3560,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:11.83] Yeah, these are my only intentions
 [03:14.27] Only intentions
 [03:17.17] That''s all I plan to do
-[03:18.75] ',
+[03:18.75]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529171/dpyb8ck77thrk5dqvirg.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529172/gjbo2seoouvdfrrgz7zs.jpg',
   NULL,
@@ -3566,7 +3576,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Let Me Love You',
   'DJ Snake, Justin Bieber',
   'Encore',
-  '[00:09.04] I used to believe
+  '[mood: Pop]
+[00:09.04] I used to believe
 [00:11.46] We were burning on the edge of something beautiful
 [00:16.22] Something beautiful
 [00:18.62] Selling a dream
@@ -3627,7 +3638,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:13.92] I won''t give up, nah-nah-nah
 [03:16.23] Let me love you
 [03:18.51] Let me love you
-[03:20.20] ',
+[03:20.20]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529181/xcvysvckusjyic1gl7ka.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529183/ypjer44utgj7gcpzc7im.jpg',
   NULL,
@@ -3643,7 +3654,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Closer',
   'The Chainsmokers, Halsey',
   'Collage',
-  '[00:10.16] Hey, I was doing just fine before I met you
+  '[mood: Pop]
+[00:10.16] Hey, I was doing just fine before I met you
 [00:14.59] I drink too much and that''s an issue, but I''m okay
 [00:20.32] Hey, you tell your friends it was nice to meet them
 [00:24.98] But I hope I never see them again
@@ -3708,7 +3720,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:39.26] We ain''t ever getting older
 [03:44.92] 
 [03:49.13] No, we ain''t ever getting older
-[03:51.39] ',
+[03:51.39]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529199/vhpeutggs2wc9igw4u2k.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529202/befc7s8gvd8dcps9fzda.png',
   NULL,
@@ -3724,7 +3736,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'All The Stars',
   'Kendrick Lamar, SZA',
   'Black Panther',
-  '[00:19.84] Love, let''s talk about love
+  '[mood: Pop]
+[00:19.84] Love, let''s talk about love
 [00:24.16] Is it anything and everything you hoped for?
 [00:28.55] Or do the feeling haunt you? (Haunt)
 [00:33.56] I know the feeling haunt you (haunt)
@@ -3792,7 +3805,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:30.59] All the stars are closer
 [03:33.14] All the stars are closer
 [03:35.60] All the stars are closer
-[03:36.98] ',
+[03:36.98]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529236/kprwvk6zpokkxpnvgdws.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529237/e6f9shszpnup0bca53se.jpg',
   NULL,
@@ -3808,7 +3821,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'What Makes You Beautiful',
   'One Direction',
   'Up All Night',
-  '[00:07.77] You''re insecure, don''t know what for
+  '[mood: Romantic]
+[00:07.77] You''re insecure, don''t know what for
 [00:11.26] You''re turning heads when you walk through the door
 [00:15.24] Don''t need makeup to cover up
 [00:18.86] Being the way that you are is enough
@@ -3864,8 +3878,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:06.69] You don''t know you''re beautiful, oh, oh-oh
 [03:10.64] You don''t know you''re beautiful, oh, oh-oh
 [03:14.20] That''s what makes you beautiful
-[03:17.51]
-',
+[03:17.51]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529268/toy9lvbpxvccjvc698yj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529270/fftwzvbrxapggyg4nfrh.png',
   NULL,
@@ -3881,7 +3894,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Night Changes',
   'One Direction',
   'FOUR',
-  '[00:08.27] Going out tonight, changes into something red
+  '[mood: Chill]
+[00:08.27] Going out tonight, changes into something red
 [00:12.69] Her mother doesn''t like that kind of dress
 [00:16.28] Everything she never had, she''s showing off
 [00:21.06] 
@@ -3928,7 +3942,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:26.64] It will never change, baby
 [03:30.61] It will never change, baby
 [03:34.67] It will never change me and you
-[03:38.42] ',
+[03:38.42]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529289/jz0vkwegwerklinh0mmj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529290/lafcjramlajvy4nevuaw.png',
   NULL,
@@ -3944,7 +3958,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Steal My Girl',
   'One Direction',
   'FOUR',
-  '[00:24.77] She''s been my queen since we were 16
+  '[mood: Romantic]
+[00:24.77] She''s been my queen since we were 16
 [00:27.65] We want the same things, we dream the same dreams
 [00:30.96] Alright, alright
 [00:34.78] 
@@ -4006,7 +4021,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:34.95] Na, na, na, na, na-na (Alright)
 [03:37.87] Na, na, na, na, na-na
 [03:42.47] She belongs to me
-[03:44.38] ',
+[03:44.38]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529316/bagsmhoukigiiatmgbwo.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529317/ilmdx2qi1eetxmsvcjs7.png',
   NULL,
@@ -4022,7 +4037,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'How Long',
   'Charlie Puth',
   'Voicenotes',
-  '[00:02.43] Alright
+  '[mood: Energetic]
+[00:02.43] Alright
 [00:06.00] Ooh-oh, yeah
 [00:10.63] I''ll admit, I was wrong, what else can I say, girl?
 [00:15.50] Can''t you blame my head and not my heart
@@ -4081,7 +4097,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:12.77] Ooh-ooh-ooh-hoo-ooh-ooh (you''ve been actin'' so shady)
 [03:14.21] (I''ve been feelin'' it lately)
 [03:15.92] Baby
-[03:16.47] ',
+[03:16.47]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529335/nptzntvitnywhn1pkh9m.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529337/dcou9h7lgnkldgubyj7z.png',
   NULL,
@@ -4097,7 +4113,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Attention',
   'Charlie Puth',
   'Voicenotes',
-  '[00:04.66] Whoa-oh, hmm
+  '[mood: Pop]
+[00:04.66] Whoa-oh, hmm
 [00:09.26] You''ve been running ''round, running ''round
 [00:11.19] Running ''round, throwing that dirt all on my name
 [00:14.12] ''Cause you knew that I, knew that I
@@ -4161,7 +4178,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:13.32] Yeah, you just want attention
 [03:15.37] I knew from the start
 [03:17.88] You''re just making sure I''m never getting over you, oh
-[03:22.52] ',
+[03:22.52]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529360/pisrgjsb0otivo3sp5ng.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529361/l4bvfraaozjsgqqnykcu.png',
   NULL,
@@ -4177,7 +4194,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Stitches',
   'Shawn Mendes',
   'Handwritten',
-  '[00:07.13] I thought that I''ve been hurt before
+  '[mood: Pop]
+[00:07.13] I thought that I''ve been hurt before
 [00:12.56] But no one''s ever left me quite this sore
 [00:19.66] Your words cut deeper than a knife
 [00:25.11] Now I need someone to breathe me back to life
@@ -4232,7 +4250,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:15.17] Yeah, I''ll be needing stitches
 [03:17.44] And now that I''m without your kisses
 [03:21.56] Yeah, I''ll be needing stitches
-[03:24.65] ',
+[03:24.65]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529379/o90i0ilqi4eqczuxzx2i.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529380/fjualfi4tzsdxct2tcpq.png',
   NULL,
@@ -4248,7 +4266,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Photograph',
   'Ed Sheeran',
   '× (Multiply)',
-  '[00:16.82] Loving can hurt
+  '[mood: Chill]
+[00:16.82] Loving can hurt
 [00:21.24] Loving can hurt sometimes
 [00:25.60] But it''s the only thing
 [00:28.50] That I know
@@ -4306,7 +4325,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:02.34] Under the lamppost back on 6th street
 [04:06.74] Hearing you whisper through the phone
 [04:11.14] Wait for me to come home
-[04:13.69] ',
+[04:13.69]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529397/hovqis6m092eqylhpfvj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529398/lk8yhbuy1sbpniw8ibbb.png',
   NULL,
@@ -4322,7 +4341,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'A Thousand Years',
   'Christina Perri',
   'A Thousand Years (7" Vinyl)',
-  '[00:20.76] Heart beats fast
+  '[mood: Romantic]
+[00:20.76] Heart beats fast
 [00:24.71] Colors and promises
 [00:29.76] How to be brave?
 [00:32.38] How can I love when I''m afraid to fall?
@@ -4361,7 +4381,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:58.03] Time has brought your heart to me
 [04:00.74] I have loved you for a thousand years
 [04:07.06] I''ll love you for a thousand more
-[04:11.57] ',
+[04:11.57]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529421/bjehblz5kqk86o1muiu7.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529423/u45aepjyiawii0lbicq0.png',
   NULL,
@@ -4377,7 +4397,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'The Night We Met',
   'Lord Huron',
   'Strange Trails',
-  '[00:31.05] I am not the only traveler
+  '[mood: Chill]
+[00:31.05] I am not the only traveler
 [00:38.05] Who has not repaid his debt
 [00:44.35] I''ve been searching for a trail to follow again
 [00:51.38] Take me back to the night we met
@@ -4401,7 +4422,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:40.16] I don''t know what I''m supposed to do
 [02:42.84] Haunted by the ghost of you
 [02:47.20] Take me back to the night we met
-[02:51.52] ',
+[02:51.52]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529445/wd84ro2wtndr1yvdao6k.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529446/ubczdjd0bq2kfksdlq2g.jpg',
   NULL,
@@ -4417,7 +4438,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Shape of You',
   'Ed Sheeran',
   '÷ (Divide)',
-  '[00:09.85] The club isn''t the best place to find a lover
+  '[mood: Energetic]
+[00:09.85] The club isn''t the best place to find a lover
 [00:12.18] So the bar is where I go (mm-mm)
 [00:14.90] Me and my friends at the table doing shots
 [00:17.18] Drinking fast, and then we talk slow (mm-mm)
@@ -4509,7 +4531,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:43.17] Come on, be my baby, come on (I''m in love with your body)
 [03:45.39] Every day discovering something brand new
 [03:48.44] I''m in love with the shape of you
-[03:50.39] ',
+[03:50.39]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529474/xt9flbfvc6ivkce7z696.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529475/lqurgvf04r8r0bswevoc.png',
   NULL,
@@ -4525,7 +4547,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Dandelions',
   'Ruth B.',
   'Safe Haven',
-  '[00:12.68] Maybe it''s the way you say my name
+  '[mood: Romantic]
+[00:12.68] Maybe it''s the way you say my name
 [00:18.74] Maybe it''s the way you play your game
 [00:23.44] But it''s so good, I''ve never known anybody like you
 [00:29.89] But it''s so good, I''ve never dreamed of nobody like you
@@ -4565,7 +4588,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:24.18] Wishing on dandelions all of the time, all of the time
 [03:31.11] I''m in a field of dandelions
 [03:33.96] Wishing on every one that you''d be mine, mine
-[03:39.95] ',
+[03:39.95]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529498/a8kflx91ycgyoxzreuao.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529499/sryvgsfzvmbeft8i4nxr.png',
   NULL,
@@ -4581,7 +4604,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Until I Found You (Em Beihold Version)',
   'Stephen Sanchez, Em Beihold',
   'Angel Face (Club Deluxe)',
-  '[00:10.46] Georgia, wrap me up in all your-
+  '[mood: Romantic]
+[00:10.46] Georgia, wrap me up in all your-
 [00:16.88] I want you in my arms
 [00:22.05] Oh, let me hold you
 [00:27.46] I''ll never let you go again like I did
@@ -4604,7 +4628,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:24.00] I said, "I would never fall unless it''s you I fall into"
 [02:30.98] I was lost within the darkness, but then I found her
 [02:37.70] I found you
-[02:43.43] ',
+[02:43.43]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529546/rocl7kecvkruhw6zp6lj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529547/er2zyewbehtlhbshx3qx.png',
   NULL,
@@ -4678,7 +4702,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Dard - E - Disco',
   'Vishal-Shekhar, Sukhwinder Singh, Marianne, Nisha, Caralisa, Javed Akhtar',
   'Om Shanti Om',
-  '[00:18.40] वो हसीना वो नीलमपरी
+  '[mood: Energetic]
+[00:18.40] वो हसीना वो नीलमपरी
 [00:20.40] कर गई कैसे जादूगरी
 [00:22.60] नींद इन आँखों से छीन ली है
 [00:25.00] दिल में बेचैनियाँ है भरी
@@ -4760,7 +4785,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:11.31] Wanna hug me, thrill me (आ आ)
 [04:14.19] I will be up forever and (आ आ)
 [04:16.50] Baby you and I were meant to be (आ आ हो हो)
-[04:19.00] ',
+[04:19.00]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529611/pzhgqa4npwkehbcaa26t.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529613/whqsuorb7ipjihqjo42q.png',
   NULL,
@@ -4934,7 +4959,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Kya Mujhe Pyar Hai',
   'Pritam, KK, Neelesh Misra',
   'Teri Yaadon Mein',
-  '[00:07.64] Sígueme, sígueme
+  '[mood: Energetic]
+[00:07.64] Sígueme, sígueme
 [00:16.19] Sígueme, sígueme
 [00:23.99] Whoa-oh-oh, whao-oh-oh
 [00:25.53] Oh-oh, oh-oh
@@ -4995,7 +5021,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:12.57] Oh-oh, oh-oh
 [04:14.86] Whoa-oh-oh, whao-oh-oh (Sígueme)
 [04:17.77] Oh-oh, oh-oh
-[04:19.86] ',
+[04:19.86]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529723/lsat5mun3ahff58vq43d.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529725/qcluypj1e5qypoh3gal6.png',
   NULL,
@@ -5011,7 +5037,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Allah Maaf Kare',
   'Pritam, Sonu Nigam, Shilpa Rao, Irshad Kamil',
   'Desi Boyz',
-  '[00:00.647] 
+  '[mood: Energetic]
+[00:00.647] 
 [00:14.302] तौबा-तौबा तेरे प्यार में
 [00:17.791] लुट गया इक़रार में
 [00:21.140] तुझ से मोहब्बत हो गई
@@ -5081,7 +5108,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:25.671] अल्लाह माफ़ करे
 [03:28.549] तौबा क़यामत हो गई
 [03:30.785] अल्लाह माफ़ करे
-[03:34.032] ',
+[03:34.032]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529751/yd2d8qheo9aslpnrlrb8.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529752/v9amonc6d08ylth5k4en.jpg',
   NULL,
@@ -5097,7 +5124,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Tere Liye',
   'Pritam, Atif Aslam, Shreya Ghoshal, Sameer',
   'Prince',
-  '[00:06.09] जागी-जागी, सोई ना मैं सारी रात तेरे लिए (तेरे लिए)
+  '[mood: Energetic]
+[00:06.09] जागी-जागी, सोई ना मैं सारी रात तेरे लिए (तेरे लिए)
 [00:13.34] भीगी-भीगी पलकें मेरी उदास तेरे लिए
 [00:20.19] हो, जागी-जागी, सोई ना मैं सारी रात तेरे लिए (तेरे लिए)
 [00:28.27] भीगी-भीगी पलकें मेरी उदास तेरे लिए
@@ -5132,7 +5160,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:02.37] जागी-जागी, सोई ना मैं सारी रात, तेरे लिए
 [04:09.62] भीगी-भीगी पलकें मेरी उदास, तेरे लिए
 [04:17.04] अखियाँ बिछाईं मैंने तेरे लिए, दुनिया भुलाई मैंने तेरे लिए
-[04:25.45] ',
+[04:25.45]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529774/cf5jhia91ybqquq9owzu.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529775/b5ussu1xkmebrs521lsr.jpg',
   NULL,
@@ -5198,7 +5226,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Teri Jhuki Nazar (Film Version)',
   'Pritam,  Shafqat Amanat Ali, Sayeed Quadri',
   'Murder 3',
-  '[00:30.58]चाहे कुछ ना कहना, भले चुप तू रहना
+  '[mood: Chill]
+[00:30.58]चाहे कुछ ना कहना, भले चुप तू रहना
 [00:38.38]मुझे है पता, तेरे प्यार का
 [00:45.96]खामोश चेहरा, आँखों पे पहरा
 [00:53.50]खुद है गवाह, तेरे प्यार का
@@ -5240,7 +5269,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Brown Rang',
   ' Yo Yo Honey Singh',
   'International Villager',
-  '[00:12.04] ਕੁੜੀਏ, ਨੀ ਤੇਰੇ brown ਰੰਗ ਨੇ
+  '[mood: Desi Pop]
+[00:12.04] ਕੁੜੀਏ, ਨੀ ਤੇਰੇ brown ਰੰਗ ਨੇ
 [00:15.22] ਮੁੰਡੇ ਪੱਟਤੇ ਨੀ ਸਾਰੇ ਮੇਰੇ town ਦੇ
 [00:18.48] ਕੁੜੀਏ, ਨੀ ਤੇਰੇ brown ਰੰਗ ਨੇ
 [00:21.51] ਮੁੰਡੇ ਪੱਟਤੇ ਨੀ ਸਾਰੇ ਮੇਰੇ town ਦੇ
@@ -5292,7 +5322,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:36.98] ਗੋਰੀ-ਗੋਰੀ ਕੁੜੀਆਂ ਨੂੰ ਕੋਈ ਮੂੰਹ ਲਾਵੇ ਨਾ
 [02:41.84] Yo Yo Honey Singh
 [02:47.98] Yo Yo Honey Singh
-[02:49.55] ',
+[02:49.55]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529865/uzemomyejdi0txrd88no.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529866/g8vsufsam38akkcl0x5k.png',
   NULL,
@@ -5308,7 +5338,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Daftar Ki Girl',
   'Yo Yo Honey Singh',
   'Desi Kalakaar',
-  '[00:10.05] Mere daftar daftar daftar ki girl
+  '[mood: Desi Pop]
+[00:10.05] Mere daftar daftar daftar ki girl
 [00:13.05] Karti hai ishaare aksar
 [00:15.15] Aksar, aksar, aksar, aksar
 [00:20.02] Mere daftar daftar daftar ki girl
@@ -5370,8 +5401,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:50.02] Mere daftar daftar daftar ki girl
 [02:52.96] Karti hai ishaare aksar baby bas kar, bas kar
 [02:57.46] Baby bas kar, bas kar
-[03:00.25] 
-',
+[03:00.25]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529899/bkytudrofkcbq7h4qrgv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529900/dz44m90td3qqsdvejyc7.png',
   NULL,
@@ -5430,7 +5460,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Mareez - E - Ishq',
   'Sharib Toshi, Arijit Singh, Shakeel Azmi',
   'Zid',
-  '[00:05.36] मरीज़-ए-इश्क़ हूँ मैं, कर दे दवा
+  '[mood: Energetic]
+[00:05.36] मरीज़-ए-इश्क़ हूँ मैं, कर दे दवा
 [00:11.58] मरीज़-ए-इश्क़ हूँ मैं, कर दे दवा
 [00:18.75] 
 [01:00.03] तलब है तू, तू है नशा, ग़ुलाम है दिल ये तेरा
@@ -5458,7 +5489,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:06.17] हाथ रख दे तू दिल पे ज़रा
 [04:10.87] ओ, हाथ रख दे तू दिल पे ज़रा
 [04:16.92] ओ, हाथ रख दे तू दिल पे ज़रा
-[04:23.29] ',
+[04:23.29]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529971/rxjkbuczvcebmh1ojhsu.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529974/cttxhnyaspmeomopoykr.png',
   NULL,
@@ -5475,7 +5506,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Sharib Toshi, Arijit Singh, Shakeel Azmi
 ',
   'Zid',
-  '[00:16.98] साँसों को जीने का इशारा मिल गया
+  '[mood: Romantic]
+[00:16.98] साँसों को जीने का इशारा मिल गया
 [00:23.28] डूबा मैं तुझमें तो किनारा मिल गया
 [00:31.06] 
 [00:44.30] साँसों को जीने का इशारा मिल गया
@@ -5508,7 +5540,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:16.39] तू मिला तो ख़ुदा का सहारा मिल गया
 [04:23.56] ग़मज़दा, ग़मज़दा, दिल ये था ग़मज़दा
 [04:30.12] बिन तेरे, बिन तेरे, दिल ये था ग़मज़दा
-[04:35.90] ',
+[04:35.90]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530027/nbzksbf6zwgivib7h9yv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530029/w03vulpehtnknrmsmnvs.png',
   NULL,
@@ -5647,7 +5679,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Ishq Bulaava',
   'Vishal-Shekhar, Sanam Puri, Shipra Goyal, Kumaar',
   'Hasee Toh Phasee',
-  '[00:44.55] ਇਸ਼ਕ ਬੁਲਾਵਾ ਜਾਣੇ ਕਬ ਆਵੇ
+  '[mood: Chill]
+[00:44.55] ਇਸ਼ਕ ਬੁਲਾਵਾ ਜਾਣੇ ਕਬ ਆਵੇ
 [00:53.44] ਇਸ਼ਕ ਬੁਲਾਵਾ ਆਵੇ ਜਬ ਆਵੇ
 [01:02.31] ਮੈਂ ਤਾਂ ਕੋਲ਼ ਤੇਰੇ ਰਹਿਣਾ
 [01:07.05] ਮੈਂ ਤਾਂ ਕੋਲ਼ ਤੇਰੇ ਰਹਿਣਾ
@@ -5686,7 +5719,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:45.62] ਪਾਗਲ ਮੈਂ ਖ਼ੁਦ ਨੂੰ ਬਨਾਂਦਾ ਰਵਾਂ
 [04:49.83] ਤੂੰ ਹੱਸਦੀ ਰਵੇ, ਮੈਂ ਹੱਸਾਂਦਾ ਰਵਾਂ
 [04:54.32] ਤੈਨੂੰ ਤੱਕਦਾ ਰਵਾਂ
-[04:57.57] ',
+[04:57.57]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530136/vbhq27hy5tnucgsjxbrk.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530137/yuvwwgkzh83hyhto7j5d.png',
   NULL,
@@ -5768,7 +5801,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Sapna Jahan',
   'Ajay-Atul, Sonu Nigam, Neeti Mohan, Amitabh Bhattacharya',
   'Brothers',
-  '[00:37.56] सपना जहाँ दस्तक ना दे
+  '[mood: Chill]
+[00:37.56] सपना जहाँ दस्तक ना दे
 [00:45.28] चौखट थी वो आँखें मेरी
 [00:52.72] बातों से थी तादाद में
 [01:00.42] ख़ामोशियाँ ज़्यादा मेरी
@@ -5800,7 +5834,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [05:08.21] देखा वहाँ पे आज तेरा चेहरा है
 [05:15.63] मैं भटकता हुआ सा एक बादल हूँ
 [05:23.31] जो तेरे आसमाँ पे आ के ठहरा है
-[05:33.87] ',
+[05:33.87]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530209/iqhj0fjy4l6fyq3hvex8.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530211/myrhbxuexbvd0l1s6egl.png',
   NULL,
@@ -5816,7 +5850,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Teri Deewani',
   'Kailash Kher, Paresh Kamath, Naresh Kamath',
   'Kailasa',
-  '[00:00.05] प्रीत की लत मोहे ऐसी लागी
+  '[mood: Classical]
+[00:00.05] प्रीत की लत मोहे ऐसी लागी
 [00:05.01] हो गई मैं मतवारी
 [00:11.66] बल-बल जाऊँ अपने पिया को
 [00:17.41] हे, मैं जाऊँ वारी-वारी
@@ -5863,7 +5898,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:59.95] तेरी दीवानी, दीवानी
 [05:04.49] तेरी दीवानी, दीवानी
 [05:08.82] तेरी दीवानी, दीवानी
-[05:14.26] ',
+[05:14.26]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530254/eri3y985gqjeqtgvwtwf.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530256/ujywf8jscszsywoqmhmu.png',
   NULL,
@@ -5879,7 +5914,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Khat',
   'Navjot Ahuja',
   NULL,
-  '[00:20.12] काग़ज़ के फूल लाऊँ तेरे लिए
+  '[mood: Romantic]
+[00:20.12] काग़ज़ के फूल लाऊँ तेरे लिए
 [00:26.88] ख़त लिखूँ तेरे लिए
 [00:32.12] मैं ख़ुदा में मानूँ नहीं
 [00:37.16] पर माँगूँ दुआ तेरे लिए
@@ -5915,7 +5951,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:32.17] नग़्मा लिखा तेरे लिए
 [04:36.97] मैं ख़ुदा में मानूँ क्यूँ
 [04:43.26] तू ख़ुदा मेरे लिए
-[04:49.93] ',
+[04:49.93]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530293/muupt9eygnhxkj5dbagw.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530294/yov5vdclpmlw33biqkcu.png',
   NULL,
@@ -6042,7 +6078,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Manohari',
   'MM Kreem, Divya Kumar, Neeti Mohan, Manoj Muntashir',
   'Baahubali - The Beginning',
-  '[00:25.57] Hai raat mein ye nasha tera-tera
+  '[mood: Party]
+[00:25.57] Hai raat mein ye nasha tera-tera
 [00:31.50] Dil ko tere pyaar ne gheraa-gheraa
 [00:37.46] Hothon se hothon pe koyi
 [00:39.44] Nishaani tu de ja de ja
@@ -6074,7 +6111,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:02.73] Aa pee loon main jam ke too mera-mera
 [03:07.32] Hai raat mein ye nasha tera-tera
 [03:13.37] Dil ko tere pyaar ne gheraa-gheraa
-[03:16.72] ',
+[03:16.72]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530340/cmjtfodgm2bnm5o1b78i.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530342/nsfdwmbxttzj2drgpfdb.jpg',
   NULL,
@@ -6131,7 +6168,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Pehli Nazar Mein',
   'Pritam, Atif Aslam, Sameer',
   'Race',
-  '[00:17.36] पहली नज़र में कैसा जादू कर दिया
+  '[mood: Chill]
+[00:17.36] पहली नज़र में कैसा जादू कर दिया
 [00:22.97] तेरा बन बैठा है मेरा जिया
 [00:28.70] जाने क्या होगा, क्या होगा क्या पता
 [00:34.13] इस पल को मिल के आ जी लें ज़रा
@@ -6170,7 +6208,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:47.26] Baby, I love you, baby, I love you so
 [04:52.83] Baby, I love you, ooh, I love you
 [04:58.58] Baby, I love you, I love you
-[05:06.63] ',
+[05:06.63]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530389/azjsr4gyszj9ivkjrvg3.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530390/udtvytgczpxiiqt7lxu0.png',
   NULL,
@@ -6227,7 +6265,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Tu Har Lamha',
   'Bobby-Imran, Arijit Singh, Sayeed Quadri',
   'Khamoshiyan',
-  '[00:11.77] वाक़िफ़ तो हुए तेरे दिल की बात से
+  '[mood: Romantic]
+[00:11.77] वाक़िफ़ तो हुए तेरे दिल की बात से
 [00:17.35] छुपाया जिसे तूने क़ायनात से
 [00:22.67] वाक़िफ़ तो हुए तेरे उस ख़याल से
 [00:28.25] छुपाया जिसे तूने अपने आप से
@@ -6257,7 +6296,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:06.99] था मुझसे जुड़ा (मुझसे जुड़ा)
 [04:13.21] चाहे दूर था मैं (दूर था मैं)
 [04:20.51] या पास रहा (पास रहा)
-[04:27.63] ',
+[04:27.63]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530455/wob1ghncdrzmdwlzckbb.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530456/onhpvkhpsvrfo3giilt4.png',
   NULL,
@@ -6273,7 +6312,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Pal',
   'Javed-Mohsin, Arijit Singh, Shreya Ghoshal, Kunaal Vermaa',
   'Jalebi',
-  '[00:28.73] पल एक पल में ही थम सा गया
+  '[mood: Romantic]
+[00:28.73] पल एक पल में ही थम सा गया
 [00:36.15] तू हाथ में हाथ जो दे गया
 [00:41.96] चलूँ मैं, जहाँ जाए तू
 [00:45.69] दाएँ मैं तेरे, बाएँ तू
@@ -6306,7 +6346,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:33.92] हँसूँ मैं जब गाए तू
 [03:37.45] रोऊँ मैं, मुरझाए तू
 [03:41.02] भीगूँ मैं, बरसाए तू, साथिया
-[03:48.06] ',
+[03:48.06]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530490/xdmvarsefasslshrdsix.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530491/xewjrlr0lmknyxzwsl6e.png',
   NULL,
@@ -6378,7 +6418,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Tum Se',
   'Samuel-Akanksha, Jubin Nautiyal, Manoj Kumar Nath',
   'Jalebi',
-  '[00:02.56] तेरे नाम से ही रोशन मेरा है जहाँ
+  '[mood: Sad]
+[00:02.56] तेरे नाम से ही रोशन मेरा है जहाँ
 [00:11.67] तेरे साथ से ही रातें मेरी हैं सुबह
 [00:21.37] 
 [00:39.15] होंगे जुदा ना हम, तुम से, तुम से
@@ -6407,7 +6448,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:43.61] और कहें क्या हम, तुम से, तुम से?
 [03:51.38] होंगे जुदा ना हम, तुम से, तुम से
 [03:59.50] और कहें क्या हम, तुम से, तुम से?
-[04:09.85] ',
+[04:09.85]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530529/wl6eyq04jwjvt4qsyjib.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530531/uz4qyebma5bj2wicoflw.png',
   NULL,
@@ -6423,7 +6464,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Darkhaast',
   'Mithoon, Arijit Singh, Sunidhi Chauhan, Sayeed Quadri',
   'Shivaay',
-  '[00:08.89] इस-क़दर तू मुझे प्यार कर
+  '[mood: Romantic]
+[00:08.89] इस-क़दर तू मुझे प्यार कर
 [00:16.36] जिसे कभी ना मैं सकूँ फिर भुला
 [00:26.06] ज़िंदगी लाईं हमें यहाँ
 [00:33.54] कोई इरादा तो रहा होगा भला
@@ -6472,7 +6514,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [05:32.47] 
 [05:48.70] कि दरख़ास्त है ये, जो आई रात है ये
 [05:58.15] तू मेरी बाँहों में दुनिया भुला दे
-[06:11.35] ',
+[06:11.35]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530562/svzp705emlfkztgs1i9t.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530564/a8somrg7cpn6arftgj4e.png',
   NULL,
@@ -6488,7 +6530,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Tum Mile (Love Reprise)',
   'Pritam, Javed Ali, Kumaar',
   'Tum Mile',
-  '[00:00.00] 
+  '[mood: Romantic]
+[00:00.00] 
 [00:32.18] tu hi meri hai sari zameen
 [00:36.62] chaahe kaheen se chaluun tujpe hee aake ruku
 [00:44.77] tere sivaa main jaoon kahaan
@@ -6525,7 +6568,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:11.90] tum mile to jaadoo chha gaya
 [04:15.26] tum mile to jeenaa aa gaya
 [04:19.42] tum mile to maine paayaa hai khuda
-[05:01.13] ',
+[05:01.13]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530620/taqciu9qjrqv7dwbffed.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530622/l7u71pc5r7xxolafaom3.png',
   NULL,
@@ -6541,7 +6584,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Befikar',
   'Tanzeel Khan, Aashna Hegde',
   NULL,
-  '[00:06.49] Mera dil Meri jaaan
+  '[mood: Romantic]
+[00:06.49] Mera dil Meri jaaan
 [00:10.40] Mujhse na chupa
 [00:13.86] Chahat karde bayaaan
 [00:17.65] Mere dil ka kya?
@@ -6589,7 +6633,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:03.60] Main kidhar kho gaya
 [03:07.11] Ishq ki raah me
 [03:11.42] Ab tu mil gaya
-[03:18.74] ',
+[03:18.74]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530654/kga9o7nufdwoy42etbqf.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530655/xqro70zxp78p3urhq28j.webp',
   NULL,
@@ -6605,7 +6649,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Nachdi Tu',
   'Tanzeel Khan',
   NULL,
-  '[00:11.44]ज़रा आँखें मिला ले ना, कुड़ी हस्स के वखा दे ना
+  '[mood: Energetic]
+[00:11.44]ज़रा आँखें मिला ले ना, कुड़ी हस्स के वखा दे ना
 [00:16.36]मुझे दिल में बसा ले ना
 [00:21.24]ज़रा आँखें मिला ले ना, कुड़ी हस्स के वखा दे ना
 [00:25.98]मुझे दिल में बसा ले ना
@@ -6660,7 +6705,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Main Rahoon Ya Na Rahoon',
   'Amaal Mallik, Armaan Malik, Rashmi Virag',
   NULL,
-  '[00:24.22] Main rahoon ya na rahoon
+  '[mood: Chill]
+[00:24.22] Main rahoon ya na rahoon
 [00:29.14] Tum mujhme kahin baaki rehna
 [00:34.69] Mujhe neend aaye jo akhiri
 [00:39.69] Tum khwabon mein aate rehna
@@ -6711,7 +6757,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 
 [04:43.73] Main rahun ya na rahun
 [04:48.65] Tum mujh mein kahin baaki rehna
-[04:55.08] ',
+[04:55.08]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530716/y450tknos9xz3231hl1z.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530717/vhxozpntwf4q35vn6uap.png',
   NULL,
@@ -6727,7 +6773,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Chale Aana',
   'Armaan Malik, Amaal Mallik, Kunaal Vermaa',
   'De De Pyaar De',
-  '[00:20.35] ♫
+  '[mood: Sad]
+[00:20.35] ♫
 [00:32.74] Juda Ham Ho Gaye Maana
 [00:36.00] Magar Ye Jaan Lo Jaana
 [00:46.08] Juda Ham Ho Gaye Maana
@@ -6764,7 +6811,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:56.14] Chale Aana_Chale Aana
 [04:12.91] Na Ra, Na Ra Ra He Hey Hmmm
 [04:20.77] Oh Ho Ho Ha Haan
-[04:27.88] ',
+[04:27.88]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530767/cmtbmmumm7m3r4x7p6vs.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530768/mtmgxrstwv1pj0xiew7x.jpg',
   NULL,
@@ -6780,7 +6827,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Bahana',
   'Akull, Mellow D',
   NULL,
-  '[00:08.76] Akull on the beat
+  '[mood: Desi Pop]
+[00:08.76] Akull on the beat
 [00:09.79] Akull on the beat, yo (Yo-yo-yo)
 [00:13.96] Oh girl, ਤੇਰੀਆਂ ਉਡੀਕਾਂ
 [00:20.06] My love, you know that I need ya (Need ya)
@@ -6825,7 +6873,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:09.09] ਮਿਲ ਮਾਹੀਏ, ਮਿਲ ਮਾਹੀਏ (ਮਿਲ ਮਾਹੀਏ)
 [03:13.13] ਸਾਡਾ ਕੱਲਿਆ ਵੇ ਲੱਗਦਾ ਨੀ
 [03:15.10] ਦਿਲ ਮਾਹੀਏ, ਦਿਲ ਮਾਹੀਏ (ਦਿਲ ਮਾਹੀਏ)
-[03:17.39] ',
+[03:17.39]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530794/yvwo4kwlhlryd7ylsops.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530795/nsvawrzxec4frwi8tcrs.jpg',
   NULL,
@@ -6841,7 +6889,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Laal Bindi',
   'Akull, Mellow D',
   NULL,
-  '[00:03.11] Uh, yeah, uh, huh
+  '[mood: Desi Pop]
+[00:03.11] Uh, yeah, uh, huh
 [00:09.46] Akull on the beat
 [00:10.84] Akull on the beat, yeah
 [00:15.38] हाय, मैं क्या करूँ? हाय, मैं क्या करूँ?
@@ -6883,7 +6932,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:40.77] तेरे चेहरे से नज़र नहीं हटती
 [02:44.15] ਲਾਲ ਬਿੰਦੀ ਮੇਂ ਤੂੰ ਇੰਨੀ ਸੋਹਣੀ ਲਗਦੀ
 [02:47.42] ਲਾਲ ਬਿੰਦੀ ਮੇਂ ਤੂੰ ਇੰਨੀ ਸੋਹਣੀ ਲਗਦੀ
-[02:48.92] ',
+[02:48.92]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530816/y0qt8h7a4j0frulrwzn4.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530817/mmhatpbheis80azoyyow.jpg',
   NULL,
@@ -6899,7 +6948,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Nain Ta Heere',
   'Vishal Shelke, Guru Randhawa, Asees Kaur, Ghulam Mohd. Khavar',
   'JugJugg Jeeyo',
-  '[00:10.52] ਨੈਣ ਤਾਂ ਹੀਰੇ ਵਰਗੇ
+  '[mood: Chill]
+[00:10.52] ਨੈਣ ਤਾਂ ਹੀਰੇ ਵਰਗੇ
 [00:16.19] ਨੈਣ ਤਾਂ ਹੀਰੇ ਵਰਗੇ
 [00:21.57] ਨੈਣ ਤਾਂ ਹੀਰੇ ਵਰਗੇ, ਲੈ ਗਏ ਦਿਲ ਦਾ ਚੈਨ
 [00:27.15] ਹਾਏ, ਨੀ ਡਰ ਲਗਤਾ ਹੈ, ਜਾਨ ਵੀ ਨਾ ਕੱਢ ਲੈਣ
@@ -6937,7 +6987,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:59.91] ਹਾਏ, ਨੀ ਡਰ ਲਗਤਾ ਹੈ, ਜਾਨ ਵੀ ਨਾ ਕੱਢ ਲੈਣ
 [03:05.31] ਨੈਣ ਤਾਂ ਹੀਰੇ ਵਰਗੇ
 [03:10.74] ਨੈਣ ਤਾਂ ਹੀਰੇ ਵਰਗੇ
-[03:13.56] ',
+[03:13.56]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530862/ipjitpnnwuzfsj6vaadw.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530863/w70v4xpshigtycwqcyeu.jpg',
   NULL,
@@ -6953,7 +7003,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Maan Meri Jaan',
   'King',
   'Champagne Talk',
-  '[00:09.91] मैं तेरी आँखों में उदासी कभी देख सकता नहीं
+  '[mood: Romantic]
+[00:09.91] मैं तेरी आँखों में उदासी कभी देख सकता नहीं
 [00:15.24] तुझे ख़ुश मैं रखूँगा, ਸੋਹਣਿਆ
 [00:19.86] मैं तेरे होंठों पे ख़ामोशी कभी देख सकता नहीं
 [00:25.02] सारी बातें मैं सुनूँगा, ਸੋਹਣਿਆ
@@ -6992,7 +7043,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:01.83] तू मान, मेरी जाँ
 [03:04.69] मान, मेरी जाँ
 [03:06.75] तू मान, मेरी जाँ
-[03:10.93] ',
+[03:10.93]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530889/mak5qinghfeflat6wjo0.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530891/ermkvwirqfk3nmw7blji.jpg',
   NULL,
@@ -7008,7 +7059,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'OOPS',
   'King',
   NULL,
-  '[00:00.85] Yeah
+  '[mood: Desi Pop]
+[00:00.85] Yeah
 [00:03.33] Yeah
 [00:05.23] You already know what it is
 [00:09.38] Okay
@@ -7076,7 +7128,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:35.32] मैं थोड़ा तेरी बातों पे...
 [02:37.73] तू थोड़ा-थोड़ा मुझपे ही...
 [02:40.12] तो सारा मेरा..., oops!
-[02:42.45] ',
+[02:42.45]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530925/ywsntswbwq9c3bzizzqx.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530926/j4l8uq9561zbminhzhmz.jpg',
   NULL,
@@ -7092,7 +7144,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Aaja We Mahiya',
   'Imran Khan',
   'Unforgettable',
-  '[00:38.62] Sare Taare Todd Le Awaan
+  '[mood: Desi Pop]
+[00:38.62] Sare Taare Todd Le Awaan
 [00:42.02] Tere Qadamaa Ch Rakh Deyan Main
 [00:44.79] Ik Waari Sadde Kol Tu Aja
 [00:47.92] Hor Na Manga Tere Kolo Main
@@ -7140,7 +7193,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:04.90] Main Keya Aaja We Mahiya
 [03:07.90] Main Keya Aaja We Mahiya
 [03:10.90] Main Keya Aaja We Mahiya
-[03:15.35] ',
+[03:15.35]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791548112/aqdyuqxafqwrjopwof3k.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791548114/d01zg2q0idrztdoex7bl.jpg',
   NULL,
@@ -7206,7 +7259,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Criminal',
   'Britney Spears',
   'Femme Fatale',
-  '[00:18.39] He is a hustler, he''s no good at all
+  '[mood: Pop]
+[00:18.39] He is a hustler, he''s no good at all
 [00:22.89] He is a loser, he''s a bum, bum, bum, bum
 [00:27.22] He lies, he bluffs, he''s unreliable
 [00:31.63] He is a sucker with a gun, gun, gun, gun
@@ -7258,7 +7312,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:24.87] Mama please don''t cry, I will be alright
 [03:29.02] All reasons aside, I just can''t deny
 [03:32.41] Love the guy
-[03:33.13] ',
+[03:33.13]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791554147/xi2ysfm7t9ebwfw22xtg.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791554148/milzzxpifylhwqomroji.png',
   NULL,
@@ -7274,7 +7328,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Khoya Hain',
   'MM Kreem, Neeti Mohan, Kaala Bhairava, Manoj Muntashir',
   'Baahubali - The Beginning',
-  '[00:23.45] खोया है, खोया है, खोया है, खोया दिल ऐसे
+  '[mood: Energetic]
+[00:23.45] खोया है, खोया है, खोया है, खोया दिल ऐसे
 [00:29.71] लहरों में, लहरों में खोई हूँ, बूँदे, यार जैसे
 [00:35.78] तारों चमकें जिसकी दो आँखे, मैं ही तो हूँ ना
 [00:42.12] झरनों में गाऊँ, मैं झीलों से बोलूँ, "आ के तू सुनना"
@@ -7324,7 +7379,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [05:00.71] (उत्सरा स्थिरा गंभीरा)
 [05:06.87] (धीवरा प्रसरा शौर्यभारा) सुन ज़रा, तू सिंगार-ए-आरा
 [05:13.31] (उत्सरा स्थिरा गंभीरा) साँवरा, तू है मेरा
-[05:22.06] ',
+[05:22.06]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791568787/dtpw5vcwhutjqsn2ydlw.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791568789/k8j7duxfmvnab4wfnla5.jpg',
   NULL,
@@ -7340,7 +7395,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Sunn Raha Hai',
   'Ankit Tiwari, Sandeep Nath',
   'Aashiqui 2',
-  '[00:12.26]अपने करम की कर अदाएँ
+  '[mood: Chill]
+[00:12.26]अपने करम की कर अदाएँ
 [00:16.20]
 [00:35.37]यारा, यारा, यारा
 [00:49.40]
@@ -7399,7 +7455,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' I Hate Luv Storys',
   ' Vishal-Shekhar, Vishal Dadlani, Kumaar',
   ' I Hate Luv Storys',
-  '[00:04.79]
+  '[mood: Party]
+[00:04.79]
 [00:23.51]I know you like me
 [00:25.17]You know i like you
 [00:26.98]Lets get together girl
@@ -7583,7 +7640,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Do Dhaari Talwaar',
   'Sohail Sen, Shahid Mallya, Shweta Pandit, Irshad Kamil',
   'Mere Brother Ki Dulhan',
-  '[00:02.49] नैन कटारी, ऐसी मारी
+  '[mood: Party]
+[00:02.49] नैन कटारी, ऐसी मारी
 [00:08.82] तन मन सुलगा, तड़पन भारी
 [00:17.08] इश्क़ लहू का, जब दिल से उतरे
 [00:26.33] धीरे-धीरे चढ़े खुमारी
@@ -7649,7 +7707,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:45.61] मैं दो धारी तलवार यार
 [04:48.87] तू दो धारी तलवार यार
 [04:52.50] तू दो धारी तलवार यार
-[04:57.15] ',
+[04:57.15]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791637418/rirmxndwvjmuytkcgvcq.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791637419/ph4v3jdirft0nefzogu8.png',
   NULL,
@@ -7665,7 +7723,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Choomantar',
   'Sohail Sen, Benny Dayal, Aditi Singh Sharma, Irshad Kamil',
   'Mere Brother Ki Dulhan',
-  '[00:08.52] Oh oh.
+  '[mood: Energetic]
+[00:08.52] Oh oh.
 [00:10.02] Oh baby oh baby
 [00:12.27] Oh baby oh baby
 [00:14.26] Oh baby oh baby
@@ -7765,7 +7824,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:06.38] Choomantar.
 [04:10.50] Choomantar.
 [04:15.20] Choomantar.
-[04:18.06] ',
+[04:18.06]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791692794/syaa9wjl6trudezfkysn.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791692795/ovphqwizm0gka8cand0u.png',
   NULL,
@@ -7781,7 +7840,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Besharmi Ki Height',
   'Sajid-Wajid, Benny Dayal, Shalmali Kholgade, Kumaar',
   'Main Tera Hero',
-  '[00:14.39] Imaandari ki bimaari
+  '[mood: Party]
+[00:14.39] Imaandari ki bimaari
 
 [00:43.65] Imaandari ki bimari
 [00:47.32] Chhod de aaja, daud ke aaja
@@ -7838,7 +7898,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:18.09] Aur ho dim-dim ye light
 
 [04:29.93] Wo oo
-[04:48.68] ',
+[04:48.68]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791693191/ljfbgazfyffw6fhsfkyj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791693192/zjqwynqveks2mjwbwsgk.jpg',
   NULL,
@@ -7854,7 +7914,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Jab Koi Baat Bigad Jaye',
   'Rajesh Roshan, Kumar Sanu, Sadhana Sargam, Indivar',
   'Jurm',
-  NULL,
+  '[mood: Chill]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736305/oebwzq04u0phzmnufx2z.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791736305/eofkuuxbyolfjf72dhh9.jpg',
   NULL,
@@ -7917,7 +7977,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Suraj Hua Maddham',
   'Sandesh Shandilya, Sonu Nigam, Alka Yagnik, Anil Pandey',
   'Kabhi Khushi Kabhie Gham',
-  '[00:36.60] सूरज हुआ मद्धम, चाँद जलने लगा
+  '[mood: Romantic]
+[00:36.60] सूरज हुआ मद्धम, चाँद जलने लगा
 [00:42.66] आसमाँ ये, हाय, क्यूँ पिघलने लगा?
 [00:49.00] 
 [00:54.58] सूरज हुआ मद्धम, चाँद जलने लगा
@@ -7959,7 +8020,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [06:20.28] आसमाँ ये, हाय, क्यूँ पिघलने लगा?
 [06:26.56] 
 [06:52.97] सजना, क्या ये मेरा पहला-पहला प्यार है?
-[07:06.63] ',
+[07:06.63]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791736988/lfw3nstbzrzolbusjrjv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791736989/lstxnixmq5fzhihotvl6.png',
   NULL,
@@ -7975,7 +8036,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Aal Izz Well',
   'Shantanu Moitra, Sonu Nigam, Shaan, Swanand Kirkire',
   '3 Idiots',
-  '[00:48.17]Jab life ho out of control
+  '[mood: Energetic]
+[00:48.17]Jab life ho out of control
 [00:49.92]Honto ko karke gol
 [00:55.92]Honto ko karke gol
 [00:57.92]Siti bajaake bol
@@ -8063,7 +8125,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Zoobi Doobi',
   'Shantanu Moitra, Sonu Nigam, Shreya Ghoshal, Swanand Kirkire',
   '3 Idiots',
-  '[00:03.55]गुनगुनाती हैं ये हवाएँ
+  '[mood: Energetic]
+[00:03.55]गुनगुनाती हैं ये हवाएँ
 [00:12.38]गुनगुनाता है गगन
 [00:19.76]गा रहा है ये सारा आलम
 [00:27.09]ज़ूबी-डू, पा-रम-पम
@@ -8138,7 +8201,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Behti Hawa Sa Tha Woh',
   'Shantanu Moitra, Shaan, Swanand Kirkire',
   '3 Idiots',
-  '[00:19.80]बहती हवा सा था वो
+  '[mood: Chill]
+[00:19.80]बहती हवा सा था वो
 [00:27.08]उड़ती पतंग सा था वो
 [00:34.28]कहाँ गया? उसे ढूँढो
 [00:40.72]
@@ -8189,7 +8253,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Chaar Kadam',
   'Shantanu Moitra, Shaan, Shreya Ghoshal, Swanand Kirkire',
   'PK',
-  '[00:00.00] 
+  '[mood: Romantic]
+[00:00.00] 
 [00:06.00] bin pooche mera naam aur pata rasmon ko rakh ke pare
 [00:19.49] chaar qadam bas chaar qadam chal do naa saath mere
 [00:31.26] 
@@ -8211,7 +8276,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:57.34] chaar qadam bas chaar qadam chal do naa saath mere
 [03:05.34] bin kuch kahe bin kuch sune haathon mein haath liye
 [03:13.20] chaar qadam bas chaar qadam chal do naa saath mere
-[03:21.59] ',
+[03:21.59]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791737594/rlhpuph9msztpcygxbmn.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791737595/fqocblpkqcyxjfejz7mm.png',
   NULL,
@@ -8366,7 +8431,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Love Is A Waste Of Time',
   'Shantanu Moitra, Sonu Nigam, Shreya Ghoshal, Amitabh Varma',
   'PK',
-  '[00:00.87] 
+  '[mood: Chill]
+[00:00.87] 
 [00:13.06] Tujhe Tak Tak Tak Takte Rehna
 [00:16.10] Teri Bak Bak Bak Sunte Rehna
 [00:19.32] Kaam-kaaj Sab Bhool Bhula Ke
@@ -8414,7 +8480,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:50.08] I Want To Bhaste My Time
 [03:53.57] I Love This Bhaste Of Time
 [03:56.90] Aa Aa-aa...
-[04:09.79] ',
+[04:09.79]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738227/c229ppl954qn93omb9lv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738231/gww4rbkz8j53ptaogwob.png',
   NULL,
@@ -8430,7 +8496,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'I Love You',
   'Clinton Cerejo, Ash King, Neelesh Misra',
   'Bodyguard',
-  '[00:26.25] दिल का ये क्या राज़ है? जाने क्या कर गए
+  '[mood: Romantic]
+[00:26.25] दिल का ये क्या राज़ है? जाने क्या कर गए
 [00:31.89] जैसे अँधेरों में तुम चाँदनी भर गए
 [00:37.81] 
 [00:47.83] दिल का ये क्या राज़ है? जाने क्या कर गए
@@ -8475,7 +8542,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:57.21] I, I love you
 [04:05.03] I love you, I love you
 [04:10.43] I love you (I love you)
-[04:12.98] ',
+[04:12.98]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738473/i25sko639cyprkytr4gf.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738474/kapj0jui420mkg62rart.png',
   NULL,
@@ -8491,7 +8558,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Haule Haule',
   'Salim-Sulaiman, Sukhwinder Singh, Jaideep Sahni',
   'Rab Ne Bana Di Jodi',
-  '[00:05.50](हौले-हौले, हौले-हौले)
+  '[mood: Energetic]
+[00:05.50](हौले-हौले, हौले-हौले)
 [00:10.83](हौले-हौले, हौले-हौले)
 [00:16.41]हौले-हौले से हवा लगती है
 [00:19.02]हौले-हौले से दवा लगती है
@@ -8569,7 +8637,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Tujh Mein Rab Dikhta Hai',
   'Salim-Sulaiman, Roop Kumar Rathod, Jaideep Sahni',
   'Rab Ne Bana Di Jodi',
-  '[00:16.11] तू ही तो जन्नत मेरी
+  '[mood: Romantic]
+[00:16.11] तू ही तो जन्नत मेरी
 [00:18.98] तू ही मेरा जुनूँ
 [00:21.90] तू ही तो मन्नत मेरी
 [00:24.65] तू ही रूह का सुकूँ
@@ -8608,7 +8677,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:08.51] ਵੱਸਦੀ, ਵੱਸਦੀ, ਵੱਸਦੀ, ਦਿਲ ਦੀ ਦਿਲ ਵਿੱਚ ਵੱਸਦੀ
 [04:14.27] ਹੱਸਦੀ, ਹੱਸਦੀ, ਹੱਸਦੀ, ਦਿਲ ਰੋਵੇ ਤੇ ਹੱਸਦੀ
 [04:19.49] रब ने बना दी जोड़ी, हाय
-[04:34.69] ',
+[04:34.69]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791738972/jqwunkezod857nrdi5zy.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791738973/ngqd1l5vljojfncea6iq.png',
   NULL,
@@ -8624,7 +8693,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Tumse Milke Dil Ka',
   'Anu Malik, Sonu Nigam, Sabri Brothers, Javed Akhtar',
   'Main Hoon Na',
-  '[00:45.38] Ishq Jaise Hai Ek Aandhi
+  '[mood: Energetic]
+[00:45.38] Ishq Jaise Hai Ek Aandhi
 [00:47.61] Ishq Hai Ek Toofaan
 [00:49.39] Ishq Ke Aage Bebas Hai
 [00:52.17] Duniya Mein Har Insaa
@@ -8696,7 +8766,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [05:23.73] Ho Gaya Hai Kaisa Ye Kamaal Kya Kahein
 [05:28.79] Tumse Milke Dil Ka Hai Jo Haal Kya Kahein
 [05:33.24] Ho Gaya Hai Kaisa Ye Kamaal Kya Kahein
-[05:37.90] ',
+[05:37.90]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791739175/yi4cu7xnkstfoest4kqy.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791739176/qv5vyvvbabytjsu1db4c.png',
   NULL,
@@ -8727,7 +8797,7 @@ INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('13d4f26f-0
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('39dec174-5860-466c-b96e-82840ad4b80a', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:45:36.529887+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('e9b1578f-12dc-4708-a762-6b2651487371', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:51:43.397964+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('01113d88-41a6-4a2f-9846-88ede407d896', 'Liked Songs', '9cebd7da-e93e-4715-b6fd-487ee09e6f2f', '2026-10-12T14:29:37.787009+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":1,"e6657092-d62b-4754-a347-548d0f3bde39":2,"e718bc53-19ab-497e-8ac7-43a2359a19d6":1,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":1,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":1,"47d3fd86-a418-444e-9fdd-842ea10d06b7":1,"be6f92a1-abc7-4992-9c9e-96e2701774c9":1,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":1,"4a14527e-95d0-43c9-a06a-281aebd6ff34":1,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":2,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"46136499-85f3-4da2-9484-9f451d511905":1,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":1,"258e9ddc-de55-467f-bed6-202ee00c3466":1,"8c853546-b82b-46f6-ba04-0fc90d54965d":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":385.300000000001,"0591dd49-6c49-40ee-8ec6-996c430b9691":196.9999999999995,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":37.600000000000016,"c3e49428-958a-4272-b658-dcc665373ba6":13.299999999999999,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":37.20000000000002,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":281.8999999999996,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":160.59999999999974,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":194.79999999999953,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":164.89999999999964,"47d3fd86-a418-444e-9fdd-842ea10d06b7":183.1999999999996,"be6f92a1-abc7-4992-9c9e-96e2701774c9":166.89999999999966,"f6e83060-33c6-457b-8ccf-b825929b2be4":55.30000000000003,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":200.1999999999995,"4a14527e-95d0-43c9-a06a-281aebd6ff34":208.99999999999943,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":25.900000000000006,"b1beda6e-b846-478f-bae6-d92ec4128556":81.69999999999997,"572ad7f8-ea06-4521-bb3c-55410468ede0":1.1,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":19.100000000000005,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":363.2000000000007,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":213.49999999999943,"a9e28652-60ce-46aa-b167-711225e2df54":197.79999999999947,"c0d286b0-5df5-485b-8963-5532c0b47991":175.29999999999959,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":1.1,"900af1a9-8b64-4092-913d-9dde80274d93":58.30000000000003,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":113.59999999999992,"9e515d2e-f8a7-41d4-a111-0d5233512391":22.6,"e718bc53-19ab-497e-8ac7-43a2359a19d6":18,"46136499-85f3-4da2-9484-9f451d511905":167.3999999999997,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":288.49999999999983,"e6657092-d62b-4754-a347-548d0f3bde39":168.0999999999997,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":33.600000000000016,"bf558395-c784-4100-93eb-cfa239715ca9":8.299999999999999,"86ff8290-aa80-454d-8d35-b408f6463b49":9.9,"c55017cd-15ec-4546-99e8-f12bd5626f11":2.4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"72903aae-1d9a-487d-930f-418cfa6b0205":7.699999999999999,"6d493502-16ce-4915-8160-7b36cfd5cd05":0.8,"923ec288-02e0-4ae2-a13c-accde7ab486e":17.3,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":11.799999999999999,"283edc91-b796-45aa-a22e-e5ecf26c164f":19.099999999999998,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":9.499999999999998,"83e790e9-1900-4ff5-ac56-7700d9d88354":7.9,"258e9ddc-de55-467f-bed6-202ee00c3466":130.5999999999998,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":5.1000000000000005,"8c853546-b82b-46f6-ba04-0fc90d54965d":163.79999999999967,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":5.800000000000001,"642a9c68-e797-48ea-8dab-c42287322c26":9.4,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":8.6,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":10.099999999999998,"908b2deb-0831-4091-b5e1-dd77e0695a5c":8.4,"d7f9d821-191e-4f5b-af3e-bfb98b155465":9.7,"354bb599-a2c0-413e-bbba-70cc7b783841":3.3000000000000003,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":4.1000000000000005,"947df50e-7088-46bc-805f-0ad97369e835":3.4000000000000004,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":8.1,"8e0b4d15-45be-49dd-9692-2e171d330c09":7.8,"d3328021-ffc8-4534-a748-44d195efc3cd":3.8,"6973477f-4917-4f28-9ff8-888f03de9ba2":3.6,"c0cbee49-81ba-4e72-8c52-410308ad361f":4.800000000000001,"2fa75852-1544-407c-a771-b9a2f7688e00":8.899999999999999},"recentlyPlayedIds":["e69cc1b8-f224-4cdd-8cae-aef42da87b5b","8c853546-b82b-46f6-ba04-0fc90d54965d","258e9ddc-de55-467f-bed6-202ee00c3466","0591dd49-6c49-40ee-8ec6-996c430b9691","e6657092-d62b-4754-a347-548d0f3bde39","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7","46136499-85f3-4da2-9484-9f451d511905","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","49b5b3e7-060a-4367-b2f9-83e4b7b2e096","c0d286b0-5df5-485b-8963-5532c0b47991","a9e28652-60ce-46aa-b167-711225e2df54","9a5b4484-7ea6-4d04-bcd9-b49426cec421","b1beda6e-b846-478f-bae6-d92ec4128556","4a14527e-95d0-43c9-a06a-281aebd6ff34","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc","be6f92a1-abc7-4992-9c9e-96e2701774c9","47d3fd86-a418-444e-9fdd-842ea10d06b7","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","0924bcb2-c1dc-4cdb-a3e7-6881f473f668","684b60fa-6f36-4e0b-b122-dd966f2ef7c3","d6c4f539-c83d-4934-9bbe-41d5c16cdee2","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8","e718bc53-19ab-497e-8ac7-43a2359a19d6"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Pop","0591dd49-6c49-40ee-8ec6-996c430b9691":"Festival","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Pop","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Pop","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party","e6dd87c2-4847-4aef-bcfe-09569d3d1358":"Energetic","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":"Electronic","d6c4f539-c83d-4934-9bbe-41d5c16cdee2":"Romantic","908b2deb-0831-4091-b5e1-dd77e0695a5c":"Romantic","d7f9d821-191e-4f5b-af3e-bfb98b155465":"Romantic","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":"Retro","d17498d3-d2dc-4124-83a4-ae45d66c2aab":"Pop","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":"Pop","f6e83060-33c6-457b-8ccf-b825929b2be4":"Pop","8e0b4d15-45be-49dd-9692-2e171d330c09":"Romantic","d3328021-ffc8-4534-a748-44d195efc3cd":"Romantic","6973477f-4917-4f28-9ff8-888f03de9ba2":"Romantic","c0cbee49-81ba-4e72-8c52-410308ad361f":"Romantic","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":"Sad","2fa75852-1544-407c-a771-b9a2f7688e00":"Energetic"},"updatedAt":"2026-10-12T17:40:31.121Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":1,"e6657092-d62b-4754-a347-548d0f3bde39":2,"e718bc53-19ab-497e-8ac7-43a2359a19d6":1,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":1,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":2,"47d3fd86-a418-444e-9fdd-842ea10d06b7":1,"be6f92a1-abc7-4992-9c9e-96e2701774c9":1,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":1,"4a14527e-95d0-43c9-a06a-281aebd6ff34":1,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":2,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"46136499-85f3-4da2-9484-9f451d511905":1,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":1,"258e9ddc-de55-467f-bed6-202ee00c3466":1,"8c853546-b82b-46f6-ba04-0fc90d54965d":1,"ab99af69-2ebc-4543-a1fd-37895121e02f":1,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":1,"fa8e1c6f-b07b-4553-b154-146604e82c05":1,"b83a94df-c760-4322-994f-f3ad2a31e883":1,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":385.300000000001,"0591dd49-6c49-40ee-8ec6-996c430b9691":208.29999999999944,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":37.600000000000016,"c3e49428-958a-4272-b658-dcc665373ba6":13.299999999999999,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":37.20000000000002,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":281.8999999999996,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":165.49999999999972,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":199.0999999999995,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":336.5000000000006,"47d3fd86-a418-444e-9fdd-842ea10d06b7":183.1999999999996,"be6f92a1-abc7-4992-9c9e-96e2701774c9":166.89999999999966,"f6e83060-33c6-457b-8ccf-b825929b2be4":66.80000000000004,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":203.2999999999995,"4a14527e-95d0-43c9-a06a-281aebd6ff34":208.99999999999943,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":28.300000000000008,"b1beda6e-b846-478f-bae6-d92ec4128556":88.09999999999995,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":29.100000000000016,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":369.0000000000008,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":217.8999999999994,"a9e28652-60ce-46aa-b167-711225e2df54":203.69999999999945,"c0d286b0-5df5-485b-8963-5532c0b47991":180.69999999999956,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":4.8,"900af1a9-8b64-4092-913d-9dde80274d93":58.30000000000003,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":113.59999999999992,"9e515d2e-f8a7-41d4-a111-0d5233512391":22.6,"e718bc53-19ab-497e-8ac7-43a2359a19d6":18,"46136499-85f3-4da2-9484-9f451d511905":179.4999999999997,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":288.49999999999983,"e6657092-d62b-4754-a347-548d0f3bde39":174.7999999999997,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":33.600000000000016,"bf558395-c784-4100-93eb-cfa239715ca9":8.299999999999999,"86ff8290-aa80-454d-8d35-b408f6463b49":9.9,"c55017cd-15ec-4546-99e8-f12bd5626f11":2.4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"72903aae-1d9a-487d-930f-418cfa6b0205":7.699999999999999,"6d493502-16ce-4915-8160-7b36cfd5cd05":0.8,"923ec288-02e0-4ae2-a13c-accde7ab486e":17.3,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":11.799999999999999,"283edc91-b796-45aa-a22e-e5ecf26c164f":19.099999999999998,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":24.200000000000003,"83e790e9-1900-4ff5-ac56-7700d9d88354":7.9,"258e9ddc-de55-467f-bed6-202ee00c3466":135.1999999999998,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":8.3,"8c853546-b82b-46f6-ba04-0fc90d54965d":172.69999999999962,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":5.800000000000001,"642a9c68-e797-48ea-8dab-c42287322c26":9.4,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":8.6,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":10.099999999999998,"908b2deb-0831-4091-b5e1-dd77e0695a5c":8.4,"d7f9d821-191e-4f5b-af3e-bfb98b155465":9.7,"354bb599-a2c0-413e-bbba-70cc7b783841":3.3000000000000003,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":5.300000000000001,"947df50e-7088-46bc-805f-0ad97369e835":3.4000000000000004,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":8.1,"8e0b4d15-45be-49dd-9692-2e171d330c09":7.8,"d3328021-ffc8-4534-a748-44d195efc3cd":3.8,"6973477f-4917-4f28-9ff8-888f03de9ba2":3.6,"c0cbee49-81ba-4e72-8c52-410308ad361f":4.800000000000001,"2fa75852-1544-407c-a771-b9a2f7688e00":13.399999999999999,"63eb50bd-9772-4c3f-ab26-976301fd2705":6.4,"d724987f-83a9-4351-bd60-3a7502a87c59":4.6000000000000005,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":9.7,"f726f995-1776-4a2d-97c4-024cf22e851e":5.1000000000000005,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":19.500000000000004,"dd640b9c-21da-4d72-99ca-6b78c143997a":2.9000000000000004,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":4.9,"39fd084d-c05f-42dc-9cdf-369d47b44153":3.5,"0f80a99a-c418-4669-88ca-d64a5c857fdc":4.7,"eb4f3985-fd6a-4a20-a48f-10717982804a":5.7,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":9.799999999999999,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":5.5,"a26eea36-25f1-4754-a534-13ffd38f7ad5":4.300000000000001,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":4.3,"94e729cf-448c-490b-9926-bb9f5a1d4d50":3.3000000000000003,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":15.799999999999999,"c4751b72-883d-40fe-8990-cb7dfeaac47b":3.6,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":3.9000000000000004,"4b17d938-0d77-4ccc-8da7-82cd9167218a":3.2,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":4,"07a53c4b-373d-4075-816e-c32fde3184db":2.7,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":5.6,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":3.6,"6e4bf9a4-092a-42d3-81f0-b8563690b929":3.3000000000000003,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":19.400000000000002,"1d83d33b-2146-4427-89b2-5b3c846a294d":147.69999999999976,"b83a94df-c760-4322-994f-f3ad2a31e883":153.4999999999997,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":3.4000000000000004,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":4.700000000000001,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":101.19999999999995,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":175.09999999999962,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":2.5999999999999996,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":4.300000000000001,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":5.500000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":4,"5157f0c1-5938-4987-b80d-0329f8758ca1":4.2,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":8.7,"51f1833c-800c-451c-8c34-79e667ccae4a":3.4000000000000004,"ebfeeb92-1900-4ad6-aec6-275dcce12453":3.5000000000000004,"9531118f-2926-4918-9156-ef8a543e757f":5.000000000000001,"5a8d4c24-fff0-43cd-954f-201770da5be1":5,"fa8e1c6f-b07b-4553-b154-146604e82c05":217.5999999999994,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":3.6,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":3.9,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":6.2,"f83a2b6e-e700-40c7-a406-3931b4ce8780":3.8000000000000003,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":3.8,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":4,"ce7b47f5-9331-45ac-b319-406722b07466":3.5999999999999996,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":174.39999999999958,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":4.5,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":187.49999999999955,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":180.89999999999966,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":4.4,"a53e97ce-02e6-454c-b13a-0a26e2956e92":4.1,"0ebbc1b7-a451-4540-bbc6-96224926c015":243.29999999999933,"56c68e50-f532-4925-9592-1cddf47850cd":3.4000000000000004,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":7.8,"15f4bf7c-bb20-400b-b70e-45754916f38a":5.300000000000001,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":5,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":3.3000000000000003,"cd1fd534-4f13-443d-966d-3021ba004440":4.800000000000001,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":3.9000000000000004,"918ee6bd-06b4-4288-a58c-f89f0389c978":3.5,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":12.399999999999999,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":4.4,"ab99af69-2ebc-4543-a1fd-37895121e02f":195.0999999999995,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":3.1,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":7.9,"9e36f778-6b04-4cb3-a674-e4960347cda8":3.9000000000000004,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":17.599999999999998,"6f2cc188-8453-4faa-853c-8c4a69917830":16.4},"recentlyPlayedIds":["f54b3464-b992-466d-9b96-8ca95c1ad5ce","6b948690-fcfa-4fc9-adaf-7ea6582a89a4","d629ffbc-dada-4dab-ab5b-cd0a800cc184","b83a94df-c760-4322-994f-f3ad2a31e883","fa8e1c6f-b07b-4553-b154-146604e82c05","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","0ebbc1b7-a451-4540-bbc6-96224926c015","7a28b082-d69c-4ff8-ad0f-dbfda05f0685","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","1d83d33b-2146-4427-89b2-5b3c846a294d","ab99af69-2ebc-4543-a1fd-37895121e02f","c0d286b0-5df5-485b-8963-5532c0b47991","a9e28652-60ce-46aa-b167-711225e2df54","9a5b4484-7ea6-4d04-bcd9-b49426cec421","e69cc1b8-f224-4cdd-8cae-aef42da87b5b","b1beda6e-b846-478f-bae6-d92ec4128556","4a14527e-95d0-43c9-a06a-281aebd6ff34","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc","be6f92a1-abc7-4992-9c9e-96e2701774c9","47d3fd86-a418-444e-9fdd-842ea10d06b7","0924bcb2-c1dc-4cdb-a3e7-6881f473f668","684b60fa-6f36-4e0b-b122-dd966f2ef7c3","d6c4f539-c83d-4934-9bbe-41d5c16cdee2","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8","e718bc53-19ab-497e-8ac7-43a2359a19d6","e6657092-d62b-4754-a347-548d0f3bde39","49b5b3e7-060a-4367-b2f9-83e4b7b2e096","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7","46136499-85f3-4da2-9484-9f451d511905","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","8c853546-b82b-46f6-ba04-0fc90d54965d","258e9ddc-de55-467f-bed6-202ee00c3466","0591dd49-6c49-40ee-8ec6-996c430b9691"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Energetic","0591dd49-6c49-40ee-8ec6-996c430b9691":"Festival","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Energetic","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Energetic","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party","e6dd87c2-4847-4aef-bcfe-09569d3d1358":"Energetic","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":"Electronic","d6c4f539-c83d-4934-9bbe-41d5c16cdee2":"Romantic","908b2deb-0831-4091-b5e1-dd77e0695a5c":"Romantic","d7f9d821-191e-4f5b-af3e-bfb98b155465":"Romantic","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":"Retro","d17498d3-d2dc-4124-83a4-ae45d66c2aab":"Pop","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":"Pop","f6e83060-33c6-457b-8ccf-b825929b2be4":"Pop","8e0b4d15-45be-49dd-9692-2e171d330c09":"Romantic","d3328021-ffc8-4534-a748-44d195efc3cd":"Romantic","6973477f-4917-4f28-9ff8-888f03de9ba2":"Romantic","c0cbee49-81ba-4e72-8c52-410308ad361f":"Romantic","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":"Sad","2fa75852-1544-407c-a771-b9a2f7688e00":"Energetic","46136499-85f3-4da2-9484-9f451d511905":"Pop","63eb50bd-9772-4c3f-ab26-976301fd2705":"Energetic","d724987f-83a9-4351-bd60-3a7502a87c59":"Pop","f726f995-1776-4a2d-97c4-024cf22e851e":"Classical","9a5b4484-7ea6-4d04-bcd9-b49426cec421":"Romantic","ffe570a6-d0cb-491d-9cda-f3ba839f6d72":"Energetic","dd640b9c-21da-4d72-99ca-6b78c143997a":"Party","2db28891-244e-4cc7-8bbe-b50f54f46bdd":"Pop","39fd084d-c05f-42dc-9cdf-369d47b44153":"Romantic","0f80a99a-c418-4669-88ca-d64a5c857fdc":"Pop","eb4f3985-fd6a-4a20-a48f-10717982804a":"Pop","f7e6d9a4-e9b9-467b-bbf0-30e929696803":"Pop","684b60fa-6f36-4e0b-b122-dd966f2ef7c3":"Romantic","e758b7f7-1169-4bf9-8a41-e883b9f24b3a":"Chill","a26eea36-25f1-4754-a534-13ffd38f7ad5":"Romantic","d84c6343-8fa6-45e3-bc7a-a2803a8b220b":"Energetic","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":"Pop","8c853546-b82b-46f6-ba04-0fc90d54965d":"Pop","94e729cf-448c-490b-9926-bb9f5a1d4d50":"Chill","c0d286b0-5df5-485b-8963-5532c0b47991":"Romantic","10ea99a7-be01-45c2-82fd-14fa0bcadb58":"Chill","c4751b72-883d-40fe-8990-cb7dfeaac47b":"Energetic","3c6bb417-0b5e-475d-b8f0-3671a51b657b":"Romantic","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":"Romantic","e69cc1b8-f224-4cdd-8cae-aef42da87b5b":"Energetic","b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":"Energetic","a44df24d-9512-4327-ba2c-a5e86e4ba7cf":"Energetic","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":"Energetic","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":"Chill","1d83d33b-2146-4427-89b2-5b3c846a294d":"Desi Pop","b83a94df-c760-4322-994f-f3ad2a31e883":"Desi Pop","5ba2a0c3-89ca-4229-9ae9-514806d0363a":"Energetic","7a28b082-d69c-4ff8-ad0f-dbfda05f0685":"Romantic","a18f0c10-38ad-4de3-acd0-6dd637e1de10":"Chill","f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":"Chill","262fa689-d42b-42bf-bf33-b8f53c0c173c":"Classical","b35c820f-6400-4814-ab0e-2bbb1efb8f4a":"Romantic","fb2647d3-d6fa-4150-a8f5-fc841ae176c2":"Party","ebfeeb92-1900-4ad6-aec6-275dcce12453":"Chill","5a8d4c24-fff0-43cd-954f-201770da5be1":"Romantic","0924bcb2-c1dc-4cdb-a3e7-6881f473f668":"Romantic","a9e28652-60ce-46aa-b167-711225e2df54":"Sad","6aa041f9-9aa2-4fa4-882e-db9a4aac209b":"Romantic","f89d39c2-c7bf-48fa-8cd7-f242893f3609":"Romantic","572ad7f8-ea06-4521-bb3c-55410468ede0":"Romantic","14664d25-20dd-4660-a0e1-f9f11fcc98c4":"Energetic","f83a2b6e-e700-40c7-a406-3931b4ce8780":"Chill","daac84d3-0e68-40b3-94ea-9b9dbd01677c":"Sad","477ac65b-7ec7-4995-bfdf-656a0da42e6e":"Desi Pop","ce7b47f5-9331-45ac-b319-406722b07466":"Desi Pop","6b948690-fcfa-4fc9-adaf-7ea6582a89a4":"Chill","c63e6167-400a-4ff9-8c8c-e4737988d5aa":"Romantic","258e9ddc-de55-467f-bed6-202ee00c3466":"Desi Pop","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":"Desi Pop","f54b3464-b992-466d-9b96-8ca95c1ad5ce":"Pop","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":"Energetic","a53e97ce-02e6-454c-b13a-0a26e2956e92":"Chill","0ebbc1b7-a451-4540-bbc6-96224926c015":"Party","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":"Party","15f4bf7c-bb20-400b-b70e-45754916f38a":"Energetic","2b0e12fe-8ceb-426b-b758-6c62e22d783d":"Party","7abc6aed-540e-4cce-9fd5-5d59d45a360a":"Chill","ee60c07f-468b-419b-ad09-1ae770e2fbc4":"Romantic","918ee6bd-06b4-4288-a58c-f89f0389c978":"Energetic","30ad7c9d-0182-444d-b05f-3acac2f9ef35":"Energetic","ccd7fabf-d277-4420-84a8-4e5ff5b66d67":"Chill","ab99af69-2ebc-4543-a1fd-37895121e02f":"Romantic","9e36f778-6b04-4cb3-a674-e4960347cda8":"Chill","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":"Romantic","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":"Energetic","b1beda6e-b846-478f-bae6-d92ec4128556":"Romantic","6f2cc188-8453-4faa-853c-8c4a69917830":"Energetic","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":"Party"},"updatedAt":"2026-10-12T18:36:22.407Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
 
 -- 5. Restore Playlist Songs (63 rows)
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (121, 'f9a25586-7289-4a1d-b57b-38464f2fd543', 'd8ffecc7-42ea-432b-8ec1-a79366bc2da7', '2026-09-20T18:50:30.73165+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
