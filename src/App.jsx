@@ -3066,12 +3066,18 @@ export default function App() {
         throw new Error("Poster image upload failed. A valid poster image is required.");
       }
 
-      // 3. Save song metadata and direct Cloudinary URL into Supabase database
+      // 3. Save song metadata and direct Cloudinary URL into Supabase database (mood assignment restricted to owner)
+      const effectiveMood = isOwner ? uploadMood : "";
       let lyricsToStore = uploadLyrics ? uploadLyrics.trim() : null;
-      if (uploadMood) {
-        lyricsToStore = lyricsToStore 
-          ? `[mood: ${uploadMood}]\n${lyricsToStore}` 
-          : `[mood: ${uploadMood}]`;
+      if (lyricsToStore && !isOwner) {
+        // Strip any spoofed [mood: ...] tags entered by non-owners
+        lyricsToStore = lyricsToStore.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, "").trim() || null;
+      }
+      if (effectiveMood) {
+        const cleanLyrics = lyricsToStore ? lyricsToStore.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, "").trim() : "";
+        lyricsToStore = cleanLyrics 
+          ? `[mood: ${effectiveMood}]\n${cleanLyrics}` 
+          : `[mood: ${effectiveMood}]`;
       }
 
       const { data: dbData, error: dbError } = await supabase.from("songs").insert([{ 
@@ -3109,10 +3115,10 @@ export default function App() {
       }
 
       if (dbData && dbData[0]) {
-        const createdSong = { ...dbData[0], mood: uploadMood || null };
-        if (uploadMood) {
-          setCustomSongMood(createdSong.id, uploadMood);
-          setCustomMoodOverrides(prev => ({ ...prev, [createdSong.id]: uploadMood }));
+        const createdSong = { ...dbData[0], mood: effectiveMood || null };
+        if (effectiveMood) {
+          setCustomSongMood(createdSong.id, effectiveMood);
+          setCustomMoodOverrides(prev => ({ ...prev, [createdSong.id]: effectiveMood }));
         }
         setPlaylist(prev => prev.some(s => s.id === createdSong.id) ? prev : [...prev, createdSong]);
       }
@@ -4690,43 +4696,46 @@ export default function App() {
               </div>
               <textarea placeholder="Paste Lyrics Here (Optional)" value={uploadLyrics} onChange={e => setUploadLyrics(e.target.value)} className="upload-input glass-row custom-scrollbar" style={{ minHeight: "100px", resize: "vertical", color: songTheme.textColor, background: songTheme.rowBg, border: songTheme.rowBorder }} />
               
-              {/* Mood Selection Pills */}
-              <div style={{ marginBottom: "16px" }}>
-                <div style={{ fontSize: "12px", fontWeight: "600", color: songTheme.textMuted, marginBottom: "8px" }}>
-                  Mood / Vibe (Optional)
+              {/* Mood Selection Pills - EXCLUSIVE TO OWNER */}
+              {isOwner && (
+                <div style={{ marginBottom: "16px" }}>
+                  <div style={{ fontSize: "12px", fontWeight: "600", color: songTheme.textMuted, marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span>Mood / Vibe (Optional)</span>
+                    <span style={{ fontSize: "10px", color: COLORS.primary, background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)", padding: "1px 6px", borderRadius: "6px", fontWeight: "700" }}>Owner</span>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {AVAILABLE_MOODS.map(m => {
+                      const isSelected = uploadMood === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setUploadMood(isSelected ? "" : m.id)}
+                          style={{
+                            background: isSelected ? m.color : songTheme.rowBg,
+                            color: isSelected ? "#fff" : songTheme.textColor,
+                            border: isSelected ? `1px solid ${m.color}` : songTheme.rowBorder,
+                            borderRadius: "20px",
+                            padding: "6px 14px",
+                            fontSize: "12px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            transition: "all 0.15s ease",
+                            boxShadow: isSelected ? `0 4px 10px ${m.color}40` : "none"
+                          }}
+                          className="hover-effect"
+                        >
+                          <span>{m.emoji}</span>
+                          <span>{m.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  {AVAILABLE_MOODS.map(m => {
-                    const isSelected = uploadMood === m.id;
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setUploadMood(isSelected ? "" : m.id)}
-                        style={{
-                          background: isSelected ? m.color : songTheme.rowBg,
-                          color: isSelected ? "#fff" : songTheme.textColor,
-                          border: isSelected ? `1px solid ${m.color}` : songTheme.rowBorder,
-                          borderRadius: "20px",
-                          padding: "6px 14px",
-                          fontSize: "12px",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          transition: "all 0.15s ease",
-                          boxShadow: isSelected ? `0 4px 10px ${m.color}40` : "none"
-                        }}
-                        className="hover-effect"
-                      >
-                        <span>{m.emoji}</span>
-                        <span>{m.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              )}
 
               <div className="glass-row" style={{ marginBottom: "16px", padding: "14px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px" }}>
                 <label style={{ display: "block", marginBottom: "8px", color: songTheme.textMuted, fontSize: "14px" }}>Poster Image *</label>
