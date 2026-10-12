@@ -4859,7 +4859,6 @@ export default function App() {
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "11px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Time Listened</span>
                   <span style={{ fontSize: "24px", fontWeight: "800", color: COLORS.spotifyGreen }}>{listeningStats.formattedTime}</span>
-                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>{listeningStats.totalMinutes > 0 ? `~${listeningStats.totalMinutes} total minutes` : `${listeningStats.totalSeconds || 0} seconds played`}</span>
                 </div>
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "11px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Total Plays</span>
@@ -4954,7 +4953,6 @@ export default function App() {
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "10px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Time Listened</span>
                   <span style={{ fontSize: "20px", fontWeight: "800", color: COLORS.spotifyGreen }}>{listeningStats.formattedTime}</span>
-                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>{listeningStats.totalMinutes > 0 ? `~${listeningStats.totalMinutes} mins` : `${listeningStats.totalSeconds || 0}s played`}</span>
                 </div>
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   <span style={{ fontSize: "10px", color: songTheme.textMuted, fontWeight: "600", textTransform: "uppercase" }}>Total Plays</span>

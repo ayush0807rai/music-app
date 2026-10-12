@@ -1,7 +1,7 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-12T14:25:28.009Z
--- Total: 132 songs, 88 artists, 17 playlists, 63 playlist_songs
+-- Generated: 2026-10-12T14:30:04.673Z
+-- Total: 132 songs, 88 artists, 18 playlists, 63 playlist_songs
 -- ====================================================
 
 -- 1. Schema Definitions
@@ -8675,7 +8675,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   '2026-10-11T17:19:36.509067+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 
--- 4. Restore Playlists (17 rows)
+-- 4. Restore Playlists (18 rows)
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('f9a25586-7289-4a1d-b57b-38464f2fd543', 'Songs We Sang', '1427121b-efda-49c6-abdf-59ad35523935', '2026-09-20T11:36:43.898631+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('6588f28e-74cc-4202-a7de-599205a2b100', 'peace out', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-09-21T04:55:01.15482+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('79006896-12a9-4356-8226-555a5c2f6041', 'Liked Songs', '1427121b-efda-49c6-abdf-59ad35523935', '2026-09-24T05:36:00.804275+00:00') ON CONFLICT (id) DO NOTHING;
@@ -8693,6 +8693,7 @@ INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('9a91d0dd-4
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('13d4f26f-0307-4c7f-b8f3-4c735505a30d', 'Int. Pop', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-09T22:05:02.762364+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('39dec174-5860-466c-b96e-82840ad4b80a', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:45:36.529887+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('e9b1578f-12dc-4708-a762-6b2651487371', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:51:43.397964+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('01113d88-41a6-4a2f-9846-88ede407d896', 'Liked Songs', '9cebd7da-e93e-4715-b6fd-487ee09e6f2f', '2026-10-12T14:29:37.787009+00:00') ON CONFLICT (id) DO NOTHING;
 
 -- 5. Restore Playlist Songs (63 rows)
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (121, 'f9a25586-7289-4a1d-b57b-38464f2fd543', 'd8ffecc7-42ea-432b-8ec1-a79366bc2da7', '2026-09-20T18:50:30.73165+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
