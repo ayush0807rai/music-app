@@ -805,6 +805,7 @@ export default function App() {
       return saved && saved !== "null" ? JSON.parse(saved) : null;
     } catch (e) { return null; }
   });
+  const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
   const [showQueue, setShowQueue] = useState(false);
   const [queueToast, setQueueToast] = useState("");
   const toastTimeoutRef = useRef(null);
@@ -813,6 +814,49 @@ export default function App() {
     setQueueToast(msg);
     toastTimeoutRef.current = setTimeout(() => setQueueToast(""), 1600);
   }, []);
+
+  const handleSelectMood = useCallback((moodId) => {
+    const targetMood = (moodId === selectedMood || !moodId) ? null : moodId;
+    setSelectedMood(targetMood);
+
+    if (targetMood) {
+      const moodSongs = playlist.filter(s => getSongMoods(s, customMoodOverrides).includes(targetMood));
+      const moodObj = AVAILABLE_MOODS.find(m => m.id === targetMood);
+      const moodSourceName = moodObj ? `${moodObj.label} Mood` : `${targetMood} Mood`;
+
+      if (moodSongs.length > 0) {
+        const queueWithIds = moodSongs.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+        const currentActiveTrack = currentTrack;
+        const activeIdx = currentActiveTrack ? queueWithIds.findIndex(s => s.id === currentActiveTrack.id) : -1;
+
+        if (activeIdx !== -1) {
+          setPlaybackQueue(queueWithIds);
+          setPlaybackIndex(activeIdx);
+          setPlaybackSourceName(moodSourceName);
+          setQueueCurrentTrack(null);
+        } else {
+          setPlaybackQueue(queueWithIds);
+          setPlaybackIndex(-1);
+          if (currentActiveTrack) {
+            setQueueCurrentTrack(currentActiveTrack);
+          }
+          setPlaybackSourceName(moodSourceName);
+        }
+      }
+    } else {
+      if (playbackSourceName && (playbackSourceName.includes("Mood") || AVAILABLE_MOODS.some(m => playbackSourceName.includes(m.label)))) {
+        const queueWithIds = playlist.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+        setPlaybackQueue(queueWithIds);
+        setPlaybackSourceName("Global Library");
+        const currentActiveTrack = currentTrack;
+        if (currentActiveTrack) {
+          const foundIdx = queueWithIds.findIndex(s => s.id === currentActiveTrack.id);
+          setPlaybackIndex(foundIdx !== -1 ? foundIdx : 0);
+          setQueueCurrentTrack(null);
+        }
+      }
+    }
+  }, [selectedMood, playlist, customMoodOverrides, currentTrack, playbackSourceName]);
 
   const handleSetSongMood = useCallback((songId, moodId) => {
     if (!songId) return;
@@ -827,6 +871,42 @@ export default function App() {
     } else {
       triggerToast("Category reset to automatic");
     }
+
+    // Transfer song to that mood and make it play in that specific mood only
+    if (moodId) {
+      const targetMoodSongs = playlist.filter(s => getSongMoods(s, updated).includes(moodId));
+      const queueWithIds = targetMoodSongs.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+      const moodSourceName = `${moodId} Mood`;
+
+      if (viewedPlaylistId === null) {
+        setSelectedMood(moodId);
+      }
+
+      if (currentTrack?.id === songId) {
+        const foundIdx = queueWithIds.findIndex(s => s.id === songId);
+        setPlaybackQueue(queueWithIds);
+        setPlaybackIndex(foundIdx !== -1 ? foundIdx : 0);
+        setPlaybackSourceName(moodSourceName);
+        setQueueCurrentTrack(null);
+      }
+    } else {
+      if (currentTrack?.id === songId && playbackSourceName?.includes("Mood")) {
+        const autoMood = getSongMoods(currentTrack, updated)[0];
+        if (autoMood) {
+          const autoMoodSongs = playlist.filter(s => getSongMoods(s, updated).includes(autoMood));
+          const queueWithIds = autoMoodSongs.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+          const foundIdx = queueWithIds.findIndex(s => s.id === songId);
+          setPlaybackQueue(queueWithIds);
+          setPlaybackIndex(foundIdx !== -1 ? foundIdx : 0);
+          setPlaybackSourceName(`${autoMood} Mood`);
+          setQueueCurrentTrack(null);
+          if (viewedPlaylistId === null) {
+            setSelectedMood(autoMood);
+          }
+        }
+      }
+    }
+
     try {
       supabase.from('songs').update({ mood: moodId || null }).eq('id', songId).then(({ error }) => {
         if (error) {
@@ -834,7 +914,7 @@ export default function App() {
         }
       });
     } catch (e) {}
-  }, [isOwner, triggerToast]);
+  }, [isOwner, triggerToast, playlist, currentTrack, viewedPlaylistId, playbackSourceName]);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
@@ -1079,7 +1159,6 @@ export default function App() {
   const listeningStats = useMemo(() => {
     return computeListeningStats(playlist, s => getSongMoods(s, customMoodOverrides));
   }, [playlist, playCounts, customMoodOverrides, showStatsModal]);
-  const currentTrack = queueCurrentTrack || (playbackQueue.length > 0 ? playbackQueue[playbackIndex] : undefined);
 
   const handleOpenStatsModal = () => {
     if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
@@ -1095,6 +1174,22 @@ export default function App() {
       const shouldHydrate = playbackQueue.length === 0 || 
         (playbackQueue.length <= 1 && playlist.length > 1 && (!playbackSourceName || playbackSourceName === "Global Library"));
       if (shouldHydrate) {
+        if (selectedMood) {
+          const moodSongs = playlist.filter(s => getSongMoods(s, customMoodOverrides).includes(selectedMood));
+          if (moodSongs.length > 0) {
+            const queueWithIds = moodSongs.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
+            setPlaybackQueue(queueWithIds);
+            const activeTrack = currentTrack || queueWithIds[0];
+            if (activeTrack) {
+              const foundIdx = queueWithIds.findIndex(s => s.id === activeTrack.id);
+              if (foundIdx !== -1) {
+                setPlaybackIndex(foundIdx);
+                setQueueCurrentTrack(null);
+              }
+            }
+            return;
+          }
+        }
         const queueWithIds = playlist.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
         setPlaybackQueue(queueWithIds);
         const activeTrack = currentTrack || (playbackQueue.length > 0 ? playbackQueue[0] : null);
@@ -1354,26 +1449,20 @@ export default function App() {
       setUpcomingSourceList([]);
       return;
     }
-    if (playMode === 'repeat-one') {
-      const list = [
+    if (playMode === 'repeat-one' || playMode === 'order' || playMode === 'repeat-all') {
+      const list = playbackIndex >= 0 ? [
         ...queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1),
         ...queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(0, playbackIndex)
-      ];
-      setUpcomingSourceList(list);
-    } else if (playMode === 'order' || playMode === 'repeat-all') {
-      const list = [
-        ...queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(playbackIndex + 1),
-        ...queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).slice(0, playbackIndex)
-      ];
+      ] : queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) }));
       setUpcomingSourceList(list);
     } else if (playMode === 'shuffle') {
       setUpcomingSourceList(prev => {
-        if (prev.length > 0 && prev[0].originalIndex === playbackIndex) {
+        if (prev.length > 0 && prev[0].originalIndex === playbackIndex && playbackIndex >= 0) {
           const remaining = prev.slice(1);
           if (remaining.length > 0) return remaining;
         }
         
-        const others = queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).filter(obj => obj.originalIndex !== playbackIndex);
+        const others = queueToUse.map((track, i) => ({ track, originalIndex: i, dnd_id: track._play_id || ("fallback-" + i) })).filter(obj => playbackIndex < 0 || obj.originalIndex !== playbackIndex);
         for (let i = others.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [others[i], others[j]] = [others[j], others[i]];
@@ -2752,10 +2841,28 @@ export default function App() {
   const handlePlaySong = (index, listToSet, sourceName) => {
     let queueToSet = listToSet;
     let actualIndex = index;
+    let resolvedSource = sourceName;
 
     const clickedTrack = listToSet[index];
     if (clickedTrack) {
-      if ((sourceName === "Global Library" || !sourceName) && playlist.length > listToSet.length) {
+      if (selectedMood && (!sourceName || sourceName === "Global Library" || sourceName.includes("Mood"))) {
+        const moodSongs = playlist.filter(s => getSongMoods(s, customMoodOverrides).includes(selectedMood));
+        if (moodSongs.length > 0) {
+          queueToSet = moodSongs;
+          resolvedSource = `${selectedMood} Mood`;
+          const found = moodSongs.findIndex(s => s.id === clickedTrack.id);
+          if (found !== -1) actualIndex = found;
+        }
+      } else if (sourceName && sourceName.includes("Mood")) {
+        const moodName = sourceName.replace(" Mood", "").trim();
+        const moodSongs = playlist.filter(s => getSongMoods(s, customMoodOverrides).includes(moodName));
+        if (moodSongs.length > 0) {
+          queueToSet = moodSongs;
+          resolvedSource = `${moodName} Mood`;
+          const found = moodSongs.findIndex(s => s.id === clickedTrack.id);
+          if (found !== -1) actualIndex = found;
+        }
+      } else if ((resolvedSource === "Global Library" || !resolvedSource) && playlist.length > listToSet.length) {
         queueToSet = playlist;
         const found = playlist.findIndex(s => s.id === clickedTrack.id);
         if (found !== -1) actualIndex = found;
@@ -2776,7 +2883,7 @@ export default function App() {
     setPlaybackHistory(prev => [...prev, playbackIndex]);
     setPlaybackQueue(queueWithIds);
     setPlaybackIndex(actualIndex);
-    setPlaybackSourceName(sourceName || "Global Library");
+    setPlaybackSourceName(resolvedSource || "Global Library");
     setQueueCurrentTrack(null);
     resetPlaybackTime();
     setIsPlaying(true);
@@ -3136,7 +3243,7 @@ export default function App() {
     }
     
     let activeQueue = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
-    if (activeQueue.length <= 1 && playlist.length > 1) {
+    if (activeQueue.length <= 1 && playlist.length > 1 && (!playbackSourceName || playbackSourceName === "Global Library")) {
       const queueWithIds = playlist.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
       setPlaybackQueue(queueWithIds);
       activeQueue = queueWithIds;
@@ -3148,7 +3255,13 @@ export default function App() {
 
     let nextIdx = -1;
 
-    if (playMode === 'shuffle') {
+    if (playbackIndex < 0) {
+      if (playMode === 'shuffle' && upcomingSourceList.length > 0) {
+        nextIdx = upcomingSourceList[0].originalIndex;
+      } else {
+        nextIdx = 0;
+      }
+    } else if (playMode === 'shuffle') {
       const validUpcoming = upcomingSourceList.find(item => item.originalIndex !== playbackIndex);
       if (validUpcoming) {
         nextIdx = validUpcoming.originalIndex;
@@ -3171,7 +3284,7 @@ export default function App() {
     }
 
     if (nextIdx === -1 || nextIdx >= activeQueue.length) {
-      nextIdx = (playbackIndex + 1) % activeQueue.length;
+      nextIdx = 0;
     }
 
     const nextTrack = activeQueue[nextIdx];
@@ -3272,7 +3385,7 @@ export default function App() {
     }
     
     let activeQueue = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
-    if (activeQueue.length <= 1 && playlist.length > 1) {
+    if (activeQueue.length <= 1 && playlist.length > 1 && (!playbackSourceName || playbackSourceName === "Global Library")) {
       const queueWithIds = playlist.map(s => s._play_id ? s : { ...s, _play_id: Math.random().toString() });
       setPlaybackQueue(queueWithIds);
       activeQueue = queueWithIds;
@@ -3286,7 +3399,13 @@ export default function App() {
     setPlaybackHistory(prev => [...prev, playbackIndex]);
 
     let nextIdx = -1;
-    if (playMode === 'shuffle') {
+    if (playbackIndex < 0) {
+      if (playMode === 'shuffle' && upcomingSourceList.length > 0) {
+        nextIdx = upcomingSourceList[0].originalIndex;
+      } else {
+        nextIdx = 0;
+      }
+    } else if (playMode === 'shuffle') {
       const validUpcoming = upcomingSourceList.find(item => item.originalIndex !== playbackIndex);
       if (validUpcoming) {
         nextIdx = validUpcoming.originalIndex;
@@ -3309,7 +3428,7 @@ export default function App() {
     }
 
     if (nextIdx === -1 || nextIdx >= activeQueue.length) {
-      nextIdx = (playbackIndex + 1) % activeQueue.length;
+      nextIdx = 0;
     }
 
     const nextTrack = activeQueue[nextIdx];
@@ -5783,7 +5902,7 @@ export default function App() {
                 {viewedPlaylistId === null && !selectedArtist && !selectedAlbum && (
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", paddingLeft: isDesktop ? "16px" : 0 }} className="custom-scrollbar">
                     <button
-                      onClick={() => setSelectedMood(null)}
+                      onClick={() => handleSelectMood(null)}
                       style={{
                         background: selectedMood === null ? COLORS.primary : "transparent",
                         color: selectedMood === null ? COLORS.bgPanel : COLORS.primary,
@@ -5810,7 +5929,7 @@ export default function App() {
                       return (
                         <button
                           key={m.id}
-                          onClick={() => setSelectedMood(isSelected ? null : m.id)}
+                          onClick={() => handleSelectMood(m.id)}
                           style={{
                             background: isSelected ? m.color : "transparent",
                             color: isSelected ? "#fff" : COLORS.primary,
@@ -5843,7 +5962,7 @@ export default function App() {
                     const isSelected = currentTrack?.id === track.id;
                     return (
                       <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
-                        <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, "Global Library")} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
+                        <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, selectedMood ? `${selectedMood} Mood` : "Global Library")} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
                           <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
                             <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
