@@ -101,10 +101,19 @@ export function getSongMoods(song, customOverrides = null) {
     return [CURATED_MOOD_OVERRIDES[song.id]];
   }
 
-  // 2. Explicit mood stored on track (from database)
+  // 3. Explicit mood stored on track (from database or local object)
   if (song.mood && typeof song.mood === 'string' && song.mood.trim()) {
     const raw = song.mood.split(',').map(m => m.trim()).filter(Boolean);
     if (raw.length > 0) return raw;
+  }
+
+  // 4. Explicit mood tag embedded in lyrics (e.g. [mood: Romantic])
+  if (song.lyrics && typeof song.lyrics === 'string') {
+    const match = song.lyrics.match(/\[mood:\s*([a-zA-Z]+)\]/i);
+    if (match && match[1]) {
+      const found = AVAILABLE_MOODS.find(m => m.id.toLowerCase() === match[1].toLowerCase());
+      if (found) return [found.id];
+    }
   }
 
   // 2. Intelligent lyrics & metadata scoring

@@ -908,11 +908,17 @@ export default function App() {
     }
 
     try {
-      supabase.from('songs').update({ mood: moodId || null }).eq('id', songId).then(({ error }) => {
-        if (error) {
-          // Local override is authoritative if remote schema cache does not have mood column
-        }
-      });
+      const targetSong = playlist.find(s => s.id === songId);
+      if (targetSong) {
+        let currentLyrics = targetSong.lyrics || "";
+        let cleanLyrics = currentLyrics.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, "").trim();
+        let newLyrics = moodId ? (cleanLyrics ? `[mood: ${moodId}]\n${cleanLyrics}` : `[mood: ${moodId}]`) : (cleanLyrics || null);
+        supabase.from('songs').update({ lyrics: newLyrics }).eq('id', songId).then(({ error }) => {
+          if (!error) {
+            setPlaylist(prev => prev.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s));
+          }
+        });
+      }
     } catch (e) {}
   }, [isOwner, triggerToast, playlist, currentTrack, viewedPlaylistId, playbackSourceName]);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
@@ -3061,11 +3067,18 @@ export default function App() {
       }
 
       // 3. Save song metadata and direct Cloudinary URL into Supabase database
+      let lyricsToStore = uploadLyrics ? uploadLyrics.trim() : null;
+      if (uploadMood) {
+        lyricsToStore = lyricsToStore 
+          ? `[mood: ${uploadMood}]\n${lyricsToStore}` 
+          : `[mood: ${uploadMood}]`;
+      }
+
       const { data: dbData, error: dbError } = await supabase.from("songs").insert([{ 
         title: uploadTitle, 
         artist: uploadArtist, 
         album: uploadAlbum || null, 
-        lyrics: uploadLyrics || null, 
+        lyrics: lyricsToStore, 
         url: audioUrl, 
         poster_url: posterUrl 
       }]).select();
@@ -3095,7 +3108,14 @@ export default function App() {
         }
       }
 
-      setPlaylist(prev => prev.some(s => s.id === dbData[0].id) ? prev : [...prev, dbData[0]]);
+      if (dbData && dbData[0]) {
+        const createdSong = { ...dbData[0], mood: uploadMood || null };
+        if (uploadMood) {
+          setCustomSongMood(createdSong.id, uploadMood);
+          setCustomMoodOverrides(prev => ({ ...prev, [createdSong.id]: uploadMood }));
+        }
+        setPlaylist(prev => prev.some(s => s.id === createdSong.id) ? prev : [...prev, createdSong]);
+      }
       setShowUploadModal(false);
       setUploadTitle(""); setUploadArtist(""); setUploadAlbum(""); setUploadLyrics(""); setUploadFile(null); setUploadPoster(null); setUploadMood("");
       setShowArtistSuggestions(false); setShowAlbumSuggestions(false);
@@ -3857,7 +3877,7 @@ export default function App() {
           </div>
         ) : (
           <div style={{ color: inactiveColor, textShadow: inactiveShadow, opacity: 0.8, fontSize: "15px", fontWeight: "600", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {trackLyrics ? trackLyrics : "No synchronized lyrics available."}
+            {trackLyrics ? (trackLyrics.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, '').trim() || "No synchronized lyrics available.") : "No synchronized lyrics available."}
           </div>
         )}
       </div>
@@ -6855,7 +6875,7 @@ export default function App() {
                     })
                   ) : (
                     <div style={{ color: isDarkMode ? "rgba(255,255,255,0.6)" : "#64748B", fontSize: "20px", fontWeight: "600", lineHeight: "1.8", whiteSpace: "pre-line", padding: "60px 0" }}>
-                      {(currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics) || "No synchronized lyrics available for this song."}
+                      {((currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics)?.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, '').trim()) || "No synchronized lyrics available for this song."}
                     </div>
                   )}
                 </div>
