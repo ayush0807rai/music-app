@@ -632,9 +632,48 @@ export default function App() {
   const topArtistsScrollRef = useRef(null);
   const moodsScrollRef = useRef(null);
 
-  // Desktop-only horizontal mouse wheel scroll handler for Top Artists and Moods categories
+  // Desktop-only ultra-smooth horizontal mouse wheel scroll handler for Top Artists and Moods categories
   const attachHorizontalWheel = useCallback((node) => {
     if (!node || !isDesktop) return () => {};
+
+    let targetScroll = node.scrollLeft;
+    let currentScroll = node.scrollLeft;
+    let isAnimating = false;
+    let rafId = null;
+    let lastTime = null;
+
+    const stopAnimation = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      isAnimating = false;
+      lastTime = null;
+    };
+
+    const animate = (time) => {
+      if (!lastTime) lastTime = time;
+      const dt = Math.min((time - lastTime) / 1000, 0.1);
+      lastTime = time;
+
+      const maxScroll = Math.max(0, node.scrollWidth - node.clientWidth);
+      targetScroll = Math.max(0, Math.min(maxScroll, targetScroll));
+
+      // Framerate-independent smooth exponential decay (~95% decay within 200ms)
+      const factor = 1 - Math.exp(-14 * dt);
+      const diff = targetScroll - currentScroll;
+
+      if (Math.abs(diff) < 0.5) {
+        currentScroll = targetScroll;
+        node.scrollLeft = targetScroll;
+        stopAnimation();
+        return;
+      }
+
+      currentScroll += diff * factor;
+      node.scrollLeft = currentScroll;
+      rafId = requestAnimationFrame(animate);
+    };
 
     const handleWheel = (e) => {
       // Only convert vertical mouse wheel scroll (deltaY) into horizontal scroll on desktop
@@ -644,21 +683,57 @@ export default function App() {
         else if (e.deltaMode === 2) delta *= 100;
 
         const maxScroll = Math.max(0, node.scrollWidth - node.clientWidth);
-        if (maxScroll > 0) {
-          const canScrollRight = delta > 0 && node.scrollLeft < maxScroll - 1;
-          const canScrollLeft = delta < 0 && node.scrollLeft > 1;
+        if (maxScroll <= 0) return;
 
-          if (canScrollRight || canScrollLeft) {
-            e.preventDefault();
-            node.scrollLeft += delta;
+        // If not actively animating, synchronize positions with actual DOM scrollLeft
+        if (!isAnimating) {
+          currentScroll = node.scrollLeft;
+          targetScroll = node.scrollLeft;
+        }
+
+        const newTarget = Math.max(0, Math.min(maxScroll, targetScroll + delta));
+        const canScrollRight = delta > 0 && (node.scrollLeft < maxScroll - 1 || targetScroll < maxScroll);
+        const canScrollLeft = delta < 0 && (node.scrollLeft > 1 || targetScroll > 0);
+
+        if (canScrollRight || canScrollLeft) {
+          e.preventDefault();
+          targetScroll = newTarget;
+
+          if (!isAnimating) {
+            isAnimating = true;
+            lastTime = null;
+            rafId = requestAnimationFrame(animate);
           }
         }
       }
     };
 
+    const handlePointerDown = () => {
+      stopAnimation();
+      targetScroll = node.scrollLeft;
+      currentScroll = node.scrollLeft;
+    };
+
+    const handleScroll = () => {
+      if (!isAnimating) {
+        targetScroll = node.scrollLeft;
+        currentScroll = node.scrollLeft;
+      }
+    };
+
+    const prevScrollBehavior = node.style.scrollBehavior;
+    node.style.scrollBehavior = "auto";
+
     node.addEventListener("wheel", handleWheel, { passive: false });
+    node.addEventListener("pointerdown", handlePointerDown, { passive: true });
+    node.addEventListener("scroll", handleScroll, { passive: true });
+
     return () => {
+      stopAnimation();
+      node.style.scrollBehavior = prevScrollBehavior;
       node.removeEventListener("wheel", handleWheel);
+      node.removeEventListener("pointerdown", handlePointerDown);
+      node.removeEventListener("scroll", handleScroll);
     };
   }, [isDesktop]);
 
