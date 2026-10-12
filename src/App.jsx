@@ -35,7 +35,12 @@ import {
   getPlayCounts,
   clearListeningHistory,
   computeListeningStats,
-  recordListeningDuration
+  recordListeningDuration,
+  setActiveUser,
+  syncAccountStats,
+  subscribeToCloudStats,
+  flushCloudSync,
+  saveLocalStats
 } from "./statsManager";
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
@@ -679,7 +684,8 @@ export default function App() {
   const [userPlaylists, setUserPlaylists] = useState(() => {
     try {
       const saved = localStorage.getItem("euphony_cached_playlists");
-      return saved ? JSON.parse(saved) : [];
+      const list = saved ? JSON.parse(saved) : [];
+      return Array.isArray(list) ? list.filter(p => p && p.name && !p.name.startsWith("__")) : [];
     } catch (e) { return []; }
   });
   const [playlistSongs, setPlaylistSongs] = useState([]);
@@ -866,6 +872,8 @@ export default function App() {
     }
     const updated = setCustomSongMood(songId, moodId);
     setCustomMoodOverrides({ ...updated });
+    saveLocalStats({ customMoods: updated }, session?.user?.id);
+    flushCloudSync(session?.user?.id);
     if (moodId) {
       triggerToast(`Category set to ${getMoodEmoji(moodId)} ${moodId}`);
     } else {
@@ -920,7 +928,7 @@ export default function App() {
         });
       }
     } catch (e) {}
-  }, [isOwner, triggerToast, playlist, currentTrack, viewedPlaylistId, playbackSourceName]);
+  }, [isOwner, triggerToast, playlist, currentTrack, viewedPlaylistId, playbackSourceName, session?.user?.id]);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
@@ -1163,8 +1171,8 @@ export default function App() {
   }, [playlist, customMoodOverrides]);
 
   const listeningStats = useMemo(() => {
-    return computeListeningStats(playlist, s => getSongMoods(s, customMoodOverrides));
-  }, [playlist, playCounts, customMoodOverrides, showStatsModal]);
+    return computeListeningStats(playlist, s => getSongMoods(s, customMoodOverrides), session?.user?.id);
+  }, [playlist, playCounts, customMoodOverrides, showStatsModal, session?.user?.id]);
 
   const handleSwitchPlaylist = useCallback((playlistId) => {
     // If user re-taps the currently active playlist/smart-view (except global library which is null),
@@ -1192,11 +1200,21 @@ export default function App() {
       return;
     }
     if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
-      recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+      recordListeningDuration(currentTrack.id, pendingListenDurationRef.current, session?.user?.id);
       pendingListenDurationRef.current = 0;
     }
+    flushCloudSync(session?.user?.id);
+    if (session?.user?.id) {
+      syncAccountStats(session.user).then((merged) => {
+        if (merged) {
+          if (merged.playCounts) setPlayCounts(merged.playCounts);
+          if (merged.recentlyPlayedIds) setRecentlyPlayedIds(merged.recentlyPlayedIds);
+          if (merged.customMoods) setCustomMoodOverrides(prev => ({ ...prev, ...merged.customMoods }));
+        }
+      });
+    }
     setShowStatsModal(true);
-  }, [showStatsModal, handleCloseStatsModal, currentTrack?.id]);
+  }, [showStatsModal, handleCloseStatsModal, currentTrack?.id, session?.user]);
 
   // Ensure playbackQueue is always hydrated with songs from the library if empty, trapped, or missing lyrics
   useEffect(() => {
@@ -1873,9 +1891,10 @@ export default function App() {
     // Prevent accidental closure of the app when music is playing (adds OS-level protection)
     const handleBeforeUnload = (e) => {
       if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
-        recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+        recordListeningDuration(currentTrack.id, pendingListenDurationRef.current, session?.user?.id);
         pendingListenDurationRef.current = 0;
       }
+      flushCloudSync(session?.user?.id);
       if (stateRefs.current?.isPlaying) {
         e.preventDefault();
         e.returnValue = 'Music is playing. Are you sure you want to exit?';
@@ -1884,7 +1903,7 @@ export default function App() {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [currentTrack]);
+  }, [currentTrack, session?.user?.id]);
 
   useEffect(() => {
     // Only trap history AFTER a user gesture (like hitting play).
@@ -2156,7 +2175,8 @@ export default function App() {
       }
 
       if (playlistRes.data) {
-        const uniquePlaylists = Array.from(new Map(playlistRes.data.map(p => [p.id, p])).values());
+        const uniquePlaylists = Array.from(new Map(playlistRes.data.map(p => [p.id, p])).values())
+          .filter(p => p.name && !p.name.startsWith("__"));
         let hasLiked = uniquePlaylists.some(p => p.name === "Liked Songs");
         let finalPlaylists = [...uniquePlaylists];
         if (!hasLiked) {
@@ -2204,6 +2224,73 @@ export default function App() {
       supabase.removeChannel(channel);
     };
   }, [session?.user?.id, fetchAllData]);
+
+  // Cross-device listening stats and account data synchronization
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setActiveUser(null);
+      return;
+    }
+    setActiveUser(session.user);
+
+    // Initial account sync: merges stats from all devices linked to this account
+    syncAccountStats(session.user).then((merged) => {
+      if (merged) {
+        if (merged.playCounts) setPlayCounts(merged.playCounts);
+        if (merged.recentlyPlayedIds) setRecentlyPlayedIds(merged.recentlyPlayedIds);
+        if (merged.customMoods) setCustomMoodOverrides(prev => ({ ...prev, ...merged.customMoods }));
+      }
+    });
+
+    // Realtime channel: instant sync when another device (mobile/desktop) updates stats
+    const unsub = subscribeToCloudStats(session.user.id, (remote) => {
+      if (remote) {
+        if (remote.playCounts) setPlayCounts(remote.playCounts);
+        if (remote.recentlyPlayedIds) setRecentlyPlayedIds(remote.recentlyPlayedIds);
+        if (remote.customMoods) setCustomMoodOverrides(prev => ({ ...prev, ...remote.customMoods }));
+      }
+    });
+
+    // Sync on tab focus or visibility changes (mobile app switches, screen unlocks)
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncAccountStats(session.user).then((merged) => {
+          if (merged) {
+            if (merged.playCounts) setPlayCounts(merged.playCounts);
+            if (merged.recentlyPlayedIds) setRecentlyPlayedIds(merged.recentlyPlayedIds);
+            if (merged.customMoods) setCustomMoodOverrides(prev => ({ ...prev, ...merged.customMoods }));
+          }
+        });
+      } else if (document.visibilityState === 'hidden') {
+        if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+          recordListeningDuration(currentTrack.id, pendingListenDurationRef.current, session.user.id);
+          pendingListenDurationRef.current = 0;
+        }
+        flushCloudSync(session.user.id);
+      }
+    };
+
+    const handleFocus = () => {
+      syncAccountStats(session.user).then((merged) => {
+        if (merged) {
+          if (merged.playCounts) setPlayCounts(merged.playCounts);
+          if (merged.recentlyPlayedIds) setRecentlyPlayedIds(merged.recentlyPlayedIds);
+          if (merged.customMoods) setCustomMoodOverrides(prev => ({ ...prev, ...merged.customMoods }));
+        }
+      });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pagehide", handleVisibility);
+
+    return () => {
+      if (unsub) unsub();
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pagehide", handleVisibility);
+    };
+  }, [session?.user?.id, currentTrack?.id]);
 
   useEffect(() => {
     if (viewedPlaylistId === null || (typeof viewedPlaylistId === "string" && viewedPlaylistId.startsWith("smart_"))) return;
@@ -3135,6 +3222,8 @@ export default function App() {
         if (effectiveMood) {
           setCustomSongMood(createdSong.id, effectiveMood);
           setCustomMoodOverrides(prev => ({ ...prev, [createdSong.id]: effectiveMood }));
+          saveLocalStats({ customMoods: { ...customMoodOverrides, [createdSong.id]: effectiveMood } }, session?.user?.id);
+          flushCloudSync(session?.user?.id);
         }
         setPlaylist(prev => prev.some(s => s.id === createdSong.id) ? prev : [...prev, createdSong]);
       }
@@ -4875,7 +4964,7 @@ export default function App() {
                 </div>
                 <div>
                   <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Listening Stats</h2>
-                  <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Your personal listening journey</span>
+                  <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Synced with your account</span>
                 </div>
               </div>
 
@@ -4907,8 +4996,8 @@ export default function App() {
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
                   <button
                     onClick={() => {
-                      if (window.confirm("Reset your listening stats on this device?")) {
-                        clearListeningHistory();
+                      if (window.confirm("Reset your listening stats for this account across all devices?")) {
+                        clearListeningHistory(session?.user?.id);
                         pendingListenDurationRef.current = 0;
                         sessionListenDurationRef.current = 0;
                         setRecentlyPlayedIds([]);
@@ -4950,7 +5039,7 @@ export default function App() {
                   </div>
                   <div>
                     <h2 style={{ margin: 0, fontSize: "19px", fontWeight: "800", color: songTheme.textColor }}>Listening Stats</h2>
-                    <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Private stats on this device</span>
+                    <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Synced with your account</span>
                   </div>
                 </div>
                 <button
@@ -5001,8 +5090,8 @@ export default function App() {
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
                   <button
                     onClick={() => {
-                      if (window.confirm("Reset your listening stats on this device?")) {
-                        clearListeningHistory();
+                      if (window.confirm("Reset your listening stats for this account across all devices?")) {
+                        clearListeningHistory(session?.user?.id);
                         pendingListenDurationRef.current = 0;
                         sessionListenDurationRef.current = 0;
                         setRecentlyPlayedIds([]);

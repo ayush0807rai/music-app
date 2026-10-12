@@ -1,38 +1,212 @@
 // src/statsManager.js
-// Client-side listening history, play counters, and personal stats for Euphony
+// Account-specific cloud-synchronized listening history, play counters, and personal stats for Euphony
+import { supabase } from "./supabase";
 
 const RECENTLY_PLAYED_KEY = "euphony_recently_played_ids";
 const PLAY_COUNTS_KEY = "euphony_song_play_counts";
 const LISTEN_SECONDS_KEY = "euphony_song_listen_seconds";
+const CUSTOM_MOODS_KEY = "euphony_custom_song_moods";
 
-export function getRecentlyPlayedIds() {
+const CLOUD_DATA_PREFIX = "__euphony_user_data__:::";
+
+let activeUserId = null;
+let activeUserEmail = null;
+let cloudSyncTimer = null;
+let cachedCloudRowId = null;
+
+export function setActiveUser(user) {
+  if (!user) {
+    activeUserId = null;
+    activeUserEmail = null;
+    cachedCloudRowId = null;
+    return;
+  }
+  if (typeof user === "string") {
+    activeUserId = user;
+  } else {
+    activeUserId = user.id || null;
+    activeUserEmail = user.email || null;
+  }
+}
+
+export function getActiveUserId() {
+  return activeUserId;
+}
+
+function getUserKey(baseKey, userId = activeUserId) {
+  return userId ? `${baseKey}_${userId}` : baseKey;
+}
+
+export function getRecentlyPlayedIds(userId = activeUserId) {
   try {
-    const raw = localStorage.getItem(RECENTLY_PLAYED_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (userId) {
+      const userRaw = localStorage.getItem(getUserKey(RECENTLY_PLAYED_KEY, userId));
+      if (userRaw) return JSON.parse(userRaw);
+    }
+    const legacyRaw = localStorage.getItem(RECENTLY_PLAYED_KEY);
+    return legacyRaw ? JSON.parse(legacyRaw) : [];
   } catch (e) {
     return [];
+  }
+}
+
+export function getPlayCounts(userId = activeUserId) {
+  try {
+    if (userId) {
+      const userRaw = localStorage.getItem(getUserKey(PLAY_COUNTS_KEY, userId));
+      if (userRaw) return JSON.parse(userRaw);
+    }
+    const legacyRaw = localStorage.getItem(PLAY_COUNTS_KEY);
+    return legacyRaw ? JSON.parse(legacyRaw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function getListenSeconds(userId = activeUserId) {
+  try {
+    if (userId) {
+      const userRaw = localStorage.getItem(getUserKey(LISTEN_SECONDS_KEY, userId));
+      if (userRaw) return JSON.parse(userRaw);
+    }
+    const legacyRaw = localStorage.getItem(LISTEN_SECONDS_KEY);
+    return legacyRaw ? JSON.parse(legacyRaw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function getCustomMoods(userId = activeUserId) {
+  try {
+    if (userId) {
+      const userRaw = localStorage.getItem(getUserKey(CUSTOM_MOODS_KEY, userId));
+      if (userRaw) return JSON.parse(userRaw);
+    }
+    const legacyRaw = localStorage.getItem(CUSTOM_MOODS_KEY);
+    return legacyRaw ? JSON.parse(legacyRaw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function saveLocalStats({ playCounts, listenSeconds, recentlyPlayedIds, customMoods }, userId = activeUserId) {
+  try {
+    if (playCounts !== undefined) {
+      const str = JSON.stringify(playCounts);
+      if (userId) localStorage.setItem(getUserKey(PLAY_COUNTS_KEY, userId), str);
+      localStorage.setItem(PLAY_COUNTS_KEY, str);
+    }
+    if (listenSeconds !== undefined) {
+      const str = JSON.stringify(listenSeconds);
+      if (userId) localStorage.setItem(getUserKey(LISTEN_SECONDS_KEY, userId), str);
+      localStorage.setItem(LISTEN_SECONDS_KEY, str);
+    }
+    if (recentlyPlayedIds !== undefined) {
+      const str = JSON.stringify(recentlyPlayedIds);
+      if (userId) localStorage.setItem(getUserKey(RECENTLY_PLAYED_KEY, userId), str);
+      localStorage.setItem(RECENTLY_PLAYED_KEY, str);
+    }
+    if (customMoods !== undefined) {
+      const str = JSON.stringify(customMoods);
+      if (userId) localStorage.setItem(getUserKey(CUSTOM_MOODS_KEY, userId), str);
+      localStorage.setItem(CUSTOM_MOODS_KEY, str);
+    }
+  } catch (e) {
+    console.warn("Failed saving local stats:", e);
+  }
+}
+
+/**
+ * Push stats to Supabase for the current account (debounced)
+ */
+export function scheduleCloudSync(userId = activeUserId) {
+  if (!userId) return;
+  if (cloudSyncTimer) clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(() => {
+    flushCloudSync(userId);
+  }, 1500);
+}
+
+/**
+ * Immediately push current local stats to Supabase
+ */
+export async function flushCloudSync(userId = activeUserId) {
+  if (cloudSyncTimer) {
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = null;
+  }
+  const targetId = userId || activeUserId;
+  if (!targetId) return;
+
+  try {
+    const payloadObj = {
+      version: 1,
+      userId: targetId,
+      email: activeUserEmail,
+      playCounts: getPlayCounts(targetId),
+      listenSeconds: getListenSeconds(targetId),
+      recentlyPlayedIds: getRecentlyPlayedIds(targetId),
+      customMoods: getCustomMoods(targetId),
+      updatedAt: new Date().toISOString()
+    };
+    const payloadStr = CLOUD_DATA_PREFIX + JSON.stringify(payloadObj);
+
+    if (cachedCloudRowId) {
+      const { error: updErr } = await supabase
+        .from("playlists")
+        .update({ name: payloadStr })
+        .eq("id", cachedCloudRowId);
+      if (!updErr) return;
+    }
+
+    // Find existing row or insert
+    const { data: existingRows } = await supabase
+      .from("playlists")
+      .select("id")
+      .eq("user_id", targetId)
+      .like("name", `${CLOUD_DATA_PREFIX}%`)
+      .limit(1);
+
+    if (existingRows && existingRows.length > 0) {
+      cachedCloudRowId = existingRows[0].id;
+      await supabase
+        .from("playlists")
+        .update({ name: payloadStr })
+        .eq("id", cachedCloudRowId);
+    } else {
+      const { data: insData } = await supabase
+        .from("playlists")
+        .insert([{ user_id: targetId, name: payloadStr }])
+        .select();
+      if (insData && insData[0]) {
+        cachedCloudRowId = insData[0].id;
+      }
+    }
+  } catch (e) {
+    console.warn("Cloud sync write error:", e);
   }
 }
 
 /**
  * 1-minute qualified play recorder:
  * Called only when a track reaches >= 60 seconds (1 minute) of listening or completes playback.
- * Updates Recently Played and increments device play counter.
+ * Updates Recently Played and increments play counter, then syncs to cloud account.
  */
-export function recordQualifiedPlay(track) {
+export function recordQualifiedPlay(track, userId = activeUserId) {
   if (!track || !track.id) return;
+  const targetId = userId || activeUserId;
   try {
     // 1. Update Recently Played list (keep most recent first, max 60)
-    const existing = getRecentlyPlayedIds();
+    const existing = getRecentlyPlayedIds(targetId);
     const filtered = existing.filter(id => id !== track.id);
     const updated = [track.id, ...filtered].slice(0, 60);
-    localStorage.setItem(RECENTLY_PLAYED_KEY, JSON.stringify(updated));
 
     // 2. Increment play count
-    const rawCounts = localStorage.getItem(PLAY_COUNTS_KEY);
-    const counts = rawCounts ? JSON.parse(rawCounts) : {};
+    const counts = { ...getPlayCounts(targetId) };
     counts[track.id] = (counts[track.id] || 0) + 1;
-    localStorage.setItem(PLAY_COUNTS_KEY, JSON.stringify(counts));
+
+    saveLocalStats({ recentlyPlayedIds: updated, playCounts: counts }, targetId);
+    scheduleCloudSync(targetId);
   } catch (e) {
     console.warn("Could not record qualified play:", e);
   }
@@ -40,43 +214,189 @@ export function recordQualifiedPlay(track) {
 
 export const recordSongPlay = recordQualifiedPlay;
 
-export function recordListeningDuration(trackId, seconds) {
+export function recordListeningDuration(trackId, seconds, userId = activeUserId) {
   if (!trackId || !seconds || seconds <= 0) return;
+  const targetId = userId || activeUserId;
   try {
-    const raw = localStorage.getItem(LISTEN_SECONDS_KEY);
-    const times = raw ? JSON.parse(raw) : {};
+    const times = { ...getListenSeconds(targetId) };
     times[trackId] = (times[trackId] || 0) + Math.round(seconds * 10) / 10;
-    localStorage.setItem(LISTEN_SECONDS_KEY, JSON.stringify(times));
+    saveLocalStats({ listenSeconds: times }, targetId);
+    scheduleCloudSync(targetId);
   } catch (e) {
     // Ignore storage errors
   }
 }
 
-export function getPlayCounts() {
+export async function clearListeningHistory(userId = activeUserId) {
+  const targetId = userId || activeUserId;
   try {
-    const raw = localStorage.getItem(PLAY_COUNTS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) {
-    return {};
-  }
-}
-
-export function clearListeningHistory() {
-  try {
+    if (targetId) {
+      localStorage.removeItem(getUserKey(RECENTLY_PLAYED_KEY, targetId));
+      localStorage.removeItem(getUserKey(PLAY_COUNTS_KEY, targetId));
+      localStorage.removeItem(getUserKey(LISTEN_SECONDS_KEY, targetId));
+    }
     localStorage.removeItem(RECENTLY_PLAYED_KEY);
     localStorage.removeItem(PLAY_COUNTS_KEY);
     localStorage.removeItem(LISTEN_SECONDS_KEY);
-  } catch (e) {}
+
+    if (targetId) {
+      const emptyPayload = CLOUD_DATA_PREFIX + JSON.stringify({
+        version: 1,
+        userId: targetId,
+        email: activeUserEmail,
+        playCounts: {},
+        listenSeconds: {},
+        recentlyPlayedIds: [],
+        customMoods: getCustomMoods(targetId),
+        updatedAt: new Date().toISOString()
+      });
+
+      if (cachedCloudRowId) {
+        await supabase.from("playlists").update({ name: emptyPayload }).eq("id", cachedCloudRowId);
+      } else {
+        const { data: rows } = await supabase.from("playlists").select("id").eq("user_id", targetId).like("name", `${CLOUD_DATA_PREFIX}%`).limit(1);
+        if (rows && rows[0]) {
+          cachedCloudRowId = rows[0].id;
+          await supabase.from("playlists").update({ name: emptyPayload }).eq("id", rows[0].id);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Error clearing listening history:", e);
+  }
 }
 
-export function computeListeningStats(allSongs = [], getSongMoodsFn) {
-  const counts = getPlayCounts();
-  const rawSeconds = (() => {
-    try {
-      const r = localStorage.getItem(LISTEN_SECONDS_KEY);
-      return r ? JSON.parse(r) : {};
-    } catch (e) { return {}; }
-  })();
+/**
+ * Main cross-device synchronization:
+ * Connects the user account to Supabase, merges local stats with remote cloud stats,
+ * and ensures both devices (desktop and mobile) have the exact same combined stats.
+ */
+export async function syncAccountStats(user) {
+  if (!user || !user.id) return null;
+  setActiveUser(user);
+  const targetId = user.id;
+
+  try {
+    // 1. Read current local device stats
+    const localCounts = getPlayCounts(targetId);
+    const localSeconds = getListenSeconds(targetId);
+    const localRecent = getRecentlyPlayedIds(targetId);
+    const localMoods = getCustomMoods(targetId);
+
+    // 2. Fetch remote stats from Supabase
+    const { data: rows, error: fetchErr } = await supabase
+      .from("playlists")
+      .select("id, name")
+      .eq("user_id", targetId)
+      .like("name", `${CLOUD_DATA_PREFIX}%`)
+      .limit(1);
+
+    if (fetchErr) {
+      console.warn("Could not fetch remote account stats:", fetchErr.message);
+      return { playCounts: localCounts, listenSeconds: localSeconds, recentlyPlayedIds: localRecent, customMoods: localMoods };
+    }
+
+    let remoteStats = null;
+    if (rows && rows.length > 0) {
+      cachedCloudRowId = rows[0].id;
+      try {
+        const jsonPart = rows[0].name.split(CLOUD_DATA_PREFIX)[1];
+        remoteStats = JSON.parse(jsonPart);
+      } catch (e) {
+        console.warn("Failed parsing cloud user data JSON:", e);
+      }
+    }
+
+    if (remoteStats) {
+      // 3. Intelligently merge local and remote without double-counting
+      const mergedCounts = { ...(remoteStats.playCounts || {}) };
+      for (const [id, count] of Object.entries(localCounts)) {
+        mergedCounts[id] = Math.max(mergedCounts[id] || 0, count || 0);
+      }
+
+      const mergedSeconds = { ...(remoteStats.listenSeconds || {}) };
+      for (const [id, sec] of Object.entries(localSeconds)) {
+        mergedSeconds[id] = Math.max(mergedSeconds[id] || 0, sec || 0);
+      }
+
+      const mergedRecent = Array.from(new Set([...(localRecent || []), ...(remoteStats.recentlyPlayedIds || [])])).slice(0, 60);
+      const mergedMoods = { ...(remoteStats.customMoods || {}), ...(localMoods || {}) };
+
+      const merged = {
+        playCounts: mergedCounts,
+        listenSeconds: mergedSeconds,
+        recentlyPlayedIds: mergedRecent,
+        customMoods: mergedMoods
+      };
+
+      // Save locally
+      saveLocalStats(merged, targetId);
+
+      // Push merged stats back to cloud if local device had additional data
+      const hadLocalAdditions = Object.keys(localCounts).some(k => (localCounts[k] || 0) > (remoteStats.playCounts?.[k] || 0)) ||
+        Object.keys(localSeconds).some(k => (localSeconds[k] || 0) > (remoteStats.listenSeconds?.[k] || 0));
+
+      if (hadLocalAdditions) {
+        flushCloudSync(targetId);
+      }
+
+      return merged;
+    } else {
+      // First time this account connects: upload local stats to cloud!
+      flushCloudSync(targetId);
+      return { playCounts: localCounts, listenSeconds: localSeconds, recentlyPlayedIds: localRecent, customMoods: localMoods };
+    }
+  } catch (err) {
+    console.warn("Account stats sync failed:", err);
+    return null;
+  }
+}
+
+/**
+ * Subscribe to realtime stats updates across devices
+ */
+export function subscribeToCloudStats(userId, onUpdateCallback) {
+  if (!userId || typeof onUpdateCallback !== "function") return () => {};
+
+  try {
+    const channelName = `euphony_stats_sync_${userId}`;
+    const channel = supabase.channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "playlists",
+          filter: `user_id=eq.${userId}`
+        },
+        (payload) => {
+          const row = payload.new;
+          if (row && typeof row.name === "string" && row.name.startsWith(CLOUD_DATA_PREFIX)) {
+            try {
+              const jsonPart = row.name.split(CLOUD_DATA_PREFIX)[1];
+              const remote = JSON.parse(jsonPart);
+              if (remote) {
+                cachedCloudRowId = row.id;
+                saveLocalStats(remote, userId);
+                onUpdateCallback(remote);
+              }
+            } catch (e) {}
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  } catch (e) {
+    return () => {};
+  }
+}
+
+export function computeListeningStats(allSongs = [], getSongMoodsFn, userId = activeUserId) {
+  const counts = getPlayCounts(userId);
+  const rawSeconds = getListenSeconds(userId);
 
   const songMap = new Map((allSongs || []).map(s => [s.id, s]));
 
