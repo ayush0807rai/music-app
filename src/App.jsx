@@ -3222,9 +3222,34 @@ export default function App() {
     e.preventDefault();
     if (!uploadFile || !uploadTitle || !uploadArtist || !uploadPoster) return alert("Please fill in all required fields, including the poster image.");
     
-    if (uploadFile.size > 50 * 1024 * 1024) return alert("Audio file is too large! Maximum size is 50MB.");
-    if (uploadPoster.size > 5 * 1024 * 1024) return alert("Poster image is too large! Maximum size is 5MB.");
+    // Security: File size limits (50MB audio, 5MB poster)
+    if (uploadFile.size > 50 * 1024 * 1024) return alert("Audio file is too large! Maximum allowed size is 50MB.");
+    if (uploadPoster.size > 5 * 1024 * 1024) return alert("Poster image is too large! Maximum allowed size is 5MB.");
     
+    // Security: Strict audio file extension & MIME-type validation
+    const validAudioExtensions = [".mp3", ".wav", ".flac", ".m4a", ".aac", ".ogg", ".webm"];
+    const audioName = (uploadFile.name || "").toLowerCase();
+    const isAudioExtValid = validAudioExtensions.some(ext => audioName.endsWith(ext));
+    const isAudioMimeValid = !uploadFile.type || uploadFile.type.startsWith("audio/") || uploadFile.type === "video/mp4";
+    if (!isAudioExtValid || !isAudioMimeValid) {
+      return alert("Invalid audio file format. Only standard audio files (MP3, WAV, FLAC, M4A, AAC, OGG) are permitted.");
+    }
+
+    // Security: Strict image file extension & MIME-type validation (blocks executable files and malicious SVG scripts)
+    const validImageExtensions = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"];
+    const posterName = (uploadPoster.name || "").toLowerCase();
+    const isPosterExtValid = validImageExtensions.some(ext => posterName.endsWith(ext));
+    const isPosterMimeValid = !uploadPoster.type || (uploadPoster.type.startsWith("image/") && !uploadPoster.type.includes("svg"));
+    if (!isPosterExtValid || !isPosterMimeValid) {
+      return alert("Invalid poster image format. Only standard images (JPG, PNG, WebP) are permitted. SVG files are restricted for security.");
+    }
+
+    // Security: Sanitize input length to prevent payload stuffing attacks
+    if (uploadTitle.trim().length > 150) return alert("Song title is too long (maximum 150 characters).");
+    if (uploadArtist.trim().length > 100) return alert("Artist name is too long (maximum 100 characters).");
+    if (uploadAlbum && uploadAlbum.trim().length > 100) return alert("Album name is too long (maximum 100 characters).");
+    if (uploadLyrics && uploadLyrics.length > 50000) return alert("Lyrics text is too long (maximum 50,000 characters).");
+
     setIsUploading(true);
     try {
       // 1. Upload audio directly to Cloudinary (Free 25 GB tier)
@@ -3353,8 +3378,11 @@ export default function App() {
 
   const handleCreatePlaylist = async (e) => {
     e.preventDefault();
-    if (!newPlaylistName.trim()) return;
-    const { data, error } = await supabase.from("playlists").insert([{ name: newPlaylistName, user_id: session.user.id }]).select();
+    const cleanName = newPlaylistName.trim();
+    if (!cleanName) return;
+    if (cleanName.length > 80) return alert("Playlist name is too long (maximum 80 characters).");
+    if (cleanName.startsWith("__euphony_")) return alert("Invalid playlist name.");
+    const { data, error } = await supabase.from("playlists").insert([{ name: cleanName, user_id: session.user.id }]).select();
     if (error) alert("Error creating playlist: " + error.message);
     else if (data) { setUserPlaylists(prev => [...prev, { ...data[0], playlist_songs: [] }]); setNewPlaylistName(""); setShowPlaylistModal(false); }
   };

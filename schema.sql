@@ -46,8 +46,34 @@ create table if not exists public.playlist_songs (
   unique(playlist_id, song_id)
 );
 
--- 5. Disable RLS (matches your current setup so all queries work immediately)
-alter table public.songs disable row level security;
-alter table public.artists disable row level security;
-alter table public.playlists disable row level security;
-alter table public.playlist_songs disable row level security;
+-- 5. Enable Row Level Security (RLS) on all tables
+ALTER TABLE public.songs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.artists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.playlists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.playlist_songs ENABLE ROW LEVEL SECURITY;
+
+-- 6. Production Security Policies
+
+-- Songs: Public read, authenticated upload, owner/stems update, owner-only delete
+CREATE POLICY "Public can view songs" ON public.songs FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can insert songs" ON public.songs FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Owner and authenticated users can update songs" ON public.songs FOR UPDATE TO authenticated USING ((auth.jwt()->>'email' = 'ayush080705@gmail.com') OR (auth.uid() = '1427121b-efda-49c6-abdf-59ad35523935'::uuid) OR (needs_stems IS DISTINCT FROM true)) WITH CHECK (true);
+CREATE POLICY "Only owner can delete songs" ON public.songs FOR DELETE TO authenticated USING ((auth.jwt()->>'email' = 'ayush080705@gmail.com') OR (auth.uid() = '1427121b-efda-49c6-abdf-59ad35523935'::uuid));
+
+-- Artists: Public read, authenticated insert, owner update/delete
+CREATE POLICY "Public can view artists" ON public.artists FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can insert artists" ON public.artists FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Only owner can update artists" ON public.artists FOR UPDATE TO authenticated USING ((auth.jwt()->>'email' = 'ayush080705@gmail.com') OR (auth.uid() = '1427121b-efda-49c6-abdf-59ad35523935'::uuid));
+CREATE POLICY "Only owner can delete artists" ON public.artists FOR DELETE TO authenticated USING ((auth.jwt()->>'email' = 'ayush080705@gmail.com') OR (auth.uid() = '1427121b-efda-49c6-abdf-59ad35523935'::uuid));
+
+-- Playlists: Strict user isolation (users can only access, edit, and delete their own playlists and synced stats)
+CREATE POLICY "Users can view own playlists" ON public.playlists FOR SELECT TO authenticated USING (user_id = auth.uid() OR auth.jwt()->>'email' = 'ayush080705@gmail.com');
+CREATE POLICY "Users can insert own playlists" ON public.playlists FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid() OR auth.jwt()->>'email' = 'ayush080705@gmail.com');
+CREATE POLICY "Users can update own playlists" ON public.playlists FOR UPDATE TO authenticated USING (user_id = auth.uid() OR auth.jwt()->>'email' = 'ayush080705@gmail.com') WITH CHECK (user_id = auth.uid() OR auth.jwt()->>'email' = 'ayush080705@gmail.com');
+CREATE POLICY "Users can delete own playlists" ON public.playlists FOR DELETE TO authenticated USING (user_id = auth.uid() OR auth.jwt()->>'email' = 'ayush080705@gmail.com');
+
+-- Playlist Songs: Strict isolation (users can only manipulate songs in playlists they own)
+CREATE POLICY "Users can view own playlist songs" ON public.playlist_songs FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.playlists p WHERE p.id = playlist_songs.playlist_id AND (p.user_id = auth.uid() OR auth.jwt()->>'email' = 'ayush080705@gmail.com')));
+CREATE POLICY "Users can insert own playlist songs" ON public.playlist_songs FOR INSERT TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM public.playlists p WHERE p.id = playlist_songs.playlist_id AND (p.user_id = auth.uid() OR auth.jwt()->>'email' = 'ayush080705@gmail.com')));
+CREATE POLICY "Users can delete own playlist songs" ON public.playlist_songs FOR DELETE TO authenticated USING (EXISTS (SELECT 1 FROM public.playlists p WHERE p.id = playlist_songs.playlist_id AND (p.user_id = auth.uid() OR auth.jwt()->>'email' = 'ayush080705@gmail.com')));
+
