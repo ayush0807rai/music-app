@@ -5400,9 +5400,9 @@ export default function App() {
         {/* CENTER CONTENT */}
         <div style={{ flex: 1, minWidth: 0, background: COLORS.bgPanel, borderRadius: isDesktop ? "12px" : "0", padding: isDesktop ? "32px" : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "100px" : "32px", border: isDesktop ? `1px solid ${COLORS.border}` : "none" }} className="custom-scrollbar">
 
-          {/* MOBILE TABS */}
+          {/* MOBILE PLAYLIST TABS */}
           {!isDesktop && !selectedArtist && (
-            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", flexShrink: 0 }} className="custom-scrollbar">
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "14px", flexShrink: 0 }} className="custom-scrollbar">
               <button onClick={() => handleSwitchPlaylist(null)} style={{ background: viewedPlaylistId === null ? COLORS.primary : "transparent", color: viewedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                 Global Library
               </button>
@@ -5411,20 +5411,83 @@ export default function App() {
                   <Heart size={14} fill={viewedPlaylistId === likedPlaylist.id ? COLORS.bgPanel : "none"} /> Liked Songs
                 </button>
               )}
-              <button onClick={() => handleSwitchPlaylist("smart_recently_played")} style={{ background: viewedPlaylistId === "smart_recently_played" ? COLORS.primary : "transparent", color: viewedPlaylistId === "smart_recently_played" ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
-                <History size={14} /> Recent
-              </button>
-              <button onClick={() => handleSwitchPlaylist("smart_most_played")} style={{ background: viewedPlaylistId === "smart_most_played" ? COLORS.primary : "transparent", color: viewedPlaylistId === "smart_most_played" ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
-                <Flame size={14} /> Top
-              </button>
-              <button onClick={handleOpenStatsModal} style={{ background: "transparent", color: COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
-                <BarChart2 size={14} /> Stats
-              </button>
               {userPlaylists.filter(pl => pl.name !== "Liked Songs").map(pl => (
                 <button key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} style={{ background: viewedPlaylistId === pl.id ? COLORS.primary : "transparent", color: viewedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                   🔒 {pl.name}
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* MOBILE QUICK ACTION PILLS (Recent, Top, Stats) - BETWEEN PLAYLIST SECTION AND TOP ARTIST SECTION */}
+          {!isDesktop && !selectedArtist && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "20px", flexShrink: 0 }}>
+              <button
+                onClick={() => handleSwitchPlaylist("smart_recently_played")}
+                className="hover-effect"
+                style={{
+                  background: viewedPlaylistId === "smart_recently_played" ? COLORS.primary : "transparent",
+                  color: viewedPlaylistId === "smart_recently_played" ? COLORS.bgPanel : COLORS.primary,
+                  border: `1px solid ${COLORS.primary}`,
+                  borderRadius: "20px",
+                  padding: "8px 10px",
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px"
+                }}
+              >
+                <History size={14} /> Recent
+              </button>
+              <button
+                onClick={() => handleSwitchPlaylist("smart_most_played")}
+                className="hover-effect"
+                style={{
+                  background: viewedPlaylistId === "smart_most_played" ? COLORS.primary : "transparent",
+                  color: viewedPlaylistId === "smart_most_played" ? COLORS.bgPanel : COLORS.primary,
+                  border: `1px solid ${COLORS.primary}`,
+                  borderRadius: "20px",
+                  padding: "8px 10px",
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px"
+                }}
+              >
+                <Flame size={14} /> Top
+              </button>
+              <button
+                onClick={handleOpenStatsModal}
+                className="hover-effect"
+                style={{
+                  background: "transparent",
+                  color: COLORS.primary,
+                  border: `1px solid ${COLORS.primary}`,
+                  borderRadius: "20px",
+                  padding: "8px 10px",
+                  fontSize: "13px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px"
+                }}
+              >
+                <BarChart2 size={14} /> Stats
+              </button>
             </div>
           )}
 
