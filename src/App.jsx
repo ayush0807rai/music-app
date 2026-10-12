@@ -1166,13 +1166,37 @@ export default function App() {
     return computeListeningStats(playlist, s => getSongMoods(s, customMoodOverrides));
   }, [playlist, playCounts, customMoodOverrides, showStatsModal]);
 
-  const handleOpenStatsModal = () => {
+  const handleSwitchPlaylist = useCallback((playlistId) => {
+    // If user re-taps the currently active playlist/smart-view (except global library which is null),
+    // toggle it off and return to default Global Library
+    if (playlistId !== null && viewedPlaylistId === playlistId) {
+      setViewedPlaylistId(null);
+    } else {
+      setViewedPlaylistId(playlistId);
+    }
+    setSearchQuery("");
+    setSelectedArtist(null);
+    setSelectedAlbum(null);
+    setSelectedMood(null);
+    setShowStatsModal(false);
+  }, [viewedPlaylistId]);
+
+  const handleCloseStatsModal = useCallback(() => {
+    setShowStatsModal(false);
+    handleSwitchPlaylist(null);
+  }, [handleSwitchPlaylist]);
+
+  const handleOpenStatsModal = useCallback(() => {
+    if (showStatsModal) {
+      handleCloseStatsModal();
+      return;
+    }
     if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
       recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
       pendingListenDurationRef.current = 0;
     }
     setShowStatsModal(true);
-  };
+  }, [showStatsModal, handleCloseStatsModal, currentTrack?.id]);
 
   // Ensure playbackQueue is always hydrated with songs from the library if empty, trapped, or missing lyrics
   useEffect(() => {
@@ -1477,14 +1501,6 @@ export default function App() {
       });
     }
   }, [playbackQueue, playbackIndex, playMode, playlist, playbackSourceName]);
-
-  const handleSwitchPlaylist = (playlistId) => {
-    setViewedPlaylistId(playlistId);
-    setSearchQuery("");
-    setSelectedArtist(null);
-    setSelectedAlbum(null);
-    setSelectedMood(null);
-  };
 
   const cycleSortKey = () => {
     const key = viewedPlaylistId ?? "global";
@@ -1904,7 +1920,7 @@ export default function App() {
 
       // Tier 1: Sub-modals opened on top (artists, sleep timer, fullscreen queue, add to playlist, stats)
       if (s.showStatsModal) {
-        setShowStatsModal(false);
+        handleCloseStatsModal();
         handled = true;
       } else if (s.showTrackArtistsModal) {
         setShowTrackArtistsModal(false);
@@ -4842,7 +4858,7 @@ export default function App() {
         <div 
           className={statsClosing ? "fade-exit" : "fade-enter"} 
           style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", display: "flex", alignItems: isDesktop ? "center" : "flex-end", justifyContent: "center", zIndex: 10006, padding: isDesktop ? "20px" : "0" }} 
-          onClick={() => setShowStatsModal(false)}
+          onClick={handleCloseStatsModal}
         >
           {isDesktop ? (
             <div 
@@ -4850,7 +4866,7 @@ export default function App() {
               style={{ background: songTheme.modalBg, backdropFilter: "blur(28px)", WebkitBackdropFilter: "blur(28px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "24px", width: "100%", maxWidth: "520px", position: "relative", boxShadow: songTheme.modalShadow, color: songTheme.textColor, maxHeight: "85vh", overflowY: "auto" }} 
               onClick={e => e.stopPropagation()}
             >
-              <button onClick={() => setShowStatsModal(false)} style={{ position: "absolute", top: "20px", right: "20px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect">
+              <button onClick={handleCloseStatsModal} style={{ position: "absolute", top: "20px", right: "20px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect">
                 <X size={20} />
               </button>
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
@@ -4908,7 +4924,7 @@ export default function App() {
             </div>
           ) : (
             <SwipeableBottomSheet
-              onClose={() => setShowStatsModal(false)}
+              onClose={handleCloseStatsModal}
               className={`${statsClosing ? 'slide-down-exit' : 'slide-up-enter'} custom-scrollbar`}
               style={{
                 background: songTheme.modalBg,
@@ -4938,7 +4954,7 @@ export default function App() {
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowStatsModal(false)}
+                  onClick={handleCloseStatsModal}
                   style={{
                     background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
                     border: "none",
@@ -5512,29 +5528,29 @@ export default function App() {
         {isDesktop && (
           <div style={{ width: "260px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div onClick={() => handleSwitchPlaylist(null)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === null ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                <Home size={24} color={viewedPlaylistId === null ? COLORS.primary : COLORS.textMuted} /> Global Library
+              <div onClick={() => handleSwitchPlaylist(null)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === null && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                <Home size={24} color={viewedPlaylistId === null && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Global Library
               </div>
               {likedPlaylist && (
-                <div onClick={() => handleSwitchPlaylist(likedPlaylist.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === likedPlaylist.id ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                  <Heart size={24} color={viewedPlaylistId === likedPlaylist.id ? COLORS.primary : COLORS.textMuted} fill={viewedPlaylistId === likedPlaylist.id ? COLORS.primary : "none"} /> Liked Songs
+                <div onClick={() => handleSwitchPlaylist(likedPlaylist.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                  <Heart size={24} color={viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : COLORS.textMuted} fill={viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : "none"} /> Liked Songs
                 </div>
               )}
-              <div onClick={() => handleSwitchPlaylist("smart_recently_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_recently_played" ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                <History size={24} color={viewedPlaylistId === "smart_recently_played" ? COLORS.primary : COLORS.textMuted} /> Recently Played
+              <div onClick={() => handleSwitchPlaylist("smart_recently_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                <History size={24} color={viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Recently Played
               </div>
-              <div onClick={() => handleSwitchPlaylist("smart_most_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_most_played" ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                <Flame size={24} color={viewedPlaylistId === "smart_most_played" ? COLORS.primary : COLORS.textMuted} /> Most Played
+              <div onClick={() => handleSwitchPlaylist("smart_most_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                <Flame size={24} color={viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Most Played
               </div>
-              <div onClick={handleOpenStatsModal} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                <BarChart2 size={24} color={COLORS.textMuted} /> Listening Stats
+              <div onClick={handleOpenStatsModal} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
+                <BarChart2 size={24} color={showStatsModal ? COLORS.primary : COLORS.textMuted} /> Listening Stats
               </div>
             </div>
             <hr style={{ border: "none", borderTop: `1px solid ${COLORS.border}`, margin: 0 }} />
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
               <span style={{ fontSize: "12px", fontWeight: "bold", color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>Playlists</span>
               {userPlaylists.filter(pl => pl.name !== "Liked Songs").map(pl => (
-                <div key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: viewedPlaylistId === pl.id ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: viewedPlaylistId === pl.id ? "bold" : "normal", cursor: "pointer" }}>
+                <div key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: viewedPlaylistId === pl.id && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: viewedPlaylistId === pl.id && !showStatsModal ? "bold" : "normal", cursor: "pointer" }}>
                   {renderMiniPlaylistCover(pl, 24)}
                   <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pl.name}</span>
                 </div>
@@ -5549,16 +5565,16 @@ export default function App() {
           {/* MOBILE PLAYLIST TABS */}
           {!isDesktop && !selectedArtist && (
             <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "14px", flexShrink: 0 }} className="custom-scrollbar">
-              <button onClick={() => handleSwitchPlaylist(null)} style={{ background: viewedPlaylistId === null ? COLORS.primary : "transparent", color: viewedPlaylistId === null ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
+              <button onClick={() => handleSwitchPlaylist(null)} style={{ background: viewedPlaylistId === null && !showStatsModal ? COLORS.primary : "transparent", color: viewedPlaylistId === null && !showStatsModal ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                 Global Library
               </button>
               {likedPlaylist && (
-                <button onClick={() => handleSwitchPlaylist(likedPlaylist.id)} style={{ background: viewedPlaylistId === likedPlaylist.id ? COLORS.primary : "transparent", color: viewedPlaylistId === likedPlaylist.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Heart size={14} fill={viewedPlaylistId === likedPlaylist.id ? COLORS.bgPanel : "none"} /> Liked Songs
+                <button onClick={() => handleSwitchPlaylist(likedPlaylist.id)} style={{ background: viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : "transparent", color: viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Heart size={14} fill={viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.bgPanel : "none"} /> Liked Songs
                 </button>
               )}
               {userPlaylists.filter(pl => pl.name !== "Liked Songs").map(pl => (
-                <button key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} style={{ background: viewedPlaylistId === pl.id ? COLORS.primary : "transparent", color: viewedPlaylistId === pl.id ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
+                <button key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} style={{ background: viewedPlaylistId === pl.id && !showStatsModal ? COLORS.primary : "transparent", color: viewedPlaylistId === pl.id && !showStatsModal ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                   🔒 {pl.name}
                 </button>
               ))}
@@ -5572,8 +5588,8 @@ export default function App() {
                 onClick={() => handleSwitchPlaylist("smart_recently_played")}
                 className="hover-effect"
                 style={{
-                  background: viewedPlaylistId === "smart_recently_played" ? COLORS.primary : "transparent",
-                  color: viewedPlaylistId === "smart_recently_played" ? COLORS.bgPanel : COLORS.primary,
+                  background: viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.primary : "transparent",
+                  color: viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.bgPanel : COLORS.primary,
                   border: `1px solid ${COLORS.primary}`,
                   borderRadius: "20px",
                   padding: "8px 10px",
@@ -5594,8 +5610,8 @@ export default function App() {
                 onClick={() => handleSwitchPlaylist("smart_most_played")}
                 className="hover-effect"
                 style={{
-                  background: viewedPlaylistId === "smart_most_played" ? COLORS.primary : "transparent",
-                  color: viewedPlaylistId === "smart_most_played" ? COLORS.bgPanel : COLORS.primary,
+                  background: viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.primary : "transparent",
+                  color: viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.bgPanel : COLORS.primary,
                   border: `1px solid ${COLORS.primary}`,
                   borderRadius: "20px",
                   padding: "8px 10px",
@@ -5616,8 +5632,8 @@ export default function App() {
                 onClick={handleOpenStatsModal}
                 className="hover-effect"
                 style={{
-                  background: "transparent",
-                  color: COLORS.primary,
+                  background: showStatsModal ? COLORS.primary : "transparent",
+                  color: showStatsModal ? COLORS.bgPanel : COLORS.primary,
                   border: `1px solid ${COLORS.primary}`,
                   borderRadius: "20px",
                   padding: "8px 10px",
