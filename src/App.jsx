@@ -630,6 +630,59 @@ export default function App() {
   const [displayedTopArtists, setDisplayedTopArtists] = useState([]);
   const [isShufflingArtists, setIsShufflingArtists] = useState(false);
   const topArtistsScrollRef = useRef(null);
+  const moodsScrollRef = useRef(null);
+
+  // Desktop-only horizontal mouse wheel scroll handler for Top Artists and Moods categories
+  const attachHorizontalWheel = useCallback((node) => {
+    if (!node || !isDesktop) return () => {};
+
+    const handleWheel = (e) => {
+      // Only convert vertical mouse wheel scroll (deltaY) into horizontal scroll on desktop
+      if (Math.abs(e.deltaY) >= Math.abs(e.deltaX) && e.deltaY !== 0) {
+        let delta = e.deltaY;
+        if (e.deltaMode === 1) delta *= 33;
+        else if (e.deltaMode === 2) delta *= 100;
+
+        const maxScroll = Math.max(0, node.scrollWidth - node.clientWidth);
+        if (maxScroll > 0) {
+          const canScrollRight = delta > 0 && node.scrollLeft < maxScroll - 1;
+          const canScrollLeft = delta < 0 && node.scrollLeft > 1;
+
+          if (canScrollRight || canScrollLeft) {
+            e.preventDefault();
+            node.scrollLeft += delta;
+          }
+        }
+      }
+    };
+
+    node.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      node.removeEventListener("wheel", handleWheel);
+    };
+  }, [isDesktop]);
+
+  const handleTopArtistsRef = useCallback((node) => {
+    if (topArtistsScrollRef.current && topArtistsScrollRef.current._cleanupWheel) {
+      topArtistsScrollRef.current._cleanupWheel();
+      topArtistsScrollRef.current._cleanupWheel = null;
+    }
+    topArtistsScrollRef.current = node;
+    if (node && isDesktop) {
+      node._cleanupWheel = attachHorizontalWheel(node);
+    }
+  }, [isDesktop, attachHorizontalWheel]);
+
+  const handleMoodsRef = useCallback((node) => {
+    if (moodsScrollRef.current && moodsScrollRef.current._cleanupWheel) {
+      moodsScrollRef.current._cleanupWheel();
+      moodsScrollRef.current._cleanupWheel = null;
+    }
+    moodsScrollRef.current = node;
+    if (node && isDesktop) {
+      node._cleanupWheel = attachHorizontalWheel(node);
+    }
+  }, [isDesktop, attachHorizontalWheel]);
 
   // Initialize displayed top artists with 10 random artists from the curated pool
   useEffect(() => {
@@ -5955,7 +6008,7 @@ export default function App() {
                         <span>Shuffle</span>
                       </button>
                     </div>
-                    <div ref={topArtistsScrollRef} style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px" }} className="custom-scrollbar">
+                    <div ref={handleTopArtistsRef} style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px" }} className="custom-scrollbar">
                       {visibleTopArtists.map(artist => (
                         <div key={artist.name} onClick={() => setSelectedArtist(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
                           <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.imageBg, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
@@ -6033,7 +6086,7 @@ export default function App() {
 
                 {/* MOOD FILTER BAR */}
                 {viewedPlaylistId === null && !selectedArtist && !selectedAlbum && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", paddingLeft: isDesktop ? "16px" : 0 }} className="custom-scrollbar">
+                  <div ref={handleMoodsRef} style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", paddingLeft: isDesktop ? "16px" : 0 }} className="custom-scrollbar">
                     <button
                       onClick={() => handleSelectMood(null)}
                       style={{

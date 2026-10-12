@@ -1,6 +1,6 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-12T17:02:00.139Z
+-- Generated: 2026-10-12T17:15:10.950Z
 -- Total: 132 songs, 88 artists, 19 playlists, 63 playlist_songs
 -- ====================================================
 
@@ -243,7 +243,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Soni Soni',
   'Rochak Kohli, Darshan Raval, Jonita Gandhi, Gurpreet Saini',
   'Ishq Vishk Rebound',
-  '[00:09.29] ਦਿਲ ਮੇਰਾ, ਦਿਲ ਮੇਰਾ ਕੀ ਕਰਾਂ, ਮੇਰੀ ਬਾਤ ਮਾਨੇ ਨਾ
+  '[mood: Romantic]
+[00:09.29] ਦਿਲ ਮੇਰਾ, ਦਿਲ ਮੇਰਾ ਕੀ ਕਰਾਂ, ਮੇਰੀ ਬਾਤ ਮਾਨੇ ਨਾ
 [00:13.72] ਕਿਤਨਾ ਤੈਨੂੰ ਚਾਹੇ, ਤੈਨੂੰ ਆਏ ਮੇਰੀ ਯਾਦ ਨਾ
 [00:18.14] ਕਹਿਣਾ, ਤੈਨੂੰ ਕਹਿਣਾ, ਇੱਕ ਤੂੰ ਹੀ ਬਸ ਪਿਆਰ ਹੈ ਮੇਰਾ
 [00:22.57] ਕੋਈ ਨਹੀਂ ਤੇਰੇ ਪਹਿਲੇ, ਕੋਈ ਹੋਣਾ ਤੇਰੇ ਬਾਅਦ ਨਾ
@@ -283,7 +284,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:43.17] (ਤੂੰ ਮੇਰੀ ਬਣ ਜਾ)
 [02:47.65] (ਓ, ਸੋਹਣੀ-ਸੋਹਣੀ)
 [02:52.27] (ਤੂੰ ਮੇਰੀ ਬਣ ਜਾ)
-[02:55.07] ',
+[02:55.07]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528047/d4hzjsvqd5ncdjgmv1om.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528048/iwwcik6ogebvqlkikeao.jpg',
   NULL,
@@ -299,7 +300,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Apnaa Mujhe Tu Lagaa',
   'Sonu Nigam, Chirantan Bhatt, Shakeel Azmi',
   '1920 Evil Returns',
-  '[00:00.958]
+  '[mood: Romantic]
+[00:00.958]
 [00:36.224] Anjaane Ho Tum
 [00:37.503] Jo Begaane Ho Tum
 [00:38.755] Jo Pehchaane Lagte Ho Kyun
@@ -373,7 +375,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [05:23.019] Rishta Hai Kya
 [05:25.924] Par Ajnabi
 [05:27.358] Apna Mujhe Tu Laga
-[05:32.901] ',
+[05:32.901]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528058/lwmkngnppw1g9cgbpfur.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528060/k2e5v8y8jmwvd05v19nt.jpg',
   NULL,
@@ -449,7 +451,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Tera Asar',
   'Gemini, Ayush Rai, Devdutta',
   NULL,
-  '[00:45.33]Yeah, it''s that feeling
+  '[mood: Desi Pop]
+[00:45.33]Yeah, it''s that feeling
 [00:47.33]the way you move
 [00:49.37]Everything''s shifting, finding our groove
 [00:52.80]No logic, no reason
@@ -487,7 +490,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' You Belong With Me (Taylor’s Version)',
   'Taylor Swift',
   'Fearless (Taylor’s Version)',
-  '[00:07.37] You''re on the phone with your girlfriend, she''s upset
+  '[mood: Energetic]
+[00:07.37] You''re on the phone with your girlfriend, she''s upset
 [00:11.29] She''s going off about something that you said
 [00:14.98] ''Cause she doesn''t get your humor like I do
 [00:21.52] I''m in the room, it''s a typical Tuesday night
@@ -551,7 +555,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:29.97] Have you ever thought just maybe
 [03:34.45] You belong with me?
 [03:38.32] You belong with me
-[03:40.12] ',
+[03:40.12]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528105/f8vgpdv5yxaondcp8xhg.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528106/epzhi6kr3tivrwoyg2fe.png',
   NULL,
@@ -638,7 +642,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Saari Ki Saari',
   'Darshan Raval',
   NULL,
-  '[00:36.47] सारी की सारी मेरी है तू
+  '[mood: Romantic]
+[00:36.47] सारी की सारी मेरी है तू
 [00:42.42] तुझ को कभी ना मैं बाटूँ
 [00:48.26] सारी की सारी मेरी है तू
 [00:54.21] तुझ को कभी ना मैं बाटूँ
@@ -668,7 +673,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:49.63] तुझ को कभी ना मैं बाटूँ
 [03:55.48] सारी की सारी मेरी है तू
 [04:01.48] तुझ को कभी ना मैं बाटूँ
-[04:08.70] ',
+[04:08.70]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528140/es4xo3hmtdyuuo3lxcd3.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528141/jkrvwmffv9juynbcyz9b.jpg',
   NULL,
@@ -684,7 +689,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Blank Space',
   'Taylor Swift',
   '1989',
-  '[00:05.56] Nice to meet you, where you been?
+  '[mood: Energetic]
+[00:05.56] Nice to meet you, where you been?
 [00:08.20] I could show you incredible things
 [00:10.79] Magic, madness, heaven, sin
 [00:13.25] Saw you there and I thought
@@ -767,7 +773,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:43.15] They''ll tell you I''m insane
 [03:45.52] But I''ve got a blank space, baby
 [03:48.82] And I''ll write your name
-[03:49.99] ',
+[03:49.99]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528159/sfuizggxh763j4yom1op.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528160/kzmq3bvyoy6ezlguqlxe.avif',
   NULL,
@@ -923,7 +929,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Rock Tha Party',
   'Bombay Rockers',
   NULL,
-  '[00:00.00]♪
+  '[mood: Party]
+[00:00.00]♪
 [00:09.18]ਤੇਰੀ ਤੋਂ, ਤੇਰੀ ਤਾ, ਹਮੇਸ਼ਾ ਯਾਦ ਸਤਾਵੇ
 [00:13.56]I don''t know what you''re saying
 [00:15.49]All I know is that I came to party
@@ -1061,7 +1068,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Baby',
   'Justin Bieber, Ludacris',
   'My World 2.0',
-  '[00:02.24] Oh-whoa
+  '[mood: Energetic]
+[00:02.24] Oh-whoa
 [00:06.01] Oh-whoa
 [00:09.97] Oh-whoa
 [00:14.32] You know you love me (yo), I know you care (uh-huh)
@@ -1119,7 +1127,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:18.74] Now I''m all gone (yeah, yeah, yeah, yeah, yeah, yeah)
 [03:21.90] Now I''m all gone (gone, gone, gone)
 [03:25.88] I''m gone
-[03:26.56] ',
+[03:26.56]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528285/vkbvgpunjdzw4qo1mape.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528287/pkkvxszs5wlxp1wrfe8p.jpg',
   NULL,
@@ -1135,7 +1143,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'We Don’t Talk Anymore',
   'Charlie Puth, Selena Gomez',
   'Nine Track Mind',
-  '[00:00.18] We don''t talk anymore
+  '[mood: Sad]
+[00:00.18] We don''t talk anymore
 [00:02.73] We don''t talk anymore
 [00:05.00] We don''t talk anymore
 [00:06.82] Like we used to do
@@ -1215,7 +1224,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:26.41] Now I can''t get you out of my brain (woah)
 [03:28.81] Ooh, it''s such a shame
 [03:31.64] We don''t talk anymore
-[03:32.78] ',
+[03:32.78]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528324/a9ajcbuury57ogztyg01.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528325/h0yafxavcz2k4kyquckf.jpg',
   NULL,
@@ -1231,7 +1240,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Treat You Better',
   'Shawn Mendes',
   'Illuminate',
-  '[00:11.65] I won''t lie to you
+  '[mood: Chill]
+[00:11.65] I won''t lie to you
 [00:16.68] I know he''s just not right for you
 [00:22.63] And you can tell me if I''m off
 [00:24.26] But I see it on your face
@@ -1278,7 +1288,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [02:46.33] Better than he can
 [02:49.51] 
 [02:51.90] Better than he can
-[02:53.14] ',
+[02:53.14]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528361/xul3xsu97zrv2odwp48h.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528363/bempa3jpmebts5iu0ogz.jpg',
   NULL,
@@ -1294,7 +1304,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'There’s Nothing Holdin’ Me Back',
   'Shawn Mendes',
   'Illuminate',
-  '[00:07.92] I wanna follow where she goes
+  '[mood: Romantic]
+[00:07.92] I wanna follow where she goes
 [00:11.89] I think about her and she knows it
 [00:15.87] I wanna let her take control
 [00:19.75] ''Cause every time that she gets close, yeah
@@ -1357,7 +1368,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:06.93] There''s nothing holdin'' me back
 [03:10.90] 
 [03:14.87] There''s nothing holdin'' me back
-[03:16.99] ',
+[03:16.99]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528389/annaihodoqaavbtzugby.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528390/bkudusjhb3l0ilcw3pfl.jpg',
   NULL,
@@ -1373,7 +1384,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Pata Chalgea',
   'Imran Khan',
   'Unforgettable',
-  '[00:00.31] A 1, a 2, a 1-2-3-4
+  '[mood: Desi Pop]
+[00:00.31] A 1, a 2, a 1-2-3-4
 [00:09.68] Rapa pa pa phaa
 [00:11.81] la la… 
 [00:15.82] lala la laa… 
@@ -1447,7 +1459,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:04.86] mere naal gall karda kyun nai ?
 [04:07.26] Main tenu vekhaan, tu mainu vekhen 
 [04:10.15] Teh saanu pata chalgea tere dil ch ki 
-[04:41.51] ',
+[04:41.51]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528420/t8fllzgcr6ydxfnywjra.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528422/etvtmhqu5ssfupr71668.jpg',
   NULL,
@@ -1463,7 +1475,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Deewana',
   'Darshan Raval',
   'I Loved You',
-  '[00:19.56] Likha tumhe dard maine yaara
+  '[mood: Sad]
+[00:19.56] Likha tumhe dard maine yaara
 [00:23.05] Tumne padha hi nahi
 [00:27.76] Kaise sambhalu,gham itne saare
 [00:32.28] Ab toh ghar mein jagah hi nahi
@@ -1516,7 +1529,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:01.97] Yeh laakerein jaake tujhse kyu milti nahi
 [04:08.05] Galat tha jo tera saath hona
 [04:12.35] Toh kya jaana tera tha sahi
-[04:16.21] ',
+[04:16.21]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528454/g32l660g5tx8d74zcwzr.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528455/ocvxbf0x78gbmxwv6paq.jpg',
   NULL,
@@ -1601,7 +1614,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Chogada',
   'Darshan Raval, Asees Kaur, Lijo George, Dj Chetas',
   'Loveyatri - A Journey of Love',
-  '[00:41.27]ho aavi gai raat ane bhuulo badhi vata
+  '[mood: Party]
+[00:41.27]ho aavi gai raat ane bhuulo badhi vata
 [00:45.40]prem ni aa mosam che
 [00:49.13]ab aao mere paas rah jaao mere saath
 [00:53.51]prem ni aa mosam che
@@ -1644,7 +1658,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Shubhaarambh',
   'Amit Trivedi, Shruti Pathak, Divya Kumar, Swanand Kirkire',
   'Kai Po Che',
-  '[00:00.81] રંગી પરોડ આવી, ખુશિયોં સંગ લાવી
+  '[mood: Party]
+[00:00.81] રંગી પરોડ આવી, ખુશિયોં સંગ લાવી
 [00:05.09] હરખાય હૈયું હાય, હાય
 [00:08.45] રંગી પરોડ આવી, ખુશિયોં સંગ લાવી
 [00:13.52] હરખાય હૈયું હાય, હાય
@@ -1684,7 +1699,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:29.16] ઓ લાવી
 [03:32.84] 
 [03:38.98] એ ભલા, એ
-[03:46.22] ',
+[03:46.22]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528514/lzfazfjil6pjazsfgq3y.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528515/ywmbza8dtehbcr6vpgix.jpg',
   NULL,
@@ -8696,7 +8711,7 @@ INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('13d4f26f-0
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('39dec174-5860-466c-b96e-82840ad4b80a', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:45:36.529887+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('e9b1578f-12dc-4708-a762-6b2651487371', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:51:43.397964+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('01113d88-41a6-4a2f-9846-88ede407d896', 'Liked Songs', '9cebd7da-e93e-4715-b6fd-487ee09e6f2f', '2026-10-12T14:29:37.787009+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":1,"e6657092-d62b-4754-a347-548d0f3bde39":2,"e718bc53-19ab-497e-8ac7-43a2359a19d6":1,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":1,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":1,"47d3fd86-a418-444e-9fdd-842ea10d06b7":1,"be6f92a1-abc7-4992-9c9e-96e2701774c9":1,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":1,"4a14527e-95d0-43c9-a06a-281aebd6ff34":1,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"46136499-85f3-4da2-9484-9f451d511905":1,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":365.2000000000007,"0591dd49-6c49-40ee-8ec6-996c430b9691":0.7,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":19.3,"c3e49428-958a-4272-b658-dcc665373ba6":8,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":4,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":278.49999999999955,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":160.59999999999974,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":194.79999999999953,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":164.89999999999964,"47d3fd86-a418-444e-9fdd-842ea10d06b7":167.29999999999964,"be6f92a1-abc7-4992-9c9e-96e2701774c9":148.09999999999974,"f6e83060-33c6-457b-8ccf-b825929b2be4":34.500000000000014,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":200.1999999999995,"4a14527e-95d0-43c9-a06a-281aebd6ff34":205.89999999999944,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":25.900000000000006,"b1beda6e-b846-478f-bae6-d92ec4128556":81.69999999999997,"572ad7f8-ea06-4521-bb3c-55410468ede0":1.1,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":19.100000000000005,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":207.1999999999995,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":213.49999999999943,"a9e28652-60ce-46aa-b167-711225e2df54":197.79999999999947,"c0d286b0-5df5-485b-8963-5532c0b47991":175.29999999999959,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":1.1,"900af1a9-8b64-4092-913d-9dde80274d93":47.50000000000002,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":105.59999999999994,"9e515d2e-f8a7-41d4-a111-0d5233512391":8.8,"e718bc53-19ab-497e-8ac7-43a2359a19d6":5.6,"46136499-85f3-4da2-9484-9f451d511905":167.3999999999997,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":264.8999999999995,"e6657092-d62b-4754-a347-548d0f3bde39":127.29999999999986},"recentlyPlayedIds":["e6657092-d62b-4754-a347-548d0f3bde39","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7","46136499-85f3-4da2-9484-9f451d511905","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","49b5b3e7-060a-4367-b2f9-83e4b7b2e096","c0d286b0-5df5-485b-8963-5532c0b47991","a9e28652-60ce-46aa-b167-711225e2df54","9a5b4484-7ea6-4d04-bcd9-b49426cec421","e69cc1b8-f224-4cdd-8cae-aef42da87b5b","b1beda6e-b846-478f-bae6-d92ec4128556","4a14527e-95d0-43c9-a06a-281aebd6ff34","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc","be6f92a1-abc7-4992-9c9e-96e2701774c9","47d3fd86-a418-444e-9fdd-842ea10d06b7","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","0924bcb2-c1dc-4cdb-a3e7-6881f473f668","684b60fa-6f36-4e0b-b122-dd966f2ef7c3","d6c4f539-c83d-4934-9bbe-41d5c16cdee2","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8","e718bc53-19ab-497e-8ac7-43a2359a19d6"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Energetic","0591dd49-6c49-40ee-8ec6-996c430b9691":"Energetic","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad"},"updatedAt":"2026-10-12T17:00:45.061Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":1,"e6657092-d62b-4754-a347-548d0f3bde39":2,"e718bc53-19ab-497e-8ac7-43a2359a19d6":1,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":1,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":1,"47d3fd86-a418-444e-9fdd-842ea10d06b7":1,"be6f92a1-abc7-4992-9c9e-96e2701774c9":1,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":1,"4a14527e-95d0-43c9-a06a-281aebd6ff34":1,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"46136499-85f3-4da2-9484-9f451d511905":1,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":371.2000000000008,"0591dd49-6c49-40ee-8ec6-996c430b9691":16.9,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":23.5,"c3e49428-958a-4272-b658-dcc665373ba6":13.299999999999999,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":24.600000000000005,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":278.49999999999955,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":160.59999999999974,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":194.79999999999953,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":164.89999999999964,"47d3fd86-a418-444e-9fdd-842ea10d06b7":183.1999999999996,"be6f92a1-abc7-4992-9c9e-96e2701774c9":166.89999999999966,"f6e83060-33c6-457b-8ccf-b825929b2be4":34.500000000000014,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":200.1999999999995,"4a14527e-95d0-43c9-a06a-281aebd6ff34":208.99999999999943,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":25.900000000000006,"b1beda6e-b846-478f-bae6-d92ec4128556":81.69999999999997,"572ad7f8-ea06-4521-bb3c-55410468ede0":1.1,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":19.100000000000005,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":207.1999999999995,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":213.49999999999943,"a9e28652-60ce-46aa-b167-711225e2df54":197.79999999999947,"c0d286b0-5df5-485b-8963-5532c0b47991":175.29999999999959,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":1.1,"900af1a9-8b64-4092-913d-9dde80274d93":58.30000000000003,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":105.59999999999994,"9e515d2e-f8a7-41d4-a111-0d5233512391":22.6,"e718bc53-19ab-497e-8ac7-43a2359a19d6":18,"46136499-85f3-4da2-9484-9f451d511905":167.3999999999997,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":264.8999999999995,"e6657092-d62b-4754-a347-548d0f3bde39":168.0999999999997,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":14.099999999999998,"bf558395-c784-4100-93eb-cfa239715ca9":8.299999999999999,"86ff8290-aa80-454d-8d35-b408f6463b49":9.9,"c55017cd-15ec-4546-99e8-f12bd5626f11":2.4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"72903aae-1d9a-487d-930f-418cfa6b0205":7.699999999999999,"6d493502-16ce-4915-8160-7b36cfd5cd05":0.8,"923ec288-02e0-4ae2-a13c-accde7ab486e":17.3,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":8,"283edc91-b796-45aa-a22e-e5ecf26c164f":14.699999999999998,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":3.4,"83e790e9-1900-4ff5-ac56-7700d9d88354":7.9},"recentlyPlayedIds":["e6657092-d62b-4754-a347-548d0f3bde39","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7","46136499-85f3-4da2-9484-9f451d511905","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","49b5b3e7-060a-4367-b2f9-83e4b7b2e096","c0d286b0-5df5-485b-8963-5532c0b47991","a9e28652-60ce-46aa-b167-711225e2df54","9a5b4484-7ea6-4d04-bcd9-b49426cec421","e69cc1b8-f224-4cdd-8cae-aef42da87b5b","b1beda6e-b846-478f-bae6-d92ec4128556","4a14527e-95d0-43c9-a06a-281aebd6ff34","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc","be6f92a1-abc7-4992-9c9e-96e2701774c9","47d3fd86-a418-444e-9fdd-842ea10d06b7","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","0924bcb2-c1dc-4cdb-a3e7-6881f473f668","684b60fa-6f36-4e0b-b122-dd966f2ef7c3","d6c4f539-c83d-4934-9bbe-41d5c16cdee2","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8","e718bc53-19ab-497e-8ac7-43a2359a19d6"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Energetic","0591dd49-6c49-40ee-8ec6-996c430b9691":"Party","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Energetic","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Energetic","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party"},"updatedAt":"2026-10-12T17:14:50.666Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
 
 -- 5. Restore Playlist Songs (63 rows)
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (121, 'f9a25586-7289-4a1d-b57b-38464f2fd543', 'd8ffecc7-42ea-432b-8ec1-a79366bc2da7', '2026-09-20T18:50:30.73165+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
