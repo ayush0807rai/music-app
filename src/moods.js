@@ -12,6 +12,8 @@ export const AVAILABLE_MOODS = [
   { id: 'Desi Pop', label: 'Desi Pop', emoji: '🪘', color: '#f77f00' },
   { id: 'Electronic', label: 'Electronic', emoji: '🎧', color: '#00e5ff' },
   { id: 'Monsoon', label: 'Monsoon', emoji: '☔', color: '#38bdf8' },
+  { id: 'Pop', label: 'Pop', emoji: '🎤', color: '#d946ef' },
+  { id: 'Festival', label: 'Festival', emoji: '🪔', color: '#ff5722' },
 ];
 
 export const MOOD_KEYWORDS = {
@@ -58,7 +60,7 @@ export const MOOD_KEYWORDS = {
     'kalyanji', 'madan mohan', 'jatin-lalit', 'jatin–lalit', 'sandesh shandilya', 'a-ha', 'take on me'
   ],
   'Desi Pop': [
-    'pop', 'desi', 'desi pop', 'punjabi', 'indie pop', 'indipop', 'bhangra pop', 'urban', 'hook',
+    'desi', 'desi pop', 'punjabi', 'indie pop', 'indipop', 'bhangra pop', 'urban', 'hook',
     'munda', 'kudi', 'nakhra', 'jatt', 'gabru', 'suit', 'kurti', 'prada', 'lehenga', 'ap dhillon',
     'diljit', 'badshah', 'honey singh', 'guru randhawa', 'hardy sandhu', 'raftaar', 'karan aujla',
     'sidhu', 'king', 'arjun kanungo', 'armaan malik', 'darshan raval', 'prateek kuhad', 'anuv jain',
@@ -74,6 +76,21 @@ export const MOOD_KEYWORDS = {
     'baarish', 'barsaat', 'baras', 'rain', 'monsoon', 'badal', 'boondein', 'rimjhim', 'saawan', 'megha',
     'bijli', 'bheegi', 'bheega', 'pani', 'ghata', 'barkha', 'chhatri', 'clouds', 'storm', 'drizzle',
     'tip tip', 'baarish ki jaye', 'cham cham', 'barso re', 'bheegi bheegi', 'tum mile', 'boond', 'bundein'
+  ],
+  Pop: [
+    'pop', 'taylor swift', 'shawn mendes', 'charlie puth', 'ed sheeran', 'justin bieber', 'selena gomez',
+    'doja cat', 'one direction', 'billie eilish', 'dua lipa', 'ariana grande', 'camila cabello',
+    'harry styles', 'katy perry', 'bruno mars', 'maroon 5', 'zayn', 'coldplay', 'imagine dragons',
+    'hit single', 'chartbuster', 'catchy', 'radio edit', 'vocal pop', 'synthpop', 'attention',
+    'senorita', 'stay', 'treat you better', 'memories', 'levitating', 'peaches', 'blank space',
+    'bad guy', 'perfect', 'we don\'t talk anymore', 'shape of you', 'sunflower', 'post malone',
+    'starboy', 'blinding lights'
+  ],
+  Festival: [
+    'festival', 'utsav', 'tyohar', 'diwali', 'deepawali', 'holi re', 'rang barse', 'khele holi',
+    'navratri', 'garba', 'dandiya', 'ganpati', 'ganesh visarjan', 'bappa', 'dholak',
+    'chogada', 'kamariya', 'nagada', 'shubhaarambh', 'dholida', 'dholi taro', 'gulal',
+    'patakhe', 'pethal pur', 'sanedo', 'badhai ho', 'eid mubarak'
   ]
 };
 
