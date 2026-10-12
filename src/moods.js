@@ -6,6 +6,12 @@ export const AVAILABLE_MOODS = [
   { id: 'Chill', label: 'Chill', emoji: '☕', color: '#4da6ff' },
   { id: 'Energetic', label: 'Energetic', emoji: '⚡', color: '#ffb84d' },
   { id: 'Sad', label: 'Sad', emoji: '🌧️', color: '#a0a0c8' },
+  { id: 'Classical', label: 'Classical', emoji: '🎻', color: '#d49b5a' },
+  { id: 'Party', label: 'Party', emoji: '🪩', color: '#ff007f' },
+  { id: 'Retro', label: 'Retro', emoji: '📻', color: '#2a9d8f' },
+  { id: 'Desi Pop', label: 'Desi Pop', emoji: '🪘', color: '#f77f00' },
+  { id: 'Electronic', label: 'Electronic', emoji: '🎧', color: '#00e5ff' },
+  { id: 'Monsoon', label: 'Monsoon', emoji: '☔', color: '#38bdf8' },
 ];
 
 export const MOOD_KEYWORDS = {
@@ -22,14 +28,52 @@ export const MOOD_KEYWORDS = {
     'behti hawa', 'sukoon'
   ],
   Energetic: [
-    'party', 'dance', 'nach', 'bhangra', 'dhamaka', 'disco', 'shor', 'taali', 'dhamaal', 'hungama', 'masti',
-    'zoobi doobi', 'tumse milke', 'rock', 'beat', 'groove', 'club', 'celebration', 'fire', 'fast', 'bop', 'hype',
-    'loud', 'bass', 'crazy', 'dj', 'remix', 'thumka', 'chalti', 'jalwa', 'energy', 'jump', 'dhol'
+    'energy', 'jump', 'dhol', 'fire', 'fast', 'hyper', 'pump', 'rock', 'groove', 'anthem', 'roar', 'power',
+    'spirit', 'run', 'workout', 'fitness', 'josh', 'junoon', 'aag', 'toofaan', 'dangal', 'sultan', 'challa',
+    'singham', 'jai', 'sher', 'power'
   ],
   Sad: [
     'dard', 'judai', 'bewafa', 'ashq', 'aansoo', 'tanha', 'tanhai', 'gham', 'tuta', 'toota', 'chhod', 'alvida',
     'rone', 'bichhad', 'sad', 'cry', 'broken', 'alone', 'tears', 'hurt', 'pain', 'sorry', 'goodbye', 'heartbreak',
     'yaad', 'rona', 'tadap', 'ruswa', 'chhod gaya'
+  ],
+  Classical: [
+    'classical', 'sitar', 'tabla', 'raag', 'raga', 'bandish', 'thumri', 'khayal', 'shehnai', 'ghazal',
+    'vilambit', 'alaap', 'instrumental', 'symphony', 'orchestra', 'flute', 'bansuri', 'sarod', 'violin',
+    'jugalbandi', 'hindustani', 'carnatic', 'pandit', 'ustad', 'bhimsen', 'hariprasad', 'zakir',
+    'semi-classical', 'riwaz', 'shubhaarambh', 'kailash kher', 'shafqat', 'sufi', 'qawwali'
+  ],
+  Party: [
+    'party', 'dance', 'nach', 'nacho', 'nachdi', 'bhangra', 'dhamaka', 'disco', 'shor', 'taali', 'dhamaal',
+    'hungama', 'masti', 'daaru', 'sharab', 'thumka', 'swag', 'dj', 'remix', 'celebration', 'bop', 'hype',
+    'jalwa', 'loud', 'crazy', 'club', 'chalti', 'patola', 'saturday', 'weekend', 'bombay rockers', 'badtameez',
+    'zoobi doobi', 'tumse milke', 'shots', 'kamariya', 'chogada', 'kheech meri photo', 'criminal'
+  ],
+  Retro: [
+    'retro', 'vintage', 'old', 'oldies', 'classic', '90s', '80s', '70s', '60s', 'evergreen', 'purana',
+    'zamana', 'nostalgia', 'kishore kumar', 'mohammed rafi', 'lata mangeshkar', 'asha bhosle', 'mukesh',
+    'rd burman', 'r.d. burman', 'sd burman', 'laxmikant', 'pyarelal', 'sonu nigam', 'alka yagnik',
+    'kumar sanu', 'udit narayan', 'lucky ali', 'hemant kumar', 'manna dey', 'talat', 'pal pal dil ke paas',
+    'bole chudiyan', 'you are my soniya', 'jab koi baat bigad jaye', 'main yahaan hoon', 'suraj hua maddham',
+    'kalyanji', 'madan mohan', 'jatin-lalit', 'jatin–lalit', 'sandesh shandilya', 'a-ha', 'take on me'
+  ],
+  'Desi Pop': [
+    'pop', 'desi', 'desi pop', 'punjabi', 'indie pop', 'indipop', 'bhangra pop', 'urban', 'hook',
+    'munda', 'kudi', 'nakhra', 'jatt', 'gabru', 'suit', 'kurti', 'prada', 'lehenga', 'ap dhillon',
+    'diljit', 'badshah', 'honey singh', 'guru randhawa', 'hardy sandhu', 'raftaar', 'karan aujla',
+    'sidhu', 'king', 'arjun kanungo', 'armaan malik', 'darshan raval', 'prateek kuhad', 'anuv jain',
+    'imran khan', 'tanzeel khan', 'akull', 'brown rang', 'maan meri jaan', 'aaja we mahiya'
+  ],
+  Electronic: [
+    'electronic', 'edm', 'synth', 'synthwave', 'cyber', 'techno', 'house', 'electro', 'drop', 'bass drop',
+    'trance', 'dubstep', 'future bass', 'club mix', 'beat drop', 'djs', 'avicii', 'chainsmokers', 'alan walker',
+    'tiesto', 'david guetta', 'marshmello', 'kygo', 'martin garrix', 'nucleya', 'ritviz', 'lost stories',
+    'the weeknd', 'closer', 'dj snake', 'let me love you', 'tame impala', 'save your tears', 'dracula'
+  ],
+  Monsoon: [
+    'baarish', 'barsaat', 'baras', 'rain', 'monsoon', 'badal', 'boondein', 'rimjhim', 'saawan', 'megha',
+    'bijli', 'bheegi', 'bheega', 'pani', 'ghata', 'barkha', 'chhatri', 'clouds', 'storm', 'drizzle',
+    'tip tip', 'baarish ki jaye', 'cham cham', 'barso re', 'bheegi bheegi', 'tum mile', 'boond', 'bundein'
   ]
 };
 
@@ -73,11 +117,11 @@ export function getMoodEmoji(moodId) {
 
 // Global owner-curated mood overrides baked into the application
 export const CURATED_MOOD_OVERRIDES = {
-  "0591dd49-6c49-40ee-8ec6-996c430b9691": "Energetic", // Shubhaarambh (Kai Po Che)
+  "0591dd49-6c49-40ee-8ec6-996c430b9691": "Classical", // Shubhaarambh (Kai Po Che)
 };
 
 /**
- * Returns an array of moods (e.g. ['Romantic', 'Chill']) for a given song.
+ * Returns an array of moods (e.g. ['Romantic', 'Chill', 'Classical']) for a given song.
  * Prioritizes user custom override, then curated owner override, then database mood tag, then falls back to keyword analysis.
  */
 export function getSongMoods(song, customOverrides = null) {
@@ -107,32 +151,32 @@ export function getSongMoods(song, customOverrides = null) {
     if (raw.length > 0) return raw;
   }
 
-  // 4. Explicit mood tag embedded in lyrics (e.g. [mood: Romantic])
+  // 4. Explicit mood tag embedded in lyrics (e.g. [mood: Romantic] or [mood: Desi Pop])
   if (song.lyrics && typeof song.lyrics === 'string') {
-    const match = song.lyrics.match(/\[mood:\s*([a-zA-Z]+)\]/i);
+    const match = song.lyrics.match(/\[mood:\s*([a-zA-Z\s]+)\]/i);
     if (match && match[1]) {
-      const found = AVAILABLE_MOODS.find(m => m.id.toLowerCase() === match[1].toLowerCase());
+      const found = AVAILABLE_MOODS.find(m => m.id.toLowerCase() === match[1].trim().toLowerCase());
       if (found) return [found.id];
     }
   }
 
-  // 2. Intelligent lyrics & metadata scoring
+  // 5. Intelligent lyrics & metadata scoring
   const title = (song.title || '').toLowerCase();
   const artist = (song.artist || '').toLowerCase();
   const album = (song.album || '').toLowerCase();
   const lyrics = (song.lyrics || '').toLowerCase();
   const text = `${title} ${artist} ${album} ${lyrics}`;
 
-  const scores = { Romantic: 0, Chill: 0, Energetic: 0, Sad: 0 };
+  const scores = {};
+  AVAILABLE_MOODS.forEach(m => { scores[m.id] = 0; });
 
   for (const [mood, keywords] of Object.entries(MOOD_KEYWORDS)) {
+    if (!keywords || scores[mood] === undefined) continue;
     for (const kw of keywords) {
       if (title.includes(kw)) scores[mood] += 6;
+      if (artist.includes(kw)) scores[mood] += 5;
       if (album.includes(kw)) scores[mood] += 3;
-      
-      const regex = new RegExp('\\b' + kw, 'g');
-      const matches = text.match(regex);
-      if (matches) scores[mood] += matches.length;
+      if (text.includes(kw)) scores[mood] += 1;
     }
   }
 
@@ -143,7 +187,7 @@ export function getSongMoods(song, customOverrides = null) {
 
   const results = [sorted[0][0]];
   // Allow dual mood if second score is strong
-  if (sorted[1][1] >= 4 && sorted[1][1] >= sorted[0][1] * 0.45) {
+  if (sorted[1] && sorted[1][1] >= 4 && sorted[1][1] >= sorted[0][1] * 0.45) {
     results.push(sorted[1][0]);
   }
 

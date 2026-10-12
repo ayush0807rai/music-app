@@ -1,7 +1,7 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-12T15:30:54.263Z
--- Total: 132 songs, 88 artists, 18 playlists, 63 playlist_songs
+-- Generated: 2026-10-12T17:02:00.139Z
+-- Total: 132 songs, 88 artists, 19 playlists, 63 playlist_songs
 -- ====================================================
 
 -- 1. Schema Definitions
@@ -145,7 +145,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Asal Mein',
   'Darshan Raval',
   NULL,
-  '[00:17.18] क्यूँ ख़ुदा ने दी लकीरें
+  '[mood: Sad]
+[00:17.18] क्यूँ ख़ुदा ने दी लकीरें
 [00:21.22] जिसमें ज़ाहिर नाम नहीं तेरा?
 [00:25.49] लिख रहा हूँ दर्द सारे
 [00:29.76] यूँ तो "शायर" नाम नहीं मेरा
@@ -186,7 +187,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:18.59] असल में तुम नहीं हो मेरे, तुम नहीं हो मेरे
 [03:24.45] तुम नहीं हो मेरे, तुम नहीं हो मेरे
 [03:28.78] तुम नहीं हो मेरे, तुम नहीं हो मेरे, तुम नहीं हो मेरे
-[03:33.90] ',
+[03:33.90]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528027/i4jgmepamwjju5ho4qmk.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528029/xqkyjfvrcjvudohmx9vu.jpg',
   NULL,
@@ -202,7 +203,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Ek Tarfa',
   'Darshan Raval',
   NULL,
-  '[00:25.25] अखियों से दरिया बह गया, हाय
+  '[mood: Sad]
+[00:25.25] अखियों से दरिया बह गया, हाय
 [00:31.15] ख़्वाब वो अधूरा रह गया
 [00:37.00] जग भी पराया हो गया, हाय
 [00:43.26] जुदा तेरा साया हो गया
@@ -225,7 +227,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [03:05.85] मेरा ये इश्क़ था दो तरफ़ा, अब एक तरफ़ा हो गया
 [03:11.73] मोहब्बत...
 [03:26.74] मोहब्बत हो गई थी...
-[03:33.21] ',
+[03:33.21]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528038/m8ebm0cxlesktfxvi13r.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528039/qmfngb9xshvqu9a1izfl.jpg',
   NULL,
@@ -8675,7 +8677,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   '2026-10-11T17:19:36.509067+00:00'
 ) ON CONFLICT (id) DO NOTHING;
 
--- 4. Restore Playlists (18 rows)
+-- 4. Restore Playlists (19 rows)
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('f9a25586-7289-4a1d-b57b-38464f2fd543', 'Songs We Sang', '1427121b-efda-49c6-abdf-59ad35523935', '2026-09-20T11:36:43.898631+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('6588f28e-74cc-4202-a7de-599205a2b100', 'peace out', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-09-21T04:55:01.15482+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('79006896-12a9-4356-8226-555a5c2f6041', 'Liked Songs', '1427121b-efda-49c6-abdf-59ad35523935', '2026-09-24T05:36:00.804275+00:00') ON CONFLICT (id) DO NOTHING;
@@ -8694,6 +8696,7 @@ INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('13d4f26f-0
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('39dec174-5860-466c-b96e-82840ad4b80a', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:45:36.529887+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('e9b1578f-12dc-4708-a762-6b2651487371', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:51:43.397964+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('01113d88-41a6-4a2f-9846-88ede407d896', 'Liked Songs', '9cebd7da-e93e-4715-b6fd-487ee09e6f2f', '2026-10-12T14:29:37.787009+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":1,"e6657092-d62b-4754-a347-548d0f3bde39":2,"e718bc53-19ab-497e-8ac7-43a2359a19d6":1,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":1,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":1,"47d3fd86-a418-444e-9fdd-842ea10d06b7":1,"be6f92a1-abc7-4992-9c9e-96e2701774c9":1,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":1,"4a14527e-95d0-43c9-a06a-281aebd6ff34":1,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"46136499-85f3-4da2-9484-9f451d511905":1,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":365.2000000000007,"0591dd49-6c49-40ee-8ec6-996c430b9691":0.7,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":19.3,"c3e49428-958a-4272-b658-dcc665373ba6":8,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":4,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":278.49999999999955,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":160.59999999999974,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":194.79999999999953,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":164.89999999999964,"47d3fd86-a418-444e-9fdd-842ea10d06b7":167.29999999999964,"be6f92a1-abc7-4992-9c9e-96e2701774c9":148.09999999999974,"f6e83060-33c6-457b-8ccf-b825929b2be4":34.500000000000014,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":200.1999999999995,"4a14527e-95d0-43c9-a06a-281aebd6ff34":205.89999999999944,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":25.900000000000006,"b1beda6e-b846-478f-bae6-d92ec4128556":81.69999999999997,"572ad7f8-ea06-4521-bb3c-55410468ede0":1.1,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":19.100000000000005,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":207.1999999999995,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":213.49999999999943,"a9e28652-60ce-46aa-b167-711225e2df54":197.79999999999947,"c0d286b0-5df5-485b-8963-5532c0b47991":175.29999999999959,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":1.1,"900af1a9-8b64-4092-913d-9dde80274d93":47.50000000000002,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":105.59999999999994,"9e515d2e-f8a7-41d4-a111-0d5233512391":8.8,"e718bc53-19ab-497e-8ac7-43a2359a19d6":5.6,"46136499-85f3-4da2-9484-9f451d511905":167.3999999999997,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":264.8999999999995,"e6657092-d62b-4754-a347-548d0f3bde39":127.29999999999986},"recentlyPlayedIds":["e6657092-d62b-4754-a347-548d0f3bde39","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7","46136499-85f3-4da2-9484-9f451d511905","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","49b5b3e7-060a-4367-b2f9-83e4b7b2e096","c0d286b0-5df5-485b-8963-5532c0b47991","a9e28652-60ce-46aa-b167-711225e2df54","9a5b4484-7ea6-4d04-bcd9-b49426cec421","e69cc1b8-f224-4cdd-8cae-aef42da87b5b","b1beda6e-b846-478f-bae6-d92ec4128556","4a14527e-95d0-43c9-a06a-281aebd6ff34","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc","be6f92a1-abc7-4992-9c9e-96e2701774c9","47d3fd86-a418-444e-9fdd-842ea10d06b7","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","0924bcb2-c1dc-4cdb-a3e7-6881f473f668","684b60fa-6f36-4e0b-b122-dd966f2ef7c3","d6c4f539-c83d-4934-9bbe-41d5c16cdee2","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8","e718bc53-19ab-497e-8ac7-43a2359a19d6"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Energetic","0591dd49-6c49-40ee-8ec6-996c430b9691":"Energetic","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad"},"updatedAt":"2026-10-12T17:00:45.061Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
 
 -- 5. Restore Playlist Songs (63 rows)
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (121, 'f9a25586-7289-4a1d-b57b-38464f2fd543', 'd8ffecc7-42ea-432b-8ec1-a79366bc2da7', '2026-09-20T18:50:30.73165+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;

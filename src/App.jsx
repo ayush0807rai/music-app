@@ -919,7 +919,7 @@ export default function App() {
       const targetSong = playlist.find(s => s.id === songId);
       if (targetSong) {
         let currentLyrics = targetSong.lyrics || "";
-        let cleanLyrics = currentLyrics.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, "").trim();
+        let cleanLyrics = currentLyrics.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, "").trim();
         let newLyrics = moodId ? (cleanLyrics ? `[mood: ${moodId}]\n${cleanLyrics}` : `[mood: ${moodId}]`) : (cleanLyrics || null);
         supabase.from('songs').update({ lyrics: newLyrics }).eq('id', songId).then(({ error }) => {
           if (!error) {
@@ -1160,7 +1160,8 @@ export default function App() {
   }, [viewedPlaylistId, userPlaylists]);
 
   const moodCounts = useMemo(() => {
-    const counts = { Romantic: 0, Chill: 0, Energetic: 0, Sad: 0 };
+    const counts = {};
+    AVAILABLE_MOODS.forEach(m => { counts[m.id] = 0; });
     (playlist || []).forEach(s => {
       const moods = getSongMoods(s, customMoodOverrides);
       moods.forEach(m => {
@@ -6045,6 +6046,7 @@ export default function App() {
                         fontWeight: "700",
                         cursor: "pointer",
                         whiteSpace: "nowrap",
+                        flexShrink: 0,
                         display: "flex",
                         alignItems: "center",
                         gap: "6px",
@@ -6072,6 +6074,7 @@ export default function App() {
                             fontWeight: "700",
                             cursor: "pointer",
                             whiteSpace: "nowrap",
+                            flexShrink: 0,
                             display: "flex",
                             alignItems: "center",
                             gap: "6px",
