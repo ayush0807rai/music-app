@@ -4662,39 +4662,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Top Tracks On Repeat */}
-              {listeningStats.topTracks.length > 0 && (
-                <div style={{ marginBottom: "20px" }}>
-                  <h3 style={{ fontSize: "14px", fontWeight: "700", margin: "0 0 10px 0", color: songTheme.textColor }}>Top Tracks On Repeat</h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {listeningStats.topTracks.slice(0, 5).map((song, i) => (
-                      <div
-                        key={song.id}
-                        onClick={() => {
-                          setShowStatsModal(false);
-                          const idx = playlist.findIndex(p => p.id === song.id);
-                          if (idx !== -1) handlePlaySong(idx, playlist, "Global Library");
-                        }}
-                        className="hover-effect"
-                        style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px", cursor: "pointer" }}
-                      >
-                        <span style={{ fontWeight: "800", fontSize: "13px", color: i === 0 ? "#ffb84d" : songTheme.textMuted, width: "16px" }}>{i + 1}</span>
-                        <div style={{ width: "36px", height: "36px", borderRadius: "6px", overflow: "hidden", backgroundColor: COLORS.imageBg, flexShrink: 0 }}>
-                          {song.poster_url && <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: "13px", fontWeight: "600", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
-                          <div style={{ fontSize: "11px", color: songTheme.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
-                        </div>
-                        <div style={{ fontSize: "12px", fontWeight: "700", color: COLORS.spotifyGreen, padding: "2px 8px", background: "rgba(29, 185, 84, 0.12)", borderRadius: "10px" }}>
-                          {song.playCount} plays
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Reset Option */}
               {listeningStats.hasData && (
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
@@ -4787,39 +4754,6 @@ export default function App() {
                   <span style={{ fontSize: "10px", color: songTheme.textMuted }}>most listened</span>
                 </div>
               </div>
-
-              {/* Top Tracks On Repeat */}
-              {listeningStats.topTracks.length > 0 && (
-                <div style={{ marginBottom: "20px" }}>
-                  <h3 style={{ fontSize: "14px", fontWeight: "700", margin: "0 0 10px 0", color: songTheme.textColor }}>Top Tracks On Repeat</h3>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {listeningStats.topTracks.slice(0, 5).map((song, i) => (
-                      <div
-                        key={song.id}
-                        onClick={() => {
-                          setShowStatsModal(false);
-                          const idx = playlist.findIndex(p => p.id === song.id);
-                          if (idx !== -1) handlePlaySong(idx, playlist, "Global Library");
-                        }}
-                        className="hover-effect"
-                        style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 10px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "12px", cursor: "pointer" }}
-                      >
-                        <span style={{ fontWeight: "800", fontSize: "12px", color: i === 0 ? "#ffb84d" : songTheme.textMuted, width: "14px" }}>{i + 1}</span>
-                        <div style={{ width: "32px", height: "32px", borderRadius: "6px", overflow: "hidden", backgroundColor: COLORS.imageBg, flexShrink: 0 }}>
-                          {song.poster_url && <img src={song.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: "13px", fontWeight: "600", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.title}</div>
-                          <div style={{ fontSize: "11px", color: songTheme.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{song.artist}</div>
-                        </div>
-                        <div style={{ fontSize: "11px", fontWeight: "700", color: COLORS.spotifyGreen, padding: "2px 6px", background: "rgba(29, 185, 84, 0.12)", borderRadius: "8px" }}>
-                          {song.playCount} plays
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Reset Option */}
               {listeningStats.hasData && (
@@ -5570,19 +5504,6 @@ export default function App() {
                                 {!activePlaylistObj?.isSmart && (
                                   <button title="Remove from playlist" onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} /></button>
                                 )}
-                                <button
-                                  title="Options & Category"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openedFromTrackOptionsRef.current = false;
-                                    setTrackForOptions(track);
-                                    setShowTrackOptionsModal(true);
-                                  }}
-                                  style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }}
-                                  className="hover-effect"
-                                >
-                                  <MoreVertical size={isDesktop ? 18 : 16} />
-                                </button>
                                 {isSelected && isPlaying && (
                                   <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
                                     <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
@@ -5814,19 +5735,6 @@ export default function App() {
                                 <FolderPlus size={isDesktop ? 18 : 16} />
                               </button>
                             )}
-                            <button
-                              title="Options & Category"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openedFromTrackOptionsRef.current = false;
-                                setTrackForOptions(track);
-                                setShowTrackOptionsModal(true);
-                              }}
-                              style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }}
-                              className="hover-effect"
-                            >
-                              <MoreVertical size={isDesktop ? 18 : 16} />
-                            </button>
                             {isSelected && isPlaying && (
                               <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
                                 <div className="eq-bar" style={{ animationDelay: "0s" }}></div>
