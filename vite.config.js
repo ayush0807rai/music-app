@@ -18,10 +18,16 @@ export default defineConfig({
         categories: ['music', 'entertainment'],
         icons: [
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/174/174872.png',
-            sizes: '512x512',
+            src: '/logo.png',
+            sizes: '192x192 512x512 1024x1024',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/logo.png',
+            sizes: '192x192 512x512 1024x1024',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },
