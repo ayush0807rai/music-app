@@ -42,6 +42,7 @@ import {
   flushCloudSync,
   saveLocalStats
 } from "./statsManager";
+import { STATIC_SONG_DURATIONS } from "./songDurations";
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 const SORT_CYCLE = [null, "title", "created_at", "duration"];
@@ -1231,9 +1232,10 @@ export default function App() {
           return dateB - dateA;
         }
         if (currentSortKey === "duration") {
-          const durA = a.duration || songDurations[a.id] || Number.MAX_SAFE_INTEGER;
-          const durB = b.duration || songDurations[b.id] || Number.MAX_SAFE_INTEGER;
-          return durA - durB;
+          const durA = Number(a.duration) || songDurations[a.id] || STATIC_SONG_DURATIONS[a.id] || Number.MAX_SAFE_INTEGER;
+          const durB = Number(b.duration) || songDurations[b.id] || STATIC_SONG_DURATIONS[b.id] || Number.MAX_SAFE_INTEGER;
+          if (durA !== durB) return durA - durB;
+          return (a.title || "").localeCompare(b.title || "");
         }
         
         const valA = (a[currentSortKey] || "").toString().trim().toLowerCase();
@@ -2165,7 +2167,7 @@ export default function App() {
     
     const fetchDurationsInBatches = async () => {
       const tracksToProcess = [...playlist, ...playlistSongs].filter(t => 
-        !t.duration && !songDurations[t.id] && !fetchingDurationsRef.current.has(t.id) && t.url
+        !t.duration && !STATIC_SONG_DURATIONS[t.id] && !songDurations[t.id] && !fetchingDurationsRef.current.has(t.id) && t.url
       );
       
       const BATCH_SIZE = 4;
@@ -3267,6 +3269,7 @@ export default function App() {
       }
       const audioData = await audioRes.json();
       const audioUrl = audioData.secure_url;
+      const audioDuration = Math.round(Number(audioData.duration) || 0) || null;
       
       // 2. Upload poster directly to Cloudinary (compulsory)
       const posterFormData = new FormData();
@@ -3308,7 +3311,8 @@ export default function App() {
         album: uploadAlbum || null, 
         lyrics: lyricsToStore, 
         url: audioUrl, 
-        poster_url: posterUrl 
+        poster_url: posterUrl,
+        duration: audioDuration
       }]).select();
       if (dbError) throw dbError;
 
@@ -3337,7 +3341,10 @@ export default function App() {
       }
 
       if (dbData && dbData[0]) {
-        const createdSong = { ...dbData[0], mood: effectiveMood || null };
+        const createdSong = { ...dbData[0], mood: effectiveMood || null, duration: audioDuration || dbData[0].duration || null };
+        if (audioDuration) {
+          setSongDurations(prev => ({ ...prev, [createdSong.id]: audioDuration }));
+        }
         if (effectiveMood) {
           setCustomSongMood(createdSong.id, effectiveMood);
           setCustomMoodOverrides(prev => ({ ...prev, [createdSong.id]: effectiveMood }));
