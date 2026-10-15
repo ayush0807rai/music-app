@@ -216,7 +216,7 @@ const SwipeableBottomSheet = ({ children, onClose, className, style }) => {
   );
 };
 
-const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, iconColor }) => {
+const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, actionColor, iconColor, className = "" }) => {
   const containerRef = useRef(null);
   const trackRef = useRef(null);
   const actionBgRef = useRef(null);
@@ -224,35 +224,44 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
   const startY = useRef(0);
   const currentX = useRef(0);
   const isDragging = useRef(false);
+  const isHorizontalSwipe = useRef(false);
   const wasSwiped = useRef(false);
 
   const handlePointerDown = (e) => {
-    if (e.button !== 0 && e.type !== 'touchstart') return;
-    isDragging.current = true;
-    wasSwiped.current = false;
-    startX.current = e.clientX || (e.touches && e.touches[0].clientX);
-    startY.current = e.clientY || (e.touches && e.touches[0].clientY);
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    startX.current = e.clientX;
+    startY.current = e.clientY;
     currentX.current = 0;
-    
-    if (trackRef.current) {
-      trackRef.current.style.transition = 'none';
-    }
+    isDragging.current = true;
+    isHorizontalSwipe.current = false;
+    wasSwiped.current = false;
   };
 
   const handlePointerMove = (e) => {
     if (!isDragging.current) return;
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    const clientX = e.clientX;
+    const clientY = e.clientY;
     const deltaX = clientX - startX.current;
     const deltaY = clientY - startY.current;
 
-    if (Math.abs(deltaY) > 20 && Math.abs(deltaX) < 20) {
-      isDragging.current = false;
-      resetSwipe();
-      return;
+    // Fast-bailout: if user is scrolling vertically, stop swipe tracking immediately to keep vertical scroll 100% native
+    if (!isHorizontalSwipe.current) {
+      if (Math.abs(deltaY) > 8 && Math.abs(deltaY) >= Math.abs(deltaX)) {
+        isDragging.current = false;
+        resetSwipe();
+        return;
+      }
+      if (deltaX > 8 && deltaX > Math.abs(deltaY)) {
+        isHorizontalSwipe.current = true;
+        if (trackRef.current) {
+          trackRef.current.style.transition = 'none';
+        }
+      } else {
+        return;
+      }
     }
 
-    if (Math.abs(deltaX) > 10) {
+    if (deltaX > 10) {
       wasSwiped.current = true;
       if (actionBgRef.current) {
         actionBgRef.current.style.opacity = '1';
@@ -277,6 +286,7 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
       trackRef.current.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
     }
     currentX.current = 0;
+    isHorizontalSwipe.current = false;
     if (actionBgRef.current) {
       actionBgRef.current.style.opacity = '0';
     }
@@ -286,9 +296,9 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
     if (!isDragging.current) return;
     isDragging.current = false;
     
-    if (currentX.current > 70) {
+    if (isHorizontalSwipe.current && currentX.current > 70) {
       onAddQueue(track);
-      if (window.navigator && window.navigator.vibrate) {
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
         window.navigator.vibrate(50);
       }
     }
@@ -301,16 +311,12 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
   return (
     <div 
       ref={containerRef}
+      className={className}
       style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y', borderRadius: '12px' }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      onPointerLeave={handlePointerUp}
-      onTouchStart={handlePointerDown}
-      onTouchMove={handlePointerMove}
-      onTouchEnd={handlePointerUp}
-      onTouchCancel={handlePointerUp}
       onClickCapture={(e) => {
         if (wasSwiped.current) {
           e.stopPropagation();
@@ -332,7 +338,7 @@ const SwipeableTrack = ({ track, onAddQueue, children, baseColor, actionColor, i
       </div>
     </div>
   );
-};
+});
 
 // --- LYRICS PARSER ---
 const parseLyrics = (lrcString) => {
@@ -642,6 +648,11 @@ export default function App() {
     let isAnimating = false;
     let rafId = null;
     let lastTime = null;
+    let cachedMaxScroll = Math.max(0, node.scrollWidth - node.clientWidth);
+
+    const updateMaxScroll = () => {
+      cachedMaxScroll = Math.max(0, node.scrollWidth - node.clientWidth);
+    };
 
     const stopAnimation = () => {
       if (rafId) {
@@ -657,14 +668,11 @@ export default function App() {
       const dt = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
 
-      const maxScroll = Math.max(0, node.scrollWidth - node.clientWidth);
-      targetScroll = Math.max(0, Math.min(maxScroll, targetScroll));
-
       // Framerate-independent smooth exponential decay (~95% decay within 200ms)
       const factor = 1 - Math.exp(-14 * dt);
       const diff = targetScroll - currentScroll;
 
-      if (Math.abs(diff) < 0.5) {
+      if (Math.abs(diff) < 0.8) {
         currentScroll = targetScroll;
         node.scrollLeft = targetScroll;
         stopAnimation();
@@ -683,8 +691,8 @@ export default function App() {
         if (e.deltaMode === 1) delta *= 33;
         else if (e.deltaMode === 2) delta *= 100;
 
-        const maxScroll = Math.max(0, node.scrollWidth - node.clientWidth);
-        if (maxScroll <= 0) return;
+        updateMaxScroll();
+        if (cachedMaxScroll <= 0) return;
 
         // If not actively animating, synchronize positions with actual DOM scrollLeft
         if (!isAnimating) {
@@ -692,8 +700,8 @@ export default function App() {
           targetScroll = node.scrollLeft;
         }
 
-        const newTarget = Math.max(0, Math.min(maxScroll, targetScroll + delta));
-        const canScrollRight = delta > 0 && (node.scrollLeft < maxScroll - 1 || targetScroll < maxScroll);
+        const newTarget = Math.max(0, Math.min(cachedMaxScroll, targetScroll + delta));
+        const canScrollRight = delta > 0 && (node.scrollLeft < cachedMaxScroll - 1 || targetScroll < cachedMaxScroll);
         const canScrollLeft = delta < 0 && (node.scrollLeft > 1 || targetScroll > 0);
 
         if (canScrollRight || canScrollLeft) {
@@ -728,6 +736,7 @@ export default function App() {
     node.addEventListener("wheel", handleWheel, { passive: false });
     node.addEventListener("pointerdown", handlePointerDown, { passive: true });
     node.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", updateMaxScroll, { passive: true });
 
     return () => {
       stopAnimation();
@@ -735,6 +744,7 @@ export default function App() {
       node.removeEventListener("wheel", handleWheel);
       node.removeEventListener("pointerdown", handlePointerDown);
       node.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", updateMaxScroll);
     };
   }, [isDesktop]);
 
@@ -2751,18 +2761,22 @@ export default function App() {
         return -c/2 * (t*t*t*t - 2) + b;
       };
 
+      let animationFrame;
       const animateScroll = (currentTime) => {
         const timeElapsed = currentTime - startTime;
         const next = easeInOutQuart(timeElapsed, startY, distance, duration);
         container.scrollTop = next;
         if (timeElapsed < duration) {
-          requestAnimationFrame(animateScroll);
+          animationFrame = requestAnimationFrame(animateScroll);
         } else {
           container.scrollTop = targetY;
         }
       };
       
-      requestAnimationFrame(animateScroll);
+      animationFrame = requestAnimationFrame(animateScroll);
+      return () => {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+      };
     }
   }, [activeLyricIndex]);
 
@@ -2860,13 +2874,13 @@ export default function App() {
     }
   };
 
-  const addToQueue = (song, e) => {
+  const addToQueue = useCallback((song, e) => {
     if (e) e.stopPropagation();
     const full = playlist.find(s => s.id === song.id);
     const enriched = (full?.lyrics && !song.lyrics) ? { ...song, lyrics: full.lyrics } : song;
     setUserQueue(prev => [...prev, { ...enriched, queue_id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) }]);
     triggerToast(`Added "${song.title}" to Queue`);
-  };
+  }, [playlist, triggerToast]);
   const removeFromQueue = (index, e) => { if (e) e.stopPropagation(); setUserQueue(prev => prev.filter((_, i) => i !== index)); };
   const clearQueue = (e) => { if (e) e.stopPropagation(); setUserQueue([]); };
   
@@ -4393,11 +4407,13 @@ export default function App() {
         .toast-exit { animation: toastDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
         .hover-effect { transition: transform 0.2s ease, opacity 0.2s ease; }
-        .hover-effect:hover { transform: scale(1.05); }
+        @media (hover: hover) and (pointer: fine) {
+          .hover-effect:hover { transform: scale(1.05); }
+          .playlist-row:hover { background: ${COLORS.hover} !important; }
+          .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
+        }
         .playlist-row { transition: background 0.2s ease; }
-        .playlist-row:hover { background: ${COLORS.hover} !important; }
         .sidebar-item { transition: color 0.2s ease; cursor: pointer; }
-        .sidebar-item:hover { color: ${COLORS.primary} !important; opacity: 0.8; }
         .eq-bar { width: 3px; height: 14px; background-color: ${COLORS.spotifyGreen}; border-radius: 3px; animation: bounceEq 1s infinite ease-in-out; transform-origin: bottom; }
         
         .glow-slider { 
@@ -4503,7 +4519,26 @@ export default function App() {
         .upload-input::placeholder { color: ${COLORS.textMuted}; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
         .custom-scrollbar::-webkit-scrollbar { display: none; }
-        .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar { 
+          -ms-overflow-style: none; 
+          scrollbar-width: none; 
+          -webkit-overflow-scrolling: touch;
+        }
+        .main-scroll-container {
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-y: contain;
+          transform: translateZ(0);
+        }
+        .horizontal-scroll-container {
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior-x: contain;
+          touch-action: pan-x pan-y;
+          transform: translateZ(0);
+        }
+        .song-row-deferred {
+          content-visibility: auto;
+          contain-intrinsic-size: auto none auto 68px;
+        }
         
         .loop-audio-fix { pointer-events: none; }
         
@@ -4522,21 +4557,21 @@ export default function App() {
           -webkit-user-select: none;
           user-select: none;
           background: ${isDarkMode ? "rgba(255, 255, 255, 0.07)" : "rgba(0, 0, 0, 0.12)"};
-          backdrop-filter: blur(24px) saturate(200%);
-          -webkit-backdrop-filter: blur(24px) saturate(200%);
           border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.5)"};
-          border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.9)"};
+          border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.9)"};
           border-radius: 12px;
           box-shadow: ${isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4)"};
           transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
           contain: paint;
           isolation: isolate;
         }
-        .glass-row:hover {
-          background: ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.16)"};
-          border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.6)"};
-          border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 1)"};
-          box-shadow: ${isDarkMode ? "0 6px 16px rgba(0, 0, 0, 0.3)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"};
+        @media (hover: hover) and (pointer: fine) {
+          .glass-row:hover {
+            background: ${isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.16)"};
+            border: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.6)"};
+            border-top: 1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 1)"};
+            box-shadow: ${isDarkMode ? "0 6px 16px rgba(0, 0, 0, 0.3)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"};
+          }
         }
         .glass-btn-primary {
           background: ${isDarkMode ? "rgba(242, 233, 228, 0.85)" : "rgba(26, 43, 76, 0.85)"};
@@ -4551,9 +4586,11 @@ export default function App() {
           font-weight: bold;
           cursor: pointer;
         }
-        .glass-btn-primary:hover {
-          background: ${isDarkMode ? "rgba(242, 233, 228, 1)" : "rgba(26, 43, 76, 1)"};
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        @media (hover: hover) and (pointer: fine) {
+          .glass-btn-primary:hover {
+            background: ${isDarkMode ? "rgba(242, 233, 228, 1)" : "rgba(26, 43, 76, 1)"};
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+          }
         }
         .glass-row.active {
           background: ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.22)"};
@@ -4567,12 +4604,17 @@ export default function App() {
           border: 1px solid ${isDarkMode ? "rgba(80, 135, 220, 0.3)" : "rgba(255, 255, 255, 0.5)"} !important;
           border-top: 1px solid ${isDarkMode ? "rgba(130, 185, 255, 0.45)" : "rgba(255, 255, 255, 0.9)"} !important;
           box-shadow: ${isDarkMode ? "0 4px 14px rgba(10, 22, 50, 0.35)" : "0 8px 24px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4)"} !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          transform: translateZ(0);
         }
-        .song-stack-row:hover {
-          background: ${isDarkMode ? "#22468E" : "rgba(0, 0, 0, 0.16)"} !important;
-          border: 1px solid ${isDarkMode ? "rgba(100, 160, 255, 0.45)" : "rgba(255, 255, 255, 0.6)"} !important;
-          border-top: 1px solid ${isDarkMode ? "rgba(150, 205, 255, 0.65)" : "rgba(255, 255, 255, 1)"} !important;
-          box-shadow: ${isDarkMode ? "0 6px 18px rgba(15, 30, 70, 0.45)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"} !important;
+        @media (hover: hover) and (pointer: fine) {
+          .song-stack-row:hover {
+            background: ${isDarkMode ? "#22468E" : "rgba(0, 0, 0, 0.16)"} !important;
+            border: 1px solid ${isDarkMode ? "rgba(100, 160, 255, 0.45)" : "rgba(255, 255, 255, 0.6)"} !important;
+            border-top: 1px solid ${isDarkMode ? "rgba(150, 205, 255, 0.65)" : "rgba(255, 255, 255, 1)"} !important;
+            box-shadow: ${isDarkMode ? "0 6px 18px rgba(15, 30, 70, 0.45)" : "0 10px 28px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6)"} !important;
+          }
         }
         .song-stack-row.active {
           background: ${isDarkMode ? "#2C55A8" : "rgba(0, 0, 0, 0.22)"} !important;
@@ -5778,11 +5820,11 @@ export default function App() {
         )}
 
         {/* CENTER CONTENT */}
-        <div style={{ flex: 1, minWidth: 0, background: COLORS.bgPanel, borderRadius: isDesktop ? "12px" : "0", padding: isDesktop ? "32px" : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "100px" : "32px", border: isDesktop ? `1px solid ${COLORS.border}` : "none" }} className="custom-scrollbar">
+        <div style={{ flex: 1, minWidth: 0, background: COLORS.bgPanel, borderRadius: isDesktop ? "12px" : "0", padding: isDesktop ? "32px" : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "100px" : "32px", border: isDesktop ? `1px solid ${COLORS.border}` : "none" }} className="custom-scrollbar main-scroll-container">
 
           {/* MOBILE PLAYLIST TABS */}
           {!isDesktop && !selectedArtist && (
-            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "14px", flexShrink: 0 }} className="custom-scrollbar">
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "14px", flexShrink: 0 }} className="custom-scrollbar horizontal-scroll-container">
               <button onClick={() => handleSwitchPlaylist(null)} style={{ background: viewedPlaylistId === null && !showStatsModal ? COLORS.primary : "transparent", color: viewedPlaylistId === null && !showStatsModal ? COLORS.bgPanel : COLORS.primary, border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: "8px 16px", fontSize: "13px", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.2s ease" }}>
                 Global Library
               </button>
@@ -5989,7 +6031,7 @@ export default function App() {
                       {displayedSongs.map((track, index) => {
                         const isSelected = currentTrack?.id === track.id;
                         return (
-                          <SwipeableTrack key={track.id} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
+                          <SwipeableTrack key={track.id} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase} className={index >= 10 ? "song-row-deferred" : ""}>
                             <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center", padding: "10px 16px", cursor: "pointer" }}>
                               <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                               <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
@@ -6083,7 +6125,7 @@ export default function App() {
                         <span>Shuffle</span>
                       </button>
                     </div>
-                    <div ref={handleTopArtistsRef} style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: isDesktop ? "12px" : "8px" }} className="custom-scrollbar">
+                    <div ref={handleTopArtistsRef} style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: isDesktop ? "12px" : "8px" }} className="custom-scrollbar horizontal-scroll-container">
                       {visibleTopArtists.map(artist => (
                         <div key={artist.name} onClick={() => setSelectedArtist(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
                           <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.imageBg, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
@@ -6161,7 +6203,7 @@ export default function App() {
 
                 {/* MOOD FILTER BAR */}
                 {viewedPlaylistId === null && !selectedArtist && !selectedAlbum && (
-                  <div ref={handleMoodsRef} style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", paddingLeft: isDesktop ? "16px" : 0 }} className="custom-scrollbar">
+                  <div ref={handleMoodsRef} style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", paddingLeft: isDesktop ? "16px" : 0 }} className="custom-scrollbar horizontal-scroll-container">
                     <button
                       onClick={() => handleSelectMood(null)}
                       style={{
@@ -6224,7 +6266,7 @@ export default function App() {
                   {displayedSongs.length > 0 ? displayedSongs.map((track, index) => {
                     const isSelected = currentTrack?.id === track.id;
                     return (
-                      <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase}>
+                      <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase} className={index >= 10 ? "song-row-deferred" : ""}>
                         <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, selectedMood ? `${selectedMood} Mood` : "Global Library")} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
                           <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
