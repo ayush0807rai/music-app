@@ -1620,21 +1620,18 @@ export default function App() {
       document.head.appendChild(metaTheme);
     }
     
+    const targetTheme = isDarkMode ? "#070A11" : (isMobilePlayerOpen ? "#F4EFE6" : "#F3F0E6");
+    metaTheme.setAttribute('content', targetTheme);
+    document.body.style.backgroundColor = targetTheme;
+    document.documentElement.style.backgroundColor = targetTheme;
+
     if (isMobilePlayerOpen) {
-      const playerBase = isDarkMode ? "#070A11" : "#F4EFE6";
-      metaTheme.content = playerBase;
-      document.body.style.backgroundColor = playerBase;
-      document.documentElement.style.backgroundColor = playerBase;
       // The modal just mounted, meaning mobileProgressRef just attached to a new input with defaultValue=0.
       // Force it to sync with actual audio time. Use small timeouts to wait for React to attach the DOM node.
       setTimeout(updateProgressVisuals, 10);
       setTimeout(updateProgressVisuals, 100);
-    } else {
-      metaTheme.content = COLORS.bgBase;
-      document.body.style.backgroundColor = COLORS.bgBase;
-      document.documentElement.style.backgroundColor = COLORS.bgBase;
     }
-  }, [isMobilePlayerOpen, isDarkMode, COLORS.bgBase]);
+  }, [isMobilePlayerOpen, isDarkMode]);
 
   const [upcomingSourceList, setUpcomingSourceList] = useState([]);
   const [playbackHistory, setPlaybackHistory] = useState(() => {
@@ -4431,7 +4428,7 @@ export default function App() {
     <div style={{ width: "100%", height: "100dvh", minHeight: "100%", display: "flex", flexDirection: "column", overflow: "hidden", background: COLORS.bgBase, color: COLORS.textMain, fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <style>{`
         :root { max-width: none !important; }
-        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; min-height: 100dvh !important; max-width: none !important; background: ${isMobilePlayerOpen ? (isDarkMode ? "#070A11" : "#F4EFE6") : COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; min-height: 100dvh !important; max-width: none !important; background: ${isDarkMode ? "#070A11" : (isMobilePlayerOpen ? "#F4EFE6" : "#F3F0E6")} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         input, textarea { -webkit-user-select: auto; -moz-user-select: auto; user-select: auto; outline: none; }
         

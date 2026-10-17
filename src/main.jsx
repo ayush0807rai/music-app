@@ -37,7 +37,12 @@ if (typeof window !== 'undefined') {
   }, { capture: true });
 }
 
-registerSW({ immediate: true })
+registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    window.location.reload();
+  }
+});
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
