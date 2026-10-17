@@ -1621,15 +1621,20 @@ export default function App() {
     }
     
     if (isMobilePlayerOpen) {
-      metaTheme.content = dominantColor || "#121212";
+      const playerBase = isDarkMode ? "#070A11" : "#F4EFE6";
+      metaTheme.content = playerBase;
+      document.body.style.backgroundColor = playerBase;
+      document.documentElement.style.backgroundColor = playerBase;
       // The modal just mounted, meaning mobileProgressRef just attached to a new input with defaultValue=0.
       // Force it to sync with actual audio time. Use small timeouts to wait for React to attach the DOM node.
       setTimeout(updateProgressVisuals, 10);
       setTimeout(updateProgressVisuals, 100);
     } else {
       metaTheme.content = COLORS.bgBase;
+      document.body.style.backgroundColor = COLORS.bgBase;
+      document.documentElement.style.backgroundColor = COLORS.bgBase;
     }
-  }, [isMobilePlayerOpen, dominantColor, COLORS.bgBase]);
+  }, [isMobilePlayerOpen, isDarkMode, COLORS.bgBase]);
 
   const [upcomingSourceList, setUpcomingSourceList] = useState([]);
   const [playbackHistory, setPlaybackHistory] = useState(() => {
@@ -4423,10 +4428,10 @@ export default function App() {
   if (!session) return <Auth />;
 
   return (
-    <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden", background: COLORS.bgBase, color: COLORS.textMain, fontFamily: "system-ui, -apple-system, sans-serif" }}>
+    <div style={{ width: "100%", height: "100dvh", minHeight: "100%", display: "flex", flexDirection: "column", overflow: "hidden", background: COLORS.bgBase, color: COLORS.textMain, fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <style>{`
         :root { max-width: none !important; }
-        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: ${COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        body, html, #root { margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; min-height: 100dvh !important; max-width: none !important; background: ${isMobilePlayerOpen ? (isDarkMode ? "#070A11" : "#F4EFE6") : COLORS.bgBase} !important; overflow: hidden !important; box-sizing: border-box; text-align: left !important; -webkit-user-select: none; -moz-user-select: none; user-select: none; -webkit-touch-callout: none; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         input, textarea { -webkit-user-select: auto; -moz-user-select: auto; user-select: auto; outline: none; }
         
@@ -5869,7 +5874,7 @@ export default function App() {
       )}
 
       {/* TOP HEADER */}
-      <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", zIndex: 10 }}>
+      <div style={{ height: isDesktop ? "64px" : "calc(64px + env(safe-area-inset-top, 0px))", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", paddingTop: isDesktop ? "0" : "env(safe-area-inset-top, 0px)", zIndex: 10 }}>
         <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px" }}>Euphony</h1>
         <div style={{ display: "flex", gap: isDesktop ? "12px" : "8px", alignItems: "center" }}>
           <button className="hover-effect" onClick={() => fetchAllData(true)} disabled={isRefreshing} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", opacity: isRefreshing ? 0.7 : 1 }}>
@@ -5935,7 +5940,7 @@ export default function App() {
         )}
 
         {/* CENTER CONTENT */}
-        <div style={{ flex: 1, minWidth: 0, background: COLORS.bgPanel, borderRadius: isDesktop ? "12px" : "0", padding: isDesktop ? "32px" : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "100px" : "32px", border: isDesktop ? `1px solid ${COLORS.border}` : "none" }} className="custom-scrollbar main-scroll-container">
+        <div style={{ flex: 1, minWidth: 0, background: COLORS.bgPanel, borderRadius: isDesktop ? "12px" : "0", padding: isDesktop ? "32px" : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "calc(100px + env(safe-area-inset-bottom, 0px))" : (!isDesktop ? "calc(32px + env(safe-area-inset-bottom, 0px))" : "32px"), border: isDesktop ? `1px solid ${COLORS.border}` : "none" }} className="custom-scrollbar main-scroll-container">
 
           {/* MOBILE PLAYLIST TABS */}
           {!isDesktop && !selectedArtist && (
@@ -6588,7 +6593,7 @@ export default function App() {
 
       {/* MINIMIZED MOBILE BAR */}
       {!isDesktop && currentTrack && !isMobilePlayerOpen && (
-        <div onClick={() => setIsMobilePlayerOpen(true)} className="slide-up-enter" style={{ position: "fixed", bottom: "16px", left: "12px", right: "12px", background: COLORS.bgPanel, borderRadius: "12px", display: "flex", flexDirection: "column", boxShadow: "0 8px 24px rgba(26,43,76,0.15)", zIndex: 2000, border: `1px solid ${COLORS.border}`, cursor: "pointer", overflow: "hidden" }}>
+        <div onClick={() => setIsMobilePlayerOpen(true)} className="slide-up-enter" style={{ position: "fixed", bottom: "calc(16px + env(safe-area-inset-bottom, 0px))", left: "max(12px, env(safe-area-inset-left, 12px))", right: "max(12px, env(safe-area-inset-right, 12px))", background: COLORS.bgPanel, borderRadius: "12px", display: "flex", flexDirection: "column", boxShadow: "0 8px 24px rgba(26,43,76,0.15)", zIndex: 2000, border: `1px solid ${COLORS.border}`, cursor: "pointer", overflow: "hidden" }}>
           <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px", overflow: "hidden", flex: 1, minWidth: 0 }}>
               <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -6618,6 +6623,9 @@ export default function App() {
         <div className={mobilePlayerClosing ? "slide-down-exit" : "slide-up-enter"} style={{ 
           position: "fixed", 
           inset: 0, 
+          width: "100%",
+          height: "100%",
+          minHeight: "100dvh",
           zIndex: 4000, 
           backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
           display: "flex", 
@@ -6629,6 +6637,8 @@ export default function App() {
             style={{
               position: "absolute",
               inset: 0,
+              width: "100%",
+              height: "100%",
               backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
               zIndex: 0
             }}
@@ -6657,13 +6667,27 @@ export default function App() {
             style={{
               position: "absolute",
               inset: 0,
+              width: "100%",
+              height: "100%",
               background: songTheme.mobilePlayerBg,
               zIndex: 0,
               pointerEvents: "none"
             }}
           />
-          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
+          <div style={{
+            position: "relative",
+            zIndex: 1,
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            minHeight: "100dvh",
+            paddingTop: "max(12px, env(safe-area-inset-top, 12px))",
+            paddingBottom: "max(24px, calc(16px + env(safe-area-inset-bottom, 0px)))",
+            paddingLeft: "max(24px, env(safe-area-inset-left, 24px))",
+            paddingRight: "max(24px, env(safe-area-inset-right, 24px))",
+            boxSizing: "border-box"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", paddingTop: "4px" }}>
               <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><ChevronDown size={32} /></button>
               <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
                 {showMixer ? "AI Mixer" : showQueue ? "Current Queue" : showLyrics ? "Lyrics" : "Now Playing"}
@@ -6671,7 +6695,7 @@ export default function App() {
               <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); }} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><MoreVertical size={32} /></button>
             </div>
 
-            <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
+            <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "24px", width: "100%" }}>
               <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(26,43,76,0.05)" : "rgba(26,43,76,0.04)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: (showLyrics || showQueue || showMixer) ? "none" : (isDarkMode ? "0 20px 40px rgba(0,0,0,0.5)" : "0 20px 40px rgba(26,43,76,0.18)"), transition: "box-shadow 0.3s ease" }}>
                 <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                   {showMixer ? renderMixerBlock(true) : showQueue ? renderQueueBlock(true) : showLyrics ? renderLyricsBlock(true) : (currentTrack?.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={100} color={COLORS.textMuted} /></div>)}
@@ -6679,7 +6703,7 @@ export default function App() {
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack?.title}</h2>
                 <p style={{ margin: 0, color: "rgba(255,255,255,0.85)", fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack?.artist}</p>
@@ -6691,7 +6715,7 @@ export default function App() {
               </div>
             </div>
 
-            <div style={{ marginBottom: "24px" }}>
+            <div style={{ marginBottom: "20px" }}>
               <input type="range" min={0} max={duration || 100} defaultValue={0} ref={mobileProgressRef} onChange={handleSeek} className="glow-slider" style={{ width: "100%", marginBottom: "8px", borderRadius: "6px" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
@@ -6699,7 +6723,7 @@ export default function App() {
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
                 <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
