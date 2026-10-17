@@ -1111,13 +1111,24 @@ export default function App() {
         let currentLyrics = targetSong.lyrics || "";
         let cleanLyrics = currentLyrics.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, "").trim();
         let newLyrics = moodId ? (cleanLyrics ? `[mood: ${moodId}]\n${cleanLyrics}` : `[mood: ${moodId}]`) : (cleanLyrics || null);
+
+        // Optimistically update all song references immediately for 0ms UI latency
+        setPlaylist(prev => prev.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s));
+        setPlaylistSongs(prev => prev.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s));
+        setPlaybackQueue(prev => prev.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s));
+        setTrackForOptions(prev => prev && prev.id === songId ? { ...prev, lyrics: newLyrics } : prev);
+        setQueueCurrentTrack(prev => prev && prev.id === songId ? { ...prev, lyrics: newLyrics } : prev);
+
         supabase.from('songs').update({ lyrics: newLyrics }).eq('id', songId).then(({ error }) => {
-          if (!error) {
-            setPlaylist(prev => prev.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s));
+          if (error) {
+            console.error("Failed to update song mood in database:", error);
+            triggerToast("Error updating category in database");
           }
         });
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Exception in handleSetSongMood:", e);
+    }
   }, [isOwner, triggerToast, playlist, session?.user?.id]);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
@@ -3396,10 +3407,10 @@ export default function App() {
       let lyricsToStore = uploadLyrics ? uploadLyrics.trim() : null;
       if (lyricsToStore && !isOwner) {
         // Strip any spoofed [mood: ...] tags entered by non-owners
-        lyricsToStore = lyricsToStore.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, "").trim() || null;
+        lyricsToStore = lyricsToStore.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, "").trim() || null;
       }
       if (effectiveMood) {
-        const cleanLyrics = lyricsToStore ? lyricsToStore.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, "").trim() : "";
+        const cleanLyrics = lyricsToStore ? lyricsToStore.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, "").trim() : "";
         lyricsToStore = cleanLyrics 
           ? `[mood: ${effectiveMood}]\n${cleanLyrics}` 
           : `[mood: ${effectiveMood}]`;
@@ -4217,7 +4228,7 @@ export default function App() {
           </div>
         ) : (
           <div style={{ color: inactiveColor, textShadow: inactiveShadow, opacity: 0.8, fontSize: "15px", fontWeight: "600", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {trackLyrics ? (trackLyrics.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, '').trim() || "No synchronized lyrics available.") : "No synchronized lyrics available."}
+            {trackLyrics ? (trackLyrics.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, '').trim() || "No synchronized lyrics available.") : "No synchronized lyrics available."}
           </div>
         )}
       </div>
@@ -5391,7 +5402,7 @@ export default function App() {
       {renderTrackOptions && (trackForOptions || currentTrack) && (() => {
         const targetTrackForOptions = trackForOptions || currentTrack;
         const currentAssignedMoods = getSongMoods(targetTrackForOptions, customMoodOverrides);
-        const hasManualOverride = !!customMoodOverrides[targetTrackForOptions.id];
+        const hasManualOverride = !!customMoodOverrides[targetTrackForOptions.id] || (targetTrackForOptions.lyrics && /\[mood:\s*[a-zA-Z\s]+\]/i.test(targetTrackForOptions.lyrics));
         return (
           <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); setTrackForOptions(null); }}>
             <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "28px 24px", borderRadius: "20px", width: "100%", maxWidth: "350px", position: "relative", maxHeight: "85vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
@@ -7303,7 +7314,7 @@ export default function App() {
                     })
                   ) : (
                     <div style={{ color: isDarkMode ? "rgba(255,255,255,0.6)" : "#64748B", fontSize: "20px", fontWeight: "600", lineHeight: "1.8", whiteSpace: "pre-line", padding: "60px 0" }}>
-                      {((currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics)?.replace(/\[mood:\s*[a-zA-Z]+\]\n?/gi, '').trim()) || "No synchronized lyrics available for this song."}
+                      {((currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics)?.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, '').trim()) || "No synchronized lyrics available for this song."}
                     </div>
                   )}
                 </div>

@@ -132,19 +132,32 @@ export function getMoodEmoji(moodId) {
   return match ? match.emoji : '🎵';
 }
 
-// Global owner-curated mood overrides baked into the application
-export const CURATED_MOOD_OVERRIDES = {
-  "0591dd49-6c49-40ee-8ec6-996c430b9691": "Classical", // Shubhaarambh (Kai Po Che)
-};
+// Global owner-curated mood overrides baked into the application (fallback only)
+export const CURATED_MOOD_OVERRIDES = {};
 
 /**
  * Returns an array of moods (e.g. ['Romantic', 'Chill', 'Classical']) for a given song.
- * Prioritizes user custom override, then curated owner override, then database mood tag, then falls back to keyword analysis.
+ * Prioritizes canonical database lyrics tag set by owner, then explicit song.mood, then user optimistic override, then falls back to keyword analysis.
  */
 export function getSongMoods(song, customOverrides = null) {
   if (!song) return ['Chill'];
 
-  // 1. User manual override (highest priority)
+  // 1. Explicit mood tag embedded in lyrics (authoritative source of truth set by owner in database - shared with all users)
+  if (song.lyrics && typeof song.lyrics === 'string') {
+    const match = song.lyrics.match(/\[mood:\s*([a-zA-Z\s]+)\]/i);
+    if (match && match[1]) {
+      const found = AVAILABLE_MOODS.find(m => m.id.toLowerCase() === match[1].trim().toLowerCase());
+      if (found) return [found.id];
+    }
+  }
+
+  // 2. Explicit mood stored on track (from database or local object)
+  if (song.mood && typeof song.mood === 'string' && song.mood.trim()) {
+    const raw = song.mood.split(',').map(m => m.trim()).filter(Boolean);
+    if (raw.length > 0) return raw;
+  }
+
+  // 3. User manual override / optimistic UI override
   if (customOverrides && customOverrides[song.id]) {
     return [customOverrides[song.id]];
   }
@@ -157,24 +170,9 @@ export function getSongMoods(song, customOverrides = null) {
     } catch (e) {}
   }
 
-  // 2. Curated owner overrides (guarantees correct classification across all users)
+  // 4. Curated owner overrides (fallback for legacy mappings)
   if (CURATED_MOOD_OVERRIDES[song.id]) {
     return [CURATED_MOOD_OVERRIDES[song.id]];
-  }
-
-  // 3. Explicit mood stored on track (from database or local object)
-  if (song.mood && typeof song.mood === 'string' && song.mood.trim()) {
-    const raw = song.mood.split(',').map(m => m.trim()).filter(Boolean);
-    if (raw.length > 0) return raw;
-  }
-
-  // 4. Explicit mood tag embedded in lyrics (e.g. [mood: Romantic] or [mood: Desi Pop])
-  if (song.lyrics && typeof song.lyrics === 'string') {
-    const match = song.lyrics.match(/\[mood:\s*([a-zA-Z\s]+)\]/i);
-    if (match && match[1]) {
-      const found = AVAILABLE_MOODS.find(m => m.id.toLowerCase() === match[1].trim().toLowerCase());
-      if (found) return [found.id];
-    }
   }
 
   // 5. Intelligent lyrics & metadata scoring
