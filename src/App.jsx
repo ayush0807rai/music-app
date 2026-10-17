@@ -629,15 +629,31 @@ export default function App() {
     } catch (e) { return []; }
   });
 
-  // Top artists strictly include only artists with curated art covers (do not show artists stored only for suggestions)
+  // Top artists strictly include only artists with curated art covers (deduplicated by name)
   const topArtists = useMemo(() => {
-    return (dbArtists || []).filter(a => a?.image_url && typeof a.image_url === "string" && a.image_url.trim() !== "");
+    const seen = new Set();
+    const result = [];
+    (dbArtists || []).forEach(a => {
+      if (a?.image_url && typeof a.image_url === "string" && a.image_url.trim() !== "") {
+        const cleanName = (a.name || "").trim().toLowerCase();
+        if (cleanName && !seen.has(cleanName)) {
+          seen.add(cleanName);
+          result.push(a);
+        }
+      }
+    });
+    return result;
   }, [dbArtists]);
 
   const [displayedTopArtists, setDisplayedTopArtists] = useState([]);
   const [isShufflingArtists, setIsShufflingArtists] = useState(false);
   const topArtistsScrollRef = useRef(null);
   const moodsScrollRef = useRef(null);
+
+  // Deck of unshown artists for the current exhaustive shuffle cycle
+  const artistCycleDeckRef = useRef([]);
+  // Track the names of the immediately preceding batch to avoid boundary overlap across consecutive cycles
+  const lastArtistBatchNamesRef = useRef(new Set());
 
   // Desktop-only ultra-smooth horizontal mouse wheel scroll handler for Top Artists and Moods categories
   const attachHorizontalWheel = useCallback((node) => {
@@ -770,17 +786,84 @@ export default function App() {
     }
   }, [isDesktop, attachHorizontalWheel]);
 
-  // Initialize displayed top artists with 10 random artists from the curated pool
+  // Helper to perform an immutable Fisher-Yates shuffle
+  const shuffleArtistsList = useCallback((list) => {
+    const copy = [...list];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }, []);
+
+  // Creates a freshly shuffled cycle of all top artists, arranging it so
+  // that artists from the immediately preceding batch appear after non-preceding ones
+  const createFreshCycle = useCallback((allArtists, avoidNames = new Set()) => {
+    if (allArtists.length <= 10 || !avoidNames || avoidNames.size === 0) {
+      return shuffleArtistsList(allArtists);
+    }
+    const nonPreceding = allArtists.filter(a => !avoidNames.has(a.name.toLowerCase()));
+    const preceding = allArtists.filter(a => avoidNames.has(a.name.toLowerCase()));
+    return [...shuffleArtistsList(nonPreceding), ...shuffleArtistsList(preceding)];
+  }, [shuffleArtistsList]);
+
+  // Exhaustive batch drawer: draws 10 unique artists per shuffle without repetition until
+  // all artists in the database with poster are exhausted, then seamlessly starts a new randomized cycle
+  const drawNextArtistBlock = useCallback((currentDisplayed = []) => {
+    if (topArtists.length === 0) return [];
+    if (topArtists.length <= 10) {
+      return shuffleArtistsList(topArtists);
+    }
+
+    const validNames = new Set(topArtists.map(a => a.name.toLowerCase()));
+    // Keep only valid artists currently in topArtists
+    let deck = artistCycleDeckRef.current.filter(a => validNames.has(a.name.toLowerCase()));
+
+    // Synchronize: if new artists were added to topArtists that aren't in deck or currently displayed, incorporate them
+    const deckNames = new Set(deck.map(a => a.name.toLowerCase()));
+    const displayedNames = new Set(currentDisplayed.map(a => a.name.toLowerCase()));
+    const missing = topArtists.filter(a => !deckNames.has(a.name.toLowerCase()) && !displayedNames.has(a.name.toLowerCase()));
+    if (missing.length > 0) {
+      deck = [...deck, ...shuffleArtistsList(missing)];
+    }
+
+    // If deck has run out, start a brand-new cycle
+    if (deck.length === 0) {
+      deck = createFreshCycle(topArtists, displayedNames.size > 0 ? displayedNames : lastArtistBatchNamesRef.current);
+    }
+
+    let batch = [];
+    if (deck.length >= 10) {
+      batch = deck.slice(0, 10);
+      artistCycleDeckRef.current = deck.slice(10);
+    } else {
+      // Fewer than 10 artists left in current cycle: take all remaining to complete this cycle
+      const remainder = [...deck];
+      const remainderNames = new Set(remainder.map(a => a.name.toLowerCase()));
+      // Start the next cycle
+      const newCycle = createFreshCycle(topArtists, remainderNames);
+      // Fill the remainder of the 10-artist block from the new cycle avoiding any duplicate in this batch
+      const fillCandidates = newCycle.filter(a => !remainderNames.has(a.name.toLowerCase()));
+      const needed = 10 - remainder.length;
+      const fill = fillCandidates.slice(0, needed);
+      batch = [...remainder, ...fill];
+
+      // Remove the items chosen for fill from the new cycle deck
+      const fillNames = new Set(fill.map(a => a.name.toLowerCase()));
+      artistCycleDeckRef.current = newCycle.filter(a => !fillNames.has(a.name.toLowerCase()));
+    }
+
+    lastArtistBatchNamesRef.current = new Set(batch.map(a => a.name.toLowerCase()));
+    return batch;
+  }, [topArtists, shuffleArtistsList, createFreshCycle]);
+
+  // Initialize displayed top artists with first block of 10 from the curated pool
   useEffect(() => {
     if (topArtists.length > 0 && displayedTopArtists.length === 0) {
-      const shuffled = [...topArtists];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      setDisplayedTopArtists(shuffled.slice(0, 10));
+      const initialBatch = drawNextArtistBlock([]);
+      setDisplayedTopArtists(initialBatch);
     }
-  }, [topArtists]);
+  }, [topArtists, displayedTopArtists.length, drawNextArtistBlock]);
 
   const visibleTopArtists = useMemo(() => {
     if (displayedTopArtists.length > 0) {
@@ -795,31 +878,12 @@ export default function App() {
     setIsShufflingArtists(true);
     setTimeout(() => setIsShufflingArtists(false), 400);
 
-    const currentNames = new Set(visibleTopArtists.map(a => a.name.toLowerCase()));
-    const unshown = topArtists.filter(a => !currentNames.has(a.name.toLowerCase()));
-
-    let nextSelection = [];
-    if (unshown.length >= 10) {
-      const shuffledUnshown = [...unshown];
-      for (let i = shuffledUnshown.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledUnshown[i], shuffledUnshown[j]] = [shuffledUnshown[j], shuffledUnshown[i]];
-      }
-      nextSelection = shuffledUnshown.slice(0, 10);
-    } else {
-      const shuffled = [...topArtists];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      nextSelection = shuffled.slice(0, 10);
-    }
-
+    const nextSelection = drawNextArtistBlock(visibleTopArtists);
     setDisplayedTopArtists(nextSelection);
     if (topArtistsScrollRef.current) {
       topArtistsScrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
     }
-  }, [topArtists, visibleTopArtists]);
+  }, [topArtists, visibleTopArtists, drawNextArtistBlock]);
   const [userPlaylists, setUserPlaylists] = useState(() => {
     try {
       const saved = localStorage.getItem("euphony_cached_playlists");
