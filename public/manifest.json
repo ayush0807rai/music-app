@@ -3,9 +3,8 @@
   "short_name": "Euphony",
   "start_url": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui", "browser"],
-  "background_color": "#070A11",
-  "theme_color": "#070A11",
+  "background_color": "#121A2F",
+  "theme_color": "#121A2F",
   "categories": ["music", "entertainment"],
   "icons": [
     {

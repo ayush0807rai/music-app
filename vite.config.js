@@ -12,10 +12,9 @@ export default defineConfig({
         name: 'Euphony Music',
         short_name: 'Euphony',
         description: 'Your personal AI-powered music player',
-        theme_color: '#070A11',
-        background_color: '#070A11',
+        theme_color: '#121A2F',
+        background_color: '#121A2F',
         display: 'standalone',
-        display_override: ['standalone', 'minimal-ui', 'browser'],
         categories: ['music', 'entertainment'],
         icons: [
           {
