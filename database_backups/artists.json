@@ -592,5 +592,155 @@
     "name": "Priya Saraiya",
     "image_url": null,
     "created_at": "2026-10-14T17:19:32.136913+00:00"
+  },
+  {
+    "id": "a52ff182-cdac-4d13-ac1c-464b4b981c45",
+    "name": "The Bilz & Kashif",
+    "image_url": null,
+    "created_at": "2026-10-16T09:58:03.76968+00:00"
+  },
+  {
+    "id": "33fda92f-6f9f-4f4e-b969-7171a08d84ee",
+    "name": "Matthew Ifield",
+    "image_url": null,
+    "created_at": "2026-10-16T10:09:12.086614+00:00"
+  },
+  {
+    "id": "029ee64a-4caa-4684-a168-c4444cff3fad",
+    "name": "Elliot James Reay",
+    "image_url": null,
+    "created_at": "2026-10-16T10:09:29.836496+00:00"
+  },
+  {
+    "id": "ad3d81ed-520e-43a3-8a72-45dbefbf80df",
+    "name": "Sean Kingston",
+    "image_url": null,
+    "created_at": "2026-10-16T10:14:28.1282+00:00"
+  },
+  {
+    "id": "5c6ba046-d418-4dd8-b422-2a36c6e7f15c",
+    "name": "Marshmello",
+    "image_url": null,
+    "created_at": "2026-10-16T10:21:01.113771+00:00"
+  },
+  {
+    "id": "dc313f1f-3cd5-4006-a4ce-89612d8501f6",
+    "name": "Anne-Marie",
+    "image_url": null,
+    "created_at": "2026-10-16T10:24:21.068948+00:00"
+  },
+  {
+    "id": "ff7d4bf4-64da-4b69-b978-6ca776a9b530",
+    "name": "Camila Cabello",
+    "image_url": null,
+    "created_at": "2026-10-16T10:26:40.859348+00:00"
+  },
+  {
+    "id": "5a1de1db-9cf0-4576-83e9-c6437d3163d8",
+    "name": "Social House",
+    "image_url": null,
+    "created_at": "2026-10-16T10:33:08.433857+00:00"
+  },
+  {
+    "id": "32772f21-5a15-4607-94e6-6bc677b08136",
+    "name": "The Kid LAROI",
+    "image_url": null,
+    "created_at": "2026-10-16T10:37:34.977134+00:00"
+  },
+  {
+    "id": "b5ac9f2f-dbd6-4ba6-860a-63d907443501",
+    "name": "Luis Fonsi",
+    "image_url": null,
+    "created_at": "2026-10-16T10:40:54.405367+00:00"
+  },
+  {
+    "id": "ccc22d31-9beb-477f-988c-5ea3061cb6a8",
+    "name": "Daddy Yankee",
+    "image_url": null,
+    "created_at": "2026-10-16T10:41:06.853693+00:00"
+  },
+  {
+    "id": "54c59662-f7db-42c6-8335-c9b5d92e603a",
+    "name": "Alan Walker",
+    "image_url": null,
+    "created_at": "2026-10-16T10:51:36.016088+00:00"
+  },
+  {
+    "id": "ccd2268b-d80b-402f-8f6b-b406aea2e8a5",
+    "name": "Sabrina Carpenter",
+    "image_url": null,
+    "created_at": "2026-10-16T10:51:47.186164+00:00"
+  },
+  {
+    "id": "22166d59-376e-42af-854e-8cf858989465",
+    "name": "Farruko",
+    "image_url": null,
+    "created_at": "2026-10-16T10:51:57.739438+00:00"
+  },
+  {
+    "id": "ba2142d3-2514-4e5d-a3f9-c3cfff161634",
+    "name": "Powfu",
+    "image_url": null,
+    "created_at": "2026-10-17T14:06:49.874892+00:00"
+  },
+  {
+    "id": "66c27438-a931-4b91-be57-d5e737dadb19",
+    "name": "beabadoobee",
+    "image_url": null,
+    "created_at": "2026-10-17T14:07:06.530251+00:00"
+  },
+  {
+    "id": "8ee378c4-65d5-4023-b0ad-2e1962c2985f",
+    "name": "Maroon 5",
+    "image_url": null,
+    "created_at": "2026-10-17T14:15:39.303421+00:00"
+  },
+  {
+    "id": "781a2cd1-7fb0-462d-93bc-3eae8cce6732",
+    "name": "Dua Lipa",
+    "image_url": null,
+    "created_at": "2026-10-17T14:20:13.675987+00:00"
+  },
+  {
+    "id": "822a8da8-d0f8-4341-b1d9-616a6ec39816",
+    "name": "Carly Rae Jepsen",
+    "image_url": null,
+    "created_at": "2026-10-17T14:32:39.435301+00:00"
+  },
+  {
+    "id": "fd933f23-fc77-4365-b604-4143a8caee76",
+    "name": "Jawsh 685",
+    "image_url": null,
+    "created_at": "2026-10-17T14:39:01.108553+00:00"
+  },
+  {
+    "id": "81c59108-c934-4a21-978c-cde8d9662993",
+    "name": "Jason Derulo",
+    "image_url": null,
+    "created_at": "2026-10-17T14:39:15.793669+00:00"
+  },
+  {
+    "id": "f031afec-9477-43c4-9349-6f93ecc535a9",
+    "name": "BTS",
+    "image_url": null,
+    "created_at": "2026-10-17T14:39:24.544321+00:00"
+  },
+  {
+    "id": "9998503c-95a5-4fb2-bdd6-ec1c654bd8d1",
+    "name": "Sheryl Crow",
+    "image_url": null,
+    "created_at": "2026-10-17T14:45:27.292693+00:00"
+  },
+  {
+    "id": "5dddddd6-183f-4df2-8279-d6a0531e9b49",
+    "name": "Rascal Flatts",
+    "image_url": null,
+    "created_at": "2026-10-17T14:47:22.070549+00:00"
+  },
+  {
+    "id": "20a266bd-1abf-4c0c-a945-d50fd04f9693",
+    "name": "Michael Jackson",
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1792250032/images_1.jpg",
+    "created_at": "2026-10-17T14:58:34.159704+00:00"
   }
 ]

@@ -22,10 +22,22 @@ const excludeItems = new Set(['node_modules', 'dist', '.git', 'euphony_website_c
 const itemsToInclude = fs.readdirSync(rootDir).filter(item => !excludeItems.has(item) && !item.endsWith('.zip'));
 
 console.log(`📁 Archiving ${itemsToInclude.length} files & folders...`);
-
 try {
+  // Clean up any untracked android build artifacts or copied web assets before archiving to prevent archive bloat
+  const cleanPaths = [
+    path.join(rootDir, 'android', 'app', 'build'),
+    path.join(rootDir, 'android', 'build'),
+    path.join(rootDir, 'android', '.gradle'),
+    path.join(rootDir, 'android', 'app', 'src', 'main', 'assets', 'public')
+  ];
+  cleanPaths.forEach(p => {
+    if (fs.existsSync(p)) {
+      try { fs.rmSync(p, { recursive: true, force: true }); } catch (e) {}
+    }
+  });
+
   const formattedItems = itemsToInclude.map(item => `'${item}'`).join(', ');
-  const psCmd = `powershell -Command "Compress-Archive -Path ${formattedItems} -DestinationPath 'euphony_website_complete_backup.zip' -Force"`;
+  const psCmd = `powershell -NoProfile -Command "$ProgressPreference = 'SilentlyContinue'; Compress-Archive -Path ${formattedItems} -DestinationPath 'euphony_website_complete_backup.zip' -Force"`;
   execSync(psCmd, { stdio: 'inherit', cwd: rootDir });
 
   if (fs.existsSync(OUTPUT_ZIP)) {

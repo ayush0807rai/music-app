@@ -1,7 +1,7 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-15T18:22:56.858Z
--- Total: 140 songs, 99 artists, 30 playlists, 63 playlist_songs
+-- Generated: 2026-10-17T16:01:59.642Z
+-- Total: 163 songs, 124 artists, 30 playlists, 63 playlist_songs
 -- ====================================================
 
 -- 1. Schema Definitions
@@ -49,7 +49,7 @@ ALTER TABLE public.artists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlist_songs DISABLE ROW LEVEL SECURITY;
 
--- 2. Restore Artists (99 rows)
+-- 2. Restore Artists (124 rows)
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b2b72353-374f-4aab-864d-d0fcce615d56', 'Darshan Raval', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610309/darshan.jpg', '2026-09-24T08:48:14.272076+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('68c3f5d9-7ae8-4c6c-ac6b-754ea8f572b6', 'Sonu Nigam', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610542/sonu.webp', '2026-09-24T08:50:09.640436+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('69327c50-1d5e-4a38-a24d-576fb4463f96', 'Neeti Mohan', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791609585/q3wjlfr21srcuzddmfo9.jpg', '2026-09-24T09:03:20.194298+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
@@ -149,8 +149,33 @@ INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('5e72a411-6
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('06ddaec5-f86f-4be1-bc13-8b3d9c7b8b69', 'Arafat Mehmood', NULL, '2026-10-14T15:33:03.395917+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('9bb3d7a5-d2a0-4135-8210-c7012f3e3834', 'Sachin-Jigar', NULL, '2026-10-14T17:19:32.077595+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('a9cb74bb-49fa-4120-b983-316ea511c76b', 'Priya Saraiya', NULL, '2026-10-14T17:19:32.136913+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('a52ff182-cdac-4d13-ac1c-464b4b981c45', 'The Bilz & Kashif', NULL, '2026-10-16T09:58:03.76968+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('33fda92f-6f9f-4f4e-b969-7171a08d84ee', 'Matthew Ifield', NULL, '2026-10-16T10:09:12.086614+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('029ee64a-4caa-4684-a168-c4444cff3fad', 'Elliot James Reay', NULL, '2026-10-16T10:09:29.836496+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ad3d81ed-520e-43a3-8a72-45dbefbf80df', 'Sean Kingston', NULL, '2026-10-16T10:14:28.1282+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('5c6ba046-d418-4dd8-b422-2a36c6e7f15c', 'Marshmello', NULL, '2026-10-16T10:21:01.113771+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('dc313f1f-3cd5-4006-a4ce-89612d8501f6', 'Anne-Marie', NULL, '2026-10-16T10:24:21.068948+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ff7d4bf4-64da-4b69-b978-6ca776a9b530', 'Camila Cabello', NULL, '2026-10-16T10:26:40.859348+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('5a1de1db-9cf0-4576-83e9-c6437d3163d8', 'Social House', NULL, '2026-10-16T10:33:08.433857+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('32772f21-5a15-4607-94e6-6bc677b08136', 'The Kid LAROI', NULL, '2026-10-16T10:37:34.977134+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b5ac9f2f-dbd6-4ba6-860a-63d907443501', 'Luis Fonsi', NULL, '2026-10-16T10:40:54.405367+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ccc22d31-9beb-477f-988c-5ea3061cb6a8', 'Daddy Yankee', NULL, '2026-10-16T10:41:06.853693+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('54c59662-f7db-42c6-8335-c9b5d92e603a', 'Alan Walker', NULL, '2026-10-16T10:51:36.016088+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ccd2268b-d80b-402f-8f6b-b406aea2e8a5', 'Sabrina Carpenter', NULL, '2026-10-16T10:51:47.186164+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('22166d59-376e-42af-854e-8cf858989465', 'Farruko', NULL, '2026-10-16T10:51:57.739438+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ba2142d3-2514-4e5d-a3f9-c3cfff161634', 'Powfu', NULL, '2026-10-17T14:06:49.874892+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('66c27438-a931-4b91-be57-d5e737dadb19', 'beabadoobee', NULL, '2026-10-17T14:07:06.530251+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('8ee378c4-65d5-4023-b0ad-2e1962c2985f', 'Maroon 5', NULL, '2026-10-17T14:15:39.303421+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('781a2cd1-7fb0-462d-93bc-3eae8cce6732', 'Dua Lipa', NULL, '2026-10-17T14:20:13.675987+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('822a8da8-d0f8-4341-b1d9-616a6ec39816', 'Carly Rae Jepsen', NULL, '2026-10-17T14:32:39.435301+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('fd933f23-fc77-4365-b604-4143a8caee76', 'Jawsh 685', NULL, '2026-10-17T14:39:01.108553+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('81c59108-c934-4a21-978c-cde8d9662993', 'Jason Derulo', NULL, '2026-10-17T14:39:15.793669+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('f031afec-9477-43c4-9349-6f93ecc535a9', 'BTS', NULL, '2026-10-17T14:39:24.544321+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('9998503c-95a5-4fb2-bdd6-ec1c654bd8d1', 'Sheryl Crow', NULL, '2026-10-17T14:45:27.292693+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('5dddddd6-183f-4df2-8279-d6a0531e9b49', 'Rascal Flatts', NULL, '2026-10-17T14:47:22.070549+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('20a266bd-1abf-4c0c-a945-d50fd04f9693', 'Michael Jackson', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1792250032/images_1.jpg', '2026-10-17T14:58:34.159704+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 
--- 3. Restore Songs (140 rows)
+-- 3. Restore Songs (163 rows)
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
   '49b5b3e7-060a-4367-b2f9-83e4b7b2e096',
   'Asal Mein',
@@ -463,30 +488,55 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Tera Asar',
   'Gemini, Ayush Rai, Devdutta',
   NULL,
-  '[mood: Desi Pop]
-[00:45.33]Yeah, it''s that feeling
-[00:47.33]the way you move
-[00:49.37]Everything''s shifting, finding our groove
-[00:52.80]No logic, no reason
-[00:54.57]just a chemical high
-[00:56.83]We''re reaching the stars
-[00:58.57]looking up at the sky
-[01:09.57]It''s that like Don''t you leave me lonely
-[01:13.77]''Cause you''re my one and only
-[01:16.33]My one and only
-[01:18.87]Oh baby, my one and only
-[01:52.53]Swipe left, swipe right
-[01:54.83]but you''re my best match
-[01:58.57]that''s a permanent patch
-[02:09.60]It''s that like Don''t you leave me lonely
-[02:13.83]''Cause you''re my one and only
-[02:16.33]My one and only
-[02:20.33]My one and only
-[02:22.83]Oh baby, my one and only
-[02:46.07]It''s a rhythm shift, a tectonic slip
-[02:48.03]Honey on the tongue, sugar on the lip
-[02:52.90]It''s magic
-[02:55.53]Stay with me',
+  '[00:00.00]
+[00:10.50] Ha...
+[00:11.90]
+[00:18.90] Ha...
+[00:20.57]Khamosh thi galiyan, par ab shor macha hai
+[00:24.49]Ek pal mein hi dekho sara manzar badla hai
+[00:28.47]Aankhen mili hai to dil mein ek halchal hui
+[00:32.41]Tu samne mere jaise koi nayi subah khuli
+[00:36.43]Isme koi tark nahi, bas ek kashish hai
+[00:40.40]Tu meri chaahat aur tu hi meri guzarish hai
+[00:45.02]Yeah, it''s that feeling, the way you move
+[00:49.02]Everything shifting, finding our groove
+[00:53.05]No logic, no reason, just a chemical high
+[00:57.17]We''re reaching the stars, looking up at the sky
+[01:00.67]Tera asar
+[01:02.13]Tera asar, dil hua be-asar
+[01:06.13]Tere hi khayalon mein main karta hoon safar
+[01:09.68]It''s that light, tera asar
+[01:12.19]Don''t you leave me lonely
+[01:14.08]Cause you''re my one and only
+[01:16.48]My one and only, oh baby
+[01:20.06]My one and only
+[01:24.08]Tera asar
+[01:26.54]Tere hi paas, tu hai to badla har ek ehsaas
+[01:30.40]Main tujhse juda hoon bilkul uss mausam ki tarah
+[01:33.94]Jo bin kahe hi barasa aur badal gaya ye jahan, mm-hmm
+[01:44.33]Teri har ek baat mein ek nayi si roshni hai
+[01:48.33]Meri zindagi ki kahani mein tu hi to gawaahi hai
+[01:52.79]Swipe left, swipe right, but, you''re my best match
+[01:57.06]Dil pe jo laga hai, that''s a permanent patch
+[02:00.41]Tera asar
+[02:02.32]Tera asar, dil hua be-asar
+[02:06.27]Tere hi khayalon mein main karta hoon safar
+[02:09.79]It''s that light, tera asar
+[02:12.30]Don''t you leave me lonely
+[02:13.89]Cause you''re my one and only
+[02:16.63]My one and only
+[02:20.03]My one and only, oh-ho
+[02:24.08]My one and only
+[02:30.34]Dil ki raahon mein dhoop hai ab toh
+[02:34.42]Raat ke baaton mein tu hai ab toh
+[02:38.25]Mil gaye hain hum toh darna kya?
+[02:42.23]Saath chalenge hum badal kya?
+[02:46.03]It''s a rhythm shift, a tectonic slip
+[02:48.04]Honey on the tongue, sugar on the lip
+[02:50.01]Tera asar (Tera asar)
+[02:52.90]It''s magic, sab sahi hai ab
+[02:55.37]Stay with me
+[02:58.09]Tera asar',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791528084/vfldg6dqaxv78cs9kbfx.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791528085/vdcgoihnau0darjfhrxi.png',
   180,
@@ -7911,7 +7961,7 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
 [04:29.93] Wo oo
 [04:48.68]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791693191/ljfbgazfyffw6fhsfkyj.mp3',
-  'https://res.cloudinary.com/cpsimhz1/image/upload/v1791693192/zjqwynqveks2mjwbwsgk.jpg',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792145029/images.jpg',
   289,
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791702074/knxovbzzwpgmvom8havt.mp3',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791702037/yawwx9e3lg8ujlx7o06j.mp3',
@@ -9325,6 +9375,1657 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   FALSE,
   '2026-10-14T17:30:59.071674+00:00'
 ) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'e2c1f860-e618-4521-b4f2-46e52fb6314d',
+  ' Tere Nainon Mein',
+  'The Bilz & Kashif',
+  'The Trinity',
+  '[mood: Chill] [00:26.87] बेचैनीयों में रातें कटीं
+[00:30.17] ख्वाबों में डूबें है दिन
+[00:33.54] खामोक्षियाँ चुप हो गईं
+[00:36.77] बातें अधूरी तेरे बिन
+[00:39.67] क्यूँ मेरी बाहों से चली इन राहों में
+[00:43.28] कैसे भूलूँ यादें हसीन?
+[00:46.23] जो फिर तुझे पाऊँ मैं, तुझको बताऊँ मैं
+[00:49.83] कैसे बीतीं रातें मेरी
+[00:51.98] देखा है तेरे नैनों में, मैंने ये सारा जहाँ
+[00:58.76] खोया है तेरी राहों में, ढूँडू ये दिल मैं कहाँ
+[01:05.42] देखा है तेरे नैनों में, मैंने ये सारा जहाँ
+[01:12.07] खोया है तेरी राहों में, ढूँडू ये दिल मैं कहाँ
+[01:20.12] I''m sorry, I''m sorry
+[01:23.76] I''ll do whatever it takes and
+[01:26.90] Forgive me, forgive me
+[01:30.27] Baby no matter what''s at stake
+[01:33.23] I can act real strong
+[01:35.26] Truth is without you there''s no livin'' at all
+[01:38.56] Loneliness is eating me alive
+[01:42.01] Miss you so much it''s killin'' me inside
+[01:45.69] You don''t know what you got until it''s gone
+[01:50.03] Love is stronger than my pride
+[01:52.62] Baby I can''t stand the pain of livin'' life in vain
+[01:58.17] देखा है तेरे नैनों में, मैंने ये सारा जहाँ
+[02:04.92] खोया है तेरी राहों में, ढूँडू ये दिल मैं कहाँ
+[02:11.53] देखा है तेरे नैनों में, मैंने ये सारा जहाँ
+[02:18.34] खोया है तेरी राहों में, ढूँडू ये दिल मैं कहाँ
+[02:24.76] 
+[02:39.33] If I could turn back the hands of time
+[02:42.19] Back to when I was yours and you were mine
+[02:45.59] हो ना जाने क्यों रंगीन जहाँ
+[02:48.59] मेरी पलकों को शबनामी कर गया
+[02:52.16] गुज़रे लम्हें फिर से कहते
+[02:55.27] अक्षकों से है पल छिन बैहते
+[02:58.73] I can''t eat, I can''t sleep, I can''t breath without you
+[03:02.24] कैसे बीतीं रातें मेरी
+[03:05.14] तेरे नैनों में, मैंने ये सारा जहाँ
+[03:11.12] खोया है तेरी राहों में, ढूँडू ये दिल मैं कहाँ
+[03:17.87] देखा है तेरे नैनों में, मैंने ये सारा जहाँ
+[03:24.48] खोया है तेरी राहों में, ढूँडू ये दिल मैं कहाँ
+[03:29.03] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792144723/j5w9lqmb3pe8ijsy7b6y.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792144879/sddefault.jpg',
+  245,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148444/x9tzqr7spvgi1felgg1b.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148419/nkuo5rcvdadgcwj2atwa.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148426/symguvplnqbi7812hmiz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148436/y7u413ydtxgr37kvln8r.mp3',
+  FALSE,
+  '2026-10-16T09:58:45.497845+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf',
+  ' I Think They Call This Love (Cover)',
+  'Matthew Ifield, Elliot James Reay',
+  'I’ll Be Home For Christmas / I Think They Call This Love',
+  '[mood: Romantic] [00:10.22] They say that you know when you know
+[00:17.33] So let''s face it, you had me at hello
+[00:25.02] Hesitation never helps
+[00:28.41] How could this be anything, anything else, when
+[00:34.59] All I dream of is your eyes, all I long for is your touch
+[00:41.61] And, darling, something tells me it''s enough, mm
+[00:48.13] You can say that I''m a fool and I don''t know very much
+[00:55.07] But I think they call this love
+[01:02.14] 
+[01:05.06] One smile, one kiss, two lonely hearts is all that I need now, baby
+[01:13.52] You''re on my mind every night, every day
+[01:19.92] Good vibrations getting loud
+[01:23.38] How could this be anything, anything else, when
+[01:29.49] All I dream of is your eyes, all I long is for your touch
+[01:36.40] And, darling, something tells me that''s enough, mm
+[01:43.03] You can say that I''m a fool and I don''t know very much
+[01:50.06] But I think they call this love
+[01:56.76] Oh, I think they call this love
+[02:03.02] 
+[02:15.50] What could this be
+[02:17.62] Between you and me? Oh
+[02:23.08] All I dream of is your eyes, all I long for is your touch
+[02:31.28] And, darling, something tells me, tells me it''s enough
+[02:38.06] You can say that I''m a fool and I don''t know very much
+[02:44.83] But I think they call, oh, I think they call
+[02:51.73] Oh, I think they call this love
+[03:05.34] This love
+[03:08.67] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792145544/mzjaffhpdasdostggjug.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792145547/rlg4kzn9hydihwmfjonl.png',
+  196,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148565/ucmeb7jbuhfp64zmzbfn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148543/h7pdfgtzspkqxc36neeq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148549/lfxjcdhimbuvxv9pkjjz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148557/sagaowg1twmzcihxy7yf.mp3',
+  FALSE,
+  '2026-10-16T10:12:28.255781+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'e0089026-ea1d-42dd-9093-a9696de6857b',
+  ' Eenie Meenie',
+  'Sean Kingston, Justin Bieber',
+  NULL,
+  '[mood: Pop] [00:00.38] Eenie, meenie, miney, mo
+[00:02.26] Catch a bad chick by her toe
+[00:04.28] If she holla, if-if, if she holla, let her go
+[00:08.34] She''s indecisive, she can''t decide
+[00:12.38] She keeps on looking from left to right
+[00:16.32] Girl, come a bit closer, look in my eyes
+[00:20.25] Searchin'' is so wrong, I''m Mr. Right
+[00:22.76] You seem like the type to love ''em and leave ''em
+[00:27.81] And disappear right after this song
+[00:30.55] So give me the night to show you, hold you
+[00:35.65] Don''t leave me out here dancin'' alone
+[00:38.63] You can''t make up your mind, mind, mind, mind, mind
+[00:42.78] Please don''t waste my time, time, time, time, time
+[00:46.54] I''m not tryna rewind-wind-wind-wind-wind
+[00:51.09] I wish our hearts could come together as one
+[00:54.42] ''Cause shawty is a eenie-meenie-miney-mo lover
+[00:58.74] Shawty is a eenie-meenie-miney-mo lover
+[01:02.88] Shawty is a eenie-meenie-miney-mo lover
+[01:06.45] Shawty is a eenie-meenie-miney-mo lover, ooh
+[01:11.74] Let me show you what you''re missin'', paradise
+[01:15.73] With me, you''re winning, girl, you don''t have to roll the dice
+[01:19.79] Tell me what you''re really here for (here for), them other guys?
+[01:23.55] I can see right through ya
+[01:26.25] You seem like the type to love ''em and leave ''em
+[01:31.17] And disappear right after the song
+[01:33.92] So give me the night to show you, and hold you
+[01:39.01] Don''t leave me out here dancin'' alone
+[01:42.21] Can''t make up your mind, mind, mind, mind, mind
+[01:46.14] Please don''t waste my time, time, time, time, time
+[01:49.86] Not tryin'' to rewind-wind-wind-wind-wind
+[01:54.32] I wish our hearts could come together as one
+[01:57.82] ''Cause shawty is a eenie-meenie-miney-mo lover
+[02:02.13] Shawty is a eenie-meenie-miney-mo lover
+[02:06.01] Shawty is a eenie-meenie-miney-mo lover
+[02:09.87] Shawty is a eenie-meenie-miney-mo lover, oh
+[02:15.12] Eenie, meenie, miney, mo
+[02:16.93] Catch a bad chick by her toe
+[02:18.93] If she holla, if-if, if she holla, let her go (put it down, hey)
+[02:22.98] Eenie, meenie, miney, moe
+[02:24.55] Catch a bad chick by her toe
+[02:26.89] If she holla, holla-holla-, le-let her go
+[02:29.64] Shawty is a eenie-meenie-miney-mo lover
+[02:33.69] Shawty is a (yeah) eenie-meenie-miney-mo lover (yeah, yeah, yeah)
+[02:37.67] Shawty is a eenie-meenie-miney-mo lover (let''s go)
+[02:41.58] Shawty is a eenie-meenie-miney-mo lover (there we go)
+[02:45.38] You can''t make up your mind, mind, mind, mind, mind
+[02:49.50] Please don''t waste my time, time, time, time, time
+[02:53.33] I''m not tryna rewind-wind-wind-wind-wind (ooh, yeah)
+[02:57.77] I wish our hearts could come together as one
+[03:01.26] ''Cause shawty is a eenie-meenie-miney-mo lover (eenie, meenie, miney, mo)
+[03:05.36] Shawty is a eenie-meenie-miney-mo lover (oh, yeah, let''s go)
+[03:09.21] Shawty is a eenie-meenie-miney-mo lover
+[03:13.24] Shawty is a eenie-meenie-miney-mo lover, whoa
+[03:16.02] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792145692/pyliywjasgy0p1yekimk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792145692/rzgrx7xg2xnfv4oglbf6.png',
+  202,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148508/rgnrgr4xipf7fa0oiiya.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148484/jqqrbbpp2ylozjph0fii.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148492/erchugqgldhz3bj3dzt0.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148501/etncnhlp2xt58562z3fn.mp3',
+  FALSE,
+  '2026-10-16T10:14:53.323027+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '6b22c41d-1724-4bac-a2df-d9d61f442c95',
+  'Ghost',
+  'Justin Bieber',
+  'Justice',
+  '[mood: Chill] [00:13.88] Young blood thinks there''s always tomorrow
+[00:19.77] I miss your touch on nights when I''m hollow
+[00:23.85] 
+[00:26.14] I know you crossed a bridge that I can''t follow
+[00:32.06] Since the love that you left is all that I get
+[00:35.45] I want you to know that
+[00:38.14] If I can''t be close to you, I''ll settle for the ghost of you
+[00:45.30] I miss you more than life (more than life)
+[00:50.06] And if you can''t be next to me, your memory is ecstasy
+[00:57.91] I miss you more than life
+[01:00.57] I miss you more than life
+[01:03.73] Young blood thinks there''s always tomorrow
+[01:07.71] 
+[01:09.78] I need more time, but time can''t be borrowed
+[01:16.02] I''d leave it all behind if I could follow
+[01:21.94] Since the love that you left is all that I get
+[01:25.33] I want you to know that
+[01:28.01] If I can''t be close to you, I''ll settle for the ghost of you
+[01:35.46] I miss you more than life (yeah)
+[01:39.96] And if you can''t be next to me, your memory is ecstasy (whoa)
+[01:47.75] I miss you more than life
+[01:50.81] I miss you more than life
+[01:55.57] Whoa-oh-oh
+[01:58.12] Na-na-na
+[02:01.29] More than life, oh
+[02:04.83] So if I can''t get close to you, I''ll settle for the ghost of you
+[02:12.62] I miss you more than life
+[02:17.47] And if you can''t be next to me, your memory is ecstasy
+[02:25.29] I miss you more than life
+[02:28.11] I miss you more than life
+[02:29.60] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792145951/hsyufabhxhg6qwzp2jes.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792145951/waxjmgbre5nvyqs3prld.png',
+  153,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148659/fjoxcedntrwdnn0efubg.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148639/ozmrzyhhtnyqzyk0fm4x.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148645/d17etwzg8zeghleb0s0s.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148652/f5di24ayxge8geh1chpj.mp3',
+  FALSE,
+  '2026-10-16T10:19:12.386312+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '9a86ca77-4c06-41c4-9270-136103ecce10',
+  'Wolves',
+  'Marshmello, Selena Gomez',
+  NULL,
+  '[mood: Sad] [00:08.82] In your eyes there''s a heavy blue
+[00:12.66] One to love and one to lose
+[00:16.47] Sweet divine, the heavy truth
+[00:20.15] Water or wine, don''t make me choose
+[00:23.26] I wanna feel the way that we did that summer night, night
+[00:30.90] Drunk on a feeling, alone with the stars in the sky
+[00:38.17] I''ve been running through the jungle
+[00:40.13] I''ve been running with the wolves
+[00:41.80] To get to you, to get to you
+[00:45.77] I''ve been down the darkest alleys
+[00:47.85] Saw the dark side of the moon
+[00:49.42] To get to you, to get to you
+[00:53.30] I''ve looked for love in every stranger
+[00:55.45] Took too much to ease the anger
+[00:57.31] All for you, yeah, all for you
+[01:01.27] I''ve been running through the jungle
+[01:03.11] I''ve been crying with the wolves
+[01:04.86] To get to you, to get to you, oh, to get to you
+[01:11.23] 
+[01:14.98] Oh, to get to you
+[01:20.54] 
+[01:22.79] Oh, to get to you
+[01:25.47] Your fingertips trace my skin
+[01:29.20] To places I have never been
+[01:33.33] Blindly, I am following
+[01:36.91] Break down these walls and come on in
+[01:39.91] I wanna feel the way that we did that summer night, night
+[01:47.78] Drunk on a feeling, alone with the stars in the sky
+[01:54.80] I''ve been running through the jungle
+[01:56.95] I''ve been running with the wolves
+[01:58.65] To get to you, to get to you
+[02:02.55] I''ve been down the darkest alleys
+[02:04.65] Saw the dark side of the moon
+[02:06.28] To get to you, to get to you
+[02:10.12] I''ve looked for love in every stranger
+[02:12.22] Took too much to ease the anger
+[02:14.13] All for you, yeah, all for you
+[02:18.08] I''ve been running through the jungle
+[02:19.94] I''ve been crying with the wolves
+[02:21.60] To get to you, to get to you, oh, to get to you
+[02:26.22] Oh, to get to you
+[02:31.73] Oh, to get to you
+[02:37.13] 
+[02:41.08] I''ve been running through the jungle
+[02:43.07] I''ve been running with the wolves
+[02:44.75] To get to you, to get to you
+[02:48.69] I''ve been down the darkest alleys
+[02:50.73] Saw the dark side of the moon
+[02:52.27] To get to you, to get to you
+[02:56.16] I''ve looked for love in every stranger
+[02:58.25] Took too much to ease the anger
+[03:00.23] All for you, yeah, all for you
+[03:04.05] I''ve been running through the jungle
+[03:06.04] I''ve been crying with the wolves
+[03:07.70] To get to you, to get to you, oh, to get to you
+[03:12.13] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792146124/ptxjs9dskfpuebeniqx0.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792146125/mgwlx2vgbf2eslv6jotf.png',
+  198,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148755/st1ttjuxinfw7uqqbrtf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148731/hcjh0ejmajcbyftykw19.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148739/tvu93glnlec9osbgqpnl.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148747/knk4vqlbit0hamkoossr.mp3',
+  FALSE,
+  '2026-10-16T10:22:05.723161+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'e932ec12-66bb-42d3-bdba-c2e40fa27623',
+  ' FRIENDS',
+  'Marshmello, Anne-Marie',
+  NULL,
+  '[mood: Energetic] [00:01.14]Ooh-oh, ooh-woo
+[00:06.48]Ooh-oh, ooh-woo
+[00:11.12]You say you love me, I say you crazy
+[00:13.60]We''re nothing more than friends
+[00:16.08]You''re not my lover, more like a brother
+[00:18.50]I known you since we were like ten, yeah
+[00:21.16]Don''t mess it up, talking that shit
+[00:23.64]Only gonna push me away, that''s it!
+[00:25.80]When you say you love me, that make me crazy
+[00:28.64]Here we go again
+[00:30.48]Don''t go look at me with that look in your eye
+[00:35.20]You really ain''t going away without a fight
+[00:40.22]You can''t be reasoned with, I''m done being polite
+[00:45.20]I''ve told you one, two, three, four, five, six thousand times
+[00:50.04]Haven''t I made it obvious?
+[00:52.56]Haven''t I made it clear?
+[00:55.02]Want me to spell it out for you?
+[00:57.56]F-R-I-E-N-D-S
+[01:00.04]Haven''t I made it obvious? (Ooh-oh, ooh-wooh)
+[01:02.70]Haven''t I made it clear?
+[01:05.04]Want me to spell it out for you? (Ooh-oh, ooh-wooh)
+[01:07.72]F-R-I-E-N-D-S
+[01:09.90]F-R-I-E-N-D-S
+[01:11.22]Have you got no shame? You looking insane
+[01:13.68]Turning up at my door (Ah)
+[01:15.82]It''s two in the morning, the rain is pouring
+[01:18.68]Haven''t we been here before? (Ah)
+[01:21.18]Don''t mess it up, talking that shit
+[01:23.70]Only gonna push me away, that''s it! (Ah)
+[01:26.20]Have you got no shame? You looking insane
+[01:28.70]Here we go again
+[01:30.22]So don''t go look at me with that look in your eye
+[01:35.26]You really ain''t going away without a fight
+[01:40.26]You can''t be reasoned with, I''m done being polite
+[01:45.26]I''ve told you one, two, three, four, five, six thousand times
+[01:50.08]Haven''t I made it obvious? (Haven''t I made it?)
+[01:52.64]Haven''t I made it clear? (Haven''t I made it clear?)
+[01:55.08]Want me to spell it out for you?
+[01:57.60]F-R-I-E-N-D-S
+[02:00.08]Haven''t I made it obvious? (Ooh, ooh-woah)
+[02:02.58]Haven''t I made it clear? (Haven''t I?)
+[02:05.08]Want me to spell it out for you? (To spell it out for you?)
+[02:07.74]F-R-I-E-N-D-S
+[02:09.96]F-R-I-E-N-D-S
+[02:11.50]F-R-I-E-N-D-S
+[02:13.68]That''s how you f**king spell "friends"
+[02:16.36]F-R-I-E-N-D-S
+[02:18.70]Get that shit inside your head
+[02:21.50]No, no, yeah, uh, ah
+[02:26.40]F-R-I-E-N-D-S
+[02:29.18]We''re just friends
+[02:30.24]So don''t go look at me (No) with that look in your eye
+[02:35.36]You really ain''t going nowhere without a fight (A fight, nah, nah)
+[02:40.34]You can''t be reasoned with, I''m done being polite
+[02:45.28]I''ve told you one, two, three, four, five, six thousand times
+[02:50.12]Haven''t I made it obvious? (Have I not made it obvious?)
+[02:52.66]Haven''t I made it clear? (Yeah, I made it very clear)
+[02:55.30]Want me to spell it out for you? (Yo)
+[02:57.66]F-R-I-E-N-D-S (I said F-R-I-E-N-D-S)
+[03:00.18]Haven''t I made it obvious? (I made it very obvious)
+[03:02.82]Haven''t I made it clear? (I made it very clear)
+[03:05.16]Want me to spell it out for you?
+[03:07.50]F-R-I-E-N-D-S
+[03:09.98]F-R-I-E-N-D-S
+[03:12.58]Mmm, ooh, ooh, ooh
+[03:16.70]Ah, ah-oh, ah-oh',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792146283/irj6fykxnblaxsivqyjq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792146284/fx9qcls4sjyo5psr30zr.png',
+  202,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148864/f4qocgw5eqnxvr04hwlj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148842/xtggz9nuet55bxugoh2y.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148849/mnb61x5xanuqjp0afsmt.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148857/zgzmdpqdx8gastn4wehd.mp3',
+  FALSE,
+  '2026-10-16T10:24:45.226338+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a',
+  'Señorita',
+  'Shawn Mendes, Camila Cabello',
+  'Deluxe',
+  '[mood: Romantic] [00:15.34] I love it when you call me señorita
+[00:19.40] I wish I could pretend I didn''t need ya
+[00:23.41] But every touch is ooh-la-la-la
+[00:26.69] It''s true, la-la-la
+[00:28.61] Ooh, I should be runnin''
+[00:30.72] Ooh, you keep me coming for ya
+[00:33.20] Land in Miami
+[00:35.33] The air was hot from summer rain
+[00:37.25] Sweat drippin'' off me
+[00:39.30] Before I even knew her name, la-la-la
+[00:44.42] It felt like ooh-la-la-la (Yeah, no)
+[00:49.52] Sapphire moonlight
+[00:51.65] We danced for hours in the sand
+[00:53.72] Tequila Sunrise
+[00:55.86] Her body fit right in my hands, la-la-la
+[01:00.90] It felt like ooh-la-la-la, yeah
+[01:04.59] I love it when you call me señorita
+[01:08.65] I wish I could pretend I didn''t need ya
+[01:12.78] But every touch is ooh-la-la-la
+[01:15.89] It''s true, la-la-la
+[01:17.95] Ooh, I should be runnin''
+[01:19.94] Ooh, you know I love it when you call me señorita
+[01:25.04] I wish it wasn''t so damn hard to leave ya
+[01:28.94] But every touch is ooh-la-la-la
+[01:32.24] It''s true, la-la-la
+[01:34.28] Ooh, I should be runnin''
+[01:36.34] Ooh, you keep me coming for ya
+[01:38.71] Locked in the hotel
+[01:40.97] There''s just some things that never change
+[01:43.02] You say we''re just friends
+[01:45.02] But friends don''t know the way you taste, la-la-la
+[01:50.64] ''Cause you know it''s been a long time coming
+[01:52.26] Don''t ya let me fall, oh
+[01:55.17] Ooh, when your lips undress me
+[01:57.19] Hooked on your tongue
+[01:59.28] Ooh, love, your kiss is deadly, don''t stop
+[02:02.02] I love it when you call me señorita
+[02:06.12] I wish I could pretend I didn''t need ya
+[02:10.19] But every touch is ooh-la-la-la
+[02:13.28] It''s true, la-la-la
+[02:15.31] Ooh, I should be runnin''
+[02:17.40] Ooh, you know I love it when you call me señorita
+[02:22.56] I wish it wasn''t so damn hard to leave ya
+[02:26.43] But every touch is ooh-la-la-la
+[02:29.67] It''s true, la-la-la
+[02:31.72] Ooh, I should be runnin''
+[02:33.75] Ooh, you keep me coming for ya
+[02:37.45] All along I''ve been coming for ya (For you)
+[02:40.78] And I hope it meant something to you (Ooh)
+[02:45.77] Call my name, I''ll be coming for ya (Coming for you)
+[02:48.76] Coming for ya (Coming for you)
+[02:50.17] For ya
+[02:53.63] 
+[02:55.66] For ya (Oh, she loves it when I call)
+[02:59.82] For ya
+[03:04.51] Ooh, I should be runnin''
+[03:06.65] Ooh, you keep me coming for ya
+[03:08.66] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792146639/lxyqhwe7mbiv9uomj89k.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792146640/gvqnwotps7fgvdynwc9f.png',
+  191,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148917/xnzqiixt4pfycyegxzdw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148895/klk6lqxcocnlji7gub3y.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148902/pqwclmrgiiqc2zrv1gij.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148910/elkqzanl4nj8iwffvcco.mp3',
+  FALSE,
+  '2026-10-16T10:30:41.394173+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1',
+  'boyfriend',
+  'Ariana Grande, Social House',
+  'Everything Changed…',
+  '[mood: Pop] [00:09.12] I''m a motherfuckin'' train wreck
+[00:12.06] I don''t wanna be too much
+[00:14.50] But I don''t wanna miss your touch
+[00:17.17] And you don''t seem to give a fuck
+[00:19.53] I don''t wanna keep you waiting
+[00:21.96] But I do just what I have to do
+[00:24.56] And I might not be the one for you
+[00:27.01] But you ain''t about to have no boo
+[00:29.59] ''Cause I know we be so complicated
+[00:32.74] But we be so smitten, it''s crazy
+[00:35.42] I can''t have what I want, but neither can you
+[00:39.97] You ain''t my boyfriend (boyfriend)
+[00:42.22] And I ain''t your girlfriend (girlfriend)
+[00:44.63] But you don''t want me to see nobody else
+[00:47.24] And I don''t want you to see nobody
+[00:49.93] But you ain''t my boyfriend (boyfriend)
+[00:52.09] And I ain''t your girlfriend (girlfriend)
+[00:54.79] But you don''t want me to touch nobody else
+[00:57.19] Baby, we ain''t gotta tell nobody
+[00:59.86] Even though you ain''t mine, I promise the way we fight
+[01:03.86] Make me honestly feel like we just in love
+[01:07.23] ''Cause baby, when push comes to shove
+[01:10.14] Damn baby, I''m a train wreck, too (too)
+[01:12.64] I lose my mind when it comes to you
+[01:15.42] I take time with the ones I choose
+[01:17.67] And I don''t want to smile if it ain''t from you, yeah
+[01:21.08] I know we be so complicated
+[01:23.50] Lovin'' you sometime drive me crazy
+[01:26.04] ''Cause I can''t have what I want and neither can you
+[01:30.60] You ain''t my boyfriend (boyfriend)
+[01:32.77] And I ain''t your girlfriend (girlfriend)
+[01:35.26] But you don''t want me to see nobody else
+[01:37.87] And I don''t want you to see nobody
+[01:40.47] But you ain''t my boyfriend (boyfriend)
+[01:42.83] And I ain''t your girlfriend (girlfriend)
+[01:45.40] But you don''t want me to touch nobody else
+[01:47.83] Baby, we ain''t gotta tell nobody
+[01:51.00] I wanna kiss you (yeah), don''t wanna miss you (yeah)
+[01:53.62] But I can''t be with you ''cause I got issues
+[01:56.43] Yeah, on the surface, seem like it''s easy
+[01:58.94] Careful with words, but it''s still hard to read me
+[02:01.54] Stress high when the trust low (mmm)
+[02:04.21] Bad vibes, where''d the fun go? (Oh)
+[02:06.66] Try to open up and love more (love more)
+[02:09.38] Try to open up and love more
+[02:09.96] If you were my boyfriend
+[02:13.19] If you were my girlfriend
+[02:15.97] I probably wouldn''t see nobody else
+[02:18.05] But I can''t guarantee that by myself
+[02:21.08] You ain''t my boyfriend (boyfriend, you ain''t my boyfriend)
+[02:23.44] And I ain''t your girlfriend (girlfriend, I ain''t your girlfriend)
+[02:25.62] But you don''t want me to see nobody else (nobody)
+[02:28.22] And I don''t want you to see nobody
+[02:30.78] But you ain''t my boyfriend (boyfriend, you know you ain''t my boyfriend)
+[02:33.37] And I ain''t your girlfriend (girlfriend, yeah, mmm)
+[02:35.94] But you don''t want me to touch nobody else (nobody)
+[02:38.36] Baby, we ain''t gotta tell nobody (oh yeah)
+[02:41.46] You ain''t my boyfriend (boyfriend)
+[02:43.34] And I ain''t your girlfriend (girlfriend)
+[02:46.00] But you don''t want me to see nobody else
+[02:48.56] And I don''t want you to see nobody
+[02:51.11] But you ain''t my boyfriend (boyfriend)
+[02:53.67] And I ain''t your girlfriend (girlfriend, yeah)
+[02:56.03] But you don''t want me to touch nobody else (nobody)
+[02:58.68] Baby, we ain''t gotta tell nobody
+[03:00.68] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792146878/v8uveltvlt1z3mfwr6tm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792146890/alisuptxl3w0e4uvpars.png',
+  186,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149059/qrr6q55eeghscg69hn7n.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149039/mvcpgefjdbmrogh8a8xy.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149045/y1hcymzl4dk2me1t2noz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149052/ncgmjjozfccgrv9utpa4.mp3',
+  FALSE,
+  '2026-10-16T10:34:50.931283+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc',
+  'STAY',
+  'The Kid LAROI, Justin Bieber',
+  'F*CK LOVE 3: OVER YOU',
+  '[mood: Chill] [00:11.12] I do the same thing I told you that I never would
+[00:14.13] I told you I changed, even when I knew I never could
+[00:17.08] Know that I can''t find nobody else as good as you
+[00:19.84] I need you to stay, need you to stay, hey
+[00:22.80] I get drunk, wake up, I''m wasted still
+[00:25.82] I realize the time that I wasted here
+[00:28.63] I feel like you can''t feel the way I feel
+[00:31.28] I''ll be fucked up if you can''t be right here
+[00:33.97] Oh, whoa (oh, whoa, whoa)
+[00:36.85] Oh, whoa (oh, whoa)
+[00:39.59] Oh, whoa (oh, whoa)
+[00:42.33] I''ll be fucked up if you can''t be right here
+[00:45.37] I do the same thing I told you that I never would
+[00:48.06] I told you I changed, even when I knew I never could
+[00:50.95] Know that I can''t find nobody else as good as you
+[00:53.73] I need you to stay, need you to stay, hey
+[00:56.55] I do the same thing I told you that I never would
+[00:59.24] I told you I changed, even when I knew I never could
+[01:02.10] Know that I can''t find nobody else as good as you
+[01:05.06] I need you to stay, need you to stay, hey
+[01:08.07] When I''m away from you, I miss your touch (ooh)
+[01:10.81] You''re the reason I believe in love
+[01:13.78] It''s been difficult for me to trust (ooh)
+[01:16.65] And I''m afraid that I''ma fuck it up
+[01:19.51] Ain''t no way that I can leave you stranded
+[01:22.23] ''Cause you ain''t never left me empty-handed
+[01:25.01] And you know that I know that I can''t live without you
+[01:28.37] So baby, stay
+[01:30.49] Oh, whoa (oh, whoa, whoa)
+[01:33.09] Oh, whoa (oh, whoa)
+[01:35.99] Oh, whoa (oh, whoa)
+[01:38.92] I''ll be fucked up if you can''t be right here
+[01:41.83] I do the same thing I told you that I never would
+[01:44.38] I told you I changed, even when I knew I never could
+[01:47.35] Know that I can''t find nobody else as good as you
+[01:50.14] I need you to stay, need you to stay, yeah
+[01:53.20] I do the same thing I told you that I never would
+[01:55.69] I told you I changed, even when I knew I never could
+[01:58.72] Know that I can''t find nobody else as good as you
+[02:01.28] I need you to stay, need you to stay, hey
+[02:06.06] 
+[02:08.95] Whoa
+[02:12.52] I need you to stay, need you to stay, hey
+[02:15.47] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792147117/djf3ri1d4nxy0aoieunb.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792147118/akurl2ndpgmsvcrbqz5t.png',
+  142,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149209/aof6vaiqqw8kzrrxvvpj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149191/pswwlwezwawjcwwipbo8.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149197/kolkxqzrzu3fkifiwggk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149203/eeigxbmzoiyhiszpmsem.mp3',
+  FALSE,
+  '2026-10-16T10:38:39.217827+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '03294ca0-8782-4468-a2fe-e138754f3156',
+  'Despacito',
+  'Luis Fonsi, Daddy Yankee',
+  'VIDA',
+  '[mood: Pop] [00:06.43] Ay (Fonsi, DY)
+[00:11.45] (Oh, oh) oh, no, oh no (oh)
+[00:16.74] Hey, yeah, diri-diri-diriridi, Daddy, go!
+[00:19.79] Sí, sabes que ya llevo un rato mirándote
+[00:25.23] Tengo que bailar contigo hoy (DY)
+[00:30.72] Vi que tu mirada ya estaba llamándome
+[00:35.95] Muéstrame el camino, que yo voy (oh)
+[00:41.40] Tú, tú eres el imán y yo soy el metal
+[00:44.88] Me voy acercando y voy armando el plan
+[00:47.47] Solo con pensarlo se acelera el pulso (oh, yeah)
+[00:52.12] Ya, ya me estás gustando más de lo normal
+[00:55.53] Todos mis sentidos van pidiendo más
+[00:58.12] Esto hay que tomarlo sin ningún apuro
+[01:01.81] Despacito
+[01:04.40] Quiero respirar tu cuello despacito
+[01:06.91] Deja que te diga cosas al oído
+[01:09.53] Para que te acuerdes si no estás conmigo
+[01:12.98] Despacito
+[01:14.95] Quiero desnudarte a besos, despacito
+[01:17.72] Firmar las paredes de tu laberinto
+[01:20.42] Y hacer de tu cuerpo todo un manuscrito (sube, sube, sube)
+[01:24.08] Sube, sube (oh)
+[01:25.19] Quiero ver bailar tu pelo, quiero ser tu ritmo
+[01:29.00] Que le enseñes a mi boca tus lugares favoritos
+[01:33.83] (Favoritos, favoritos, baby)
+[01:35.96] Déjame sobrepasar tus zonas de peligro
+[01:39.66] Hasta provocar tus gritos y que olvides tu apellido
+[01:45.69] Si te pido un beso, ven, dámelo
+[01:47.32] Yo sé que estás pensándolo
+[01:48.68] Llevo tiempo intentándolo
+[01:49.98] Mami, esto es dando y dándolo
+[01:51.36] Sabes que tu corazón conmigo te hace bam-bam
+[01:54.03] Sabes que esa beba está buscando de mi bam-bam
+[01:56.73] Ven, prueba de mi boca para ver cómo te sabe
+[01:59.44] Quiero, quiero, quiero ver cuánto amor a ti te cabe
+[02:02.27] Yo no tengo prisa, yo me quiero dar el viaje
+[02:04.95] Empezamos lento, después salvaje
+[02:07.39] Pasito a pasito, suave, suavecito
+[02:10.18] Nos vamos pegando poquito a poquito
+[02:13.03] Cuando tú me besas con esa destreza
+[02:15.76] Veo que eres malicia con delicadeza
+[02:18.10] Pasito a pasito, suave, suavecito
+[02:21.17] Nos vamos pegando poquito a poquito
+[02:23.78] Y es que esa belleza es un rompecabezas
+[02:26.31] Pero pa'' montarlo, aquí tengo la pieza, oye
+[02:29.87] Despacito
+[02:31.90] Quiero respirar tu cuello despacito
+[02:34.66] Deja que te diga cosas al oído
+[02:37.14] Para que te acuerdes si no estás conmigo
+[02:40.75] Despacito
+[02:42.67] Quiero desnudarte a besos despacito
+[02:45.27] Firmar las paredes de tu laberinto
+[02:48.04] Y hacer de tu cuerpo todo un manuscrito (sube, sube, sube)
+[02:51.67] Sube, sube (oh)
+[02:52.77] Quiero ver bailar tu pelo, quiero ser tu ritmo
+[02:56.88] Que le enseñes a mi boca tus lugares favoritos
+[03:01.63] (Favoritos, favoritos, baby)
+[03:03.53] Déjame sobrepasar tus zonas de peligro
+[03:07.48] Hasta provocar tus gritos y que olvides tu apellido
+[03:13.06] Despacito
+[03:14.92] Vamo'' a hacerlo en una playa en Puerto Rico
+[03:17.67] Hasta que las olas griten: "¡ay, Bendito!"
+[03:20.42] Para que mi sello se quede contigo (báilalo)
+[03:24.26] Pasito a pasito, suave, suavecito
+[03:26.90] Nos vamos pegando poquito a poquito
+[03:29.47] Que le enseñes a mi boca tus lugares favoritos
+[03:33.93] (Favoritos, favoritos, baby)
+[03:35.26] Pasito a pasito, suave, suavecito
+[03:37.96] Nos vamos pegando poquito a poquito
+[03:40.11] Hasta provocar tus gritos y que olvides tu apellido (DY)
+[03:45.49] Despacito
+[03:46.77] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792147294/vnfcl20oqqjd5gbygazv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792147295/p6zxuntx8znyq6wsqj0e.png',
+  229,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149309/xg52tsj76cw0pdxzwmwv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149284/xrbgmwzyanc4yc2dyssy.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149292/zh9up3jtgkndeyptrmzg.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149300/rqecvdoohursngs49qph.mp3',
+  FALSE,
+  '2026-10-16T10:41:36.033839+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '2579167d-dced-4fca-aebf-e703dff1884b',
+  ' Despacito (Remix)',
+  'Luis Fonsi, Daddy Yankee, Justin Bieber',
+  'VIDA',
+  '[mood: Pop] [00:09.41] Comin'' over in my direction
+[00:12.24] So thankful for that, it''s such a blessin'', yeah
+[00:14.62] Turn every situation into heaven, yeah
+[00:18.21] Oh-oh, you are
+[00:20.56] My sunrise on the darkest day
+[00:23.26] Got me feelin'' some kind of way
+[00:25.95] Make me wanna savor every moment slowly, slowly
+[00:31.01] You fit me tailor-made, love how you put it on
+[00:33.87] Got the only key, know how to turn it on
+[00:36.02] The way you nibble on my ear, the only words I wanna hear
+[00:39.29] Baby, take it slow, so we can last long (oh)
+[00:41.33] Tú, tú eres el imán y yo soy el metal
+[00:44.52] Me voy acercando y voy armando el plan
+[00:47.37] Sólo con pensarlo se acelera el pulso (oh, yeah)
+[00:52.19] Ya, ya me está gustando más de lo normal
+[00:55.50] Todos mis sentidos van pidiendo más
+[00:58.01] Esto hay que tomarlo sin ningún apuro
+[01:01.62] Despacito
+[01:04.02] Quiero respirar tu cuello despacito
+[01:06.80] Deja que te diga cosas al oído
+[01:09.59] Para que te acuerdes si no estás conmigo
+[01:12.77] Despacito
+[01:14.87] Quiero desnudarte a besos despacito
+[01:17.54] Firmo en las paredes de tu laberinto
+[01:20.21] Y hacer de tu cuerpo todo un manuscrito (sube, sube, sube, sube, sube)
+[01:24.87] Quiero ver bailar tu pelo, quiero ser tu ritmo (woah, woah)
+[01:28.81] Que le enseñes a mi boca (woah, woah)
+[01:31.52] Tus lugares favoritos (favorito, favorito, baby)
+[01:35.64] Déjame sobrepasar tus zonas de peligro (woah, woah)
+[01:39.64] Hasta provocar tus gritos (woah, woah)
+[01:42.21] Y que olvides tu apellido
+[01:45.15] Si te pido un beso, ven, dámelo
+[01:47.08] Yo sé que estás pensándolo
+[01:48.13] Llevo tiempo intentándolo
+[01:49.56] Mami, esto es dando y dándolo
+[01:51.25] Sabes que tu corazón conmigo te hace bom, bom
+[01:53.79] Sabes que esa beba está buscando de mi bom, bom
+[01:56.32] Ven, prueba de mi boca para ver cómo te sabe
+[01:59.26] Quiero, quiero, quiero ver cuánto amor a ti te cabe
+[02:01.87] Yo no tengo prisa, yo me quiero dar el viaje
+[02:04.65] Empecemos lento, después salvaje
+[02:07.16] Pasito a pasito, suave suavecito
+[02:09.90] Nos vamos pegando, poquito a poquito
+[02:12.77] Cuando tú me besas con esa destreza
+[02:15.63] Veo que eres malicia con delicadeza
+[02:18.10] Pasito a pasito, suave suavecito
+[02:21.07] Nos vamos pegando, poquito a poquito
+[02:23.65] Y es que esa belleza es un rompecabezas
+[02:26.42] Pero pa montarlo aquí tengo la pieza, oh, yeh
+[02:29.50] Despacito
+[02:31.75] Quiero respirar tu cuello despacito
+[02:34.21] Deja que te diga cosas al oído
+[02:37.17] Para que te acuerdes si no estás conmigo
+[02:40.41] Despacito
+[02:42.36] Quiero desnudarte a besos despacito
+[02:45.08] Firmo en las paredes de tu laberinto
+[02:47.89] Y hacer de tu cuerpo todo un manuscrito (sube, sube, sube, sube, sube)
+[02:52.47] Quiero ver bailar tu pelo, quiero ser tu ritmo (woah, woah)
+[02:56.60] Que le enseñes a mi boca (woah, woah)
+[02:59.13] Tus lugares favoritos (favorito, favorito, baby)
+[03:03.41] Déjame sobrepasar tus zonas de peligro (woah, woah)
+[03:07.21] Hasta provocar tus gritos (woah, woah)
+[03:10.08] Y que olvides tu apellido
+[03:12.90] Despacito
+[03:15.05] This is how we do it down in Puerto Rico
+[03:17.65] I just wanna hear you screaming: "¡ay, Bendito!"
+[03:20.35] I can move forever cuando esté contigo (¡báilalo!)
+[03:24.05] Pasito a pasito, suave suavecito
+[03:26.88] Nos vamos pegando, poquito a poquito
+[03:28.82] Que le enseñes a mi boca
+[03:31.62] Tus lugares favoritos (favorito, favorito, baby)
+[03:34.93] Pasito a pasito, suave suavecito
+[03:37.68] Nos vamos pegando, poquito a poquito
+[03:39.63] Hasta provocar tus gritos (Fonsi)
+[03:42.30] Y que olvides tu apellido (D.Y)
+[03:45.22] Despacito
+[03:45.93] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792147484/wfrcsdqhzcly2nuphtby.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792147485/nvvor7j9g639ilzrvexi.png',
+  230,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149620/acps7jmdftduhbes1ckp.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149596/a4xrurcgbdvtq2j93guf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149603/pamqmlhmadvcmc4ykzdx.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149611/gpieokxwrk6xswormic8.mp3',
+  FALSE,
+  '2026-10-16T10:44:45.769911+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '70417a45-7af3-4c1f-97c5-6b9116c31f05',
+  '34+35',
+  'Ariana Grande',
+  'Positions',
+  '[mood: Romantic] [00:00.33] Hmm
+[00:01.45] You might think I''m crazy
+[00:03.54] The way I''ve been cravin''
+[00:05.40] If I put it quite plainly
+[00:07.66] Just gimme them babies
+[00:10.07] So, what you doing tonight?
+[00:12.31] Better say, "Doin'' you right" (yeah)
+[00:14.78] Watchin'' movies, but we ain''t seen a thing tonight (yeah)
+[00:18.86] I don''t wanna keep you up (you up)
+[00:20.91] But show me, can you keep it up? (It up)
+[00:23.03] ''Cause then I''ll have to keep you up
+[00:24.81] Shit, maybe I''ma keep you up, boy
+[00:27.77] I''ve been drinking coffee (I''ve been drinking coffee)
+[00:29.79] And I''ve been eating healthy (and I''ve been eating healthy)
+[00:32.09] Know I keep it squeaky, yeah (know I keep it squeaky)
+[00:34.30] Saving up my energy (yeah, yeah, saving up my energy)
+[00:36.82] Can you stay up all night?
+[00:39.04] Fuck me ''til the daylight
+[00:41.48] 34, 35 (yeah, yeah, yeah, yeah)
+[00:45.55] Can you stay up all night? (All night)
+[00:47.94] Fuck me ''til the daylight
+[00:49.80] 34, 35 (yeah, yeah, yeah, yeah)
+[00:53.99] You drink it just like water (water)
+[00:58.32] You say, "It tastes like candy"
+[01:02.48] So, what you doing tonight? (Tonight)
+[01:04.85] Better say, "Doin'' you right" (alright)
+[01:07.02] Watchin'' movies, but we ain''t seen a thing tonight (yeah)
+[01:11.31] I don''t wanna keep you up (you up)
+[01:13.32] But show me, can you keep it up? (It up)
+[01:15.69] ''Cause then I''ll have to keep you up
+[01:17.28] Shit, maybe I''ma keep you up, boy
+[01:20.05] I''ve been drinking coffee (said, I''ve been drinking coffee)
+[01:22.24] And I''ve been eating healthy (and I''ve been eating healthy)
+[01:24.51] Know I keep it squeaky, yeah (except this wine, babe)
+[01:26.55] Saving up my energy (yeah, yeah, yeah)
+[01:29.20] Can you stay up all night? (All night)
+[01:31.48] Fuck me ''til the daylight (daylight)
+[01:33.76] 34, 35 (yeah, yeah, yeah, yeah, 35, babe)
+[01:37.98] Can you stay up all night? (Can you stay?)
+[01:40.24] Fuck me ''til the daylight (can you stay?)
+[01:42.58] 34, 35 (yeah, yeah, yeah, yeah)
+[01:45.32] Oh-yeah-yeah
+[01:46.25] Baby, you might need a seatbelt when I ride it
+[01:48.46] I''ma leave it open like a door, come inside it
+[01:50.51] Even though I''m wifey, you can hit it like a side chick
+[01:52.85] Don''t need no side dick, no
+[01:54.65] Got the neighbors yellin'', "Earthquake" (earthquake)
+[01:56.73] 4.5 when I make the bed shake (bed shake)
+[01:59.08] Put it down heavy even though it''s lightweight (it''s lightweight)
+[02:00.54] (It''s lightweight, yeah, yeah, yeah, babe)
+[02:01.79] Yeah, we started at midnight, go ''til the sunrise (sunrise)
+[02:06.42] Done at the same time (yeah)
+[02:09.04] But who''s counting the time when we got it for life? (Got it for life)
+[02:12.18] I know all your favorite spots (favorite spots)
+[02:14.35] We can take it from the top (from the top)
+[02:16.23] You such a dream come true, true
+[02:18.53] Make a bitch wanna hit snooze, ooh
+[02:21.38] Can you stay up all night?
+[02:23.66] Fuck me ''til the daylight (yeah-yeah)
+[02:26.15] 34, 35 (yeah, yeah, yeah, yeah, 34, 35)
+[02:30.48] Can you stay up all night? (Do you know what that mean?)
+[02:32.62] Fuck me ''til the daylight (you know what that mean)
+[02:34.91] 34, 35 (yeah, yeah, yeah, yeah)
+[02:37.11] Yeah, yeah, yeah
+[02:39.14] Means I wanna 69 wit'' ya'', no shit
+[02:42.64] 
+[02:46.16] Math class, never was good
+[02:47.12] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792147631/r1iedis2pyuwaeeperlv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792147632/ql9rw6kcpwaotnjecsiv.png',
+  174,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149767/tti7axdacts1z3hqsr7b.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149747/a7jyh4bzux6miwgwxyrz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149753/iz2l8xeyyvnjm4h8i8xc.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149760/bgxlmqr33arpfjnoiuta.mp3',
+  FALSE,
+  '2026-10-16T10:47:12.876202+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8',
+  ' positions',
+  'Ariana Grande',
+  'Positions',
+  '[mood: Energetic] [00:06.74] Heaven sent you to me
+[00:11.64] I''m just hopin'' I don''t repeat history
+[00:19.32] Boy, I''m tryna meet your mama on a Sunday
+[00:23.27] Then make a lotta love on a Monday (ah-ah)
+[00:26.88] Never need no (no), no one else, babe
+[00:29.50] ''Cause I''ll be
+[00:31.74] Switchin'' the positions for you
+[00:34.30] Cookin'' in the kitchen, and I''m in the bedroom
+[00:37.57] I''m in the Olympics, way I''m jumpin'' through hoops
+[00:40.96] Know my love infinite, nothin'' I wouldn''t do
+[00:44.07] That I won''t do, switchin'' for y-
+[00:46.67] Perfect, perfect
+[00:48.93] You''re too good to be true (you''re too good to be true)
+[00:52.30] But I get tired of runnin''
+[00:54.63] Fuck it, now I''m runnin'' with you (wit'' you)
+[00:58.90] Said, boy, I''m tryna meet your mama on a Sunday
+[01:03.12] Then make a lotta love on a Monday (ah-ah)
+[01:06.63] Never need no (no), no one else, babe
+[01:09.54] ''Cause I''ll be
+[01:11.74] Switchin'' the positions for you (for you, ah)
+[01:14.01] Cookin'' in the kitchen, and I''m in the bedroom
+[01:17.66] I''m in the Olympics, way I''m jumpin'' through hoops
+[01:20.98] Know my love infinite, nothin'' I wouldn''t do
+[01:24.26] That I won''t do, switchin'' for you
+[01:27.69] Cookin'' in the kitchen, and I''m in the bedroom (bedroom)
+[01:30.97] I''m in the Olympics, way I''m jumpin'' through hoops
+[01:34.35] Know my love infinite, nothin'' I wouldn''t do
+[01:37.68] That I won''t do, switchin'' for you
+[01:40.54] This some shit that I usually don''t do (yeah)
+[01:43.92] But for you, I kinda, kinda want to
+[01:47.12] ''Cause you''re down for me, and I''m down too (and I''m down too)
+[01:50.48] Yeah, I''m down too, switching the positions for you
+[01:53.97] This some shit that I (yeah) usually don''t do (don''t do)
+[01:57.24] But for you, I kinda, kinda want to
+[02:00.46] ''Cause you''re down for me, and I''m down too
+[02:05.05] Switchin'' the positions for you
+[02:07.74] Cookin'' in the kitchen, and I''m in the bedroom
+[02:11.00] I''m in the Olympics, way I''m jumpin'' through hoops (jumpin'', jumpin'')
+[02:14.36] Know my love infinite, nothin'' I wouldn''t do (do)
+[02:17.81] That I won''t do, switchin'' for you
+[02:20.97] Cookin'' in the kitchen and I''m in the bedroom
+[02:24.33] I''m in the Olympics, way I''m jumpin'' through hoops
+[02:27.58] Know my love infinite, nothin'' I wouldn''t do
+[02:30.91] That I won''t do, switchin'' for you
+[02:33.37] 
+[02:36.24] Yeah
+[02:38.92] Ah, yeah
+[02:41.21] Ah (ah), yeah
+[02:42.80] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792147755/y8algmonhoyvomupbjtj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792147756/nyvswfy5vwftka2urse2.png',
+  172,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149909/rx5yqqsyx3mhamurzv0g.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149888/xtxx9y1vblmmbsptdyx3.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149895/lqpkbkbnenoe5rl2fd2d.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149902/dkkqwqdssugnpjhemcif.mp3',
+  FALSE,
+  '2026-10-16T10:49:16.852581+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'cd9f67bb-f9bb-49a1-a699-df27dedefe25',
+  'On My Way',
+  'Alan Walker, Sabrina Carpenter, Farruko',
+  'World Of Walker',
+  '[mood: Pop] [00:00.08] I''m sorry but
+[00:02.65] Don''t wanna talk
+[00:04.21] I need a moment before I go
+[00:08.34] It''s nothing personal
+[00:11.21] I draw the blinds
+[00:13.57] They don''t need to see me cry
+[00:16.29] ''Cause even if they understand
+[00:19.29] They don''t understand
+[00:23.19] So then when I''m finished
+[00:24.72] I''m all ''bout my business
+[00:26.23] And ready to save the world
+[00:28.78] I''m takin'' my misery
+[00:30.65] Make it my bitch
+[00:31.54] Can''t be everyone''s favourite girl
+[00:34.20] So, take aim and fire away
+[00:37.49] I''ve never been so wide awake
+[00:40.22] No, nobody but me can keep me safe
+[00:44.08] And I''m on my way
+[00:45.75] The blood moon is on the rise
+[00:48.42] The fire burning in my eyes
+[00:51.61] No, nobody but me can keep me safe
+[00:55.42] And I''m on my way
+[00:58.51] 
+[01:18.99] Lo siento mucho (Farru)
+[01:21.78] Pero me voy (eh)
+[01:24.55] Porque a tu lado me di cuenta que nada soy (eh-eh)
+[01:30.04] Y me cansé de luchar y de guerrear en vano
+[01:32.71] De estar en la línea de fuego y de meter la mano
+[01:35.75] Acepto mis errores, también soy humano
+[01:38.60] Y tú no ve que lo hago porque te amo (pum-pum-pum-pum)
+[01:41.78] Pero ya (ya)
+[01:43.67] No tengo más na que hacer aquí (aquí)
+[01:46.58] Me voy, llegó la hora de partir (partir)
+[01:49.14] De mi propio camino, seguir lejos de ti
+[01:53.48] So, take aim and fire away
+[01:56.52] I''ve never been so wide awake
+[01:59.35] No, nobody but me can keep me safe
+[02:03.16] And I''m on my way
+[02:04.71] The blood moon is on the rise (is on the rise, na-na)
+[02:07.35] The fire burning in my eyes (the fire burning in my eyes, na)
+[02:10.65] No, nobody but me can keep me safe
+[02:14.33] And I''m on my way
+[02:17.38] 
+[02:25.99] (I''m on my way)
+[02:27.85] (Ever... everybody keep me safe)
+[02:33.20] (Ever... everybody keep me safe)
+[02:38.52] (Ever... everybody keep me safe)
+[02:44.14] (Ever... everybody)
+[02:48.18] (Everybody on my way)
+[02:49.75] So, take aim and fire away
+[02:52.83] I''ve never been so wide awake
+[02:55.93] No, nobody but me can keep me safe
+[02:59.68] And I''m on my way
+[03:01.25] The blood moon is on the rise
+[03:03.95] The fire burning in my eyes
+[03:07.27] No, nobody but me can keep me safe
+[03:10.82] And I''m on my way
+[03:11.91] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792147942/qmcckdzakxhokcdhbuyq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792147943/bkyqj7ystrcgmcb6xjpk.png',
+  194,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149999/yuhtq9vxm4rhpybhcfur.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149977/mqibqb3gri1xzyssfiki.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149985/z3mvsugni86kd5zqotwb.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792149992/dkm5lejwd7jomkjujdum.mp3',
+  FALSE,
+  '2026-10-16T10:52:23.989751+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '26fae03b-6bfe-4254-8d90-19f01e8bde31',
+  'Espresso',
+  'Sabrina Carpenter',
+  'Short n'' Sweet',
+  '[mood: Pop] [00:08.87] Now he''s thinkin'' ''bout me every night, oh
+[00:12.48] Is it that sweet? I guess so
+[00:14.50] Say you can''t sleep, baby, I know
+[00:16.84] That''s that me espresso
+[00:19.10] Move it up, down, left, right, oh
+[00:21.57] Switch it up like Nintendo
+[00:23.86] Say you can''t sleep, baby, I know
+[00:26.17] That''s that me espresso
+[00:28.57] I can''t relate to desperation
+[00:33.43] My give-a-fucks are on vacation
+[00:38.00] And I got this one boy and he won''t stop calling
+[00:42.63] When they act this way, I know I got ''em
+[00:46.50] Too bad your ex don''t do it for ya
+[00:48.82] Walked in and dream-came-trued it for ya
+[00:51.23] Soft skin and I perfumed it for ya (ha, ha, ha, ha, yes)
+[00:56.14] I know I Mountain Dew it for ya (yes)
+[00:58.14] That morning coffee, brewed it for ya (yes)
+[01:00.51] One touch and I brand-newed it for ya, oh (ha, ha, ha, ha)
+[01:03.86] And now he''s thinkin'' ''bout me every night, oh
+[01:07.79] Is it that sweet? I guess so
+[01:10.06] Say you can''t sleep, baby, I know
+[01:12.39] That''s that me espresso
+[01:14.77] Move it up, down, left, right, oh
+[01:17.05] Switch it up like Nintendo
+[01:19.39] Say you can''t sleep, baby, I know
+[01:21.44] That''s that me espresso
+[01:26.02] Is it that sweet? I guess so
+[01:28.32] I''m working late ''cause I''m a singer
+[01:33.28] Oh, he looks so cute wrapped ''round my finger
+[01:37.97] My twisted humor make him laugh so often
+[01:42.54] My honeybee, come and get this pollen
+[01:46.46] Too bad your ex don''t do it for ya
+[01:49.05] Walked in and dream-came-trued it for ya
+[01:51.34] Soft skin and I perfumed it for ya, oh (yeah, ha, ha, ha, ha, yes)
+[01:55.90] I know I Mountain Dew it for ya (yes)
+[01:58.36] That morning coffee, brewed it for ya (yes)
+[02:00.61] One touch and I brand-newed it for ya (stupid)
+[02:04.27] Now he''s thinkin'' ''bout me every night, oh
+[02:07.83] Is it that sweet? I guess so
+[02:10.18] Say you can''t sleep, baby, I know
+[02:12.41] That''s that me espresso
+[02:14.84] Move it up, down, left, right, oh
+[02:16.82] Switch it up like Nintendo
+[02:19.11] Say you can''t sleep, baby, I know
+[02:21.56] That''s that me espresso (yes)
+[02:23.86] Thinkin'' ''bout me every night, oh
+[02:26.15] Is it that sweet? I guess so (yes)
+[02:28.41] Say you can''t sleep, baby, I know
+[02:30.87] That''s that me espresso (yes)
+[02:33.13] Move it up, down, left, right, oh (move it up, down, left, right, oh)
+[02:35.50] Switch it up like Nintendo (yes)
+[02:37.73] Say you can''t sleep, baby, I know
+[02:40.02] That''s that me espresso
+[02:44.67] Is it that sweet? I guess so
+[02:48.09] Mm, that''s that me espresso
+[02:50.10] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792148054/m8fak6yz7j7yaw94llfj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792148055/art9hdmnftn50rrg193g.png',
+  175,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792150082/dei2l5cyh1wkhprauibc.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792150062/kct13cewkqbnth79gbtf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792150069/lmpfhxgc7cnxf4utxqy6.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792150076/tt3me1chc2s50jstkgjb.mp3',
+  FALSE,
+  '2026-10-16T10:54:15.73829+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '787256d8-659b-4297-9514-5e3b4bf87f36',
+  ' death bed (coffee for your head)',
+  'Powfu, beabadoobee',
+  'poems of the past',
+  '[mood: Chill] [00:00.02] Don''t stay awake for too long, don''t go to bed
+[00:05.42] I''ll make a cup of coffee for your head
+[00:08.87] It''ll get you up and going out of bed
+[00:11.86] Yeah, I don''t wanna fall asleep, I don''t wanna pass away
+[00:16.04] I been thinking of our future, ''cause I''ll never see those days
+[00:19.56] I don''t know why this has happened, but I probably deserve it
+[00:23.01] I tried to do my best, but you know that I''m not perfect
+[00:26.36] I been praying for forgiveness, you''ve been praying for my health
+[00:29.88] When I leave this Earth, hoping you''ll find someone else
+[00:32.76] ''Cause, yeah, we still young, there''s so much we haven''t done
+[00:36.25] Getting married, start a family, watch your husband with his son
+[00:39.44] I wish it could be me, but I won''t make it out this bed
+[00:42.94] I hope I go to Heaven, so I see you once again
+[00:46.20] My life was kinda short, but I got so many blessings
+[00:49.98] Happy you were mine, it sucks that it''s all ending
+[00:53.34] Don''t stay awake for too long, don''t go to bed
+[00:58.89] I''ll make a cup of coffee for your head
+[01:02.13] It''ll get you up and going out of bed (yeah, ayy, ayy)
+[01:06.58] Don''t stay awake for too long, don''t go to bed
+[01:12.21] I''ll make a cup of coffee for your head
+[01:15.76] It''ll get you up and going out of bed (ayy, yeah)
+[01:19.55] I''m happy that you here with me, I''m sorry if I tear up
+[01:23.06] When me and you were younger, you would always make me cheer up
+[01:26.42] Taking goofy videos and walking through the park
+[01:29.65] You would jump into my arms every time you heard a bark
+[01:33.33] Cuddle in your sheets, sing me sound asleep
+[01:36.22] And sneak out through your kitchen at exactly 1:03
+[01:39.74] Sundays, went to church, on Mondays, watched a movie
+[01:43.30] Soon you''ll be alone, sorry that you have to lose me
+[01:46.60] Don''t stay awake for too long, don''t go to bed
+[01:52.11] I''ll make a cup of coffee for your head
+[01:55.42] It''ll get you up and going out of bed
+[01:59.93] Don''t stay awake for too long, don''t go to bed
+[02:05.49] I''ll make a cup of coffee for your head
+[02:08.99] It''ll get you up and going out of bed
+[02:13.37] Don''t stay awake for too long, don''t go to bed
+[02:18.85] I''ll make a cup of coffee for your head
+[02:22.00] It''ll get you up and going out of bed
+[02:26.53] Don''t stay awake for too long, don''t go to bed
+[02:32.15] I''ll make a cup of coffee for your head
+[02:35.46] It''ll get you up and going out of bed
+[02:39.69] Don''t stay awake for too long, don''t go to bed
+[02:45.68] I''ll make a cup of coffee for your head
+[02:48.80] It''ll get you up and going out of bed
+[02:50.99] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792246061/zbmkc9opzczdr3ggtuua.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792246062/ivbqpb5rt6chwncef3u9.png',
+  173,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249375/mt7ko1frzavi26f9bb54.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249360/lanpzocinwok8hjmdvwj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249365/g8fivpwhzsioboldxeam.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249371/xp5qqu3zafzm5zl0n5x3.mp3',
+  FALSE,
+  '2026-10-17T14:07:42.927795+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'f840a011-96b7-4b8f-8c0f-e30d4b52037d',
+  ' Girls Like You',
+  'Maroon 5',
+  'Red Pill Blues',
+  '[mood: Chill] [00:06.82] Spent 24 hours, I need more hours with you
+[00:14.86] You spent the weekend getting even, ooh
+[00:22.47] We spent the late nights making things right between us
+[00:29.95] But now it''s all good, babe
+[00:32.36] Roll that back wood, babe
+[00:34.00] And play me close
+[00:38.27] ''Cause girls like you run ''round with guys like me
+[00:41.53] ''Til sun down when I come through
+[00:43.70] I need a girl like you, yeah yeah
+[00:46.17] Girls like you love fun and, yeah, me too
+[00:49.25] What I want when I come through
+[00:51.42] I need a girl like you, yeah yeah
+[00:54.90] Yeah yeah yeah, yeah yeah yeah
+[00:59.05] I need a girl like you, yeah yeah
+[01:02.71] Yeah yeah yeah, yeah yeah yeah
+[01:06.67] I need a girl like you
+[01:08.72] I spent last night on the last flight to you (ey ya)
+[01:16.16] Took a whole day up trying to get way up, ooh
+[01:24.18] We spent the daylight trying to make things right between us
+[01:31.79] But now it''s all good, babe
+[01:33.67] Roll that back wood, babe
+[01:35.50] And play me close, yeah
+[01:39.63] ''Cause girls like you run ''round with guys like me
+[01:43.21] ''Til sun down when I come through
+[01:44.91] I need a girl like you, yeah yeah
+[01:47.68] Girls like you love fun and, yeah, me too
+[01:50.70] What I want when I come through
+[01:52.85] I need a girl like you, yeah yeah
+[01:56.25] Yeah yeah yeah, yeah yeah yeah
+[02:00.55] I need a girl like you, yeah yeah
+[02:04.15] Yeah yeah yeah, yeah yeah yeah
+[02:08.28] I need a girl like you, yeah yeah
+[02:12.76] 
+[02:16.12] I need a girl like you, yeah yeah
+[02:21.03] 
+[02:23.72] I need a girl like you
+[02:26.44] Maybe it''s 6:45
+[02:28.08] Maybe I''m barely alive
+[02:30.03] Maybe you''ve taken my shit for the last time, yeah
+[02:33.60] Maybe I know that I''m drunk
+[02:35.82] Maybe I know you''re the one
+[02:37.64] Maybe you thinking it''s better if you drive
+[02:42.48] Oh, ''cause girls like you run ''round with guys like me
+[02:46.37] ''Til sun down when I come through
+[02:48.55] I need a girl like you, yeah
+[02:52.79] ''Cause girls like you run ''round with guys like me
+[02:55.93] ''Til sun down when I come through
+[02:58.07] I need a girl like you, yeah yeah
+[03:00.66] Girls like you love fun and, yeah, me too
+[03:03.85] What I want when I come through
+[03:05.93] I need a girl like you, yeah yeah
+[03:09.45] Yeah yeah yeah, yeah yeah yeah
+[03:13.34] I need a girl like you, yeah yeah
+[03:16.90] Yeah yeah yeah, yeah yeah yeah
+[03:21.16] I need a girl like you
+[03:23.26] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792246577/fbh6lxmlaz24osmmkr6a.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792246578/aagwtdwli1novsmirfey.jpg',
+  215,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249420/wdpy29sukn8rfpo3oeiq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249403/ryofrtdpv22cmrv9gnam.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249408/pa1w97a73otyfkfmtavk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249414/cqd9ivknh5gbdenyenps.mp3',
+  FALSE,
+  '2026-10-17T14:16:18.828472+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'a72625ec-ca27-4357-9d70-6f85c17ef9a7',
+  'Levitating',
+  'Dua Lipa',
+  'Future Nostalgia',
+  '[mood: Energetic] [00:09.53] If you wanna run away with me, I know a galaxy
+[00:11.83] And I can take you for a ride
+[00:14.08] I had a premonition that we fell into a rhythm
+[00:16.15] Where the music don''t stop for life
+[00:18.86] Glitter in the sky, glitter in my eyes
+[00:20.97] Shining just the way I like
+[00:23.52] If you''re feeling like you need a little bit of company
+[00:25.51] You met me at the perfect time
+[00:28.51] You want me, I want you, baby
+[00:30.74] My sugarboo, I''m levitating
+[00:33.26] The Milky Way, we''re renegading
+[00:35.22] Yeah, yeah, yeah, yeah, yeah
+[00:37.22] I got you, moonlight, you''re my starlight
+[00:41.73] I need you all night, come on, dance with me
+[00:46.01] I''m levitating
+[00:46.77] You, moonlight, you''re my starlight (you''re the moonlight)
+[00:51.02] I need you all night, come on, dance with me
+[00:55.43] I''m levitating
+[00:57.90] 
+[01:00.83] I believe that you''re for me, I feel it in our energy
+[01:02.88] I see us written in the stars
+[01:05.35] We can go wherever, so let''s do it now or never, baby
+[01:07.49] Nothing''s ever, ever too far
+[01:09.94] Glitter in the sky, glitter in our eyes
+[01:12.30] Shining just the way we are
+[01:14.57] I feel like we''re forever, every time we get together
+[01:16.48] But whatever, let''s get lost on Mars
+[01:19.78] You want me, I want you, baby
+[01:22.00] My sugarboo, I''m levitating
+[01:24.43] The Milky Way, we''re renegading
+[01:26.37] Yeah, yeah, yeah, yeah, yeah
+[01:28.36] I got you, moonlight, you''re my starlight
+[01:32.86] I need you all night, come on, dance with me
+[01:37.21] I''m levitating
+[01:37.94] You, moonlight, you''re my starlight (you''re the moonlight)
+[01:42.22] I need you all night, come on, dance with me
+[01:46.57] I''m levitating (whoo)
+[01:47.91] You can fly away with me tonight
+[01:50.35] You can fly away with me tonight
+[01:52.58] Baby, let me take you for a ride
+[01:54.43] Yeah, yeah, yeah, yeah, yeah
+[01:55.99] I''m levitating (whoo)
+[01:57.05] You can fly away with me tonight
+[01:59.46] You can fly away with me tonight
+[02:01.81] Baby, let me take you for a ride
+[02:03.78] Yeah, yeah, yeah, yeah, yeah (whoo)
+[02:05.77] My love is like a rocket, watch it blast off
+[02:07.89] And I''m feeling so electric, dance my arse off
+[02:10.41] And even if I wanted to, I can''t stop
+[02:13.00] Yeah, yeah, yeah, yeah, yeah
+[02:15.22] My love is like a rocket, watch it blast off
+[02:17.59] And I''m feeling so electric, dance my arse off
+[02:19.96] And even if I wanted to, I can''t stop
+[02:22.42] Yeah, yeah, yeah, yeah, yeah
+[02:25.03] You want me, I want you, baby
+[02:27.35] My sugarboo, I''m levitating
+[02:29.70] The Milky Way, we''re renegading
+[02:33.41] I got you (yeah), moonlight, you''re my starlight
+[02:38.24] I need you all night (all night), come on, dance with me
+[02:42.40] I''m levitating (whoo)
+[02:43.65] You can fly away with me tonight (tonight)
+[02:46.22] You can fly away with me tonight
+[02:48.67] Baby, let me take you for a ride
+[02:50.21] Yeah, yeah, yeah, yeah, yeah (take you for a ride)
+[02:51.73] I''m levitating (whoo)
+[02:53.02] You can fly away with me tonight (tonight)
+[02:55.43] You can fly away with me tonight
+[02:57.71] Baby, let me take you for a ride
+[02:59.54] Yeah, yeah, yeah, yeah, yeah (let me take you for a ride)
+[03:01.58] I got you, moonlight, you''re my starlight (you are my starlight)
+[03:06.20] I need you all night, come on, dance with me (come on, dance with me, baby)
+[03:10.58] I''m levitating
+[03:11.38] You, moonlight, you''re my starlight (you''re the moonlight)
+[03:15.55] I need you all night, come on, dance with me
+[03:19.94] I''m levitating
+[03:20.39] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792246847/d9pc4kqov8kusx1scrkp.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792246848/pa5mc2invezkcpbvyzvm.png',
+  204,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249469/xwv1rkyatljv4geu4n3r.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249452/vl4kaoeibkc5yrvxban2.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249457/pnk1wv5lgsv3dh5ed1lg.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249463/hmt0maiosdas2zrtvjfl.mp3',
+  FALSE,
+  '2026-10-17T14:20:49.50568+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'efba21ea-42c2-4657-bc4a-9b3b08e10e07',
+  'Call Me Maybe',
+  'Carly Rae Jepsen',
+  'Kiss',
+  '[mood: Energetic] [00:04.42] I threw a wish in the well
+[00:06.47] Don''t ask me, I''ll never tell
+[00:08.32] I looked to you as it fell
+[00:10.33] And now you''re in my way
+[00:12.34] I trade my soul for a wish
+[00:14.33] Pennies and dimes for a kiss
+[00:16.40] I wasn''t looking for this
+[00:18.39] But now you''re in my way
+[00:20.69] Your stare was holdin''
+[00:22.16] Ripped jeans, skin was showin''
+[00:24.16] Hot night, wind was blowin''
+[00:26.13] Where you think you''re goin'', baby?
+[00:28.64] Hey, I just met you, and this is crazy
+[00:32.84] But here''s my number, so call me, maybe
+[00:36.62] It''s hard to look right at you, baby
+[00:40.87] But here''s my number, so call me, maybe
+[00:44.68] Hey, I just met you, and this is crazy
+[00:48.90] But here''s my number, so call me, maybe
+[00:52.64] And all the other boys try to chase me
+[00:56.90] But here''s my number, so call me, maybe
+[01:01.68] 
+[01:04.37] You took your time with the call
+[01:06.46] I took no time with the fall
+[01:08.37] You gave me nothing at all
+[01:10.37] But still, you''re in my way
+[01:12.33] I beg and borrow and steal
+[01:14.50] At first sight, and it''s real
+[01:16.33] I didn''t know I would feel it
+[01:18.50] But it''s in my way
+[01:20.52] Your stare was holdin''
+[01:22.13] Ripped jeans, skin was showin''
+[01:24.14] Hot night, wind was blowin''
+[01:26.14] Where you think you''re goin'', baby?
+[01:28.51] Hey, I just met you, and this is crazy
+[01:32.86] But here''s my number, so call me, maybe
+[01:36.68] It''s hard to look right at you, baby
+[01:40.86] But here''s my number, so call me, maybe
+[01:44.69] Hey, I just met you, and this is crazy
+[01:48.97] But here''s my number, so call me, maybe
+[01:52.65] And all the other boys try to chase me
+[01:56.88] But here''s my number, so call me, maybe
+[02:00.44] Before you came into my life, I missed you so bad
+[02:04.42] I missed you so bad, I missed you so, so bad
+[02:08.33] Before you came into my life, I missed you so bad
+[02:12.49] And you should know that
+[02:14.47] I missed you so, so bad
+[02:16.84] (Bad, bad, bad, bad, bad, bad)
+[02:24.56] It''s hard to look right at you, baby
+[02:28.85] But here''s my number, so call me, maybe
+[02:32.54] Hey, I just met you, and this is crazy
+[02:36.80] But here''s my number, so call me, maybe
+[02:40.67] And all the other boys try to chase me
+[02:44.81] But here''s my number, so call me, maybe
+[02:48.37] Before you came into my life, I missed you so bad
+[02:52.33] I missed you so bad, I missed you so, so bad
+[02:56.38] Before you came into my life, I missed you so bad
+[03:00.41] And you should know that
+[03:02.84] So call me maybe
+[03:04.62] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792247585/jks7ac8yb8ltucifd8by.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792247586/ma1jxrsls82itspjhbob.png',
+  193,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249516/au7iudpcpmfemmmr17zf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249499/xh2fyduqlytxeg9spbyl.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249504/zycqatfweabedrzrj30j.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249510/rvzzdumlyph92gjves8z.mp3',
+  FALSE,
+  '2026-10-17T14:33:07.562307+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '327248c9-fba5-4973-a853-6041d1b7777c',
+  'Savage Love (BTS Remix)',
+  'Jawsh 685, Jason Derulo, BTS',
+  NULL,
+  '[mood: Pop] [00:01.18] BTS
+[00:02.31] Savage love
+[00:03.77] Did somebody, did somebody break your heart?
+[00:07.00] Lookin'' like an angel but your savage love
+[00:10.05] When you kiss me, I know you don''t give two fucks
+[00:13.14] But I still want that
+[00:14.95] If I woke up without you, I don''t know what I would do
+[00:18.27] Thought I could be single forever ''til I met you
+[00:21.27] Usually, don''t be fallin'', be fallin'', fallin'' fast
+[00:24.64] You got a way of keepin'' me comin'' back-to-back
+[00:27.67] I just found out the only reason that you lovin'' me
+[00:30.97] Was to get back at your ex-lover, but before you leave
+[00:33.98] Usually, I would never, would never even care
+[00:37.23] Baby, I know she creepin'', I feel it in the air
+[00:41.23] Every night and every day (and every day)
+[00:46.18] I try to make you stay but your
+[00:53.26] Savage love
+[00:54.92] Did somebody, did somebody break your heart?
+[00:58.17] Lookin'' like an angel but your savage love
+[01:01.22] When you kiss me, I know you don''t give two fucks
+[01:04.47] But I still want that, your savage love
+[01:08.60] Your savage lo-lo-love
+[01:11.87] Your savage lo-lo-love
+[01:14.43] You could use me
+[01:17.07] ''Cause I still want that
+[01:18.96] 사랑이란 어쩌면 순간의 감정의 나열
+[01:22.31] 조건이 다들 붙지 난 뭘 사랑하는가
+[01:25.39] 영원이라는 말은 어쩌면 모래성
+[01:28.43] 잔잔한 파도 앞에 힘없이 무너져
+[01:31.52] Every night, every day, I''m swept away by the waves
+[01:34.97] Don''t know what I''m thinking (can''t get you outta my head)
+[01:38.12] 내가 두려운 게 그대이든 그때이든
+[01:41.43] 불같이 사랑할래 그댈 지금
+[01:45.44] Every night and every day
+[01:49.93] I try to make you stay but your
+[01:57.19] Savage love
+[01:58.89] Did somebody, did somebody break your heart?
+[02:02.09] Lookin'' like an angel but your savage love
+[02:05.16] When you kiss me, I know you don''t give two fucks
+[02:08.37] But I still want that, your savage love
+[02:12.43] Your savage lo-lo-love
+[02:15.84] Your savage lo-lo-love
+[02:18.44] You could use me
+[02:21.13] ''Cause I still want that, your savage love
+[02:23.57] (Ooh-la-la-la, ooh-la-la-la)
+[02:25.68] Your savage lo-lo-love (ooh-la-la-la, ooh-la-la-la)
+[02:28.70] Your savage lo-lo-love (ooh-la-la-la, ooh-la-la-la)
+[02:31.25] You could use me, baby (ooh, la-la-la-la)
+[02:35.61] Savage love
+[02:37.38] Did somebody, did somebody break your heart?
+[02:40.36] Lookin'' like an angel but your savage love
+[02:43.67] When you kiss me, I know you don''t give two fucks
+[02:46.97] But I still want that, your savage love
+[02:51.03] Your savage lo-lo-love
+[02:54.20] Your savage lo-lo-love
+[02:56.83] You could use me
+[02:59.60] ''Cause I still want that, your savage love
+[03:01.92] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792248000/eiwif05ny96fydtz7yox.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792248001/zwglhqvkmaokebcbiwe1.png',
+  185,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249559/hy2afev9lclpnlauarlv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249544/vxz3neryi8ut54cuo4nm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249549/w63jwkwdayahudgnqsjn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249554/jvxpy5ldo0dscha4zur1.mp3',
+  FALSE,
+  '2026-10-17T14:40:01.904362+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '8636cd1d-0358-44ef-ac0f-c301bfecf738',
+  'Real Gone',
+  'Sheryl Crow',
+  'Cars',
+  '[mood: Energetic] [00:07.85] I''m American-made, Bud Light, Chevrolet
+[00:12.14] My momma taught me wrong from right
+[00:15.78] I was born in the South
+[00:17.73] Sometimes I have a big mouth
+[00:20.12] When I see something that I don''t like
+[00:23.84] I gotta say it
+[00:28.00] We''ve been driving this road
+[00:29.98] For a mighty long time
+[00:32.57] Payin'' no mind to the signs
+[00:36.12] Well, this neighborhood''s changed
+[00:38.04] It''s all been rearranged
+[00:40.52] We left that change somewhere behind
+[00:45.31] Slow down, you''re gonna crash
+[00:48.89] Baby, you were screaming
+[00:50.11] It''s a blast, blast, blast
+[00:53.43] Look out babe, you got your blinders on
+[00:56.27] Everybody''s looking for a way
+[00:58.55] To get real gone, real gone
+[01:02.47] 
+[01:04.62] Real gone
+[01:08.43] But there''s a new cat in town
+[01:10.68] He''s got high-paid friends
+[01:13.29] Thinks he''s gonna change history
+[01:16.80] You think you know him so well
+[01:18.63] Yeah, you think he''s so swell
+[01:20.76] But he''s just perpetuatin'' prophecy
+[01:24.66] Come on now
+[01:25.99] Slow down, you''re gonna crash
+[01:29.42] Baby, you''re were screaming
+[01:30.98] It''s a blast, blast, blast
+[01:34.28] Look out, you''ve got your blinders on
+[01:37.26] Everybody''s looking for a way
+[01:40.73] To get real gone
+[01:45.33] Real gone
+[01:49.65] Real gone
+[01:53.67] Real gone
+[01:57.75] Uhh
+[01:59.97] 
+[02:13.69] Well, you can say what you want
+[02:15.68] But you can''t say it ''round here
+[02:18.13] ''Cause they''ll catch you and give you a whippin''
+[02:21.96] Well, I believe I was right when I said you were wrong
+[02:26.10] You didn''t like the sound of that
+[02:28.77] Now, did ya?
+[02:30.58] Slow down, you''re gonna crash
+[02:34.12] Baby, you were screaming
+[02:35.48] It''s a blast, blast, blast
+[02:38.80] Look out, you''ve got your blinders on
+[02:41.75] Everybody''s looking for a way to get real gone
+[02:46.64] Well, here I come, and I''m so not scared
+[02:49.65] Got my pedal to the metal, got my hands in the air
+[02:55.27] Look out, you take your blinders off
+[02:57.97] Everybody''s looking for a way to get real gone
+[03:01.84] Real gone
+[03:06.37] Real gone
+[03:10.47] Ooh
+[03:14.58] Real gone
+[03:18.53] Real gone
+[03:19.18] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792248351/rksqzzk48u3x0rzl8ika.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792248352/xwemu7nytjcxat8h25zx.png',
+  201,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249609/vgvo3kudrtby8xjhlk7r.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249590/q6jakpwmvdbgl5ryk4ql.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249596/fvbalcx9omrvuiwop3mj.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249603/woogsoolseve0wnvpsyc.mp3',
+  FALSE,
+  '2026-10-17T14:45:52.766083+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '8263c87d-5688-421e-abc4-438d81b41480',
+  ' Life is a Highway',
+  'Rascal Flatts',
+  'Cars',
+  '[mood: Chill] [00:11.02] Whoo!
+[00:13.38] Mmm, yeah
+[00:30.02] Life''s like a road that you travel on
+[00:32.38] When there''s one day here and the next day gone
+[00:34.72] Sometimes you bend, sometimes you stand
+[00:37.06] Sometimes you turn your back to the wind
+[00:39.30] There''s a world outside ev''ry darkened door
+[00:41.77] Where blues won''t haunt you anymore
+[00:44.03] Where the brave are free and lovers soar
+[00:46.46] Come ride with me to the distant shore
+[00:49.36] We won''t hesitate
+[00:51.51] To break down the garden gate
+[00:53.99] There''s not much time left today
+[00:58.33] Life is a highway
+[01:00.82] I wanna ride it all night long
+[01:07.37] If you''re going my way
+[01:10.33] I wanna drive it all night long
+[01:16.63] Through all these cities and all these towns
+[01:19.04] It''s in my blood and it''s all around
+[01:21.53] I love you now like I loved you then
+[01:23.89] This is the road and these are the hands
+[01:25.89] From Mozambique to those Memphis nights
+[01:28.39] The Khyber Pass to Vancouver''s lights
+[01:30.86] Knock me down get back up again
+[01:33.16] You''re in my blood
+[01:34.03] I''m not a lonely man
+[01:35.94] There''s no load I can''t hold
+[01:37.84] Road so rough this I know
+[01:40.22] I''ll be there when the light comes in
+[01:42.47] Just tell ''em we''re survivors
+[01:44.98] Life is a highway
+[01:47.50] I wanna ride it all night long
+[01:53.94] If you''re going my way
+[01:56.80] I wanna drive it all night long
+[02:01.57] Gimme gimme gimme gimme yeah
+[02:03.56] Life is a highway
+[02:06.27] I wanna ride it all night long
+[02:12.77] If you''re going my way
+[02:15.44] I wanna drive it all night long
+[02:21.07] 
+[02:23.30] There was a distance between you and I (between you and I)
+[02:32.43] A misunderstanding once
+[02:35.50] But now we look it in the eye
+[02:40.52] Oooh Yeah!
+[02:44.99] 
+[03:01.53] There ain''t no load that I can''t hold
+[03:03.94] Road so rough this I know
+[03:06.34] I''ll be there when the light comes in
+[03:08.51] Just tell ''em we''re survivors
+[03:13.36] Life is a highway
+[03:16.08] I wanna ride it all night long
+[03:22.66] If you''re going my way
+[03:25.39] I wanna drive it all night long
+[03:32.07] Life is a highway
+[03:34.75] I wanna ride it all night long
+[03:41.18] If you''re going my way
+[03:43.94] I wanna drive it all night long
+[03:50.32] Life is a highway
+[03:53.22] I wanna ride it all night long
+[03:59.48] If you''re going my way
+[04:01.57] I wanna drive it all night long
+[04:07.99] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792248473/fxmqp9rcmqqewlcjq6gm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792248474/ddif3b3ix0d6ffh4gy3o.png',
+  276,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249671/wdt4j9psnefor5ycmacw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249650/l2i5x6iabk3enrjktpsv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249657/vbnpci2aniytmlqsbcic.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249664/roant9m8z5klgeeqzstw.mp3',
+  FALSE,
+  '2026-10-17T14:47:54.629023+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'fe63e132-d030-4bc5-9ce2-a11e077f60ab',
+  'Billie Jean',
+  'Michael Jackson',
+  'Thriller',
+  '[mood: Pop] [00:29.27] She was more like a beauty queen from a movie scene
+[00:33.22] I said, "Don''t mind, but what do you mean I am the one
+[00:38.56] Who will dance on the floor in the round?"
+[00:43.40] She said I am the one
+[00:46.77] Who will dance on the floor in the round
+[00:50.77] 
+[00:53.73] She told me her name was Billie Jean as she caused a scene
+[00:57.86] Then every head turned with eyes that dreamed of being the one
+[01:03.16] Who will dance on the floor in the round
+[01:09.92] People always told me, "Be careful of what you do
+[01:13.89] Don''t go around breaking young girls'' hearts" (hee-eeh)
+[01:17.83] And mother always told me, "Be careful of who you love
+[01:21.92] And be careful of what you do (oh, oh)
+[01:23.87] ''Cause the lie becomes the truth" (oh, oh), eh-eh
+[01:26.62] Billie Jean is not my lover, uh
+[01:30.63] She''s just a girl who claims that I am the one (oh, baby)
+[01:36.04] But the kid is not my son (ooh!), uh
+[01:40.93] She says I am the one (oh, baby)
+[01:44.09] But the kid is not my son
+[01:47.09] (Hee-hee-hee, hee-hee-hee, ooh!) no, no
+[01:51.09] For 40 days and for 40 nights, I was on her side
+[01:55.36] But who can stand when she''s in demand? Her schemes and plans
+[02:00.46] ''Cause we danced on the floor in the round (hee)
+[02:05.43] So take my strong advice
+[02:08.44] Just remember to always think twice
+[02:12.74] (Don''t think twice!) Do think twice! (Ah-hoo)
+[02:15.62] She told my baby we''d danced ''til 3:00, then she looked at me
+[02:19.97] Then showed a photo of a baby crying, his eyes were like mine (oh, no)
+[02:25.18] ''Cause we danced on the floor in the round, baby
+[02:29.30] (Ooh, hee-hee-hee)
+[02:31.84] People always told me, "Be careful of what you do
+[02:35.40] And don''t go around breaking young girls'' hearts" (don''t break no hearts)
+[02:39.57] But she came and stood right by me
+[02:41.77] Just the smell of sweet perfume
+[02:43.87] This happened much too soon
+[02:46.07] She called me to her room, hey
+[02:48.53] Billie Jean is not my lover (hoo)
+[02:52.60] She''s just a girl who claims that I am the one, uh
+[02:57.83] But the kid is not my son
+[03:01.10] No-no-no, no-no-no-no-no-no (hoo)
+[03:05.12] Billie Jean is not my lover, uh
+[03:08.83] She''s just a girl who claims that I am the one (oh, baby)
+[03:13.94] But the kid is not my son (no, no)
+[03:19.14] She says I am the one (oh, baby)
+[03:22.11] But the kid is not my son
+[03:26.66] (No, hee-hee)
+[03:30.68] Hee! Hoo!
+[03:34.98] 
+[03:43.76] She says I am the one, uh
+[03:46.99] But the kid is not my son
+[03:50.57] No-no-no, hoo (oh)
+[03:54.25] Billie Jean is not my lover
+[03:58.18] She''s just a girl who claims that I am the one (you know what you did to me, baby)
+[04:03.64] But the kid is not my son
+[04:06.22] No-no-no, no-no-no-no
+[04:08.22] She says I am the one (no)
+[04:11.38] But the kid is not my son (no-no-no)
+[04:16.47] She says I am the one (you know what you did)
+[04:20.54] She says he is my son (breakin'' my heart, babe)
+[04:24.77] She says I am the one
+[04:26.75] Yeah, Billie Jean is not my lover, uh
+[04:30.85] Yeah, Billie Jean is not my lover, uh
+[04:35.00] Yeah, Billie Jean is not my lover, uh
+[04:38.96] Yeah, Billie Jean is not my lover, uh (don''t call me Billie Jean, hoo)
+[04:43.02] Billie Jean is not my lover, uh (she''s not at the scene)
+[04:47.47] Yeah, Billie Jean is not...
+[04:49.05] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249139/mgzsifawujp2ppdwzhal.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1792249140/sctqudck3mkglx4qzidg.png',
+  294,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249731/ncuk0vm7ilobndyivyoi.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249709/nziq1b1hcs5z4zwyfrk7.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249716/jrduvchlxk8rcqfdkokm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1792249724/vgjjc2fukv2wzymfswqh.mp3',
+  FALSE,
+  '2026-10-17T14:59:01.346687+00:00'
+) ON CONFLICT (id) DO NOTHING;
 
 -- 4. Restore Playlists (30 rows)
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('f9a25586-7289-4a1d-b57b-38464f2fd543', 'Songs We Sang', '1427121b-efda-49c6-abdf-59ad35523935', '2026-09-20T11:36:43.898631+00:00') ON CONFLICT (id) DO NOTHING;
@@ -9345,8 +11046,8 @@ INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('13d4f26f-0
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('39dec174-5860-466c-b96e-82840ad4b80a', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:45:36.529887+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('e9b1578f-12dc-4708-a762-6b2651487371', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:51:43.397964+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('01113d88-41a6-4a2f-9846-88ede407d896', 'Liked Songs', '9cebd7da-e93e-4715-b6fd-487ee09e6f2f', '2026-10-12T14:29:37.787009+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":1,"e6657092-d62b-4754-a347-548d0f3bde39":4,"e718bc53-19ab-497e-8ac7-43a2359a19d6":1,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":2,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":2,"47d3fd86-a418-444e-9fdd-842ea10d06b7":1,"be6f92a1-abc7-4992-9c9e-96e2701774c9":1,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":2,"4a14527e-95d0-43c9-a06a-281aebd6ff34":1,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":3,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":2,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"46136499-85f3-4da2-9484-9f451d511905":1,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":2,"258e9ddc-de55-467f-bed6-202ee00c3466":2,"8c853546-b82b-46f6-ba04-0fc90d54965d":1,"ab99af69-2ebc-4543-a1fd-37895121e02f":2,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":3,"fa8e1c6f-b07b-4553-b154-146604e82c05":1,"b83a94df-c760-4322-994f-f3ad2a31e883":2,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":2,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":1,"9531118f-2926-4918-9156-ef8a543e757f":2,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":2,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":2,"908b2deb-0831-4091-b5e1-dd77e0695a5c":2,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":1,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"923ec288-02e0-4ae2-a13c-accde7ab486e":2,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":1,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":1,"d7f9d821-191e-4f5b-af3e-bfb98b155465":1,"947df50e-7088-46bc-805f-0ad97369e835":1,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":2,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":2,"15f4bf7c-bb20-400b-b70e-45754916f38a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"5157f0c1-5938-4987-b80d-0329f8758ca1":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":1,"56c68e50-f532-4925-9592-1cddf47850cd":3,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":1,"d3328021-ffc8-4534-a748-44d195efc3cd":3,"c55017cd-15ec-4546-99e8-f12bd5626f11":1,"354bb599-a2c0-413e-bbba-70cc7b783841":1,"9e515d2e-f8a7-41d4-a111-0d5233512391":1,"6d493502-16ce-4915-8160-7b36cfd5cd05":1,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":1,"918ee6bd-06b4-4288-a58c-f89f0389c978":1,"39fd084d-c05f-42dc-9cdf-369d47b44153":1,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":1,"0f80a99a-c418-4669-88ca-d64a5c857fdc":1,"6f2cc188-8453-4faa-853c-8c4a69917830":1,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":1,"00ebe386-442b-4f95-9825-0ebda1b41813":2,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":2,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":1,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":1,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":385.300000000001,"0591dd49-6c49-40ee-8ec6-996c430b9691":433.5000000000021,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":49.10000000000002,"c3e49428-958a-4272-b658-dcc665373ba6":13.299999999999999,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":165.99999999999966,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":281.8999999999996,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":165.49999999999972,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":199.0999999999995,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":336.5000000000006,"47d3fd86-a418-444e-9fdd-842ea10d06b7":183.1999999999996,"be6f92a1-abc7-4992-9c9e-96e2701774c9":166.89999999999966,"f6e83060-33c6-457b-8ccf-b825929b2be4":66.80000000000004,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":375.5000000000008,"4a14527e-95d0-43c9-a06a-281aebd6ff34":208.99999999999943,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":28.300000000000008,"b1beda6e-b846-478f-bae6-d92ec4128556":88.09999999999995,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":29.100000000000016,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":621.2000000000049,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":383.1000000000007,"a9e28652-60ce-46aa-b167-711225e2df54":206.39999999999944,"c0d286b0-5df5-485b-8963-5532c0b47991":183.79999999999956,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":6.2,"900af1a9-8b64-4092-913d-9dde80274d93":66.00000000000003,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":113.59999999999992,"9e515d2e-f8a7-41d4-a111-0d5233512391":155.99999999999974,"e718bc53-19ab-497e-8ac7-43a2359a19d6":18,"46136499-85f3-4da2-9484-9f451d511905":179.4999999999997,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":298.3999999999999,"e6657092-d62b-4754-a347-548d0f3bde39":539.3000000000035,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":33.600000000000016,"bf558395-c784-4100-93eb-cfa239715ca9":8.299999999999999,"86ff8290-aa80-454d-8d35-b408f6463b49":20.900000000000002,"c55017cd-15ec-4546-99e8-f12bd5626f11":169.0999999999998,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":302.0999999999998,"72903aae-1d9a-487d-930f-418cfa6b0205":28.400000000000006,"6d493502-16ce-4915-8160-7b36cfd5cd05":175.39999999999966,"923ec288-02e0-4ae2-a13c-accde7ab486e":323.80000000000047,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":223.79999999999941,"283edc91-b796-45aa-a22e-e5ecf26c164f":19.099999999999998,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":102.49999999999991,"83e790e9-1900-4ff5-ac56-7700d9d88354":7.9,"258e9ddc-de55-467f-bed6-202ee00c3466":259.7999999999994,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":193.1999999999996,"8c853546-b82b-46f6-ba04-0fc90d54965d":180.59999999999957,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":7.200000000000001,"642a9c68-e797-48ea-8dab-c42287322c26":9.4,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":8.6,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":10.099999999999998,"908b2deb-0831-4091-b5e1-dd77e0695a5c":522.4000000000036,"d7f9d821-191e-4f5b-af3e-bfb98b155465":291.0999999999998,"354bb599-a2c0-413e-bbba-70cc7b783841":179.7999999999997,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":14.299999999999999,"947df50e-7088-46bc-805f-0ad97369e835":252.5999999999993,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":9.7,"8e0b4d15-45be-49dd-9692-2e171d330c09":7.8,"d3328021-ffc8-4534-a748-44d195efc3cd":511.20000000000323,"6973477f-4917-4f28-9ff8-888f03de9ba2":12.6,"c0cbee49-81ba-4e72-8c52-410308ad361f":4.800000000000001,"2fa75852-1544-407c-a771-b9a2f7688e00":13.399999999999999,"63eb50bd-9772-4c3f-ab26-976301fd2705":6.4,"d724987f-83a9-4351-bd60-3a7502a87c59":4.6000000000000005,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":544.9000000000038,"f726f995-1776-4a2d-97c4-024cf22e851e":5.1000000000000005,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":28.700000000000003,"dd640b9c-21da-4d72-99ca-6b78c143997a":2.9000000000000004,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":128.1999999999998,"39fd084d-c05f-42dc-9cdf-369d47b44153":170.1999999999996,"0f80a99a-c418-4669-88ca-d64a5c857fdc":162.79999999999964,"eb4f3985-fd6a-4a20-a48f-10717982804a":5.7,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":175.09999999999965,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":7.1,"a26eea36-25f1-4754-a534-13ffd38f7ad5":4.300000000000001,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":4.3,"94e729cf-448c-490b-9926-bb9f5a1d4d50":4.6000000000000005,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":15.799999999999999,"c4751b72-883d-40fe-8990-cb7dfeaac47b":4.5,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":231.3999999999994,"4b17d938-0d77-4ccc-8da7-82cd9167218a":3.2,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":63.90000000000004,"07a53c4b-373d-4075-816e-c32fde3184db":2.7,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":5.6,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":220.9999999999995,"6e4bf9a4-092a-42d3-81f0-b8563690b929":3.3000000000000003,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":144.69999999999973,"1d83d33b-2146-4427-89b2-5b3c846a294d":147.69999999999976,"b83a94df-c760-4322-994f-f3ad2a31e883":322.90000000000026,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":3.4000000000000004,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":469.10000000000235,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":101.19999999999995,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":347.0000000000004,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":2.5999999999999996,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":4.300000000000001,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":5.500000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":4,"5157f0c1-5938-4987-b80d-0329f8758ca1":217.19999999999965,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":156.99999999999966,"51f1833c-800c-451c-8c34-79e667ccae4a":3.4000000000000004,"ebfeeb92-1900-4ad6-aec6-275dcce12453":3.5000000000000004,"9531118f-2926-4918-9156-ef8a543e757f":480.3000000000029,"5a8d4c24-fff0-43cd-954f-201770da5be1":5,"fa8e1c6f-b07b-4553-b154-146604e82c05":217.5999999999994,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":3.6,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":19.6,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":6.2,"f83a2b6e-e700-40c7-a406-3931b4ce8780":3.8000000000000003,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":16.7,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":4,"ce7b47f5-9331-45ac-b319-406722b07466":3.5999999999999996,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":174.39999999999958,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":4.5,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":187.49999999999955,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":360.50000000000085,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":292.1999999999999,"a53e97ce-02e6-454c-b13a-0a26e2956e92":4.1,"0ebbc1b7-a451-4540-bbc6-96224926c015":690.2000000000048,"56c68e50-f532-4925-9592-1cddf47850cd":348.80000000000064,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":240.59999999999934,"15f4bf7c-bb20-400b-b70e-45754916f38a":89.89999999999993,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":205.49999999999952,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":398.0000000000008,"cd1fd534-4f13-443d-966d-3021ba004440":4.800000000000001,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":3.9000000000000004,"918ee6bd-06b4-4288-a58c-f89f0389c978":228.09999999999937,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":127.99999999999977,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":4.4,"ab99af69-2ebc-4543-a1fd-37895121e02f":283.4999999999997,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":3.1,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":69.80000000000003,"9e36f778-6b04-4cb3-a674-e4960347cda8":60.50000000000004,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":41.90000000000002,"6f2cc188-8453-4faa-853c-8c4a69917830":354.80000000000075,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":43.70000000000002,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":53.700000000000024,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":197.59999999999957,"943fde3e-1809-490b-acd4-83db59006c30":82.89999999999996,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":77.9,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":239.89999999999924,"00ebe386-442b-4f95-9825-0ebda1b41813":309.7,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":267.69999999999925},"recentlyPlayedIds":["f82eeec8-0dfa-4220-9865-dc5ef41dd146","d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6","a44df24d-9512-4327-ba2c-a5e86e4ba7cf","00ebe386-442b-4f95-9825-0ebda1b41813","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9","748d9b27-fec5-4dd9-a872-e3b15582e0b5","7abc6aed-540e-4cce-9fd5-5d59d45a360a","0ebbc1b7-a451-4540-bbc6-96224926c015","f54b3464-b992-466d-9b96-8ca95c1ad5ce","e6657092-d62b-4754-a347-548d0f3bde39","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb","d629ffbc-dada-4dab-ab5b-cd0a800cc184","908b2deb-0831-4091-b5e1-dd77e0695a5c","5ba2a0c3-89ca-4229-9ae9-514806d0363a","e69cc1b8-f224-4cdd-8cae-aef42da87b5b","8c853546-b82b-46f6-ba04-0fc90d54965d","258e9ddc-de55-467f-bed6-202ee00c3466","0591dd49-6c49-40ee-8ec6-996c430b9691","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7","46136499-85f3-4da2-9484-9f451d511905","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","49b5b3e7-060a-4367-b2f9-83e4b7b2e096","c0d286b0-5df5-485b-8963-5532c0b47991","a9e28652-60ce-46aa-b167-711225e2df54","9a5b4484-7ea6-4d04-bcd9-b49426cec421","b1beda6e-b846-478f-bae6-d92ec4128556","4a14527e-95d0-43c9-a06a-281aebd6ff34","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc","be6f92a1-abc7-4992-9c9e-96e2701774c9","47d3fd86-a418-444e-9fdd-842ea10d06b7","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","0924bcb2-c1dc-4cdb-a3e7-6881f473f668","684b60fa-6f36-4e0b-b122-dd966f2ef7c3","d6c4f539-c83d-4934-9bbe-41d5c16cdee2","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8","e718bc53-19ab-497e-8ac7-43a2359a19d6","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb","6b948690-fcfa-4fc9-adaf-7ea6582a89a4","b83a94df-c760-4322-994f-f3ad2a31e883","fa8e1c6f-b07b-4553-b154-146604e82c05","7a28b082-d69c-4ff8-ad0f-dbfda05f0685","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","1d83d33b-2146-4427-89b2-5b3c846a294d","ab99af69-2ebc-4543-a1fd-37895121e02f","dc0121d6-b3c4-4d60-aabb-c3000d7e3585","9531118f-2926-4918-9156-ef8a543e757f","15f4bf7c-bb20-400b-b70e-45754916f38a","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67","947df50e-7088-46bc-805f-0ad97369e835","d7f9d821-191e-4f5b-af3e-bfb98b155465","2db28891-244e-4cc7-8bbe-b50f54f46bdd","c94a4670-1f14-4e93-8e18-6a75c6562d6f","923ec288-02e0-4ae2-a13c-accde7ab486e","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4","6f2cc188-8453-4faa-853c-8c4a69917830","d3328021-ffc8-4534-a748-44d195efc3cd","0f80a99a-c418-4669-88ca-d64a5c857fdc","fb2647d3-d6fa-4150-a8f5-fc841ae176c2"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Pop","0591dd49-6c49-40ee-8ec6-996c430b9691":"Festival","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Pop","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Pop","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party","e6dd87c2-4847-4aef-bcfe-09569d3d1358":"Energetic","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":"Electronic","d6c4f539-c83d-4934-9bbe-41d5c16cdee2":"Romantic","908b2deb-0831-4091-b5e1-dd77e0695a5c":"Romantic","d7f9d821-191e-4f5b-af3e-bfb98b155465":"Romantic","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":"Retro","d17498d3-d2dc-4124-83a4-ae45d66c2aab":"Pop","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":"Pop","f6e83060-33c6-457b-8ccf-b825929b2be4":"Pop","8e0b4d15-45be-49dd-9692-2e171d330c09":"Romantic","d3328021-ffc8-4534-a748-44d195efc3cd":"Romantic","6973477f-4917-4f28-9ff8-888f03de9ba2":"Romantic","c0cbee49-81ba-4e72-8c52-410308ad361f":"Romantic","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":"Sad","2fa75852-1544-407c-a771-b9a2f7688e00":"Energetic","46136499-85f3-4da2-9484-9f451d511905":"Pop","63eb50bd-9772-4c3f-ab26-976301fd2705":"Energetic","d724987f-83a9-4351-bd60-3a7502a87c59":"Pop","f726f995-1776-4a2d-97c4-024cf22e851e":"Classical","9a5b4484-7ea6-4d04-bcd9-b49426cec421":"Romantic","ffe570a6-d0cb-491d-9cda-f3ba839f6d72":"Energetic","dd640b9c-21da-4d72-99ca-6b78c143997a":"Party","2db28891-244e-4cc7-8bbe-b50f54f46bdd":"Pop","39fd084d-c05f-42dc-9cdf-369d47b44153":"Romantic","0f80a99a-c418-4669-88ca-d64a5c857fdc":"Pop","eb4f3985-fd6a-4a20-a48f-10717982804a":"Pop","f7e6d9a4-e9b9-467b-bbf0-30e929696803":"Pop","684b60fa-6f36-4e0b-b122-dd966f2ef7c3":"Romantic","e758b7f7-1169-4bf9-8a41-e883b9f24b3a":"Chill","a26eea36-25f1-4754-a534-13ffd38f7ad5":"Romantic","d84c6343-8fa6-45e3-bc7a-a2803a8b220b":"Energetic","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":"Pop","8c853546-b82b-46f6-ba04-0fc90d54965d":"Pop","94e729cf-448c-490b-9926-bb9f5a1d4d50":"Chill","c0d286b0-5df5-485b-8963-5532c0b47991":"Romantic","10ea99a7-be01-45c2-82fd-14fa0bcadb58":"Chill","c4751b72-883d-40fe-8990-cb7dfeaac47b":"Energetic","3c6bb417-0b5e-475d-b8f0-3671a51b657b":"Romantic","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":"Romantic","e69cc1b8-f224-4cdd-8cae-aef42da87b5b":"Energetic","b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":"Energetic","a44df24d-9512-4327-ba2c-a5e86e4ba7cf":"Energetic","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":"Energetic","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":"Chill","1d83d33b-2146-4427-89b2-5b3c846a294d":"Desi Pop","b83a94df-c760-4322-994f-f3ad2a31e883":"Desi Pop","5ba2a0c3-89ca-4229-9ae9-514806d0363a":"Energetic","7a28b082-d69c-4ff8-ad0f-dbfda05f0685":"Romantic","a18f0c10-38ad-4de3-acd0-6dd637e1de10":"Chill","f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":"Chill","262fa689-d42b-42bf-bf33-b8f53c0c173c":"Classical","b35c820f-6400-4814-ab0e-2bbb1efb8f4a":"Romantic","fb2647d3-d6fa-4150-a8f5-fc841ae176c2":"Party","ebfeeb92-1900-4ad6-aec6-275dcce12453":"Chill","5a8d4c24-fff0-43cd-954f-201770da5be1":"Romantic","0924bcb2-c1dc-4cdb-a3e7-6881f473f668":"Romantic","a9e28652-60ce-46aa-b167-711225e2df54":"Sad","6aa041f9-9aa2-4fa4-882e-db9a4aac209b":"Romantic","f89d39c2-c7bf-48fa-8cd7-f242893f3609":"Romantic","572ad7f8-ea06-4521-bb3c-55410468ede0":"Romantic","14664d25-20dd-4660-a0e1-f9f11fcc98c4":"Energetic","f83a2b6e-e700-40c7-a406-3931b4ce8780":"Chill","daac84d3-0e68-40b3-94ea-9b9dbd01677c":"Sad","477ac65b-7ec7-4995-bfdf-656a0da42e6e":"Desi Pop","ce7b47f5-9331-45ac-b319-406722b07466":"Desi Pop","6b948690-fcfa-4fc9-adaf-7ea6582a89a4":"Chill","c63e6167-400a-4ff9-8c8c-e4737988d5aa":"Romantic","258e9ddc-de55-467f-bed6-202ee00c3466":"Desi Pop","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":"Desi Pop","f54b3464-b992-466d-9b96-8ca95c1ad5ce":"Pop","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":"Energetic","a53e97ce-02e6-454c-b13a-0a26e2956e92":"Chill","0ebbc1b7-a451-4540-bbc6-96224926c015":"Party","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":"Party","15f4bf7c-bb20-400b-b70e-45754916f38a":"Energetic","2b0e12fe-8ceb-426b-b758-6c62e22d783d":"Party","7abc6aed-540e-4cce-9fd5-5d59d45a360a":"Chill","ee60c07f-468b-419b-ad09-1ae770e2fbc4":"Romantic","918ee6bd-06b4-4288-a58c-f89f0389c978":"Energetic","30ad7c9d-0182-444d-b05f-3acac2f9ef35":"Energetic","ccd7fabf-d277-4420-84a8-4e5ff5b66d67":"Chill","ab99af69-2ebc-4543-a1fd-37895121e02f":"Romantic","9e36f778-6b04-4cb3-a674-e4960347cda8":"Chill","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":"Romantic","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":"Energetic","b1beda6e-b846-478f-bae6-d92ec4128556":"Romantic","6f2cc188-8453-4faa-853c-8c4a69917830":"Energetic","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":"Party","61243ae6-1193-4cb1-ab1d-37ef5a95a055":"Monsoon","a0e110cc-62dc-46f7-ba0a-ff8c781b5585":"Monsoon","748d9b27-fec5-4dd9-a872-e3b15582e0b5":"Sad","943fde3e-1809-490b-acd4-83db59006c30":"Monsoon","bc010c39-b880-42e6-91fa-0336d8b0bc6c":"Sad","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":"Romantic","00ebe386-442b-4f95-9825-0ebda1b41813":"Pop","f82eeec8-0dfa-4220-9865-dc5ef41dd146":"Pop"},"updatedAt":"2026-10-15T18:22:19.277Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('2b35caac-5d09-49a2-a0e8-cd414a57c0f5', '__euphony_user_data__:::{"version":1,"userId":"e1f037de-41f6-4ce0-9fc4-f90b4aa27d62","email":"garv.anand187@gmail.com","playCounts":{"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"eb4f3985-fd6a-4a20-a48f-10717982804a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"e6657092-d62b-4754-a347-548d0f3bde39":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1},"listenSeconds":{"283edc91-b796-45aa-a22e-e5ecf26c164f":245.3999999999994,"47d3fd86-a418-444e-9fdd-842ea10d06b7":7.8,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":195.19999999999956,"83e790e9-1900-4ff5-ac56-7700d9d88354":113.99999999999987,"9e515d2e-f8a7-41d4-a111-0d5233512391":56.00000000000003,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1.3,"eb4f3985-fd6a-4a20-a48f-10717982804a":80.49999999999999,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":69.60000000000001,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":197.89999999999955,"e6657092-d62b-4754-a347-548d0f3bde39":180.99999999999963,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":194.4999999999996,"c4751b72-883d-40fe-8990-cb7dfeaac47b":67.80000000000003,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":214.3999999999995,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":106.69999999999987},"recentlyPlayedIds":["f7e6d9a4-e9b9-467b-bbf0-30e929696803","eb4f3985-fd6a-4a20-a48f-10717982804a","83e790e9-1900-4ff5-ac56-7700d9d88354","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4","283edc91-b796-45aa-a22e-e5ecf26c164f","daac84d3-0e68-40b3-94ea-9b9dbd01677c","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c","c4751b72-883d-40fe-8990-cb7dfeaac47b","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","e6657092-d62b-4754-a347-548d0f3bde39","30ad7c9d-0182-444d-b05f-3acac2f9ef35"],"customMoods":{},"updatedAt":"2026-10-15T10:38:12.619Z"}', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-13T08:06:36.196156+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":1,"e6657092-d62b-4754-a347-548d0f3bde39":5,"e718bc53-19ab-497e-8ac7-43a2359a19d6":2,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":3,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":3,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":2,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":2,"47d3fd86-a418-444e-9fdd-842ea10d06b7":1,"be6f92a1-abc7-4992-9c9e-96e2701774c9":1,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":2,"4a14527e-95d0-43c9-a06a-281aebd6ff34":1,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":3,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":3,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"46136499-85f3-4da2-9484-9f451d511905":1,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":3,"258e9ddc-de55-467f-bed6-202ee00c3466":3,"8c853546-b82b-46f6-ba04-0fc90d54965d":1,"ab99af69-2ebc-4543-a1fd-37895121e02f":2,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":2,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":3,"fa8e1c6f-b07b-4553-b154-146604e82c05":1,"b83a94df-c760-4322-994f-f3ad2a31e883":2,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":3,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":2,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":1,"9531118f-2926-4918-9156-ef8a543e757f":2,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":2,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":2,"908b2deb-0831-4091-b5e1-dd77e0695a5c":2,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":2,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"923ec288-02e0-4ae2-a13c-accde7ab486e":3,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":1,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":2,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2,"947df50e-7088-46bc-805f-0ad97369e835":1,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":3,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":2,"15f4bf7c-bb20-400b-b70e-45754916f38a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"5157f0c1-5938-4987-b80d-0329f8758ca1":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":1,"56c68e50-f532-4925-9592-1cddf47850cd":4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"d3328021-ffc8-4534-a748-44d195efc3cd":3,"c55017cd-15ec-4546-99e8-f12bd5626f11":1,"354bb599-a2c0-413e-bbba-70cc7b783841":1,"9e515d2e-f8a7-41d4-a111-0d5233512391":1,"6d493502-16ce-4915-8160-7b36cfd5cd05":1,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":1,"918ee6bd-06b4-4288-a58c-f89f0389c978":1,"39fd084d-c05f-42dc-9cdf-369d47b44153":1,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":1,"0f80a99a-c418-4669-88ca-d64a5c857fdc":1,"6f2cc188-8453-4faa-853c-8c4a69917830":2,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":2,"00ebe386-442b-4f95-9825-0ebda1b41813":2,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":2,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":2,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":1,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":1,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":1,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":1,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":1,"e2c1f860-e618-4521-b4f2-46e52fb6314d":3,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1,"9a86ca77-4c06-41c4-9270-136103ecce10":1,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":1,"e0089026-ea1d-42dd-9093-a9696de6857b":1,"26fae03b-6bfe-4254-8d90-19f01e8bde31":3,"e932ec12-66bb-42d3-bdba-c2e40fa27623":2,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":1,"6973477f-4917-4f28-9ff8-888f03de9ba2":1,"70417a45-7af3-4c1f-97c5-6b9116c31f05":1,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":1,"900af1a9-8b64-4092-913d-9dde80274d93":5,"787256d8-659b-4297-9514-5e3b4bf87f36":1,"327248c9-fba5-4973-a853-6041d1b7777c":1,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":2,"8636cd1d-0358-44ef-ac0f-c301bfecf738":1,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":1,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":507.8000000000025,"0591dd49-6c49-40ee-8ec6-996c430b9691":621.0000000000047,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":53.30000000000003,"c3e49428-958a-4272-b658-dcc665373ba6":16.099999999999998,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":282.1999999999997,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":281.8999999999996,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":236.3999999999994,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":199.0999999999995,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":336.5000000000006,"47d3fd86-a418-444e-9fdd-842ea10d06b7":183.1999999999996,"be6f92a1-abc7-4992-9c9e-96e2701774c9":191.39999999999958,"f6e83060-33c6-457b-8ccf-b825929b2be4":68.20000000000003,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":375.5000000000008,"4a14527e-95d0-43c9-a06a-281aebd6ff34":208.99999999999943,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":28.300000000000008,"b1beda6e-b846-478f-bae6-d92ec4128556":88.09999999999995,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":29.100000000000016,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":621.2000000000049,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":451.3000000000016,"a9e28652-60ce-46aa-b167-711225e2df54":206.39999999999944,"c0d286b0-5df5-485b-8963-5532c0b47991":183.79999999999956,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":241.9999999999994,"900af1a9-8b64-4092-913d-9dde80274d93":923.2000000000085,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":120.39999999999992,"9e515d2e-f8a7-41d4-a111-0d5233512391":163.49999999999972,"e718bc53-19ab-497e-8ac7-43a2359a19d6":152.49999999999977,"46136499-85f3-4da2-9484-9f451d511905":179.4999999999997,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":298.3999999999999,"e6657092-d62b-4754-a347-548d0f3bde39":719.600000000006,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":34.500000000000014,"bf558395-c784-4100-93eb-cfa239715ca9":8.299999999999999,"86ff8290-aa80-454d-8d35-b408f6463b49":20.900000000000002,"c55017cd-15ec-4546-99e8-f12bd5626f11":169.0999999999998,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":819.4000000000074,"72903aae-1d9a-487d-930f-418cfa6b0205":28.400000000000006,"6d493502-16ce-4915-8160-7b36cfd5cd05":192.5999999999996,"923ec288-02e0-4ae2-a13c-accde7ab486e":483.6000000000027,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":223.79999999999941,"283edc91-b796-45aa-a22e-e5ecf26c164f":19.099999999999998,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":102.49999999999991,"83e790e9-1900-4ff5-ac56-7700d9d88354":7.9,"258e9ddc-de55-467f-bed6-202ee00c3466":385.9000000000013,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":193.1999999999996,"8c853546-b82b-46f6-ba04-0fc90d54965d":180.59999999999957,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":233.5999999999994,"642a9c68-e797-48ea-8dab-c42287322c26":12.799999999999999,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":80.7,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":10.099999999999998,"908b2deb-0831-4091-b5e1-dd77e0695a5c":522.4000000000036,"d7f9d821-191e-4f5b-af3e-bfb98b155465":574.5000000000036,"354bb599-a2c0-413e-bbba-70cc7b783841":179.7999999999997,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":14.299999999999999,"947df50e-7088-46bc-805f-0ad97369e835":252.5999999999993,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":17.5,"8e0b4d15-45be-49dd-9692-2e171d330c09":17,"d3328021-ffc8-4534-a748-44d195efc3cd":511.20000000000323,"6973477f-4917-4f28-9ff8-888f03de9ba2":274.69999999999965,"c0cbee49-81ba-4e72-8c52-410308ad361f":4.800000000000001,"2fa75852-1544-407c-a771-b9a2f7688e00":13.399999999999999,"63eb50bd-9772-4c3f-ab26-976301fd2705":6.4,"d724987f-83a9-4351-bd60-3a7502a87c59":51.300000000000026,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":544.9000000000038,"f726f995-1776-4a2d-97c4-024cf22e851e":5.1000000000000005,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":28.700000000000003,"dd640b9c-21da-4d72-99ca-6b78c143997a":2.9000000000000004,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":251.79999999999933,"39fd084d-c05f-42dc-9cdf-369d47b44153":170.1999999999996,"0f80a99a-c418-4669-88ca-d64a5c857fdc":164.69999999999965,"eb4f3985-fd6a-4a20-a48f-10717982804a":26.800000000000008,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":175.09999999999965,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":7.1,"a26eea36-25f1-4754-a534-13ffd38f7ad5":4.300000000000001,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":4.3,"94e729cf-448c-490b-9926-bb9f5a1d4d50":4.6000000000000005,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":91.39999999999995,"c4751b72-883d-40fe-8990-cb7dfeaac47b":4.5,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":231.3999999999994,"4b17d938-0d77-4ccc-8da7-82cd9167218a":3.2,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":63.90000000000004,"07a53c4b-373d-4075-816e-c32fde3184db":47.300000000000026,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":5.6,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":351.10000000000065,"6e4bf9a4-092a-42d3-81f0-b8563690b929":3.3000000000000003,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":144.69999999999973,"1d83d33b-2146-4427-89b2-5b3c846a294d":147.69999999999976,"b83a94df-c760-4322-994f-f3ad2a31e883":322.90000000000026,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":3.4000000000000004,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":469.10000000000235,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":101.19999999999995,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":914.200000000008,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":2.5999999999999996,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":4.300000000000001,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":7.100000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":111.79999999999988,"5157f0c1-5938-4987-b80d-0329f8758ca1":221.49999999999963,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":156.99999999999966,"51f1833c-800c-451c-8c34-79e667ccae4a":3.4000000000000004,"ebfeeb92-1900-4ad6-aec6-275dcce12453":3.5000000000000004,"9531118f-2926-4918-9156-ef8a543e757f":480.3000000000029,"5a8d4c24-fff0-43cd-954f-201770da5be1":8.499999999999998,"fa8e1c6f-b07b-4553-b154-146604e82c05":217.5999999999994,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":303.1000000000001,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":19.6,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":6.2,"f83a2b6e-e700-40c7-a406-3931b4ce8780":3.8000000000000003,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":16.7,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":4,"ce7b47f5-9331-45ac-b319-406722b07466":3.5999999999999996,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":174.39999999999958,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":4.5,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":373.40000000000083,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":360.50000000000085,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":574.2000000000038,"a53e97ce-02e6-454c-b13a-0a26e2956e92":6.1,"0ebbc1b7-a451-4540-bbc6-96224926c015":692.2000000000048,"56c68e50-f532-4925-9592-1cddf47850cd":532.3000000000033,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":240.59999999999934,"15f4bf7c-bb20-400b-b70e-45754916f38a":92.39999999999993,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":214.29999999999953,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":398.0000000000008,"cd1fd534-4f13-443d-966d-3021ba004440":4.800000000000001,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":3.9000000000000004,"918ee6bd-06b4-4288-a58c-f89f0389c978":228.09999999999937,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":127.99999999999977,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":4.4,"ab99af69-2ebc-4543-a1fd-37895121e02f":346.50000000000057,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":3.1,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":69.80000000000003,"9e36f778-6b04-4cb3-a674-e4960347cda8":60.50000000000004,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":43.00000000000002,"6f2cc188-8453-4faa-853c-8c4a69917830":642.4000000000049,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":43.70000000000002,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":53.700000000000024,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":462.500000000002,"943fde3e-1809-490b-acd4-83db59006c30":82.89999999999996,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":77.9,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":402.1000000000012,"00ebe386-442b-4f95-9825-0ebda1b41813":309.7,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":277.5999999999994,"e2c1f860-e618-4521-b4f2-46e52fb6314d":568.8000000000031,"6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":69.60000000000001,"9a86ca77-4c06-41c4-9270-136103ecce10":183.59999999999962,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":203.3999999999996,"e0089026-ea1d-42dd-9093-a9696de6857b":87.19999999999999,"6b22c41d-1724-4bac-a2df-d9d61f442c95":51.800000000000026,"e932ec12-66bb-42d3-bdba-c2e40fa27623":245.69999999999936,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":20.500000000000004,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":183.5999999999996,"03294ca0-8782-4468-a2fe-e138754f3156":38.20000000000002,"2579167d-dced-4fca-aebf-e703dff1884b":42.40000000000002,"70417a45-7af3-4c1f-97c5-6b9116c31f05":160.0999999999997,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":50.90000000000002,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":172.8999999999997,"26fae03b-6bfe-4254-8d90-19f01e8bde31":362.90000000000066,"787256d8-659b-4297-9514-5e3b4bf87f36":62.20000000000003,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":23,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":19.4,"327248c9-fba5-4973-a853-6041d1b7777c":89.99999999999996,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":208.49999999999955,"8636cd1d-0358-44ef-ac0f-c301bfecf738":131.49999999999986,"8263c87d-5688-421e-abc4-438d81b41480":53.10000000000002,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":219.49999999999952},"recentlyPlayedIds":["e718bc53-19ab-497e-8ac7-43a2359a19d6","efba21ea-42c2-4657-bc4a-9b3b08e10e07","cd9f67bb-f9bb-49a1-a699-df27dedefe25","26fae03b-6bfe-4254-8d90-19f01e8bde31","fe63e132-d030-4bc5-9ce2-a11e077f60ab","8636cd1d-0358-44ef-ac0f-c301bfecf738","327248c9-fba5-4973-a853-6041d1b7777c","787256d8-659b-4297-9514-5e3b4bf87f36","900af1a9-8b64-4092-913d-9dde80274d93","e2c1f860-e618-4521-b4f2-46e52fb6314d","b35c820f-6400-4814-ab0e-2bbb1efb8f4a","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9","d7f9d821-191e-4f5b-af3e-bfb98b155465","70417a45-7af3-4c1f-97c5-6b9116c31f05","923ec288-02e0-4ae2-a13c-accde7ab486e","0591dd49-6c49-40ee-8ec6-996c430b9691","6973477f-4917-4f28-9ff8-888f03de9ba2","7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc","6f2cc188-8453-4faa-853c-8c4a69917830","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8","d629ffbc-dada-4dab-ab5b-cd0a800cc184","e932ec12-66bb-42d3-bdba-c2e40fa27623","3cfe46d0-7912-4d3b-bc38-539d3b775bcf","e0089026-ea1d-42dd-9093-a9696de6857b","1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a","9a5b4484-7ea6-4d04-bcd9-b49426cec421","56c68e50-f532-4925-9592-1cddf47850cd","9a86ca77-4c06-41c4-9270-136103ecce10","e6dd87c2-4847-4aef-bcfe-09569d3d1358","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67","262fa689-d42b-42bf-bf33-b8f53c0c173c","6aa041f9-9aa2-4fa4-882e-db9a4aac209b","10ea99a7-be01-45c2-82fd-14fa0bcadb58","e6657092-d62b-4754-a347-548d0f3bde39","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","748d9b27-fec5-4dd9-a872-e3b15582e0b5","f82eeec8-0dfa-4220-9865-dc5ef41dd146","d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6","a44df24d-9512-4327-ba2c-a5e86e4ba7cf","00ebe386-442b-4f95-9825-0ebda1b41813","7abc6aed-540e-4cce-9fd5-5d59d45a360a","0ebbc1b7-a451-4540-bbc6-96224926c015","f54b3464-b992-466d-9b96-8ca95c1ad5ce","908b2deb-0831-4091-b5e1-dd77e0695a5c","5ba2a0c3-89ca-4229-9ae9-514806d0363a","e69cc1b8-f224-4cdd-8cae-aef42da87b5b","8c853546-b82b-46f6-ba04-0fc90d54965d","258e9ddc-de55-467f-bed6-202ee00c3466","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7","46136499-85f3-4da2-9484-9f451d511905","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","49b5b3e7-060a-4367-b2f9-83e4b7b2e096","c0d286b0-5df5-485b-8963-5532c0b47991","a9e28652-60ce-46aa-b167-711225e2df54","b1beda6e-b846-478f-bae6-d92ec4128556","4a14527e-95d0-43c9-a06a-281aebd6ff34","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc","be6f92a1-abc7-4992-9c9e-96e2701774c9"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Pop","0591dd49-6c49-40ee-8ec6-996c430b9691":"Festival","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Pop","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Pop","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party","e6dd87c2-4847-4aef-bcfe-09569d3d1358":"Energetic","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":"Electronic","d6c4f539-c83d-4934-9bbe-41d5c16cdee2":"Romantic","908b2deb-0831-4091-b5e1-dd77e0695a5c":"Romantic","d7f9d821-191e-4f5b-af3e-bfb98b155465":"Romantic","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":"Retro","d17498d3-d2dc-4124-83a4-ae45d66c2aab":"Pop","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":"Pop","f6e83060-33c6-457b-8ccf-b825929b2be4":"Pop","8e0b4d15-45be-49dd-9692-2e171d330c09":"Romantic","d3328021-ffc8-4534-a748-44d195efc3cd":"Romantic","6973477f-4917-4f28-9ff8-888f03de9ba2":"Romantic","c0cbee49-81ba-4e72-8c52-410308ad361f":"Romantic","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":"Sad","2fa75852-1544-407c-a771-b9a2f7688e00":"Energetic","46136499-85f3-4da2-9484-9f451d511905":"Pop","63eb50bd-9772-4c3f-ab26-976301fd2705":"Energetic","d724987f-83a9-4351-bd60-3a7502a87c59":"Pop","f726f995-1776-4a2d-97c4-024cf22e851e":"Classical","9a5b4484-7ea6-4d04-bcd9-b49426cec421":"Romantic","ffe570a6-d0cb-491d-9cda-f3ba839f6d72":"Energetic","dd640b9c-21da-4d72-99ca-6b78c143997a":"Party","2db28891-244e-4cc7-8bbe-b50f54f46bdd":"Pop","39fd084d-c05f-42dc-9cdf-369d47b44153":"Romantic","0f80a99a-c418-4669-88ca-d64a5c857fdc":"Pop","eb4f3985-fd6a-4a20-a48f-10717982804a":"Pop","f7e6d9a4-e9b9-467b-bbf0-30e929696803":"Pop","684b60fa-6f36-4e0b-b122-dd966f2ef7c3":"Romantic","e758b7f7-1169-4bf9-8a41-e883b9f24b3a":"Chill","a26eea36-25f1-4754-a534-13ffd38f7ad5":"Romantic","d84c6343-8fa6-45e3-bc7a-a2803a8b220b":"Energetic","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":"Pop","8c853546-b82b-46f6-ba04-0fc90d54965d":"Pop","94e729cf-448c-490b-9926-bb9f5a1d4d50":"Chill","c0d286b0-5df5-485b-8963-5532c0b47991":"Romantic","10ea99a7-be01-45c2-82fd-14fa0bcadb58":"Chill","c4751b72-883d-40fe-8990-cb7dfeaac47b":"Energetic","3c6bb417-0b5e-475d-b8f0-3671a51b657b":"Romantic","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":"Romantic","e69cc1b8-f224-4cdd-8cae-aef42da87b5b":"Energetic","b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":"Energetic","a44df24d-9512-4327-ba2c-a5e86e4ba7cf":"Energetic","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":"Energetic","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":"Chill","1d83d33b-2146-4427-89b2-5b3c846a294d":"Desi Pop","b83a94df-c760-4322-994f-f3ad2a31e883":"Desi Pop","5ba2a0c3-89ca-4229-9ae9-514806d0363a":"Energetic","7a28b082-d69c-4ff8-ad0f-dbfda05f0685":"Romantic","a18f0c10-38ad-4de3-acd0-6dd637e1de10":"Chill","f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":"Chill","262fa689-d42b-42bf-bf33-b8f53c0c173c":"Classical","b35c820f-6400-4814-ab0e-2bbb1efb8f4a":"Romantic","fb2647d3-d6fa-4150-a8f5-fc841ae176c2":"Party","ebfeeb92-1900-4ad6-aec6-275dcce12453":"Chill","5a8d4c24-fff0-43cd-954f-201770da5be1":"Romantic","0924bcb2-c1dc-4cdb-a3e7-6881f473f668":"Romantic","a9e28652-60ce-46aa-b167-711225e2df54":"Sad","6aa041f9-9aa2-4fa4-882e-db9a4aac209b":"Romantic","f89d39c2-c7bf-48fa-8cd7-f242893f3609":"Romantic","572ad7f8-ea06-4521-bb3c-55410468ede0":"Romantic","14664d25-20dd-4660-a0e1-f9f11fcc98c4":"Energetic","f83a2b6e-e700-40c7-a406-3931b4ce8780":"Chill","daac84d3-0e68-40b3-94ea-9b9dbd01677c":"Sad","477ac65b-7ec7-4995-bfdf-656a0da42e6e":"Desi Pop","ce7b47f5-9331-45ac-b319-406722b07466":"Desi Pop","6b948690-fcfa-4fc9-adaf-7ea6582a89a4":"Chill","c63e6167-400a-4ff9-8c8c-e4737988d5aa":"Romantic","258e9ddc-de55-467f-bed6-202ee00c3466":"Desi Pop","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":"Desi Pop","f54b3464-b992-466d-9b96-8ca95c1ad5ce":"Pop","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":"Energetic","a53e97ce-02e6-454c-b13a-0a26e2956e92":"Chill","0ebbc1b7-a451-4540-bbc6-96224926c015":"Party","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":"Party","15f4bf7c-bb20-400b-b70e-45754916f38a":"Energetic","2b0e12fe-8ceb-426b-b758-6c62e22d783d":"Party","7abc6aed-540e-4cce-9fd5-5d59d45a360a":"Chill","ee60c07f-468b-419b-ad09-1ae770e2fbc4":"Romantic","918ee6bd-06b4-4288-a58c-f89f0389c978":"Energetic","30ad7c9d-0182-444d-b05f-3acac2f9ef35":"Energetic","ccd7fabf-d277-4420-84a8-4e5ff5b66d67":"Chill","ab99af69-2ebc-4543-a1fd-37895121e02f":"Romantic","9e36f778-6b04-4cb3-a674-e4960347cda8":"Chill","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":"Romantic","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":"Energetic","b1beda6e-b846-478f-bae6-d92ec4128556":"Romantic","6f2cc188-8453-4faa-853c-8c4a69917830":"Energetic","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":"Party","61243ae6-1193-4cb1-ab1d-37ef5a95a055":"Monsoon","a0e110cc-62dc-46f7-ba0a-ff8c781b5585":"Monsoon","748d9b27-fec5-4dd9-a872-e3b15582e0b5":"Sad","943fde3e-1809-490b-acd4-83db59006c30":"Monsoon","bc010c39-b880-42e6-91fa-0336d8b0bc6c":"Sad","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":"Romantic","00ebe386-442b-4f95-9825-0ebda1b41813":"Pop","f82eeec8-0dfa-4220-9865-dc5ef41dd146":"Pop","e2c1f860-e618-4521-b4f2-46e52fb6314d":"Chill","6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":"Romantic","e0089026-ea1d-42dd-9093-a9696de6857b":"Pop","6b22c41d-1724-4bac-a2df-d9d61f442c95":"Chill","9a86ca77-4c06-41c4-9270-136103ecce10":"Sad","e932ec12-66bb-42d3-bdba-c2e40fa27623":"Energetic","1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":"Romantic","cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":"Pop","7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":"Chill","03294ca0-8782-4468-a2fe-e138754f3156":"Pop","2579167d-dced-4fca-aebf-e703dff1884b":"Pop","70417a45-7af3-4c1f-97c5-6b9116c31f05":"Romantic","fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":"Energetic","cd9f67bb-f9bb-49a1-a699-df27dedefe25":"Pop","26fae03b-6bfe-4254-8d90-19f01e8bde31":"Pop","787256d8-659b-4297-9514-5e3b4bf87f36":"Chill","f840a011-96b7-4b8f-8c0f-e30d4b52037d":"Chill","a72625ec-ca27-4357-9d70-6f85c17ef9a7":"Energetic","efba21ea-42c2-4657-bc4a-9b3b08e10e07":"Energetic","327248c9-fba5-4973-a853-6041d1b7777c":"Pop","8636cd1d-0358-44ef-ac0f-c301bfecf738":"Energetic","8263c87d-5688-421e-abc4-438d81b41480":"Chill","fe63e132-d030-4bc5-9ce2-a11e077f60ab":"Pop"},"updatedAt":"2026-10-17T16:00:57.712Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('2b35caac-5d09-49a2-a0e8-cd414a57c0f5', '__euphony_user_data__:::{"version":1,"userId":"e1f037de-41f6-4ce0-9fc4-f90b4aa27d62","email":"garv.anand187@gmail.com","playCounts":{"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"eb4f3985-fd6a-4a20-a48f-10717982804a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"e6657092-d62b-4754-a347-548d0f3bde39":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1},"listenSeconds":{"283edc91-b796-45aa-a22e-e5ecf26c164f":245.3999999999994,"47d3fd86-a418-444e-9fdd-842ea10d06b7":7.8,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":195.19999999999956,"83e790e9-1900-4ff5-ac56-7700d9d88354":113.99999999999987,"9e515d2e-f8a7-41d4-a111-0d5233512391":56.00000000000003,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1.3,"eb4f3985-fd6a-4a20-a48f-10717982804a":80.49999999999999,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":69.60000000000001,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":197.89999999999955,"e6657092-d62b-4754-a347-548d0f3bde39":180.99999999999963,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":194.4999999999996,"c4751b72-883d-40fe-8990-cb7dfeaac47b":67.80000000000003,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":214.3999999999995,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":106.69999999999987},"recentlyPlayedIds":["f7e6d9a4-e9b9-467b-bbf0-30e929696803","eb4f3985-fd6a-4a20-a48f-10717982804a","83e790e9-1900-4ff5-ac56-7700d9d88354","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4","283edc91-b796-45aa-a22e-e5ecf26c164f","daac84d3-0e68-40b3-94ea-9b9dbd01677c","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c","c4751b72-883d-40fe-8990-cb7dfeaac47b","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","e6657092-d62b-4754-a347-548d0f3bde39","30ad7c9d-0182-444d-b05f-3acac2f9ef35"],"customMoods":{},"updatedAt":"2026-10-17T10:38:52.093Z"}', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-13T08:06:36.196156+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('b51ec0af-c205-4b09-8025-cb3fbadf04ba', '__euphony_user_data__:::{"version":1,"userId":"9a70cd01-9ddd-43bb-97ab-b868721cb2c6","email":"rishabhraj17853@gmail.com","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"updatedAt":"2026-10-14T07:41:03.078Z"}', '9a70cd01-9ddd-43bb-97ab-b868721cb2c6', '2026-10-14T07:40:25.960109+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d69d5801-2605-4b18-935a-d41dd43ab4f1', 'Liked Songs', '9a70cd01-9ddd-43bb-97ab-b868721cb2c6', '2026-10-14T07:40:26.37098+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('ce4ce0a6-a78d-4807-ab31-aa18d2c29f52', '__euphony_user_data__:::{"version":1,"userId":"cca2e5c2-d079-4909-b163-f0b9640e88cd","email":"ayush24486@gmail.com","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"updatedAt":"2026-10-14T10:18:28.874Z"}', 'cca2e5c2-d079-4909-b163-f0b9640e88cd', '2026-10-14T10:18:06.489127+00:00') ON CONFLICT (id) DO NOTHING;
@@ -9354,8 +11055,8 @@ INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('856fbc28-b
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d439fec6-1efd-49fd-8128-c8f0e8b4bd99', 'Liked Songs', 'cca2e5c2-d079-4909-b163-f0b9640e88cd', '2026-10-14T10:18:07.976088+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('ef85134b-fb2a-4c0f-b137-bd56f0592d14', '__euphony_user_data__:::{"version":1,"userId":"c2f47b61-48cd-4a5b-90cd-7bc319b914b3","email":"dev1527b@gmail.com","playCounts":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"b83a94df-c760-4322-994f-f3ad2a31e883":1},"listenSeconds":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":233.49999999999943,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":110.0999999999999,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":2.2,"15f4bf7c-bb20-400b-b70e-45754916f38a":75.39999999999999,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":4.2,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":3.3,"cd1fd534-4f13-443d-966d-3021ba004440":0.6,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":0.5,"918ee6bd-06b4-4288-a58c-f89f0389c978":0.8,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":0.8,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":0.5,"ab99af69-2ebc-4543-a1fd-37895121e02f":0.4,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":0.6,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":4.4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":40.20000000000002,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":208.99999999999957,"f6e83060-33c6-457b-8ccf-b825929b2be4":1,"8e0b4d15-45be-49dd-9692-2e171d330c09":4.4,"c55017cd-15ec-4546-99e8-f12bd5626f11":8.5,"83e790e9-1900-4ff5-ac56-7700d9d88354":135.7999999999998,"0591dd49-6c49-40ee-8ec6-996c430b9691":4.4,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1.8000000000000003,"642a9c68-e797-48ea-8dab-c42287322c26":0.7999999999999999,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":4.6,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":1.2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":2.8,"908b2deb-0831-4091-b5e1-dd77e0695a5c":46.50000000000003,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2.1,"354bb599-a2c0-413e-bbba-70cc7b783841":49.60000000000003,"6e4bf9a4-092a-42d3-81f0-b8563690b929":2.8,"1d83d33b-2146-4427-89b2-5b3c846a294d":129.69999999999982,"b83a94df-c760-4322-994f-f3ad2a31e883":118.79999999999986,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":47.30000000000002,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":0.9},"recentlyPlayedIds":["b83a94df-c760-4322-994f-f3ad2a31e883","1d83d33b-2146-4427-89b2-5b3c846a294d","83e790e9-1900-4ff5-ac56-7700d9d88354","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","15f4bf7c-bb20-400b-b70e-45754916f38a","a18f0c10-38ad-4de3-acd0-6dd637e1de10","5ba2a0c3-89ca-4229-9ae9-514806d0363a"],"customMoods":{},"updatedAt":"2026-10-14T12:01:48.509Z"}', 'c2f47b61-48cd-4a5b-90cd-7bc319b914b3', '2026-10-14T11:30:43.336776+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('fae2f00a-c7ba-4df1-b8db-56a936439b3a', '__euphony_user_data__:::{"version":1,"userId":"ceda8c9c-bcfb-46b6-85b1-9eacd1a7560b","email":"bhimsinghnegi178@gmail.com","playCounts":{},"listenSeconds":{"be6f92a1-abc7-4992-9c9e-96e2701774c9":1.5,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1.1},"recentlyPlayedIds":[],"customMoods":{},"updatedAt":"2026-10-14T18:01:10.287Z"}', 'ceda8c9c-bcfb-46b6-85b1-9eacd1a7560b', '2026-10-14T17:47:02.092905+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d25d16d8-4721-46c9-8ce3-9a6899dddc5e', '__euphony_user_data__:::{"version":1,"userId":"91e4824b-829e-481a-b049-15f997998a07","email":"vanayushrai@gmail.com","playCounts":{"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1,"642a9c68-e797-48ea-8dab-c42287322c26":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1},"listenSeconds":{"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":1,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":169.99999999999972,"642a9c68-e797-48ea-8dab-c42287322c26":276.4999999999997,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":186.79999999999967,"39fd084d-c05f-42dc-9cdf-369d47b44153":29.000000000000007},"recentlyPlayedIds":["30ad7c9d-0182-444d-b05f-3acac2f9ef35","642a9c68-e797-48ea-8dab-c42287322c26","d629ffbc-dada-4dab-ab5b-cd0a800cc184"],"customMoods":{},"updatedAt":"2026-10-15T16:28:23.590Z"}', '91e4824b-829e-481a-b049-15f997998a07', '2026-10-15T13:07:31.822224+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('51a42a2a-0eb1-45f8-a0aa-46db966576ac', '__euphony_user_data__:::{"version":1,"userId":"603713cc-a0aa-4670-820d-abeac19a0597","email":"avicharai@gmail.com","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"updatedAt":"2026-10-15T16:30:16.423Z"}', '603713cc-a0aa-4670-820d-abeac19a0597', '2026-10-15T16:29:28.620258+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d25d16d8-4721-46c9-8ce3-9a6899dddc5e', '__euphony_user_data__:::{"version":1,"userId":"91e4824b-829e-481a-b049-15f997998a07","email":"vanayushrai@gmail.com","playCounts":{"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1,"642a9c68-e797-48ea-8dab-c42287322c26":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":1,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1},"listenSeconds":{"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":1,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":169.99999999999972,"642a9c68-e797-48ea-8dab-c42287322c26":276.4999999999997,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":186.79999999999967,"39fd084d-c05f-42dc-9cdf-369d47b44153":29.000000000000007,"86ff8290-aa80-454d-8d35-b408f6463b49":49.00000000000003,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":17.6,"283edc91-b796-45aa-a22e-e5ecf26c164f":5.7,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":8.4,"0591dd49-6c49-40ee-8ec6-996c430b9691":186.69999999999962,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":246.89999999999938,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":198.69999999999956,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":52.20000000000003,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":219.39999999999952,"15f4bf7c-bb20-400b-b70e-45754916f38a":106.69999999999987},"recentlyPlayedIds":["15f4bf7c-bb20-400b-b70e-45754916f38a","9a5b4484-7ea6-4d04-bcd9-b49426cec421","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10","7abc6aed-540e-4cce-9fd5-5d59d45a360a","0591dd49-6c49-40ee-8ec6-996c430b9691","30ad7c9d-0182-444d-b05f-3acac2f9ef35","642a9c68-e797-48ea-8dab-c42287322c26","d629ffbc-dada-4dab-ab5b-cd0a800cc184"],"customMoods":{},"updatedAt":"2026-10-16T16:11:13.690Z"}', '91e4824b-829e-481a-b049-15f997998a07', '2026-10-15T13:07:31.822224+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('51a42a2a-0eb1-45f8-a0aa-46db966576ac', '__euphony_user_data__:::{"version":1,"userId":"603713cc-a0aa-4670-820d-abeac19a0597","email":"avicharai@gmail.com","playCounts":{},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":7.699999999999999},"recentlyPlayedIds":[],"customMoods":{},"updatedAt":"2026-10-16T16:13:08.502Z"}', '603713cc-a0aa-4670-820d-abeac19a0597', '2026-10-15T16:29:28.620258+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('82c9069c-f91f-4e1a-8b4f-331b2a5d9a0d', 'Liked Songs', '603713cc-a0aa-4670-820d-abeac19a0597', '2026-10-15T16:29:28.707718+00:00') ON CONFLICT (id) DO NOTHING;
 
 -- 5. Restore Playlist Songs (63 rows)
