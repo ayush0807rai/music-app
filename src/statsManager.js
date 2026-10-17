@@ -1,6 +1,7 @@
 // src/statsManager.js
 // Account-specific cloud-synchronized listening history, play counters, and personal stats for Euphony
 import { supabase } from "./supabase";
+import { getTrackArtists } from "./artistUtils";
 
 const RECENTLY_PLAYED_KEY = "euphony_recently_played_ids";
 const PLAY_COUNTS_KEY = "euphony_song_play_counts";
@@ -422,7 +423,7 @@ export function computeListeningStats(allSongs = [], getSongMoodsFn, userId = ac
       topTracksList.push({ ...song, playCount: count });
 
       // Track artist popularity
-      const artists = (song.artist || '').split(/[,&]/).map(a => a.trim()).filter(Boolean);
+      const artists = getTrackArtists(song.artist);
       artists.forEach(a => {
         artistPlayMap[a] = (artistPlayMap[a] || 0) + count;
       });

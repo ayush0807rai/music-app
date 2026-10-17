@@ -28,6 +28,7 @@ import {
 import { supabase } from "./supabase";
 import Auth from "./Auth";
 import { AVAILABLE_MOODS, getSongMoods, suggestMood, getCustomMoodOverrides, setCustomSongMood, getMoodEmoji } from "./moods";
+import { matchesArtist, getTrackArtists } from "./artistUtils";
 import {
   getRecentlyPlayedIds,
   recordSongPlay,
@@ -1318,7 +1319,7 @@ export default function App() {
           if (!songMoods.includes(selectedMood)) return false;
         }
         if (selectedArtist) {
-          return (track.artist || "").toLowerCase().includes(selectedArtist.toLowerCase());
+          return matchesArtist(track.artist, selectedArtist);
         }
         if (selectedAlbum) {
           return (track.album || "").toLowerCase() === selectedAlbum.toLowerCase();
@@ -3178,6 +3179,24 @@ export default function App() {
           const found = moodSongs.findIndex(s => s.id === clickedTrack.id);
           if (found !== -1) actualIndex = found;
         }
+      } else if (selectedArtist || (sourceName && sourceName.includes("Artist"))) {
+        const artistName = selectedArtist || sourceName.replace(" Artist", "").trim();
+        const artistSongs = playlist.filter(s => matchesArtist(s.artist, artistName));
+        if (artistSongs.length > 0) {
+          queueToSet = artistSongs;
+          resolvedSource = `${artistName} Artist`;
+          const found = artistSongs.findIndex(s => s.id === clickedTrack.id);
+          if (found !== -1) actualIndex = found;
+        }
+      } else if (selectedAlbum || (sourceName && sourceName.includes("Album"))) {
+        const albumName = selectedAlbum || sourceName.replace(" Album", "").trim();
+        const albumSongs = playlist.filter(s => (s.album || "").toLowerCase() === albumName.toLowerCase());
+        if (albumSongs.length > 0) {
+          queueToSet = albumSongs;
+          resolvedSource = `${albumName} Album`;
+          const found = albumSongs.findIndex(s => s.id === clickedTrack.id);
+          if (found !== -1) actualIndex = found;
+        }
       } else if ((resolvedSource === "Global Library" || !resolvedSource) && playlist.length > listToSet.length) {
         queueToSet = playlist;
         const found = playlist.findIndex(s => s.id === clickedTrack.id);
@@ -3217,8 +3236,7 @@ export default function App() {
     });
     (playlist || []).forEach(s => {
       if (s?.artist) {
-        s.artist.split(',').forEach(part => {
-          const clean = part.trim();
+        getTrackArtists(s.artist).forEach(clean => {
           if (clean && !artistMap.has(clean.toLowerCase())) {
             artistMap.set(clean.toLowerCase(), clean);
           }
@@ -3428,7 +3446,7 @@ export default function App() {
       if (dbError) throw dbError;
 
       // 4. Ensure any newly entered artists are saved into the Supabase artists table for suggestions only (no top artist art cover)
-      const enteredArtistNames = uploadArtist.split(',').map(a => a.trim()).filter(Boolean);
+      const enteredArtistNames = getTrackArtists(uploadArtist);
       for (const aName of enteredArtistNames) {
         const lower = aName.toLowerCase();
         const exists = (dbArtists || []).some(k => k.name && k.name.toLowerCase() === lower);
@@ -5555,7 +5573,7 @@ export default function App() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {(targetTrackForArtists.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
+                {getTrackArtists(targetTrackForArtists.artist || "").map((artistName, idx) => {
                   const dbArtist = (dbArtists || []).find(a => a.name.toLowerCase() === artistName.toLowerCase());
                   return (
                     <div
@@ -5642,7 +5660,7 @@ export default function App() {
                 </button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {(targetTrackForArtists.artist || "").split(/[,&]/).map(a => a.trim()).filter(Boolean).map((artistName, idx) => {
+                {getTrackArtists(targetTrackForArtists.artist || "").map((artistName, idx) => {
                   const dbArtist = (dbArtists || []).find(a => a.name.toLowerCase() === artistName.toLowerCase());
                   return (
                     <div
@@ -6421,7 +6439,7 @@ export default function App() {
                     const isSelected = currentTrack?.id === track.id;
                     return (
                       <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase} className={index >= 10 ? "song-row-deferred" : ""}>
-                        <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, selectedMood ? `${selectedMood} Mood` : "Global Library")} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
+                        <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, selectedMood ? `${selectedMood} Mood` : (selectedArtist ? `${selectedArtist} Artist` : (selectedAlbum ? `${selectedAlbum} Album` : "Global Library")))} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
                           <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
                             <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
