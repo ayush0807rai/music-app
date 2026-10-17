@@ -655,6 +655,28 @@ export default function App() {
   // Track the names of the immediately preceding batch to avoid boundary overlap across consecutive cycles
   const lastArtistBatchNamesRef = useRef(new Set());
 
+  // Dynamically resolve artist poster from database for the active selected artist section
+  const selectedArtistObj = useMemo(() => {
+    if (!selectedArtist) return null;
+    const clean = selectedArtist.trim().toLowerCase();
+    const cleanNorm = clean.replace(/[\.\s\-_]/g, "");
+    return (dbArtists || []).find(a => {
+      if (!a?.name || !a?.image_url || typeof a.image_url !== "string" || !a.image_url.trim()) return false;
+      const aName = a.name.trim().toLowerCase();
+      if (aName === clean) return true;
+      if (cleanNorm && aName.replace(/[\.\s\-_]/g, "") === cleanNorm) return true;
+      return false;
+    }) || null;
+  }, [selectedArtist, dbArtists]);
+
+  // Dynamically resolve album cover from playlist if an album is filtered
+  const selectedAlbumCover = useMemo(() => {
+    if (!selectedAlbum) return null;
+    const clean = selectedAlbum.trim().toLowerCase();
+    const track = (playlist || []).find(s => s?.album && s.album.trim().toLowerCase() === clean && s?.poster_url);
+    return track?.poster_url || null;
+  }, [selectedAlbum, playlist]);
+
   // Desktop-only ultra-smooth horizontal mouse wheel scroll handler for Top Artists and Moods categories
   const attachHorizontalWheel = useCallback((node) => {
     if (!node || !isDesktop) return () => {};
@@ -6217,24 +6239,81 @@ export default function App() {
                 )}
 
                 {selectedArtist || selectedAlbum ? (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                        <button onClick={() => { setSelectedArtist(null); setSelectedAlbum(null); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", padding: "8px", borderRadius: "50%", backgroundColor: "rgba(255,255,255,0.05)" }} className="hover-effect">
-                        <X size={20} />
-                      </button>
-                      <h2 style={{ fontSize: isDesktop ? "28px" : "24px", fontWeight: "800", margin: 0, color: COLORS.primary }}>
-                          {selectedArtist || selectedAlbum}
-                        </h2>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      {renderSortButton(!isDesktop)}
-                      {currentSortKey && (
-                        <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
-                          By {SORT_LABELS[currentSortKey]} &middot; <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  (() => {
+                    const headerImage = selectedArtist ? selectedArtistObj?.image_url : selectedAlbumCover;
+                    return (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", paddingLeft: isDesktop ? "16px" : "0", gap: "12px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: isDesktop ? "16px" : "12px", minWidth: 0, flex: 1 }}>
+                          <button
+                            onClick={() => { setSelectedArtist(null); setSelectedAlbum(null); }}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              color: COLORS.primary,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: "8px",
+                              borderRadius: "50%",
+                              backgroundColor: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.06)",
+                              flexShrink: 0
+                            }}
+                            className="hover-effect"
+                            title="Clear filter"
+                          >
+                            <X size={20} />
+                          </button>
+
+                          {headerImage && (
+                            <div
+                              style={{
+                                width: isDesktop ? "56px" : "44px",
+                                height: isDesktop ? "56px" : "44px",
+                                borderRadius: isDesktop ? "16px" : "12px",
+                                overflow: "hidden",
+                                backgroundColor: COLORS.imageBg,
+                                boxShadow: isDarkMode ? "0 6px 16px rgba(0,0,0,0.4)" : "0 4px 12px rgba(26,43,76,0.12)",
+                                flexShrink: 0,
+                                border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(26,43,76,0.1)"}`,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                              }}
+                            >
+                              <img
+                                src={headerImage}
+                                alt={selectedArtist || selectedAlbum || "Artist"}
+                                loading="eager"
+                                decoding="async"
+                                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  if (e.currentTarget.parentElement) {
+                                    e.currentTarget.parentElement.style.display = "none";
+                                  }
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <h2 style={{ fontSize: isDesktop ? "28px" : "22px", fontWeight: "800", margin: 0, color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {selectedArtist || selectedAlbum}
+                            </h2>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+                          {renderSortButton(!isDesktop)}
+                          {currentSortKey && (
+                            <span style={{ fontSize: "12px", color: COLORS.textMuted, fontStyle: "italic" }}>
+                              By {SORT_LABELS[currentSortKey]} &middot; <span style={{ cursor: "pointer", textDecoration: "underline" }} onClick={() => setSortOrders(prev => ({ ...prev, global: null }))}>Clear</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div style={{ display: "flex", flexDirection: isDesktop ? "row" : "column", alignItems: isDesktop ? "center" : "stretch", gap: "12px", marginBottom: "24px", width: "100%", paddingLeft: isDesktop ? "16px" : 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px", justifyContent: "space-between" }}>
