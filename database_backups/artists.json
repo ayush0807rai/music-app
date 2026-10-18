@@ -554,7 +554,7 @@
   {
     "id": "80b270b2-1b43-4ab4-b4cf-223efa6ae8ae",
     "name": "Gajendra Verma",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1792271955/gajendra.png",
     "created_at": "2026-10-14T15:16:24.104233+00:00"
   },
   {
@@ -584,7 +584,7 @@
   {
     "id": "9bb3d7a5-d2a0-4135-8210-c7012f3e3834",
     "name": "Sachin-Jigar",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1792271849/sachin_jigar.jpg",
     "created_at": "2026-10-14T17:19:32.077595+00:00"
   },
   {
@@ -620,7 +620,7 @@
   {
     "id": "5c6ba046-d418-4dd8-b422-2a36c6e7f15c",
     "name": "Marshmello",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1792271664/marshmello.jpg",
     "created_at": "2026-10-16T10:21:01.113771+00:00"
   },
   {
@@ -632,7 +632,7 @@
   {
     "id": "ff7d4bf4-64da-4b69-b978-6ca776a9b530",
     "name": "Camila Cabello",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1792271386/camila.jpg",
     "created_at": "2026-10-16T10:26:40.859348+00:00"
   },
   {
@@ -662,13 +662,13 @@
   {
     "id": "54c59662-f7db-42c6-8335-c9b5d92e603a",
     "name": "Alan Walker",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1792271755/alan.jpg",
     "created_at": "2026-10-16T10:51:36.016088+00:00"
   },
   {
     "id": "ccd2268b-d80b-402f-8f6b-b406aea2e8a5",
     "name": "Sabrina Carpenter",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1792271106/sabrina.jpg",
     "created_at": "2026-10-16T10:51:47.186164+00:00"
   },
   {
@@ -698,7 +698,7 @@
   {
     "id": "781a2cd1-7fb0-462d-93bc-3eae8cce6732",
     "name": "Dua Lipa",
-    "image_url": null,
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1792272041/dua_lipa.jpg",
     "created_at": "2026-10-17T14:20:13.675987+00:00"
   },
   {

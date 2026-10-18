@@ -228,14 +228,35 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
   const isHorizontalSwipe = useRef(false);
   const wasSwiped = useRef(false);
 
+  const resetSwipe = () => {
+    if (trackRef.current) {
+      trackRef.current.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+      trackRef.current.style.transform = 'translateX(0px)';
+    }
+    currentX.current = 0;
+    isHorizontalSwipe.current = false;
+    isDragging.current = false;
+    if (actionBgRef.current) {
+      actionBgRef.current.style.opacity = '0';
+    }
+  };
+
   const handlePointerDown = (e) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
+    if (e.target.closest('button, input, textarea, a, select, [role="button"]')) return;
+
     startX.current = e.clientX;
     startY.current = e.clientY;
     currentX.current = 0;
     isDragging.current = true;
     isHorizontalSwipe.current = false;
     wasSwiped.current = false;
+
+    if (e.currentTarget && e.currentTarget.setPointerCapture) {
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch (err) {}
+    }
   };
 
   const handlePointerMove = (e) => {
@@ -264,60 +285,88 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
 
     if (deltaX > 10) {
       wasSwiped.current = true;
-      if (actionBgRef.current) {
-        actionBgRef.current.style.opacity = '1';
-      }
     }
 
+    const maxSwipe = 120;
+    let translate = 0;
     if (deltaX > 0) {
-      const maxSwipe = 120;
-      let translate = deltaX;
-      if (deltaX > maxSwipe) translate = maxSwipe + (deltaX - maxSwipe) * 0.15;
-      
-      currentX.current = translate;
-      if (trackRef.current) {
-        trackRef.current.style.transform = `translateX(${translate}px)`;
-      }
+      translate = deltaX > maxSwipe ? maxSwipe + (deltaX - maxSwipe) * 0.15 : deltaX;
     }
-  };
-
-  const resetSwipe = () => {
+    
+    currentX.current = translate;
     if (trackRef.current) {
-      trackRef.current.style.transform = `translateX(0px)`;
-      trackRef.current.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+      trackRef.current.style.transform = `translateX(${translate}px)`;
     }
-    currentX.current = 0;
-    isHorizontalSwipe.current = false;
     if (actionBgRef.current) {
-      actionBgRef.current.style.opacity = '0';
+      actionBgRef.current.style.opacity = translate > 15 ? '1' : '0';
     }
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e) => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    
-    if (isHorizontalSwipe.current && currentX.current > 70) {
+
+    if (e && e.pointerId && containerRef.current && containerRef.current.releasePointerCapture) {
+      try {
+        if (containerRef.current.hasPointerCapture && containerRef.current.hasPointerCapture(e.pointerId)) {
+          containerRef.current.releasePointerCapture(e.pointerId);
+        }
+      } catch (err) {}
+    }
+
+    const didSwipe = isHorizontalSwipe.current && currentX.current > 70;
+    resetSwipe();
+
+    if (didSwipe) {
       onAddQueue(track);
       if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
         window.navigator.vibrate(50);
       }
     }
-    resetSwipe();
+
     setTimeout(() => {
       wasSwiped.current = false;
-    }, 50);
+    }, 120);
   };
+
+  const handlePointerUpRef = useRef(null);
+  handlePointerUpRef.current = handlePointerUp;
+
+  useEffect(() => {
+    const handleGlobalEnd = (e) => {
+      if (isDragging.current) {
+        handlePointerUpRef.current?.(e);
+      }
+    };
+    window.addEventListener('pointerup', handleGlobalEnd);
+    window.addEventListener('pointercancel', handleGlobalEnd);
+    window.addEventListener('blur', handleGlobalEnd);
+    return () => {
+      window.removeEventListener('pointerup', handleGlobalEnd);
+      window.removeEventListener('pointercancel', handleGlobalEnd);
+      window.removeEventListener('blur', handleGlobalEnd);
+    };
+  }, []);
 
   return (
     <div 
       ref={containerRef}
       className={className}
-      style={{ position: 'relative', overflow: 'hidden', touchAction: 'pan-y', borderRadius: '12px' }}
+      style={{
+        position: 'relative',
+        overflow: 'hidden',
+        touchAction: 'pan-y',
+        borderRadius: '12px',
+        WebkitUserSelect: 'none',
+        userSelect: 'none'
+      }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onLostPointerCapture={() => {
+        if (isDragging.current) resetSwipe();
+      }}
       onClickCapture={(e) => {
         if (wasSwiped.current) {
           e.stopPropagation();
@@ -329,12 +378,13 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
         position: 'absolute', top: 0, left: 0, bottom: 0, width: '100%',
         backgroundColor: actionColor || '#1DB954',
         display: 'flex', alignItems: 'center', paddingLeft: '24px', zIndex: 0,
-        borderRadius: '12px', opacity: 0, transition: 'opacity 0.2s ease'
+        borderRadius: '12px', opacity: 0, transition: 'opacity 0.2s ease',
+        pointerEvents: 'none'
       }}>
         <ListPlus color={iconColor || "#fff"} size={24} />
       </div>
 
-      <div ref={trackRef} style={{ position: 'relative', zIndex: 1, backgroundColor: 'transparent', borderRadius: '12px' }}>
+      <div ref={trackRef} style={{ position: 'relative', zIndex: 1, backgroundColor: 'transparent', borderRadius: '12px', willChange: 'transform' }}>
         {children}
       </div>
     </div>

@@ -1,6 +1,6 @@
 # Euphony Complete Database Backup & Disaster Recovery Guide
 
-Generated: 2026-10-17T16:50:09.424Z
+Generated: 2026-10-18T21:11:59.103Z
 
 This folder contains a complete, portable, and permanent backup of your entire application database.
 If Supabase, Cloudinary, or any service ever faces downtime, migration, or account termination, you can restore everything seamlessly.
@@ -14,7 +14,7 @@ If Supabase, Cloudinary, or any service ever faces downtime, migration, or accou
 | `complete_database_master.json` | Single master JSON containing songs, artists, playlists, and playlist mappings | All tables |
 | `songs.json` | All music tracks, metadata, audio URLs, posters, duration, stems | 163 rows |
 | `artists.json` | All artists and profile images | 124 rows |
-| `playlists.json` | All playlists created by users | 30 rows |
+| `playlists.json` | All playlists created by users | 33 rows |
 | `playlist_songs.json` | All song-to-playlist relationships | 87 rows |
 | `users_backup.json` | All 15 authenticated users (emails, password hashes, Google auth identities) | 15 accounts |
 | `restore_complete_database.sql` | Standalone PostgreSQL SQL script to recreate tables and restore all data | Ready-to-run |
@@ -36,7 +36,7 @@ If Supabase, Cloudinary, or any service ever faces downtime, migration, or accou
    - It creates tables if they don't exist.
    - It inserts all 124 artists.
    - It inserts all 163 songs.
-   - It inserts all 30 playlists.
+   - It inserts all 33 playlists.
    - It inserts all 87 playlist relationships.
    - It handles conflicts automatically (`ON CONFLICT DO NOTHING` / `DO UPDATE`).
 
