@@ -227,6 +227,7 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
   const isDragging = useRef(false);
   const isHorizontalSwipe = useRef(false);
   const wasSwiped = useRef(false);
+  const hasCapturedPointerId = useRef(null);
 
   const resetSwipe = () => {
     if (trackRef.current) {
@@ -251,12 +252,10 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
     isDragging.current = true;
     isHorizontalSwipe.current = false;
     wasSwiped.current = false;
-
-    if (e.currentTarget && e.currentTarget.setPointerCapture) {
-      try {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      } catch (err) {}
-    }
+    hasCapturedPointerId.current = null;
+    // NOTE: Do NOT setPointerCapture on pointerdown!
+    // Capturing the pointer on pointerdown blocks standard click event synthesis and prevents
+    // click routing to child elements (e.g. glass-row onClick for playing songs).
   };
 
   const handlePointerMove = (e) => {
@@ -273,18 +272,29 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
         resetSwipe();
         return;
       }
-      if (deltaX > 8 && deltaX > Math.abs(deltaY)) {
-        isHorizontalSwipe.current = true;
-        if (trackRef.current) {
-          trackRef.current.style.transition = 'none';
+      // Require clear horizontal rightward movement (> 16px and > vertical jitter * 1.3) before entering swipe mode
+      if (Math.abs(deltaX) > 16 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+        if (deltaX > 16) {
+          isHorizontalSwipe.current = true;
+          wasSwiped.current = true;
+          if (trackRef.current) {
+            trackRef.current.style.transition = 'none';
+          }
+          // Now and only now acquire pointer capture so dragging stays smooth if pointer wanders outside row
+          if (containerRef.current && containerRef.current.setPointerCapture) {
+            try {
+              containerRef.current.setPointerCapture(e.pointerId);
+              hasCapturedPointerId.current = e.pointerId;
+            } catch (err) {}
+          }
+        } else {
+          // Leftward swipe: not an action in this app, but intentionally horizontal (not a tap)
+          wasSwiped.current = true;
+          return;
         }
       } else {
         return;
       }
-    }
-
-    if (deltaX > 10) {
-      wasSwiped.current = true;
     }
 
     const maxSwipe = 120;
@@ -303,18 +313,21 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
   };
 
   const handlePointerUp = (e) => {
-    if (!isDragging.current) return;
+    if (!isDragging.current && !isHorizontalSwipe.current) return;
     isDragging.current = false;
 
-    if (e && e.pointerId && containerRef.current && containerRef.current.releasePointerCapture) {
+    const pointerIdToRelease = hasCapturedPointerId.current !== null ? hasCapturedPointerId.current : (e && e.pointerId);
+    if (pointerIdToRelease !== null && pointerIdToRelease !== undefined && containerRef.current && containerRef.current.releasePointerCapture) {
       try {
-        if (containerRef.current.hasPointerCapture && containerRef.current.hasPointerCapture(e.pointerId)) {
-          containerRef.current.releasePointerCapture(e.pointerId);
+        if (containerRef.current.hasPointerCapture && containerRef.current.hasPointerCapture(pointerIdToRelease)) {
+          containerRef.current.releasePointerCapture(pointerIdToRelease);
         }
       } catch (err) {}
     }
+    hasCapturedPointerId.current = null;
 
     const didSwipe = isHorizontalSwipe.current && currentX.current > 70;
+    const didMoveHorizontally = wasSwiped.current;
     resetSwipe();
 
     if (didSwipe) {
@@ -324,9 +337,14 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
       }
     }
 
-    setTimeout(() => {
+    if (didMoveHorizontally) {
+      // Keep wasSwiped.current true briefly to swallow the trailing click event after an intentional swipe gesture
+      setTimeout(() => {
+        wasSwiped.current = false;
+      }, 150);
+    } else {
       wasSwiped.current = false;
-    }, 120);
+    }
   };
 
   const handlePointerUpRef = useRef(null);
@@ -334,7 +352,7 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
 
   useEffect(() => {
     const handleGlobalEnd = (e) => {
-      if (isDragging.current) {
+      if (isDragging.current || isHorizontalSwipe.current) {
         handlePointerUpRef.current?.(e);
       }
     };
@@ -365,7 +383,8 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       onLostPointerCapture={() => {
-        if (isDragging.current) resetSwipe();
+        hasCapturedPointerId.current = null;
+        if (isDragging.current || isHorizontalSwipe.current) resetSwipe();
       }}
       onClickCapture={(e) => {
         if (wasSwiped.current) {
