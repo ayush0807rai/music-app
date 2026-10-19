@@ -5484,14 +5484,14 @@ export default function App() {
         return (
           <div className={trackOptionsClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); setTrackForOptions(null); }}>
             <div className={`${trackOptionsClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "28px 24px", borderRadius: "20px", width: "100%", maxWidth: "350px", position: "relative", maxHeight: "85vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
-              <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); setTrackForOptions(null); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+              <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(false); setTrackForOptions(null); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#FFFFFF", cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
               
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "20px", textAlign: "center" }}>
                 <div style={{ width: "120px", height: "120px", borderRadius: "16px", overflow: "hidden", marginBottom: "14px", boxShadow: isDarkMode ? "0 8px 24px rgba(0,0,0,0.5)" : "0 8px 24px rgba(26,43,76,0.15)", backgroundColor: COLORS.imageBg }}>
                   {targetTrackForOptions.poster_url ? <img src={targetTrackForOptions.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={32} color={COLORS.textMuted} />}
                 </div>
-                <h2 style={{ margin: "0", fontSize: "20px", fontWeight: "800", color: songTheme.textColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{targetTrackForOptions.title}</h2>
-                <div style={{ fontSize: "14px", color: songTheme.textMuted, marginTop: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{targetTrackForOptions.artist}</div>
+                <h2 style={{ margin: "0", fontSize: "20px", fontWeight: "800", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{targetTrackForOptions.title}</h2>
+                <div style={{ fontSize: "14px", color: "rgba(255, 255, 255, 0.7)", marginTop: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "100%" }}>{targetTrackForOptions.artist}</div>
               </div>
 
               {/* CHANGE MOOD / CATEGORY SELECTOR - EXCLUSIVE TO OWNER */}
@@ -5610,13 +5610,13 @@ export default function App() {
               onClick={e => e.stopPropagation()}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" }}>
-                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Artists</h2>
+                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.3px" }}>Artists</h2>
                 <button
                   onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackArtistsModal(false); }}
                   style={{
-                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.15)",
                     border: "none",
-                    color: songTheme.textColor,
+                    color: "#FFFFFF",
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
@@ -5697,15 +5697,15 @@ export default function App() {
                 color: songTheme.textColor
               }}
             >
-              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(26,43,76,0.2)", borderRadius: "2px", margin: "0 auto 20px" }} />
+              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.4)", borderRadius: "2px", margin: "0 auto 20px" }} />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor }}>Artists</h2>
+                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF" }}>Artists</h2>
                 <button
                   onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackArtistsModal(false); }}
                   style={{
-                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.15)",
                     border: "none",
-                    color: songTheme.textColor,
+                    color: "#FFFFFF",
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
@@ -5809,8 +5809,8 @@ export default function App() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <ListMusic size={22} color={songTheme.textColor} />
-                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Queue</h2>
+                  <ListMusic size={22} color="#FFFFFF" />
+                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.3px" }}>Queue</h2>
                   {userQueue.length > 0 && (
                     <span style={{ background: COLORS.spotifyGreen, color: "#FFFFFF", borderRadius: "12px", padding: "2px 8px", fontSize: "11px", fontWeight: "700" }}>
                       {userQueue.length}
@@ -5820,9 +5820,9 @@ export default function App() {
                 <button
                   onClick={() => { openedFromTrackOptionsRef.current = false; setShowFullscreenQueueModal(false); }}
                   style={{
-                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.15)",
                     border: "none",
-                    color: songTheme.textColor,
+                    color: "#FFFFFF",
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
@@ -5862,11 +5862,11 @@ export default function App() {
                 color: songTheme.textColor
               }}
             >
-              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(26,43,76,0.2)", borderRadius: "2px", margin: "0 auto 20px" }} />
+              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.4)", borderRadius: "2px", margin: "0 auto 20px" }} />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <ListMusic size={22} color={songTheme.textColor} />
-                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor }}>Queue</h2>
+                  <ListMusic size={22} color="#FFFFFF" />
+                  <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#FFFFFF" }}>Queue</h2>
                   {userQueue.length > 0 && (
                     <span style={{ background: COLORS.spotifyGreen, color: "#FFFFFF", borderRadius: "12px", padding: "2px 8px", fontSize: "11px", fontWeight: "700" }}>
                       {userQueue.length}
@@ -5876,9 +5876,9 @@ export default function App() {
                 <button
                   onClick={() => { openedFromTrackOptionsRef.current = false; setShowFullscreenQueueModal(false); }}
                   style={{
-                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
+                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.15)",
                     border: "none",
-                    color: songTheme.textColor,
+                    color: "#FFFFFF",
                     width: "32px",
                     height: "32px",
                     borderRadius: "50%",
@@ -5904,9 +5904,9 @@ export default function App() {
       {renderSongForPlaylist && (
         <div className={songForPlaylistClosing ? "fade-exit" : "fade-enter"} style={{ position: "fixed", inset: 0, background: songTheme.modalOverlay, backdropFilter: "blur(18px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10005, padding: "20px" }} onClick={() => { openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(null); }}>
           <div className={`${songForPlaylistClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`} style={{ background: songTheme.modalBg, backdropFilter: "blur(24px)", border: songTheme.modalBorder, padding: "32px", borderRadius: "20px", width: "100%", maxWidth: "380px", position: "relative", maxHeight: "80vh", overflowY: "auto", boxShadow: songTheme.modalShadow, color: songTheme.textColor }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => { openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(null); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
-            <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: songTheme.textColor, fontWeight: "800" }}><FolderPlus color={songTheme.textColor} size={22} /> Add to Playlist</h2>
-            <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: songTheme.textMuted }}>"{safeSongForPlaylist?.title}"</p>
+            <button onClick={() => { openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(null); }} style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#FFFFFF", cursor: "pointer" }} className="hover-effect"><X size={24} /></button>
+            <h2 style={{ margin: "0 0 8px 0", fontSize: "20px", display: "flex", alignItems: "center", gap: "10px", color: "#FFFFFF", fontWeight: "800" }}><FolderPlus color="#FFFFFF" size={22} /> Add to Playlist</h2>
+            <p style={{ margin: "0 0 20px 0", fontSize: "13px", color: "rgba(255, 255, 255, 0.7)" }}>"{safeSongForPlaylist?.title}"</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {userPlaylists.length > 0
                 ? userPlaylists.map(pl => (
@@ -7475,14 +7475,14 @@ export default function App() {
                 {currentTrack.poster_url ? (
                   <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
-                  <ImageIcon size={22} color={isDarkMode ? "rgba(255,255,255,0.4)" : "#64748B"} />
+                  <ImageIcon size={22} color="rgba(255,255,255,0.4)" />
                 )}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: "14px", fontWeight: "700", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <div style={{ fontSize: "14px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {currentTrack.title}
                 </div>
-                <div style={{ fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.65)" : "#64748B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
                   {currentTrack.artist}
                 </div>
               </div>
@@ -7492,7 +7492,7 @@ export default function App() {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: likedPlaylist?.playlist_songs?.some(ps => ps.song_id === currentTrack.id) ? COLORS.spotifyGreen : (isDarkMode ? "rgba(255,255,255,0.7)" : "#64748B"),
+                  color: likedPlaylist?.playlist_songs?.some(ps => ps.song_id === currentTrack.id) ? COLORS.spotifyGreen : "rgba(255,255,255,0.7)",
                   cursor: "pointer",
                   padding: "6px",
                   display: "flex",
@@ -7509,9 +7509,9 @@ export default function App() {
               {/* Buttons row */}
               <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "8px", transform: "translateX(-24px)" }}>
                 <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer" }} className="hover-effect" title={`Mode: ${playMode}`}>
-                  {renderModeIcon(isDarkMode ? "#FFFFFF" : "#1A2B4C")}
+                  {renderModeIcon("#FFFFFF")}
                 </button>
-                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", cursor: "pointer", display: "flex" }} className="hover-effect" title="Previous">
+                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex" }} className="hover-effect" title="Previous">
                   <SkipBack size={20} fill="currentColor" />
                 </button>
                 <button
@@ -7534,14 +7534,14 @@ export default function App() {
                 >
                   {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" style={{ marginLeft: "2px" }} />}
                 </button>
-                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", cursor: "pointer", display: "flex" }} className="hover-effect" title="Next">
+                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex" }} className="hover-effect" title="Next">
                   <SkipForward size={20} fill="currentColor" />
                 </button>
               </div>
 
               {/* Scrubber row */}
               <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%" }}>
-                <span style={{ fontSize: "11px", color: isDarkMode ? "rgba(255,255,255,0.7)" : "#64748B", minWidth: "34px", textAlign: "right", fontWeight: "600" }}>
+                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)", minWidth: "34px", textAlign: "right", fontWeight: "600" }}>
                   {formatTime(currentTime)}
                 </span>
                 <input
@@ -7554,7 +7554,7 @@ export default function App() {
                   className="glow-slider"
                   style={{ flex: 1 }}
                 />
-                <span style={{ fontSize: "11px", color: isDarkMode ? "rgba(255,255,255,0.7)" : "#64748B", minWidth: "34px", textAlign: "left", fontWeight: "600" }}>
+                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)", minWidth: "34px", textAlign: "left", fontWeight: "600" }}>
                   {formatTime(duration)}
                 </span>
               </div>
@@ -7566,7 +7566,7 @@ export default function App() {
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <button
                   onClick={toggleMute}
-                  style={{ background: "transparent", border: "none", color: isDarkMode ? "rgba(255,255,255,0.8)" : "#1A2B4C", cursor: "pointer", padding: "4px" }}
+                  style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px" }}
                   className="hover-effect"
                   title={isMuted ? "Unmute" : "Mute"}
                 >
