@@ -226,8 +226,7 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
   const currentX = useRef(0);
   const isDragging = useRef(false);
   const isHorizontalSwipe = useRef(false);
-  const wasSwiped = useRef(false);
-  const hasCapturedPointerId = useRef(null);
+  const hasSwiped = useRef(false);
 
   const resetSwipe = () => {
     if (trackRef.current) {
@@ -244,18 +243,16 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
 
   const handlePointerDown = (e) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
-    if (e.target.closest('button, input, textarea, a, select, [role="button"]')) return;
+    if (e.target.closest('button, input, textarea, a, select, [role="button"]')) {
+      isDragging.current = false;
+      return;
+    }
 
     startX.current = e.clientX;
     startY.current = e.clientY;
     currentX.current = 0;
     isDragging.current = true;
     isHorizontalSwipe.current = false;
-    wasSwiped.current = false;
-    hasCapturedPointerId.current = null;
-    // NOTE: Do NOT setPointerCapture on pointerdown!
-    // Capturing the pointer on pointerdown blocks standard click event synthesis and prevents
-    // click routing to child elements (e.g. glass-row onClick for playing songs).
   };
 
   const handlePointerMove = (e) => {
@@ -265,38 +262,30 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
     const deltaX = clientX - startX.current;
     const deltaY = clientY - startY.current;
 
-    // Fast-bailout: if user is scrolling vertically, stop swipe tracking immediately to keep vertical scroll 100% native
     if (!isHorizontalSwipe.current) {
-      if (Math.abs(deltaY) > 8 && Math.abs(deltaY) >= Math.abs(deltaX)) {
+      // If user is clearly scrolling vertically: stop tracking so native vertical scroll proceeds
+      if (Math.abs(deltaY) > 12 && Math.abs(deltaY) > Math.abs(deltaX)) {
         isDragging.current = false;
         resetSwipe();
         return;
       }
-      // Require clear horizontal rightward movement (> 16px and > vertical jitter * 1.3) before entering swipe mode
-      if (Math.abs(deltaX) > 16 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
-        if (deltaX > 16) {
-          isHorizontalSwipe.current = true;
-          wasSwiped.current = true;
-          if (trackRef.current) {
-            trackRef.current.style.transition = 'none';
-          }
-          // Now and only now acquire pointer capture so dragging stays smooth if pointer wanders outside row
-          if (containerRef.current && containerRef.current.setPointerCapture) {
-            try {
-              containerRef.current.setPointerCapture(e.pointerId);
-              hasCapturedPointerId.current = e.pointerId;
-            } catch (err) {}
-          }
-        } else {
-          // Leftward swipe: not an action in this app, but intentionally horizontal (not a tap)
-          wasSwiped.current = true;
-          return;
+      // If user is swiping horizontally to the right:
+      if (deltaX > 10 && deltaX > Math.abs(deltaY)) {
+        isHorizontalSwipe.current = true;
+        hasSwiped.current = true;
+        if (trackRef.current) {
+          trackRef.current.style.transition = 'none';
         }
+      } else if (deltaX < -10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Leftward movement: mark as swipe to avoid accidental tap-play, but don't translate
+        hasSwiped.current = true;
+        return;
       } else {
         return;
       }
     }
 
+    // Horizontal swipe in progress:
     const maxSwipe = 120;
     let translate = 0;
     if (deltaX > 0) {
@@ -312,38 +301,30 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
     }
   };
 
-  const handlePointerUp = (e) => {
+  const handlePointerUp = () => {
     if (!isDragging.current && !isHorizontalSwipe.current) return;
+
+    const wasSwiping = isHorizontalSwipe.current;
+    const finalX = currentX.current;
+    
     isDragging.current = false;
-
-    const pointerIdToRelease = hasCapturedPointerId.current !== null ? hasCapturedPointerId.current : (e && e.pointerId);
-    if (pointerIdToRelease !== null && pointerIdToRelease !== undefined && containerRef.current && containerRef.current.releasePointerCapture) {
-      try {
-        if (containerRef.current.hasPointerCapture && containerRef.current.hasPointerCapture(pointerIdToRelease)) {
-          containerRef.current.releasePointerCapture(pointerIdToRelease);
-        }
-      } catch (err) {}
-    }
-    hasCapturedPointerId.current = null;
-
-    const didSwipe = isHorizontalSwipe.current && currentX.current > 70;
-    const didMoveHorizontally = wasSwiped.current;
+    isHorizontalSwipe.current = false;
     resetSwipe();
 
-    if (didSwipe) {
+    if (wasSwiping && finalX > 65) {
       onAddQueue(track);
       if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(50);
+        try { window.navigator.vibrate(50); } catch (err) {}
       }
     }
 
-    if (didMoveHorizontally) {
-      // Keep wasSwiped.current true briefly to swallow the trailing click event after an intentional swipe gesture
+    if (wasSwiping && finalX > 15) {
+      hasSwiped.current = true;
       setTimeout(() => {
-        wasSwiped.current = false;
-      }, 150);
+        hasSwiped.current = false;
+      }, 250);
     } else {
-      wasSwiped.current = false;
+      hasSwiped.current = false;
     }
   };
 
@@ -351,9 +332,9 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
   handlePointerUpRef.current = handlePointerUp;
 
   useEffect(() => {
-    const handleGlobalEnd = (e) => {
+    const handleGlobalEnd = () => {
       if (isDragging.current || isHorizontalSwipe.current) {
-        handlePointerUpRef.current?.(e);
+        handlePointerUpRef.current?.();
       }
     };
     window.addEventListener('pointerup', handleGlobalEnd);
@@ -382,14 +363,16 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      onLostPointerCapture={() => {
-        hasCapturedPointerId.current = null;
-        if (isDragging.current || isHorizontalSwipe.current) resetSwipe();
-      }}
       onClickCapture={(e) => {
-        if (wasSwiped.current) {
+        // If a button inside was clicked, NEVER swallow it!
+        if (e.target.closest('button, [role="button"], input, textarea, a')) {
+          return;
+        }
+        // If a swipe just occurred, swallow the trailing click so the track doesn't play
+        if (hasSwiped.current) {
           e.stopPropagation();
           e.preventDefault();
+          hasSwiped.current = false;
         }
       }}
     >
@@ -400,10 +383,10 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
         borderRadius: '12px', opacity: 0, transition: 'opacity 0.2s ease',
         pointerEvents: 'none'
       }}>
-        <ListPlus color={iconColor || "#fff"} size={24} />
+        <ListPlus color={iconColor || "#fff"} size={24} style={{ pointerEvents: 'none' }} />
       </div>
 
-      <div ref={trackRef} style={{ position: 'relative', zIndex: 1, backgroundColor: 'transparent', borderRadius: '12px', willChange: 'transform' }}>
+      <div ref={trackRef} style={{ position: 'relative', zIndex: 1, backgroundColor: 'transparent', borderRadius: '12px', willChange: 'transform', touchAction: 'pan-y' }}>
         {children}
       </div>
     </div>
@@ -3042,11 +3025,18 @@ export default function App() {
   };
 
   const addToQueue = useCallback((song, e) => {
-    if (e) e.stopPropagation();
-    const full = playlist.find(s => s.id === song.id);
+    if (e) {
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+    }
+    if (!song) return;
+    const full = (playlist || []).find(s => s.id === song.id);
     const enriched = (full?.lyrics && !song.lyrics) ? { ...song, lyrics: full.lyrics } : song;
-    setUserQueue(prev => [...prev, { ...enriched, queue_id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9) }]);
-    triggerToast(`Added "${song.title}" to Queue`);
+    const newQueueId = (typeof crypto !== 'undefined' && crypto && typeof crypto.randomUUID === 'function')
+      ? crypto.randomUUID()
+      : (Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 9));
+    setUserQueue(prev => [...prev, { ...enriched, queue_id: newQueueId }]);
+    triggerToast(`Added "${song.title || 'Song'}" to Queue`);
   }, [playlist, triggerToast]);
   const removeFromQueue = (index, e) => { if (e) e.stopPropagation(); setUserQueue(prev => prev.filter((_, i) => i !== index)); };
   const clearQueue = (e) => { if (e) e.stopPropagation(); setUserQueue([]); };
@@ -4784,6 +4774,7 @@ export default function App() {
         }
         
         .song-stack-row {
+          touch-action: pan-y;
           background: ${isDarkMode ? "#1B3B78" : "rgba(0, 0, 0, 0.12)"} !important;
           border: 1px solid ${isDarkMode ? "rgba(80, 135, 220, 0.3)" : "rgba(255, 255, 255, 0.5)"} !important;
           border-top: 1px solid ${isDarkMode ? "rgba(130, 185, 255, 0.45)" : "rgba(255, 255, 255, 0.9)"} !important;
@@ -6244,11 +6235,11 @@ export default function App() {
                                   <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at || track.created_at)}</span>
                                 )
                               )}
-                              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "4px", flexShrink: 0 }}>
-                                <button title="Add to Queue" onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} /></button>
-                                <button title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect"><Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} /></button>
+                              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "2px", flexShrink: 0 }}>
+                                <button type="button" title="Add to Queue" onPointerDown={e => e.stopPropagation()} onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
+                                <button type="button" title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onPointerDown={e => e.stopPropagation()} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} style={{ pointerEvents: "none" }} /></button>
                                 {!activePlaylistObj?.isSmart && (
-                                  <button title="Remove from playlist" onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: "4px" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} /></button>
+                                  <button type="button" title="Remove from playlist" onPointerDown={e => e.stopPropagation()} onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
                                 )}
                                 {isSelected && isPlaying && (
                                   <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px", marginLeft: "4px" }}>
@@ -6523,16 +6514,16 @@ export default function App() {
                           </div>
                           {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || '-'}</span>}
                           {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at || track.created_at)}</span>}
-                          <div style={{ display: "flex", alignItems: "center", gap: isDesktop ? "12px" : "4px", flexShrink: 0, justifyContent: "flex-end" }}>
-                            <button title="Add to Queue" onClick={(e) => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
-                              <ListPlus size={isDesktop ? 18 : 16} />
+                          <div style={{ display: "flex", alignItems: "center", gap: isDesktop ? "12px" : "2px", flexShrink: 0, justifyContent: "flex-end" }}>
+                            <button type="button" title="Add to Queue" onPointerDown={e => e.stopPropagation()} onClick={(e) => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
+                              <ListPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} />
                             </button>
-                            <button title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
-                              <Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} />
+                            <button type="button" title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onPointerDown={e => e.stopPropagation()} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
+                              <Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} style={{ pointerEvents: "none" }} />
                             </button>
                             {userPlaylists.length > 0 && (
-                              <button title="Add to Playlist" onClick={(e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px" }} className="hover-effect">
-                                <FolderPlus size={isDesktop ? 18 : 16} />
+                              <button type="button" title="Add to Playlist" onPointerDown={e => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
+                                <FolderPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} />
                               </button>
                             )}
                             {isSelected && isPlaying && (
