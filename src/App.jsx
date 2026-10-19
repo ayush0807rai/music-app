@@ -7354,8 +7354,8 @@ export default function App() {
                             fontWeight: "800",
                             lineHeight: "1.55",
                             letterSpacing: "-0.5px",
-                            color: isActiveLine ? (isDarkMode ? "#FFFFFF" : "#1A2B4C") : (isDarkMode ? "rgba(255, 255, 255, 0.35)" : "rgba(26, 43, 76, 0.35)"),
-                            textShadow: isActiveLine ? (isDarkMode ? "0 0 24px rgba(255,255,255,0.6)" : "0 2px 14px rgba(26, 43, 76, 0.25)") : "none",
+                            color: isActiveLine ? "#FFFFFF" : "rgba(255, 255, 255, 0.45)",
+                            textShadow: isActiveLine && !lyric.words ? "0 0 16px rgba(255,255,255,0.8)" : "none",
                             padding: "12px 0",
                             cursor: "pointer",
                             transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
@@ -7373,11 +7373,11 @@ export default function App() {
                                 onClick={(e) => handleLyricClick(wordObj.time, e)}
                                 style={{
                                   color: (isActiveWord || isPastWord)
-                                    ? (isDarkMode ? "#FFFFFF" : "#1A2B4C")
+                                    ? "#FFFFFF"
                                     : (isActiveLine
-                                        ? (isDarkMode ? "rgba(255,255,255,0.6)" : "rgba(26, 43, 76, 0.6)")
-                                        : (isDarkMode ? "rgba(255,255,255,0.35)" : "rgba(26, 43, 76, 0.35)")),
-                                  textShadow: isActiveWord ? (isDarkMode ? "0 0 20px rgba(255,255,255,0.8)" : "0 2px 12px rgba(26, 43, 76, 0.3)") : "none",
+                                        ? "rgba(255, 255, 255, 0.65)"
+                                        : "rgba(255, 255, 255, 0.45)"),
+                                  textShadow: isActiveWord ? "0 0 16px rgba(255,255,255,0.8)" : "none",
                                   transition: "all 0.25s ease",
                                   marginRight: "6px",
                                   cursor: "pointer"
@@ -7391,7 +7391,7 @@ export default function App() {
                       );
                     })
                   ) : (
-                    <div style={{ color: isDarkMode ? "rgba(255,255,255,0.6)" : "#64748B", fontSize: "20px", fontWeight: "600", lineHeight: "1.8", whiteSpace: "pre-line", padding: "60px 0" }}>
+                    <div style={{ color: "rgba(255, 255, 255, 0.65)", fontSize: "20px", fontWeight: "600", lineHeight: "1.8", whiteSpace: "pre-line", padding: "60px 0" }}>
                       {((currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics)?.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, '').trim()) || "No synchronized lyrics available for this song."}
                     </div>
                   )}
