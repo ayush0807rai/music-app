@@ -462,6 +462,24 @@ const getCdnUrl = (url) => {
   return url;
 };
 
+// Smooth cubic-bezier curve evaluator matching CSS cubic-bezier(0.25, 1, 0.5, 1)
+const cubicBezierEasing = (p1x, p1y, p2x, p2y) => {
+  return (progress) => {
+    if (progress <= 0) return 0;
+    if (progress >= 1) return 1;
+    let t = progress;
+    for (let i = 0; i < 6; i++) {
+      const currentX = 3 * (1 - t) * (1 - t) * t * p1x + 3 * (1 - t) * t * t * p2x + t * t * t;
+      const dx = 3 * (1 - t) * (1 - t) * p1x + 6 * (1 - t) * t * (p2x - p1x) + 3 * t * t * (1 - p2x);
+      if (Math.abs(currentX - progress) < 1e-4 || Math.abs(dx) < 1e-6) break;
+      t -= (currentX - progress) / dx;
+    }
+    t = Math.max(0, Math.min(1, t));
+    return 3 * (1 - t) * (1 - t) * t * p1y + 3 * (1 - t) * t * t * p2y + t * t * t;
+  };
+};
+const smoothLyricScrollEase = cubicBezierEasing(0.25, 1, 0.5, 1);
+
 const getSongThemeGradients = (rgb, isDark) => {
   if (!rgb || typeof rgb !== "object" || typeof rgb.r !== "number" || typeof rgb.g !== "number" || typeof rgb.b !== "number") {
     return {
@@ -1730,6 +1748,15 @@ export default function App() {
   useEffect(() => {
     const loop = () => {
       updateProgressVisuals();
+      if (parsedLyrics.length > 0 && audioRef.current && !audioRef.current.paused) {
+        const time = audioRef.current.currentTime;
+        let activeIndex = -1;
+        for (let i = 0; i < parsedLyrics.length; i++) {
+          if (time >= parsedLyrics[i].time) activeIndex = i;
+          else break;
+        }
+        setActiveLyricIndex(prev => (prev !== activeIndex ? activeIndex : prev));
+      }
       if (isPlaying) {
         animationFrameRef.current = requestAnimationFrame(loop);
       }
@@ -1742,7 +1769,7 @@ export default function App() {
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [isPlaying, isDarkMode]);
+  }, [isPlaying, isDarkMode, parsedLyrics]);
 
   useEffect(() => {
     let queueToUse = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
@@ -2902,20 +2929,14 @@ export default function App() {
       if (Math.abs(distance) < 2) return;
       
       const startTime = performance.now();
-      const duration = 600; // Ultra smooth 600ms duration
-
-      const easeInOutQuart = (t, b, c, d) => {
-        t /= d/2;
-        if (t < 1) return c/2*t*t*t*t + b;
-        t -= 2;
-        return -c/2 * (t*t*t*t - 2) + b;
-      };
+      const duration = 700; // Silky smooth 700ms duration matching CSS cubic-bezier
 
       let animationFrame;
       const animateScroll = (currentTime) => {
         const timeElapsed = currentTime - startTime;
-        const next = easeInOutQuart(timeElapsed, startY, distance, duration);
-        container.scrollTop = next;
+        const progress = Math.min(timeElapsed / duration, 1);
+        const ease = smoothLyricScrollEase(progress);
+        container.scrollTop = startY + distance * ease;
         if (timeElapsed < duration) {
           animationFrame = requestAnimationFrame(animateScroll);
         } else {
@@ -2949,20 +2970,14 @@ export default function App() {
       if (Math.abs(distance) < 2) return;
       
       const startTime = performance.now();
-      const duration = 600;
-
-      const easeInOutQuart = (t, b, c, d) => {
-        t /= d / 2;
-        if (t < 1) return c / 2 * t * t * t * t + b;
-        t -= 2;
-        return -c / 2 * (t * t * t * t - 2) + b;
-      };
+      const duration = 700; // Silky smooth 700ms duration matching CSS cubic-bezier
 
       let animationFrame;
       const animateScroll = (currentTime) => {
         const timeElapsed = currentTime - startTime;
-        const next = easeInOutQuart(timeElapsed, startY, distance, duration);
-        container.scrollTop = next;
+        const progress = Math.min(timeElapsed / duration, 1);
+        const ease = smoothLyricScrollEase(progress);
+        container.scrollTop = startY + distance * ease;
         if (timeElapsed < duration) {
           animationFrame = requestAnimationFrame(animateScroll);
         } else {
@@ -4288,7 +4303,7 @@ export default function App() {
               const isActiveLine = index === activeLyricIndex;
               return (
                 <div key={index} ref={el => lyricRefs.current[index] = el} onClick={(e) => handleLyricClick(lyric.time, e)}
-                  style={{ fontSize: isMobile ? "20px" : "18px", fontWeight: "700", color: isActiveLine ? activeColor : inactiveColor, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "all 0.6s cubic-bezier(0.25, 1, 0.5, 1)", transform: isActiveLine ? "scale(1.15)" : "scale(1)", transformOrigin: "center", lineHeight: "1.4", cursor: "pointer", willChange: "transform, color, text-shadow", WebkitFontSmoothing: "antialiased", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}>
+                  style={{ fontSize: isMobile ? "20px" : "18px", fontWeight: "700", color: isActiveLine ? activeColor : inactiveColor, opacity: isActiveLine ? 1 : 0.45, textShadow: isActiveLine && !lyric.words ? activeShadow : inactiveShadow, padding: "10px 0", transition: "transform 0.7s cubic-bezier(0.25, 1, 0.5, 1), color 0.7s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.7s cubic-bezier(0.25, 1, 0.5, 1), text-shadow 0.7s cubic-bezier(0.25, 1, 0.5, 1)", transform: isActiveLine ? (isMobile ? "scale(1.06)" : "scale(1.08)") : "scale(1)", transformOrigin: "center", lineHeight: "1.4", cursor: "pointer", willChange: "transform, color, opacity, text-shadow", WebkitFontSmoothing: "antialiased", transformStyle: "preserve-3d", backfaceVisibility: "hidden" }}>
                   {lyric.words ? lyric.words.map((wordObj, wIndex) => {
                     const isActiveWord = isActiveLine && wIndex === activeWordIndex;
                     const isPastWord = isActiveLine && wIndex < activeWordIndex;
@@ -7355,13 +7370,14 @@ export default function App() {
                             lineHeight: "1.55",
                             letterSpacing: "-0.5px",
                             color: isActiveLine ? "#FFFFFF" : "rgba(255, 255, 255, 0.45)",
+                            opacity: isActiveLine ? 1 : 0.45,
                             textShadow: isActiveLine && !lyric.words ? "0 0 16px rgba(255,255,255,0.8)" : "none",
                             padding: "12px 0",
                             cursor: "pointer",
-                            transition: "all 0.4s cubic-bezier(0.25, 1, 0.5, 1)",
+                            transition: "transform 0.7s cubic-bezier(0.25, 1, 0.5, 1), color 0.7s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.7s cubic-bezier(0.25, 1, 0.5, 1), text-shadow 0.7s cubic-bezier(0.25, 1, 0.5, 1)",
                             transform: isActiveLine ? "scale(1.03)" : "scale(1)",
                             transformOrigin: "left center",
-                            willChange: "transform, color, text-shadow"
+                            willChange: "transform, color, opacity, text-shadow"
                           }}
                         >
                           {lyric.words ? lyric.words.map((wordObj, wIndex) => {
