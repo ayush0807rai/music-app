@@ -1374,7 +1374,7 @@ export default function App() {
         .filter(([_, cnt]) => cnt > 0)
         .sort((a, b) => b[1] - a[1])
         .map(([id]) => id);
-      return sortedIds.map(id => map.get(id)).filter(Boolean);
+      return sortedIds.map(id => map.get(id)).filter(Boolean).slice(0, 50);
     }
     return playlistSongs;
   }, [viewedPlaylistId, playlist, playlistSongs, recentlyPlayedIds, playCounts]);
