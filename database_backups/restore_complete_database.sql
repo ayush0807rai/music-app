@@ -1,7 +1,7 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-10-21T06:58:40.466Z
--- Total: 167 songs, 127 artists, 33 playlists, 87 playlist_songs
+-- Generated: 2026-10-26T15:08:33.127Z
+-- Total: 178 songs, 138 artists, 33 playlists, 87 playlist_songs
 -- ====================================================
 
 -- 1. Schema Definitions
@@ -49,7 +49,7 @@ ALTER TABLE public.artists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlist_songs DISABLE ROW LEVEL SECURITY;
 
--- 2. Restore Artists (127 rows)
+-- 2. Restore Artists (138 rows)
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b2b72353-374f-4aab-864d-d0fcce615d56', 'Darshan Raval', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610309/darshan.jpg', '2026-09-24T08:48:14.272076+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('68c3f5d9-7ae8-4c6c-ac6b-754ea8f572b6', 'Sonu Nigam', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610542/sonu.webp', '2026-09-24T08:50:09.640436+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('69327c50-1d5e-4a38-a24d-576fb4463f96', 'Neeti Mohan', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791609585/q3wjlfr21srcuzddmfo9.jpg', '2026-09-24T09:03:20.194298+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
@@ -177,8 +177,19 @@ INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('20a266bd-1
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('3e059732-7683-4312-81c1-ef0444dd85da', 'Shakira', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1792479169/shikira_new.jpg', '2026-10-20T06:14:22.681567+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ca18db00-5d02-46d8-93dc-7de90c5fff04', 'Freshlyground', NULL, '2026-10-20T06:19:15.990116+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('9d2ae73b-a259-406c-8edd-f35276746238', 'Wyclef Jean', NULL, '2026-10-20T06:29:50.958142+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('71f56325-8109-4711-a0f5-20cf410fa9ab', 'Geeta Zaildar', NULL, '2026-10-21T13:03:46.433904+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('386e24b4-35f3-4b3f-b581-a3d77c62b41c', 'Sarbjit Cheema', NULL, '2026-10-21T13:06:45.833881+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('c6cf1248-f913-4490-92fe-a08d0adfc0e6', 'Sukhpal Sukh', NULL, '2026-10-21T13:07:01.500888+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('69782039-d1a9-4e3f-8610-8bb2f9dabf65', 'Shankar Mahadevan', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027192/sgq0digs1cckfcyyesud.jpg', '2026-10-21T13:20:35.970785+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('c4ef2449-1df1-44a2-8fb0-2cccda769b65', 'Alyssa Mendonca', NULL, '2026-10-21T13:21:05.310732+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('f92796d5-8f44-4b7a-8299-f39fd0e1be41', 'Mariah Carey', NULL, '2026-10-26T07:05:20.073559+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('d0a3f516-7e05-4875-9b4e-27888e12ebd9', 'Sia', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027192/m0tqbepsqr77tprdn1la.jpg', '2026-10-26T08:01:00.314593+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('37751cce-cf95-4b6a-b5af-9ea7714edaaa', 'Wham!', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027193/wlkmhvuz3tpquzhhgs1j.jpg', '2026-10-26T08:02:49.439598+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('5d55a996-5ee8-4865-8d5e-fffc9d1d413b', 'Aqua', NULL, '2026-10-26T08:08:15.370161+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('72819fe9-8216-471c-8121-291a930d98d8', 'Bambee', NULL, '2026-10-26T08:09:25.302245+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('4577bef3-7d8b-43db-992e-be53a3162ced', 'FIFTY FIFTY', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027194/m1rmmncaewgz0dtykbmj.jpg', '2026-10-26T08:10:33.035944+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 
--- 3. Restore Songs (167 rows)
+-- 3. Restore Songs (178 rows)
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
   '49b5b3e7-060a-4367-b2f9-83e4b7b2e096',
   'Asal Mein',
@@ -3947,10 +3958,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529268/toy9lvbpxvccjvc698yj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529270/fftwzvbrxapggyg4nfrh.png',
   200,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529273/z4qj0ctlomgleaqgp9mc.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529277/qboqwxv2vsqh4jlbudy4.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529280/lficqxwtezjld7ijwlcn.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529282/fqwju04tdwecmlldqclq.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025420/ab5ccwvlyt28fsvqwbwh.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025401/hirmlsey1orpdyqsowjc.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025408/rvnxnvi3fputtgwgyfov.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025414/nm2quxifayl3kpm2gv4z.mp3',
   FALSE,
   '2026-09-26T08:31:58.586918+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4011,10 +4022,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529289/jz0vkwegwerklinh0mmj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529290/lafcjramlajvy4nevuaw.png',
   227,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529294/pffp4a00yhhumaftwucn.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529298/indfzudpjju4ptchftib.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529303/iac7fqyuaph11o6mbnpz.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529307/cj6tzjip96hpt6k1tvan.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025462/d3u5dzmixko8ywolziyb.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025442/hbvslcnsoy6jxgacu3am.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025448/ywwyi013le2nmkawcyea.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025456/ewhvexkowr5zfq71cmd7.mp3',
   FALSE,
   '2026-09-26T08:34:41.217019+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4090,10 +4101,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529316/bagsmhoukigiiatmgbwo.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529317/ilmdx2qi1eetxmsvcjs7.png',
   228,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529320/iha6kwcs4w9ufnz5yzl8.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529323/ea5kkpjjx1lbsrjfcmpk.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529326/zpqtjzccs4lw5xrlmooo.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529329/qkpyfdiwmhcnpqfhqb44.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025506/zhdrpbkoftrx9wkfjz4u.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025486/rgr3yqya3fbhweuoiovs.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025492/df5qfizrwykb17wavnqd.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025499/ohrv5x6gqciaeuxtprb1.mp3',
   FALSE,
   '2026-09-26T08:36:57.368203+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4166,10 +4177,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529335/nptzntvitnywhn1pkh9m.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529337/dcou9h7lgnkldgubyj7z.png',
   198,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529340/nmhg0ehpdkblynvqz9m1.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529344/uufsqxo3gydhxfekcwqm.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529348/hw74csfijcizdvgjyvvs.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529352/lcujtbuopawnaclal87c.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025543/mmbbervhgbvwscowx3yr.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025525/xz8ratu5ab0k6xslnpr9.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025532/wljkbet1x22tmtk7knti.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025538/olfgqdu4skeeagpwdhwd.mp3',
   FALSE,
   '2026-09-26T08:39:05.257797+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4247,10 +4258,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529360/pisrgjsb0otivo3sp5ng.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529361/l4bvfraaozjsgqqnykcu.png',
   212,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529364/hve1t2dbv1qygsuhnr0w.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529367/wz2f8hejyhtvajvw32of.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529371/sowb4goqkipjmgmu9ywj.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529374/yqklm1kcvp6ux5nkrefe.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025582/qrpdxwy32xfwjvtarnyv.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025564/ofxjfdhudeiauldi0xu3.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025569/lo4gsp1qlvqchmenpaps.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025575/zdotvudfvipszqsbahay.mp3',
   FALSE,
   '2026-09-26T08:41:28.013598+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4319,10 +4330,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529379/o90i0ilqi4eqczuxzx2i.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529380/fjualfi4tzsdxct2tcpq.png',
   207,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529382/uja2cx1kgrrgnjk4jab2.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529386/orxnrugrulaxvvmutqdc.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529388/w8jbgpfacxzbs0jw2dre.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529391/fjbzipmmer7pnsisqyoj.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025622/z7cgebcs0eezkyifjcid.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025602/whht5r3zyn6eaeel618i.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025609/fucjgmvhjcazro3f82cd.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025615/w8n1opu99xrouoapogzz.mp3',
   FALSE,
   '2026-09-26T08:44:59.659646+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4394,10 +4405,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529397/hovqis6m092eqylhpfvj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529398/lk8yhbuy1sbpniw8ibbb.png',
   259,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529401/wbkvikij28l59kq8jtnd.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529404/bdxcf6heupyd81teciaw.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529408/kbqs2xcvrtahboptazvy.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529413/y6viiqsgr3dzvqbnaa27.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025666/ikhaxrtspiaxe9895nis.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025645/ruf6rrxih6hd5jfmjcw2.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025651/tiutd78kusnpvnosxk5e.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025659/s7xylveusgvlowbomujx.mp3',
   FALSE,
   '2026-09-26T08:47:06.75702+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4450,10 +4461,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529421/bjehblz5kqk86o1muiu7.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529423/u45aepjyiawii0lbicq0.png',
   285,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529427/ihzgzl8fepwmgxnkda9h.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529431/wtdg7zvw8hux3sxq5aik.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529435/vhidazmejdmwlivqnt51.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529439/qqwtaibfjdcmufrznobs.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025712/tfgvdkjbpuu8wp5aptk4.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025692/pfqrofzju1pq3sp8i6kd.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025698/oh7gok8v1v36patobwed.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025706/tytbkyel61q8paggwtde.mp3',
   FALSE,
   '2026-09-26T08:53:18.328689+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4491,10 +4502,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529445/wd84ro2wtndr1yvdao6k.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529446/ubczdjd0bq2kfksdlq2g.jpg',
   208,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529449/kndekvemzhilwjy3p7fl.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529454/pimpnwu4nbf2ldyyqveb.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529457/az2iq9dqlmp8iemfa8hb.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529463/wtchktf2tqkxiijw7ykb.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025753/wte9vehqjpbczb50cj9v.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025732/xpot1ozxwreopukgjcct.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025739/j5se1byawub15rn9k6pm.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025746/nudmgvxhqlnqiydxny32.mp3',
   FALSE,
   '2026-09-26T08:55:18.029029+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4600,10 +4611,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529474/xt9flbfvc6ivkce7z696.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529475/lqurgvf04r8r0bswevoc.png',
   234,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529478/ot9dfndsj9cyucx2uygh.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529481/sxlpjb77ehuwsd4hu1in.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529484/qqvkm9vgdpznjjrvpflj.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529488/ahpnpsdjy0dbdjwn7qxw.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025797/oprzie38c6wu4djn6ots.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025775/eca2qp1xv83kac1ldhdu.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025782/ymhkyyomdqf26xnum2nv.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025790/gpzc2yzgygwerj1kbir1.mp3',
   FALSE,
   '2026-09-26T08:58:44.438346+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4657,10 +4668,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529498/a8kflx91ycgyoxzreuao.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529499/sryvgsfzvmbeft8i4nxr.png',
   235,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529504/jjmm6m0pkndngojv2rkx.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529511/gzh2bk6bwqrljrldtxnl.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529520/tc6flzhfpyaepu6drvap.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529531/gaujg7abgxghdwm3y0q7.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025841/it9hluaggb6vffs74xsp.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025819/lfpywnvriecj4qlkappn.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025827/ovkkou9yetwigovzztw3.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025834/im3uhuy8frf5dslwml3u.mp3',
   FALSE,
   '2026-09-26T09:01:00.97033+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4697,10 +4708,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529546/rocl7kecvkruhw6zp6lj.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529547/er2zyewbehtlhbshx3qx.png',
   176,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529552/rjo2zsgdylm6hzzfmvxb.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529557/fsastwqczzg32pdib4fi.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529563/jgkctcssqfokrwoj8ph9.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529570/vb7xcb9s9w3nbc2lkoob.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025875/nz1wo1f9g2tnr7vgzcuj.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025859/qzgsmkjg3chgznyzwgwq.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025864/wgq5enh4bnvclvoizv2x.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025869/nvsqy4yx0i2dlchbe2j6.mp3',
   FALSE,
   '2026-09-26T09:03:21.719526+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4755,10 +4766,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529585/rhqsdcyeguckiyeb2ti4.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529587/u8gjtkrvoxcvmjcjaub5.png',
   184,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529589/dseoaiwloupp1qjffcjw.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529592/hjkfvudq8dx6tjjh4y7j.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529595/xnpcc1mqdefkss5bmb8z.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529599/vqunf8tjjgbdpj9ciucs.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025910/h5p8t8r9z6aobbvobobs.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025893/idyxgfkuyn4zvwti8met.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025899/hlyaqh1ip2ebd9khmywo.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025905/ydiqxxb79tmorvaofd5r.mp3',
   FALSE,
   '2026-09-26T09:05:33.139771+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4854,10 +4865,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529611/pzhgqa4npwkehbcaa26t.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529613/whqsuorb7ipjihqjo42q.png',
   269,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726445/mhacjfzstlcur82ldkli.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726419/cifoysyfulx7mbfh7ihc.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726428/tsaahhbqewmaek4yjeka.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791726437/xjupzcoeugx6ztnfua7k.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025954/wrtgrkn5ffwkdgqr30yp.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025934/kppvepdznrbjvp6s1xnx.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025941/g3dcn5zt99atrzydroou.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025948/kc38giwejtrfeguq9x5w.mp3',
   FALSE,
   '2026-09-26T14:58:28.275741+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -4939,10 +4950,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529652/vlmuu3gois2ptrvf9tsq.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529653/o5pri9q69pgwgcpxtkgd.jpg',
   210,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529656/lnzleyirubpxafa2vq2t.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529659/zguepv5wtveny4ntk4l7.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529662/qu8kg7m1itvg1usmwxny.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529665/whqd2szytesktdjxmefz.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025993/kp9ygijl1qfasa1uj7fa.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025975/arsr8j7dg7xx6pmmacwa.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025981/ov28d8uthkv5kwpieudj.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793025987/s1eg1rvuk2n27j36uime.mp3',
   FALSE,
   '2026-09-27T12:13:09.364278+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5012,10 +5023,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529672/dd1p3pihdlypbhgoc6sf.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529674/s2wtzgdgg9yxd7ia8yxb.png',
   280,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727059/oz2gzlgqbtsjhhf31l9m.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727033/cmvs1ywz6psyddobv1yr.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727041/gvp0et6riyblujh9m6nd.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727050/r6dk8yofjfqs0vlle2hk.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026044/gcvwpxwtdql8ex1nexyq.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026020/qmdwg7edoj7rsokmwzpv.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026027/pmwoy713xwzl144sjddo.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026036/uenyqq6bivh0qkkewici.mp3',
   FALSE,
   '2026-09-28T09:41:07.086787+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5090,10 +5101,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529723/lsat5mun3ahff58vq43d.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529725/qcluypj1e5qypoh3gal6.png',
   267,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529728/kppmfxksxfleqjzbvdvr.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529731/muizh19gqfdnswn0gzdm.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529736/q5yj52y9s0iywtb1cpdy.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529741/igniw8hnyvrcbdzrvwb6.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026092/ryeamcvupy7k5mggggot.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026069/q67fvaxgymhyfg6xpwqs.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026076/hv0kndvzsuirmedocgtm.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026084/bhfkfas0uo7aq9wxsxzj.mp3',
   FALSE,
   '2026-09-28T09:47:15.620157+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5177,10 +5188,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529751/yd2d8qheo9aslpnrlrb8.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529752/v9amonc6d08ylth5k4en.jpg',
   230,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727898/xm2gs1jz5zl2mofc8prb.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727874/evafrwrcuj7vhj2odtc2.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727882/ypsqdj1fuhsp9mmk5r9q.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727889/bsvsceuzq7pjq8e51ebx.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026136/bf8aah1glvwbmporrgjf.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026114/vg3oush4kumgqm8wqyga.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026122/cejthtl6utbyrxyvimw2.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026129/stxgsjlrscw26mfy2ngb.mp3',
   FALSE,
   '2026-09-28T09:51:42.603064+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5229,10 +5240,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529774/cf5jhia91ybqquq9owzu.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529775/b5ussu1xkmebrs521lsr.jpg',
   280,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529780/imcnxa28unyacmqut8fl.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529785/ldgtatf8ebgewzfmmi7t.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529790/ozqiv1vsqg1atrfflngw.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529798/xayjpssthp9a1wloruvy.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026186/kaz0mff4m2c7acfrtvip.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026162/dhndzmdqfxm9bpzzskvb.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026170/rgi3xmrqjjfrqvk63a2u.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026178/nsd68yvlv08eojqwvzes.mp3',
   FALSE,
   '2026-09-28T09:54:49.65457+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5279,10 +5290,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529813/f67kunrug5jgqzdalva8.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529814/a6afdjk6qjlv7ceq59wf.png',
   331,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529821/ov3ruqnrimybzg240jf6.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529828/zet5jzsvgll6onrtanbx.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529834/csij9ftgynb7ui71wz7o.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529839/bhzues4ewpxfmgjcnduv.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026234/rl98024dsgvfrmx5l1dq.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026210/ip6xsr0i8xfvzs1opbgz.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026218/xg71f3jkcodetbtix4ot.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026226/jtprksvpyumkvzxygqte.mp3',
   FALSE,
   '2026-09-28T09:58:23.838944+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5322,10 +5333,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529846/am6nqgfcfzvnadgh870y.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529847/rfedhsa4nlviok00rsw5.png',
   278,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727113/ujf7qgbcpq598vjyqxns.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727086/aoqqnrhgqkyetmq6wsfa.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727095/ozrx69rvnvt3u48fhvmv.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727104/cjthoqsmyfsjei5xa20c.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026294/zovgtowj641wzfvyqo41.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026266/f7269qhgnjoe1qbbqyjp.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026274/pm4mbpl7luu8nyeujziq.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026284/ie5rezib7nuwxiawhrol.mp3',
   FALSE,
   '2026-09-28T10:02:05.585634+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5391,10 +5402,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529865/uzemomyejdi0txrd88no.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529866/g8vsufsam38akkcl0x5k.png',
   211,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529869/wvwt1ad2tggzzukjp0hr.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529873/hhzownqmgu2yghtr0ksc.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529878/qipwfp1tspwkrvjafgq8.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529884/zu7qvdohwtotglvawt3s.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026328/thypkivlbitl56oh2a0e.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026311/n41l7omq6iifl2ajni1u.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026317/wewfhrf6ceufrelrzm8s.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026323/plbjjjo5wwaeuuvbj7qu.mp3',
   FALSE,
   '2026-09-28T10:17:32.209741+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5470,10 +5481,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529899/bkytudrofkcbq7h4qrgv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529900/dz44m90td3qqsdvejyc7.png',
   188,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727511/iqntho0k66tpyhdqninf.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727492/csj5hlhc269m1jdtutgy.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727497/rzbi2m8z42qj5rgugwud.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727505/buodithipfdsbubpqfiz.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026365/ijgiyc1ulzwfrjg8zgh4.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026348/kw8uxjdg35olxda2obat.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026354/msbyuggvnhzqm4xd8voo.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026360/unzg9sy8ajjfkaqoaux8.mp3',
   FALSE,
   '2026-09-28T10:20:35.546375+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5513,10 +5524,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529926/ntmjxwcplypsiwjsj436.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529927/yl6xk2zflvspqwipuscj.jpg',
   311,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529932/bowgnmpfxmft2oxxdweq.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529937/gt0lf6nbgay2f268ylnw.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529943/xyev603riajipc7trsz2.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529950/rc8w3eky8qiagg0kbjuq.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026420/tb5ygz1rc8stvwsjyszy.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026394/zo77wabbqyjiyslmqluv.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026402/q02b6ssewxixdvhw62mk.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026412/kfszmqq1lo41xeiej4kg.mp3',
   FALSE,
   '2026-09-28T10:25:42.646557+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5558,10 +5569,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529971/rxjkbuczvcebmh1ojhsu.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529974/cttxhnyaspmeomopoykr.png',
   291,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529987/k7r8qbqcoyxb5q42k5kx.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529995/nk2uzylii3yv7h3fp6me.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530000/hwa7sonfzk6eeohixyiu.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530009/ejwgyhpu62ekafeu4ebb.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026457/t8ctlexufhsk86fkc4yp.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026440/qocoscikns1pjozqskoe.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026445/c86m5ws0bw4mxefuz1zk.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026451/nnhvanrxtovylsbvpqdq.mp3',
   FALSE,
   '2026-09-28T10:31:13.388415+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5609,10 +5620,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530027/nbzksbf6zwgivib7h9yv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530029/w03vulpehtnknrmsmnvs.png',
   288,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727232/in9ujuwhq976vsay4mns.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727203/px8bhl2nrvvwdblrx3zk.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727212/njbxrvek2qsxhvxyhorq.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727223/gs3ncclwutunxpzushq3.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026502/bgwvv11hruumz4rlyk6y.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026482/cwmhijxwaps8g6xn7ghm.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026488/xrcwrfdssqljmyofmh3o.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026496/zfjes5sllttkl4u8h4n5.mp3',
   FALSE,
   '2026-09-28T10:33:37.024481+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5732,10 +5743,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530097/y0lvueesn2vjzrij1tzg.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530098/yv6edbywwvn3q8dsteer.png',
   290,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728104/weg4qh2ldoeq3odldrva.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728077/g7l2jxxmsy6e8rtdpq3i.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728086/xkjxdpmoz6ikdpgqqilm.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728095/iuywsp4w8juroqtqdslu.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026545/yrprwjmzxjmmfvy7bad4.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026524/lzzkat2tv2odgavd6v7b.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026530/u3f8avjjw8v0jmamhxub.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026537/un6ffezhnclzm54xnwcf.mp3',
   FALSE,
   '2026-09-28T10:39:36.782682+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5788,10 +5799,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530136/vbhq27hy5tnucgsjxbrk.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530137/yuvwwgkzh83hyhto7j5d.png',
   304,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791728002/xh6q7mrbqxpeuddlnuif.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727971/alxuuzfr8iilkeq1ahnm.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727981/wqibdd8ikropbudyokgw.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727992/earh7gtbkysqwuoaejfi.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026599/vzwnffdfee3hwqgfw7xk.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026573/l46bk71oevdbndvdrlnv.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026582/mesapvsfs4tga7f9yxlf.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026591/o4fnogdfacpastvdqrrv.mp3',
   FALSE,
   '2026-09-28T10:42:17.439843+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5854,10 +5865,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530165/zjxqgr1w1xclwbb2ncas.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530166/lhos1biby48hoqekl5x2.png',
   387,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727585/yubdxihl9u8rrn9255hk.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727548/rc7feoyazxayd0jkhrol.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727560/azbuxb6cbkzlhszon7as.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791727573/uakcnoeez6ypn0akzvwy.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026666/d9dbv9qpbqabxrv7qy8z.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026635/oui7uhgi2tljpmom6ttc.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026644/ouzvubpcm3izzkop25ag.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026656/fukzgrqqjpbzssmktfpm.mp3',
   FALSE,
   '2026-09-28T10:45:12.031692+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -5903,10 +5914,10 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530209/iqhj0fjy4l6fyq3hvex8.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791530211/myrhbxuexbvd0l1s6egl.png',
   342,
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530224/xlkynmsjyoezimdpd9vx.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530232/m5z21vhd9fjgoljgedvp.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530239/zv2fbhcavf5unew5wcwq.mp3',
-  'https://res.cloudinary.com/cpsimhz1/video/upload/v1791530244/bhvngmz7pxufaqpbomyd.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026724/tbfcpydawiy4t0afwtu5.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026697/y9ousa75l2i1obnyy8wh.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026705/wddowxrju8zur3jikbo6.mp3',
+  'https://res.cloudinary.com/skqqgkpt/video/upload/v1793026715/kf3sj5g0hlwyeppsilfw.mp3',
   FALSE,
   '2026-09-28T10:48:09.123463+00:00'
 ) ON CONFLICT (id) DO NOTHING;
@@ -11377,6 +11388,777 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   FALSE,
   '2026-10-20T06:35:19.054097+00:00'
 ) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '8b390487-4bb1-48d5-9dcf-447be1265589',
+  'Chite Suit Te',
+  'Geeta Zaildar',
+  NULL,
+  '[mood: Party] [00:08.61] ਕਣੀਆਂ ''ਚ, ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ
+[00:10.96] ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[00:29.77] ਚਿੱਟੇ ਸੂਟ ''ਤੇ ਦਾਗ ਪੈ ਗਏ
+[00:35.41] ਚਿੱਟੇ ਸੂਟ ''ਤੇ ਦਾਗ ਪੈ ਗਏ, ਗਲੀ ਤੇਰੀ ਵਿੱਚ ਗਾਰਾ
+[00:41.08] ਚਿੱਟੇ ਸੂਟ ''ਤੇ ਦਾਗ ਪੈ ਗਏ, ਗਲੀ ਤੇਰੀ ਵਿੱਚ ਗਾਰਾ
+[00:45.96] ਵੇ ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ (ਮੈਂ ਭਿੱਜ ਗਈ)
+[00:50.01] ਵੇ ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[00:54.43] ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[01:20.41] ਤੂੰ ਨਾ ਉਠਿਆ ਅੱਧੀ ਰਾਤ, ਮੈਂ ਮੁੜ ਗਈ ਦਰ ਖੜਕਾ ਕੇ
+[01:26.18] (ਮੁੜ ਗਈ ਦਰ ਖੜਕਾ ਕੇ, ਵੇ ਮੈਂ ਮੁੜ ਗਈ ਦਰ ਖੜਕਾ ਕੇ)
+[01:31.80] ਸੂਟਾ ਖਿੱਚ ਕੇ ਕੂਕ ਸੌਂ ਗਿਆ ਜਾਨ ਨੂੰ ਘਰੇ ਬੁਲਾਕੇ
+[01:37.59] (ਜਾਨ ਨੂੰ ਘਰੇ ਬੁਲਾਕੇ, ਵੇ ਤੂੰ ਜਾਨ ਨੂੰ ਘਰੇ ਬੁਲਾਕੇ)
+[01:43.09] ਤੂੰ ਨਾ ਉਠਿਆ ਅੱਧੀ ਰਾਤ, ਮੈਂ ਮੁੜ ਗਈ ਦਰ ਖੜਕਾ ਕੇ
+[01:48.83] ਸੂਟਾ ਖਿੱਚ ਕੇ ਕੂਕ ਸੌਂ ਗਿਆ ਜਾਨ ਨੂੰ ਘਰੇ ਬੁਲਾਕੇ
+[01:54.33] ਤੇਰੀ-ਮੇਰੀ ਟੁੱਟ ਜਊ, ਤੂੰ ਤਾਂ...
+[01:57.78] ਤੇਰੀ-ਮੇਰੀ ਟੁੱਟ ਜਊ, ਤੂੰ ਤਾਂ ਵੈਲੀ ਹੋ ਗਿਆ ਭਾਰਾ
+[02:02.15] ਵੇ ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ (ਮੈਂ ਭਿੱਜ ਗਈ)
+[02:06.25] ਵੇ ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[02:10.61] ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[02:28.39] ਤੇਰੇ ਪਿੱਛੇ ਅੱਲ੍ਹੜ ਕਵਾਰੀ ਮੀਂਹ ਵਿੱਚ ਧੱਕੇ ਖਾਵੇ
+[02:33.82] (ਮੀਂਹ ਵਿੱਚ ਧੱਕੇ ਖਾਵੇ, ਤੇਰੇ ਪਿੱਛੇ ਮੀਂਹ ਵਿੱਚ ਧੱਕੇ ਖਾਵੇ)
+[02:39.69] ਵੇ ਨਿਰਦਈਆ ਸੋਲਹ ਜਵਾਨੀ ਉਤੇ ਤਰਸ ਨਾ ਆਵੇ
+[02:45.26] (ਉਤੇ ਤਰਸ ਨਾ ਆਵੇ, ਜਵਾਨੀ ਉਤੇ ਤਰਸ ਨਾ ਆਵੇ)
+[02:50.92] ਤੇਰੇ ਪਿੱਛੇ ਅੱਲ੍ਹੜ ਕਵਾਰੀ ਮੀਂਹ ਵਿੱਚ ਧੱਕੇ ਖਾਵੇ
+[02:56.41] ਵੇ ਨਿਰਦਈਆ ਸੋਲਹ ਜਵਾਨੀ ਉਤੇ ਤਰਸ ਨਾ ਆਵੇ
+[03:02.12] ਬਾਹਾਂ ਵਿੱਚ ਤੇਰੇ ਪੀਂਘ ਝੂਟ ਕੇ
+[03:05.19] ਬਾਹਾਂ ਵਿੱਚ ਤੇਰੇ ਪੀਂਘ ਝੂਟ ਕੇ ਲੈਣਾ ਇਸ਼ਕ ਹੁਲਾਰਾ
+[03:09.78] ਵੇ ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ (ਮੈਂ ਭਿੱਜ ਗਈ)
+[03:14.05] ਵੇ ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[03:18.34] ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[03:50.12] Phone ਵੀ ਕਰਿਆ, ਤੂੰ ਨਾ ਚੱਕਿਆ, ਕੈਸਾ ਏ ਬੇਫ਼ਿਕਰਾ?
+[03:55.56] (ਕੈਸਾ ਏ ਬੇਫ਼ਿਕਰਾ? ਵੇ ਤੂੰ ਕੈਸਾ ਏ ਬੇਫ਼ਿਕਰਾ?)
+[04:01.11] ਜਾਨ ਤੇਰੀ ਨੇ ਜਾਗ-ਜਾਗ ਕੇ ਰਾਤ ਲੰਘਾ ਲਈ ਮਿਤਰਾ
+[04:06.78] (ਰਾਤ ਲੰਘਾ ਲਈ ਮਿਤਰਾ, ਜਾਗ ਕੇ ਰਾਤ ਲੰਘਾ ਲਈ ਮਿਤਰਾ)
+[04:12.46] Phone ਵੀ ਕਰਿਆ, ਤੂੰ ਨਾ ਚੱਕਿਆ, ਕੈਸਾ ਏ ਬੇਫ਼ਿਕਰਾ?
+[04:18.19] ਜਾਨ ਤੇਰੀ ਨੇ ਜਾਗ-ਜਾਗ ਕੇ ਰਾਤ ਲੰਘਾ ਲਈ ਮਿਤਰਾ
+[04:23.75] ਸਾਥੋਂ ਇਹ ਨਹੀਂ ਝੱਲ ਹੋਣਾ ਨਿਤ
+[04:26.89] ਸਾਥੋਂ ਇਹ ਨਹੀਂ ਝੱਲ ਹੋਣਾ ਨਿਤ, ਵੱਡਿਆ ਗੜ੍ਹੀ ਦੇ ਜੈਲਦਾਰਾ
+[04:31.72] ਵੇ ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ (ਮੈਂ ਭਿੱਜ ਗਈ)
+[04:35.85] ਵੇ ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[04:40.17] ਕਣੀਆਂ ''ਚ ਮੈਂ ਭਿੱਜ ਗਈ ਤੈਨੂੰ ਮਿਲਣ ਆਉਂਦੀ, ਦਿਲਦਾਰਾ
+[04:46.71] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027197/lsidaixzdqw78hnufjuf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027198/iwwub5seqsr9utmkw0sp.jpg',
+  288,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027199/z8ld8hlitw23vcq62nmn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027200/dwuwhqlrtojad1v4udnz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027201/g4wcb4hhaxaxik8hc2et.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027202/qq7ybalarmcl39ssvsvh.mp3',
+  FALSE,
+  '2026-10-21T13:05:01.098475+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'f456351b-e85d-444e-8a17-9fff90e946ca',
+  'Rang Rara Riri Rara',
+  'Sarbjit Cheema, Sukhpal Sukh',
+  'Rang- Rara Riri Rara',
+  '[mood: Party] [00:00.60]ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[00:04.28]ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[00:41.13]ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[00:48.88]ਨੀ ਤੇਰੀ ਅੱਖ ਦਾ ਇਸ਼ਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[00:56.76]ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[01:00.58]ਤੇਰੀ ਅੱਖ ਦਾ ਇਸ਼ਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[01:04.44]ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਤੇਰੀ ਅੱਖ ਦਾ ਇਸ਼ਾਰਾ
+[01:08.35]ਤੇਰਾ ਰੂਪ ਗਵਾਰਾ ਸਾਨੂੰ ਲੱਗਦਾ ਪਿਆਰਾ
+[01:15.93]ਨੀ ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[01:23.82]ਨੀ ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[01:54.67]ਨੀ ਤੇਰੀ ਉੱਡੂ ਉੱਡੂ ਕਰਦੀ ਜਵਾਨੀ ਮੁਟਿਆਰੇ
+[02:02.48]ਨੀ ਮੁੰਡੇ ਦੂਰੋਂ ਦੂਰੋਂ ਤੱਕਦੇ ਨੇ ਰੂਪ ਦੇ ਨਜ਼ਾਰੇ
+[02:10.51]ਨੀ ਤੇਰੀ ਉੱਡੂ ਉੱਡੂ ਕਰਦੀ ਜਵਾਨੀ ਮੁਟਿਆਰੇ
+[02:14.34]ਮੁੰਡੇ ਦੂਰੋਂ ਦੂਰੋਂ ਤੱਕਦੇ ਨੇ ਰੂਪ ਦੇ ਨਜ਼ਾਰੇ
+[02:18.23]ਸੋਹਣੇ ਰੂਪ ਦਾ ਨਜ਼ਾਰਾ ਤੇਰਾ ਨਖ਼ਰਾ ਵੀ ਭਾਰਾ
+[02:22.09]ਲੌਂਗ ਮਾਰੇ ਲਿਸ਼ਕਾਰਾ ਜਿਵੇਂ ਅੰਬਰਾਂ ਦਾ ਤਾਰਾ
+[02:29.82]ਨੀ ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[02:37.60]ਨੀ ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[03:08.57]ਨੀ ਤੇਰੇ ਨੈਣ ਮਮੋਲੇ ਬਿੱਲੋ ਸੋਹਣੇ ਬੜੇ ਨੇ
+[03:16.32]ਨੀ ਲਾਲ ਬੁੱਲ੍ਹੀਆਂ ''ਚ ਦੰਦ ਜਿਵੇਂ ਮੋਤੀ ਜੜੇ ਨੇ
+[03:24.08]ਨੀ ਤੇਰੇ ਨੈਣ ਮਮੋਲੇ ਬਿੱਲੋ ਸੋਹਣੇ ਬੜੇ ਨੇ
+[03:27.91]ਲਾਲ ਬੁੱਲ੍ਹੀਆਂ ''ਚ ਦੰਦ ਜਿਵੇਂ ਮੋਤੀ ਜੜੇ ਨੇ
+[03:31.76]ਦੋਸ਼ ਅੱਖੀਆਂ ਦਾ ਸਾਰਾ ਦਿਲ ਮਾਰਦਾ ਵਿਚਾਰਾ
+[03:35.63]ਹੋ ਜਾਵੇ ਨਾ ਕੋਈ ਕਾਰਾ ਨੀ ਤੂੰ ਭਰਦੇ ਹੁੰਗਾਰਾ
+[03:43.37]ਨੀ ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[03:51.13]ਨੀ ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[04:22.06]ਮੁੰਡਾ ਪੱਟਿਆ ਸ਼ੌਕੀਨ ਨੀ ਤੂੰ ਕਰਕੇ ਅਦਾਵਾਂ
+[04:29.80]ਤੇਰੇ ਨਖ਼ਰੇ ਕਲੋਲਾਂ ਤੋਂ ਮੈਂ ਵਾਰੇ ਵਾਰੇ ਜਾਵਾਂ
+[04:37.63]ਮੁੰਡਾ ਪੱਟਿਆ ਸ਼ੌਕੀਨ ਨੀ ਤੂੰ ਕਰਕੇ ਅਦਾਵਾਂ
+[04:41.51]ਤੇਰੇ ਨਖ਼ਰੇ ਕਲੋਲਾਂ ਤੋਂ ਮੈਂ ਵਾਰੇ ਵਾਰੇ ਜਾਵਾਂ
+[04:45.34]ਨੀ ਮੈਂ ਫਿਰਾਂ ਮਾਰਾ ਮਾਰਾ ਮੈਨੂੰ ਤੇਰਾ ਹੀ ਸਹਾਰਾ
+[04:49.20]ਨੀ ਕੋਈ ਕਰੀਂ ਹੁਣ ਚਾਰਾ ਲਾ ਦੇ ਪਾਰ ਕਿਨਾਰਾ
+[04:56.96]ਨੀ ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ
+[05:04.74]ਨੀ ਤੇਰੇ ਲੱਕ ਦਾ ਹੁਲਾਰਾ ਰੰਗ ਰਾਰਾ ਰੀਰੀ ਰਾਰਾ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027204/aub471idgrmith3gplyq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027205/sxcxmcnovgtss8nfrgda.jpg',
+  320,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027206/ev5oqrvqx1fewzrekdya.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027208/dylv3dozh8yfuydplfir.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027210/vrnd3mwgurceli3pqvng.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027211/r4klbk4ncvvi7z0vrwx0.mp3',
+  FALSE,
+  '2026-10-21T13:08:58.657212+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'acf108a0-de76-41ac-ab5b-d5b1017d4ac4',
+  ' Uff Teri Adaa',
+  'Shankar-Ehsaan-Loy, Shankar Mahadevan, Alyssa Mendonca',
+  'Karthik Calling Karthik',
+  '[mood: Party] [00:00.00] ...
+[00:38.62] Jogi nach le, rang raj de
+[00:53.13] Jogi nach le, rang raj de
+[01:07.71] Lehraake balkhaake tu
+[01:09.43] Duniya bhulaake naach
+[01:11.26] Dhun koyi gun gunaale
+[01:13.99] Gaale tu gaake naach
+[01:14.91] Ranginiyon mein kho ja
+[01:16.71] Pee ke pilaake naach
+[01:18.55] Madbhare naino se tu
+[01:20.31] Naina mila ke naach
+[01:21.93] Uff teri ada
+[01:23.96] I like the way you move
+[01:25.55] Uff tera badan
+[01:27.61] I like to see you groove
+[01:29.21] Uff teri nazar
+[01:31.24] It says I wanna dance with you
+[01:36.32] Uff teri ada
+[01:38.48] I like the way you move
+[01:40.10] Uff tera badan
+[01:42.12] I like to see you groove
+[01:43.75] Uff teri nazar
+[01:45.72] It says I wanna dance with you
+[01:51.97] 
+[01:51.97] ...
+[02:05.72] 
+[02:05.72] Sun le saaheba, tu hai ik nasha
+[02:20.35] Hosh hai mera saara kho gaya
+[02:35.27] Hosh gawa deewaane
+[02:36.72] Hosh gawaake naach
+[02:38.55] Paas tu aa deewaane
+[02:40.34] Paas tu aake naach
+[02:42.17] Dil mein hai armaan jitne
+[02:43.94] Saare jaga ke naach
+[02:45.79] Tann mein badan main jaise
+[02:47.61] Aag laga ke naach
+[02:49.21] Uff teri ada
+[02:51.23] I like the way you move
+[02:52.81] Uff tera badan
+[02:54.81] I like to see you groove
+[02:56.46] Uff teri nazar
+[02:58.52] It says I wanna dance with you
+[03:03.84] Uff teri ada
+[03:05.80] I like the way you move
+[03:07.36] Uff tera badan
+[03:09.40] I like to see you groove
+[03:10.99] Uff teri nazar
+[03:13.61] It says I wanna dance with you
+[03:18.42] 
+[03:18.42] ...
+[03:35.63] 
+[03:35.63] Dekh ke bhi nahin ho yakin
+[03:42.65] Itni kyun hai bataa tu haseen
+[03:49.75] Tere husn se zindagi haseen
+[03:53.47] Tere husn ke aage koyi haseena kuch bhi nahin
+[04:01.61] Aankhon main mere saare
+[04:03.47] Sapne saja ke naach
+[04:05.31] Mujhko tu dil mein rakh le
+[04:07.14] Dil ko dhadka ke naach
+[04:08.93] Pyaar agar hai mujhse
+[04:10.75] Pyaar jaga ke naach
+[04:12.60] Jaan-o-dil hai jo tere
+[04:14.43] Mujhpe luta ke naach
+[04:16.28] Uff teri ada
+[04:18.29] I like the way you move
+[04:19.64] Uff tera badan
+[04:21.63] I like to see you groove
+[04:23.28] Uff teri nazar
+[04:25.33] It says I wanna dance with you
+[04:30.61] Uff teri ada
+[04:32.58] I like the way you move
+[04:34.17] Uff tera badan
+[04:36.25] I like to see you groove
+[04:37.83] Uff teri nazar
+[04:39.87] It says I wanna dance with you
+',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027212/mz7e7dchehaeo9hweqnh.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027214/hjwgjhfsaop1ow2fwzl0.jpg',
+  304,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027214/an4gnxmvvufmlsvdfsnc.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027216/dnxumi1avkvq8kcdouei.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027217/amhd5b1zzzznwz6bn041.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027218/z2pfzuxu2qcpyeamdf41.mp3',
+  FALSE,
+  '2026-10-21T13:22:07.458024+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'eb239fdd-2d58-4f54-9169-985d14dc9ccd',
+  'All I Want for Christmas Is You',
+  'Mariah Carey',
+  'Merry Christmas',
+  '[mood: Festival] [00:06.55] I don''t want a lot for Christmas
+[00:12.95] There is just one thing I need
+[00:17.35] I don''t care about the presents underneath the Christmas tree
+[00:24.65] I just want you for my own
+[00:28.68] More than you could ever know
+[00:33.52] Make my wish come true
+[00:39.12] All I want for Christmas is you
+[00:52.55] 
+[00:55.23] Yeah
+[00:57.48] I don''t want a lot for Christmas
+[01:00.33] There is just one thing I need (and I)
+[01:03.90] Don''t care about the presents underneath the Christmas tree
+[01:09.92] I don''t need to hang my stocking there upon the fireplace
+[01:16.74] Santa Claus won''t make me happy with a toy on Christmas Day
+[01:22.88] I just want you for my own
+[01:25.97] More than you could ever know
+[01:29.15] Make my wish come true
+[01:32.39] All I want for Christmas is you
+[01:38.73] You, baby
+[01:41.47] Oh, I won''t ask for much this Christmas
+[01:45.16] I won''t even wish for snow (and I)
+[01:48.25] I''m just gonna keep on waiting underneath the mistletoe
+[01:54.73] I won''t make a list and send it to the North Pole for Saint Nick
+[02:01.55] I won''t even stay awake to hear those magic reindeer click
+[02:07.34] ''Cause I just want you here tonight
+[02:10.60] Holding on to me so tight
+[02:13.86] What more can I do?
+[02:16.57] Oh, baby, all I want for Christmas is you
+[02:23.51] You, baby
+[02:26.79] Oh-oh, all the lights are shining so brightly everywhere (so brightly, baby)
+[02:33.95] And the sound of children''s laughter fills the air (oh, oh, yeah)
+[02:40.12] And everyone is singing (oh, yeah)
+[02:42.13] I hear those sleigh bells ringing
+[02:45.81] Santa, won''t you bring me the one I really need? (Yeah, oh)
+[02:48.47] Won''t you please bring my baby to me?
+[02:51.39] Oh, I don''t want a lot for Christmas
+[02:55.49] This is all I''m asking for
+[02:59.09] I just wanna see my baby standing right outside my door
+[03:04.72] Oh, I just want you for my own
+[03:08.23] More than you could ever know
+[03:11.68] Make my wish come true
+[03:13.05] Oh, baby, all I want for Christmas is you
+[03:23.18] 
+[03:25.64] You, baby
+[03:27.40] All I want for Christmas is you, baby
+[03:33.89] All I want for Christmas is you, baby
+[03:40.22] All I want for Christmas is you, baby
+[03:46.68] All I want for Christmas (all I really want) is you, baby
+[03:53.05] All I want (I want) for Christmas (all I really want) is you, baby
+[03:58.62] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027220/yu9yogkj0cnc0mdhjubq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027221/g4nzux9b5oexho7jw9pz.jpg',
+  241,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027222/dcsicgxorneheawefa9b.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027224/qjfhcg8o9jxkqzt5ecpa.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027225/rpohldgqvtpeojsfgzmf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027226/rkjhw8zm4pgkdmepxsnp.mp3',
+  FALSE,
+  '2026-10-26T08:00:25.068264+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '1557fb62-6334-4922-86cb-c37ded9c04d8',
+  'Snowman',
+  'Sia',
+  'Everyday Is Christmas',
+  '[mood: Festival] [00:06.42]Don''t cry, snowman, not in front of me
+[00:10.59]Who will catch your tears if you can''t catch me, darlin''?
+[00:15.40]If you can''t catch me, darlin''?
+[00:19.94]Don''t cry, snowman, don''t leave me this way
+[00:24.19]A puddle of water can''t hold me close, baby
+[00:29.25]Can''t hold me close, baby
+
+[00:34.35]I want you to know that I''m never leaving
+[00:37.86]''Cause I''m Mrs. Snow, ''till death we''ll be freezing
+[00:41.15]Yeah, you are my home, my home for all seasons
+[00:44.72]So come on, let''s go
+[00:48.24]Let''s go below zero and hide from the sun
+[00:51.56]I''ll love you forever where we''ll have some fun
+[00:55.00]Yes, let''s hit the North Pole and live happily
+[00:58.40]Please don''t cry no tears now, it''s Christmas, baby
+
+[01:01.83]My snowman and me
+[01:08.63]My snowman and me
+[01:14.98]Baby
+
+[01:21.80]Don''t cry, snowman, don''t you fear the sun
+[01:25.80]Who''ll carry me without legs to run, honey?
+[01:30.54]Without legs to run, honey?
+[01:35.40]Don''t cry, snowman, don''t you shed a tear
+[01:39.72]Who''ll hear my secrets if you don''t have ears, baby?
+[01:44.67]If you don''t have ears, baby?
+
+[01:49.77]I want you to know that I''m never leaving
+[01:53.20]''Cause I''m Mrs. Snow, ''till death we''ll be freezing
+[01:56.60]Yeah, you are my home, my home for all seasons
+[02:00.09]So come on, let''s go
+[02:03.60]Let''s go below zero and hide from the sun
+[02:06.93]I''ll love you forever where we''ll have some fun
+[02:10.33]Yes, let''s hit the North Pole and live happily
+[02:13.81]Please don''t cry no tears now, it''s Christmas, baby
+
+[02:17.19]My snowman and me
+[02:24.03]My snowman and me
+[02:30.37]Baby
+[02:31.67]
+',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027227/tbcflqtagibqua0ysbap.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027228/i4hx49z1tukiawbw4wda.jpg',
+  166,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027229/mr8ws65otgpiv3ozhftw.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027230/yprrogxtlkbjnizlrdf8.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027231/crdzkococoqgtmefj4f4.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027233/owlzk657rpqgofkhgbwl.mp3',
+  FALSE,
+  '2026-10-26T08:01:35.105209+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '5bc16c90-38c4-4562-9aa8-89cf0785b079',
+  'Last Christmas',
+  'Wham!',
+  'LAST CHRISTMAS',
+  '[mood: Festival] [00:17.54] Last Christmas I gave you my heart
+[00:22.16] But the very next day you gave it away
+[00:26.44] This year, to save me from tears
+[00:31.28] I''ll give it to someone special
+[00:36.73] Last Christmas I gave you my heart
+[00:39.82] But the very next day you gave it away
+[00:44.14] This year, to save me from tears
+[00:49.80] I''ll give it to someone special
+[00:54.00] 
+[01:12.39] Once bitten and twice shy
+[01:16.38] I keep my distance, but you still catch my eye
+[01:20.92] Tell me baby, do you recognize me?
+[01:24.93] Well, it''s been a year, it doesn''t surprise me
+[01:29.72] Happy Christmas, I wrapped it up and sent it
+[01:33.62] With a note saying "I love you", I meant it
+[01:38.59] Now I know what a fool I''ve been
+[01:42.22] But if you kissed me now, I know you''d fool me again
+[01:47.93] Last Christmas I gave you my heart
+[01:51.38] But the very next day you gave it away
+[01:55.95] This year, to save me from tears
+[02:00.52] I''ll give it to someone special
+[02:05.02] Last Christmas I gave you my heart
+[02:08.69] But the very next day you gave it away
+[02:13.19] This year, to save me from tears
+[02:17.91] I''ll give it to someone special
+[02:22.23] Ooh
+[02:25.66] Oh, oh, baby
+[02:29.61] 
+[02:40.26] A crowded room, friends with tired eyes
+[02:44.89] I''m hiding from you and your soul of ice
+[02:49.03] My God, I thought you were someone to rely on
+[02:52.69] Me? I guess I was a shoulder to cry on
+[02:58.38] A face on a lover with a fire in his heart
+[03:02.06] A man under cover, but you tore me apart
+[03:08.23] Oh, oh now I''ve found a real love
+[03:11.53] You''ll never fool me again
+[03:15.95] Last Christmas I gave you my heart
+[03:20.17] But the very next day you gave it away
+[03:24.55] This year, to save me from tears
+[03:29.09] I''ll give it to someone special, special
+[03:33.98] Last Christmas I gave you my heart
+[03:38.34] But the very next day you gave it away
+[03:42.57] This year, to save me from tears
+[03:46.91] I''ll give it to someone special
+[03:49.87] Special
+[03:51.99] A face on a lover with a fire in his heart (I gave you mine)
+[03:56.32] A man under cover but you tore him apart
+[03:59.87] Maybe next year I''ll give it to someone
+[04:06.20] I''ll give it to someone special
+[04:12.06] Special
+[04:13.44] So long
+[04:17.06] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027235/xvurge2moomltsk6iy6u.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027236/w13sqsttn9fb7lueajqt.jpg',
+  263,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027237/gxxtuuznnjrsusruf9zu.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027238/cqkfrvri0lgiylhsprct.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027239/relgyljqfmgbx6vni1mu.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027241/hlw9bld6yfy8s1pjfvsj.mp3',
+  FALSE,
+  '2026-10-26T08:04:46.120506+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '7d68389a-2538-4bfc-a4c7-cf515a572b26',
+  'Santa Tell Me',
+  'Ariana Grande',
+  NULL,
+  '[mood: Festival] [00:10.82] Santa, tell me if you''re really there
+[00:14.93] Don''t make me fall in love again
+[00:17.58] If he won''t be here next year
+[00:20.87] Santa, tell me if he really cares
+[00:24.85] ''Cause I can''t give it all away
+[00:27.59] If he won''t be here next year
+[00:31.13] Feeling Christmas all around
+[00:33.57] And I''m trying to play it cool
+[00:36.17] But it''s hard to focus
+[00:37.96] When I see him walking ''cross the room
+[00:41.13] "Let It Snow" is blasting out
+[00:43.55] But I won''t get in the mood
+[00:46.24] I''m avoiding every mistletoe until I know...
+[00:49.90] It''s true love that he thinks of
+[00:54.36] So next Christmas I''m not all alone, boy
+[01:00.87] Santa, tell me if you''re really there
+[01:04.82] Don''t make me fall in love again
+[01:07.58] If he won''t be here next year
+[01:10.75] Santa, tell me if he really cares
+[01:14.82] ''Cause I can''t give it all away
+[01:17.43] If he won''t be here next year
+[01:21.01] I''ve been down this road before
+[01:23.77] Fell in love on Christmas night
+[01:26.09] But on New Year''s Day, I woke up and
+[01:28.69] He wasn''t by my side
+[01:31.19] Now I need someone to hold
+[01:33.52] Be my fire in the cold
+[01:36.13] But it''s hard to tell
+[01:37.68] If this is just a fling or if it''s...
+[01:40.35] True love that he thinks of
+[01:44.14] So next Christmas I''m not all alone, boy
+[01:50.70] Santa, tell me if you''re really there
+[01:54.89] Don''t make me fall in love again
+[01:57.52] If he won''t be here next year
+[02:00.88] Santa, tell me if he really cares
+[02:04.85] ''Cause I can''t give it all away
+[02:07.42] If he won''t be here next year
+[02:12.01] Oh, I wanna have him beside me like, oh, woo, ooh
+[02:16.93] On the 25th by that fireplace, oh, whoa
+[02:22.09] But I don''t want a new broken heart
+[02:25.37] This year I''ve got to be smart
+[02:29.55] Oh, baby (Santa, tell me, Santa, tell me)
+[02:34.34] If he won''t be, if he won''t be here (Santa, tell me)
+[02:38.01] (Santa, tell me)
+[02:40.85] Santa, tell me if you''re really there (Santa, tell me)
+[02:44.80] Don''t make me fall in love again (''cause I''m waitin'' here)
+[02:47.48] If he won''t be here next year (he won''t be here next year)
+[02:50.86] Santa, tell me if he really cares (tell me)
+[02:54.88] ''Cause I can''t give it all away (tell me, ''cause)
+[02:57.84] If he won''t be here next year (he won''t be here next year)
+[03:00.88] Santa, tell me if you''re really there (tell me)
+[03:04.82] Don''t make me fall in love again (tell me, baby)
+[03:07.55] If he won''t be here next year (If he won''t be, if he won''t be here)
+[03:10.76] Santa, tell me (tell me) if he really cares (do you care?)
+[03:15.01] ''Cause I can''t give it all away
+[03:17.45] If he won''t be here next year
+[03:20.05] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027242/fjkjjz09cgp04womj5xf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027243/rtalfokn1ejnpposptcw.jpg',
+  204,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027244/dfywq57ncnkcjwppkuig.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027246/hwuzklumxugs32mczrmf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027247/x4jenwczfis2uxugsegd.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027249/sqbkgtolwfhb9cjkxb9n.mp3',
+  FALSE,
+  '2026-10-26T08:07:19.761526+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '41fa8b8a-fa9a-4539-8eed-01151434f639',
+  'Barbie Girl',
+  'Aqua',
+  'Aquarium',
+  '[mood: Pop] [00:04.14] "Hiya, Barbie!"
+[00:05.38] "Hi, Ken!"
+[00:06.44] "Wanna go for a ride?"
+[00:07.58] "Sure, Ken!"
+[00:08.64] "Jump in!"
+[00:09.64] I''m a Barbie girl in a Barbie world
+[00:13.79] Life in plastic, it''s fantastic
+[00:17.19] You can brush my hair, undress me everywhere
+[00:21.15] Imagination, life is your creation
+[00:24.44] Come on Barbie, let''s go party
+[00:26.31] I''m a Barbie girl in a Barbie world
+[00:30.23] Life in plastic, it''s fantastic
+[00:33.66] You can brush my hair, undress me everywhere
+[00:37.66] Imagination, life is your creation
+[00:41.85] I''m a blonde bimbo girl
+[00:44.10] In a fantasy world
+[00:46.06] Dress me up, make it tight
+[00:47.70] I''m your dolly
+[00:49.79] You''re my doll, rock and roll
+[00:51.56] Feel the glamour in pink
+[00:53.28] Kiss me here, touch me there
+[00:55.17] Hanky panky
+[00:57.02] You can touch, you can play
+[01:00.72] If you say, "I''m always yours"
+[01:04.57] Ooh whoa
+[01:05.56] I''m a Barbie girl in a Barbie world
+[01:08.55] Life in plastic, it''s fantastic
+[01:12.66] You can brush my hair, undress me everywhere
+[01:16.51] Imagination, life is your creation
+[01:20.26] Come on Barbie, let''s go party
+[01:22.08] Ah ah ah yeah
+[01:23.76] Come on Barbie, let''s go party
+[01:25.85] Ooh whoa, ooh whoa
+[01:27.43] Come on Barbie, let''s go party
+[01:29.34] Ah ah ah yeah
+[01:31.40] Come on Barbie, let''s go party
+[01:33.08] Ooh whoa, ooh whoa
+[01:35.94] Make me walk, make me talk
+[01:37.89] Do whatever you please
+[01:39.73] I can act like a star
+[01:41.48] I can beg on my knees
+[01:43.41] Come jump in, bimbo friend
+[01:45.26] Let us do it again
+[01:47.05] Hit the town, fool around
+[01:48.86] Let''s go party
+[01:50.72] You can touch, you can play
+[01:54.25] If you say, "I''m always yours"
+[01:58.33] You can touch, you can play
+[02:01.42] If you say, "I''m always yours"
+[02:05.64] Come on Barbie, let''s go party
+[02:08.00] Ah ah ah yeah
+[02:09.70] Come on Barbie, let''s go party
+[02:11.81] Ooh whoa, ooh whoa
+[02:13.52] Come on Barbie, let''s go party
+[02:15.23] Ah ah ah yeah
+[02:17.39] Come on Barbie, let''s go party
+[02:19.28] Ooh whoa, ooh whoa
+[02:21.07] I''m a Barbie girl in a Barbie world
+[02:24.75] Life in plastic, it''s fantastic
+[02:27.91] You can brush my hair, undress me everywhere
+[02:31.94] Imagination, life is your creation
+[02:35.75] I''m a Barbie girl in a Barbie world
+[02:39.66] Life in plastic, it''s fantastic
+[02:43.00] You can brush my hair, undress me everywhere
+[02:46.88] Imagination, life is your creation
+[02:50.40] Come on Barbie, let''s go party
+[02:52.39] Ah ah ah yeah
+[02:54.26] Come on Barbie, let''s go party
+[02:56.14] Ooh whoa, ooh whoa
+[02:57.99] Come on Barbie, let''s go party
+[02:59.89] Ah ah ah yeah
+[03:01.63] Come on Barbie, let''s go party
+[03:03.60] Ooh whoa, ooh whoa
+[03:06.06] "Oh, I''m having so much fun!"
+[03:08.49] "Well Barbie, we''re just getting started."
+[03:11.07] "Oh, I love you, Ken!"
+[03:12.99] !Oh, I love you, Ken
+[03:13.22] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027250/uk1gricufqk8ndnxilgh.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027251/bzeomgiibjnbkt3hfej8.jpg',
+  198,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027252/xnopejkfmuhmiwijinda.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027253/kv4ye4j8rkf12ze2nzhg.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027254/lrp2jqayhjla5owh9rme.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027255/clgkjh1biac1dlpluk7z.mp3',
+  FALSE,
+  '2026-10-26T08:08:45.818611+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'c3cfc5bf-1b28-4cff-8626-c818d919b1a4',
+  'Bumble Bee',
+  'Bambee',
+  'On Ice',
+  '[mood: Pop] [00:02.38]Oh-oh-oh-oh, oh, oh-oh-oh
+[00:08.90]Oh-oh-oh-oh, oh, oh-oh-oh
+[00:15.75]Sweet little bumblebee
+[00:17.64]I know what you want from me
+[00:19.24]Doo-bi-doo-bi, doo-da-da
+[00:21.04]Doo-bi-doo-bi, doo-da-da
+[00:22.74]Sweet little bumblebee
+[00:24.48]More than just a fantasy
+[00:26.24]Doo-bi-doo-bi, doo-da-da
+[00:27.91]Doo-bi-doo-bi, doo-da-da
+[00:31.27]My heart skips a beat when you walk in the room
+[00:34.52]I go boom, boom, boom, you go zoom, zoom, zoom
+[00:38.02]You''re my playboy, play toy, lover, my friend
+[00:41.74]I wanna be with you until the end
+[00:45.46]I''d give my heart and my soul to you
+[00:48.67]To make you see it''s true
+[00:52.49]I''m so confused, baby, can''t you see?
+[00:55.88]Please, come and rescue me
+[00:59.32]Sweet little bumblebee
+[01:01.12]I know what you want from me
+[01:02.78]Doo-bi-doo-bi, doo-da-da
+[01:04.58]Doo-bi-doo-bi, doo-da-da
+[01:06.31]Sweet little bumblebee
+[01:07.90]More than just a fantasy
+[01:09.76]Doo-bi-doo-bi, doo-da-da
+[01:11.43]Doo-bi-doo-bi, doo-da-da
+[01:13.26]Oh-oh-oh-oh, oh, oh-oh-oh
+[01:16.72]Doo-bi-doo-bi, doo-da-da
+[01:18.45]Doo-bi-doo-bi, doo-da-da
+[01:20.36]Oh-oh-oh-oh, oh, oh-oh-oh
+[01:23.68]Doo-bi-doo-bi, doo-da-da
+[01:25.37]Doo-bi-doo-bi, doo-da-da
+[01:26.86]I start to cry when you walk out the door
+[01:30.27]You go, "Bye, bye, bye, I go, "Why, why, why?"
+[01:33.76]I''m so lonely and only waitin'' for you
+[01:37.32]To come back and tell me, "I love you"
+[01:41.11]I''d give my heart and my soul to you
+[01:44.35]To make you see it''s true
+[01:48.04]I''m so confused, baby, can''t you see?
+[01:51.48]Please, come and rescue me
+[01:54.95]Sweet little bumblebee
+[01:56.79]I know what you want from me
+[01:58.42]Doo-bi-doo-bi, doo-da-da
+[02:00.18]Doo-bi-doo-bi, doo-da-da
+[02:01.93]Sweet little bumblebee
+[02:03.68]More than just a fantasy
+[02:05.45]Doo-bi-doo-bi, doo-da-da
+[02:07.13]Doo-bi-doo-bi, doo-da-da
+[02:08.57]Oh-oh-oh-oh, oh, oh-oh-oh
+[02:12.37]Doo-bi-doo-bi, doo-da-da
+[02:14.05]Doo-bi-doo-bi, doo-da-da
+[02:15.56]Oh-oh-oh-oh, oh, oh-oh-oh
+[02:19.37]Doo-bi-doo-bi, doo-da-da
+[02:21.05]Doo-bi-doo-bi, doo-da-da
+[02:26.27]Doo-bi-doo-bi, doo-da-da
+[02:28.02]Doo-bi-doo-bi, doo-da-da
+[02:33.29]Doo-bi-doo-bi, doo-da-da
+[02:35.03]Doo-bi-doo-bi, doo-da-da
+[02:36.66]Sweet little bumblebee
+[02:38.44]I know what you want from me
+[02:40.18]Doo-bi-doo-bi, doo-da-da
+[02:41.93]Doo-bi-doo-bi, doo-da-da
+[02:43.62]Sweet little bumblebee
+[02:45.34]More than just a fantasy
+[02:47.10]Doo-bi-doo-bi, doo-da-da
+[02:48.88]Doo-bi-doo-bi, doo-da-da
+[02:50.77]Oh-oh-oh-oh, oh, oh-oh-oh
+[02:54.02]Doo-bi-doo-bi, doo-da-da
+[02:55.73]Doo-bi-doo-bi, doo-da-da
+[02:57.62]Oh-oh-oh-oh, oh, oh-oh-oh
+[03:01.01]Doo-bi-doo-bi, doo-da-da
+[03:02.79]Doo-bi-doo-bi, doo-da-da
+[03:04.01]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027256/nqvpkvvr7rypjufiua7j.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027257/bw5oiojqpbnfkkt8vbzp.jpg',
+  197,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027259/elmtafxxdnaslr2siifv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027261/ft0wgkx3c38xkl1aeol2.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027262/um6vpipc1etzvx16ubqp.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027264/zpngiyiypbw0ha5m5ywd.mp3',
+  FALSE,
+  '2026-10-26T08:09:57.000257+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'bb75c978-3a90-4772-9293-eadf698df19d',
+  'Cupid (Twin Version)',
+  'FIFTY FIFTY',
+  'The Beginning: Cupid',
+  '[mood: Chill] [00:02.12] La, la, la, la-la-la
+[00:05.39] La, la-la-la, la, la-la-la
+[00:09.93] A hopeless romantic all my life
+[00:13.42] Surrounded by couples all the time
+[00:17.28] I guess I should take it as a sign
+[00:21.79] (Oh, why, oh, why? Oh, why, oh, why?)
+[00:25.10] I''m feelin'' lonely (lonely)
+[00:26.31] Oh, I wish I''d find a lover that could hold me (hold me)
+[00:30.02] Now I''m cryin'' in my room
+[00:32.32] So skeptical of love (say what you say, but I want it more)
+[00:36.31] But still, I want it more, more, more
+[00:39.59] I gave a second chance to Cupid
+[00:42.47] But now I''m left here feelin'' stupid
+[00:46.46] Oh, the way he makes me feel that love isn''t real
+[00:52.35] Cupid is so dumb
+[00:55.62] I look for his arrows every day (ah)
+[01:01.18] I guess he got lost or flew away (ah)
+[01:05.11] Waiting around is a waste (waste)
+[01:08.03] Been countin'' the days since November
+[01:08.75] Is lovin'' as good as they say? (Ooh-ah, ah)
+[01:11.55] Now I''m so lonely (lonely)
+[01:14.42] Oh, I wish I''d find a lover that could hold me (hold me)
+[01:18.06] Now I''m cryin'' in my room
+[01:20.49] So skeptical of love (say what you say, but I want it more)
+[01:24.13] But still, I want it more, more, more
+[01:27.27] I gave a second chance to Cupid
+[01:30.46] But now I''m left here feelin'' stupid
+[01:34.80] Oh, the way he makes me feel that love isn''t real
+[01:40.32] Cupid is so dumb
+[01:44.39] 
+[01:57.37] (Cupid is so dumb)
+[02:00.97] Hopeless girl is seekin''
+[02:04.86] Someone who will share this feelin''
+[02:08.86] I''m a fool
+[02:11.70] A fool for love, a fool for love
+[02:17.08] I gave a second chance to Cupid
+[02:20.73] But now I''m left here feelin'' stupid
+[02:24.90] Oh, the way he makes me feel that love isn''t real
+[02:30.28] Cupid is so dumb
+[02:33.46] I gave a second chance to Cupid (hopeless girl is seekin'' someone)
+[02:37.83] But now I''m left here feelin'' stupid (who will share this feelin'')
+[02:42.21] Oh, the way he makes me feel that love isn''t real (I''m a fool)
+[02:46.75] Cupid is so dumb (a fool for love, a fool for love)
+[02:50.81] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027266/lcky9pzr1g9zqu8xndzu.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027267/flyvukftkxijdgma1kas.jpg',
+  174,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027268/c582unq5rddehytzt1pn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027269/vcqqfcgsqk4o3ydxfnhq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027270/cvqszpeugaosw0vkqhlf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027271/mrfyvkldr3slejvzoikx.mp3',
+  FALSE,
+  '2026-10-26T08:11:21.34259+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'bf153fd9-45c8-4c7e-8439-d023cd2fb014',
+  'Beat It',
+  'Michael Jackson',
+  'Thriller',
+  '[mood: Pop] [00:38.43] They told him, "Don''t you ever come around here"
+[00:41.20] "Don''t wanna see your face, you better disappear"
+[00:45.03] The fire''s in their eyes and their words are really clear
+[00:48.20] So beat it, just beat it
+[00:52.32] You better run, you better do what you can
+[00:55.43] Don''t wanna see no blood, don''t be a macho man
+[00:58.84] You wanna be tough, better do what you can
+[01:02.14] So beat it, but you wanna be bad
+[01:05.61] Just beat it (beat it), beat it (beat it)
+[01:09.26] No one wants to be defeated
+[01:12.68] Showin'' how funky and strong is your fight
+[01:16.26] It doesn''t matter who''s wrong or right
+[01:19.49] Just beat it (beat it)
+[01:20.97] Just beat it (beat it)
+[01:22.65] Just beat it (beat it)
+[01:24.48] Just beat it (beat it, uh)
+[01:26.94] They''re out to get you, better leave while you can
+[01:29.92] Don''t wanna be a boy, you wanna be a man
+[01:33.22] You wanna stay alive, better do what you can
+[01:36.48] So beat it, just beat it
+[01:40.67] You have to show them that you''re really not scared
+[01:43.84] You''re playin'' with your life, this ain''t no truth or dare
+[01:47.26] They''ll kick you, then they''ll beat you
+[01:48.75] Then they''ll tell you it''s fair
+[01:50.54] So beat it, but you wanna be bad
+[01:54.00] Just beat it (beat it), beat it (beat it)
+[01:57.76] No one wants to be defeated
+[02:00.81] Showin'' how funky and strong is your fight
+[02:04.37] It doesn''t matter who''s wrong or right
+[02:07.83] Just beat it (beat it), beat it (beat it)
+[02:11.48] No one wants to be defeated
+[02:14.71] Showin'' how funky and strong is your fight
+[02:18.34] It doesn''t matter who''s wrong or right
+[02:21.62] Just beat it (beat it, beat it, beat it)
+[02:24.61] Beat it (beat it, beat it)
+[02:27.73] 
+[02:31.46] Beat it (beat it, beat it)
+[02:34.16] Beat it (beat it, beat it)
+[02:37.44] 
+[02:40.95] Beat it (beat it, beat it)
+[02:43.93] 
+[03:17.31] Beat it (beat it), beat it (beat it)
+[03:20.67] No one wants to be defeated
+[03:24.02] Showin'' how funky and strong is your fight
+[03:27.59] It doesn''t matter who''s wrong or right (who''s right)
+[03:30.53] Just beat it (beat it), beat it (beat it)
+[03:34.42] No one wants to be defeated (no one)
+[03:37.97] Showin'' how funky and strong is your fight
+[03:41.19] It doesn''t matter who''s wrong or right
+[03:44.40] Just beat it (beat it), beat it (beat it)
+[03:48.31] No one wants to be defeated (oh, no)
+[03:51.52] Showin'' how funky and strong is your fight
+[03:55.02] It doesn''t matter who''s wrong or right
+[03:58.20] Just beat it (beat it), beat it (beat it)
+[04:01.99] No one wants to be defeated
+[04:05.36] Showin'' how funky and strong is your fight
+[04:08.86] It doesn''t matter who''s wrong or right
+[04:12.14] Just beat it (beat it), beat it (beat it)
+[04:14.91] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027272/bdmdnyojsxnabsvuqcan.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793027273/opf8qih7eqfkf3hcph8i.jpg',
+  258,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027274/v8yjzbwrpszekar3jrn7.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027275/pjch7qeoxzeigm4b0swr.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027277/jt5ydty4osftio2ij15g.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793027278/dfcakysonrxfwxgzuaon.mp3',
+  FALSE,
+  '2026-10-26T08:16:02.077795+00:00'
+) ON CONFLICT (id) DO NOTHING;
 
 -- 4. Restore Playlists (33 rows)
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('f9a25586-7289-4a1d-b57b-38464f2fd543', 'Songs We Sang', '1427121b-efda-49c6-abdf-59ad35523935', '2026-09-20T11:36:43.898631+00:00') ON CONFLICT (id) DO NOTHING;
@@ -11397,7 +12179,7 @@ INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('13d4f26f-0
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('39dec174-5860-466c-b96e-82840ad4b80a', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:45:36.529887+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('e9b1578f-12dc-4708-a762-6b2651487371', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:51:43.397964+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('01113d88-41a6-4a2f-9846-88ede407d896', 'Liked Songs', '9cebd7da-e93e-4715-b6fd-487ee09e6f2f', '2026-10-12T14:29:37.787009+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":1,"e6657092-d62b-4754-a347-548d0f3bde39":10,"e718bc53-19ab-497e-8ac7-43a2359a19d6":2,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":3,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":4,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":2,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":2,"47d3fd86-a418-444e-9fdd-842ea10d06b7":1,"be6f92a1-abc7-4992-9c9e-96e2701774c9":3,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":2,"4a14527e-95d0-43c9-a06a-281aebd6ff34":1,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":3,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":3,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"46136499-85f3-4da2-9484-9f451d511905":2,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":4,"258e9ddc-de55-467f-bed6-202ee00c3466":3,"8c853546-b82b-46f6-ba04-0fc90d54965d":2,"ab99af69-2ebc-4543-a1fd-37895121e02f":2,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":4,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":3,"fa8e1c6f-b07b-4553-b154-146604e82c05":1,"b83a94df-c760-4322-994f-f3ad2a31e883":2,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":6,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":2,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":5,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":1,"9531118f-2926-4918-9156-ef8a543e757f":2,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":2,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":2,"908b2deb-0831-4091-b5e1-dd77e0695a5c":3,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":2,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"923ec288-02e0-4ae2-a13c-accde7ab486e":4,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":4,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":4,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2,"947df50e-7088-46bc-805f-0ad97369e835":1,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":3,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":2,"15f4bf7c-bb20-400b-b70e-45754916f38a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"5157f0c1-5938-4987-b80d-0329f8758ca1":2,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":1,"56c68e50-f532-4925-9592-1cddf47850cd":4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"d3328021-ffc8-4534-a748-44d195efc3cd":4,"c55017cd-15ec-4546-99e8-f12bd5626f11":1,"354bb599-a2c0-413e-bbba-70cc7b783841":3,"9e515d2e-f8a7-41d4-a111-0d5233512391":3,"6d493502-16ce-4915-8160-7b36cfd5cd05":3,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":1,"918ee6bd-06b4-4288-a58c-f89f0389c978":1,"39fd084d-c05f-42dc-9cdf-369d47b44153":1,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":1,"0f80a99a-c418-4669-88ca-d64a5c857fdc":1,"6f2cc188-8453-4faa-853c-8c4a69917830":3,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":2,"00ebe386-442b-4f95-9825-0ebda1b41813":2,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":3,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":2,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":1,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":1,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":2,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":1,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":1,"e2c1f860-e618-4521-b4f2-46e52fb6314d":5,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1,"9a86ca77-4c06-41c4-9270-136103ecce10":1,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":1,"e0089026-ea1d-42dd-9093-a9696de6857b":3,"26fae03b-6bfe-4254-8d90-19f01e8bde31":5,"e932ec12-66bb-42d3-bdba-c2e40fa27623":2,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":2,"6973477f-4917-4f28-9ff8-888f03de9ba2":1,"70417a45-7af3-4c1f-97c5-6b9116c31f05":1,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":1,"900af1a9-8b64-4092-913d-9dde80274d93":5,"787256d8-659b-4297-9514-5e3b4bf87f36":4,"327248c9-fba5-4973-a853-6041d1b7777c":2,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":3,"8636cd1d-0358-44ef-ac0f-c301bfecf738":3,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":6,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":2,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"6b22c41d-1724-4bac-a2df-d9d61f442c95":1,"642a9c68-e797-48ea-8dab-c42287322c26":3,"8263c87d-5688-421e-abc4-438d81b41480":1,"cd1fd534-4f13-443d-966d-3021ba004440":1,"72903aae-1d9a-487d-930f-418cfa6b0205":1,"8e0b4d15-45be-49dd-9692-2e171d330c09":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"bf558395-c784-4100-93eb-cfa239715ca9":1,"07a53c4b-373d-4075-816e-c32fde3184db":1,"c0cbee49-81ba-4e72-8c52-410308ad361f":2,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":1,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":1,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":1,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":3,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":1,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":1,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":2,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":1,"51f1833c-800c-451c-8c34-79e667ccae4a":1,"a26eea36-25f1-4754-a534-13ffd38f7ad5":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":685.3000000000051,"0591dd49-6c49-40ee-8ec6-996c430b9691":690.1000000000057,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":53.30000000000003,"c3e49428-958a-4272-b658-dcc665373ba6":16.099999999999998,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":282.1999999999997,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":281.8999999999996,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":236.3999999999994,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":199.0999999999995,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":336.5000000000006,"47d3fd86-a418-444e-9fdd-842ea10d06b7":183.1999999999996,"be6f92a1-abc7-4992-9c9e-96e2701774c9":480.30000000000206,"f6e83060-33c6-457b-8ccf-b825929b2be4":68.20000000000003,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":375.5000000000008,"4a14527e-95d0-43c9-a06a-281aebd6ff34":213.39999999999944,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":314.09999999999997,"b1beda6e-b846-478f-bae6-d92ec4128556":88.09999999999995,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":45.10000000000003,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":662.3000000000056,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":451.3000000000016,"a9e28652-60ce-46aa-b167-711225e2df54":206.39999999999944,"c0d286b0-5df5-485b-8963-5532c0b47991":183.79999999999956,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":241.9999999999994,"900af1a9-8b64-4092-913d-9dde80274d93":926.8000000000085,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":120.39999999999992,"9e515d2e-f8a7-41d4-a111-0d5233512391":438.9000000000014,"e718bc53-19ab-497e-8ac7-43a2359a19d6":309.0000000000001,"46136499-85f3-4da2-9484-9f451d511905":263.99999999999943,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":298.3999999999999,"e6657092-d62b-4754-a347-548d0f3bde39":1364.4999999999957,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":34.500000000000014,"bf558395-c784-4100-93eb-cfa239715ca9":205.49999999999952,"86ff8290-aa80-454d-8d35-b408f6463b49":37.80000000000002,"c55017cd-15ec-4546-99e8-f12bd5626f11":183.09999999999977,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":819.4000000000074,"72903aae-1d9a-487d-930f-418cfa6b0205":191.89999999999964,"6d493502-16ce-4915-8160-7b36cfd5cd05":588.9000000000037,"923ec288-02e0-4ae2-a13c-accde7ab486e":687.8000000000058,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":818.7000000000071,"283edc91-b796-45aa-a22e-e5ecf26c164f":21,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":108.49999999999989,"83e790e9-1900-4ff5-ac56-7700d9d88354":7.9,"258e9ddc-de55-467f-bed6-202ee00c3466":385.9000000000013,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":193.1999999999996,"8c853546-b82b-46f6-ba04-0fc90d54965d":339.30000000000024,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":233.5999999999994,"642a9c68-e797-48ea-8dab-c42287322c26":675.8000000000052,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":149.59999999999977,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":104.49999999999991,"908b2deb-0831-4091-b5e1-dd77e0695a5c":764.8000000000073,"d7f9d821-191e-4f5b-af3e-bfb98b155465":582.1000000000038,"354bb599-a2c0-413e-bbba-70cc7b783841":536.1000000000033,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":15.599999999999998,"947df50e-7088-46bc-805f-0ad97369e835":252.5999999999993,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":17.5,"8e0b4d15-45be-49dd-9692-2e171d330c09":147.8999999999998,"d3328021-ffc8-4534-a748-44d195efc3cd":681.7000000000058,"6973477f-4917-4f28-9ff8-888f03de9ba2":274.69999999999965,"c0cbee49-81ba-4e72-8c52-410308ad361f":491.0000000000019,"2fa75852-1544-407c-a771-b9a2f7688e00":13.399999999999999,"63eb50bd-9772-4c3f-ab26-976301fd2705":6.4,"d724987f-83a9-4351-bd60-3a7502a87c59":51.300000000000026,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":544.9000000000038,"f726f995-1776-4a2d-97c4-024cf22e851e":5.1000000000000005,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":28.700000000000003,"dd640b9c-21da-4d72-99ca-6b78c143997a":12.199999999999998,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":496.2000000000021,"39fd084d-c05f-42dc-9cdf-369d47b44153":170.1999999999996,"0f80a99a-c418-4669-88ca-d64a5c857fdc":164.69999999999965,"eb4f3985-fd6a-4a20-a48f-10717982804a":31.30000000000001,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":175.09999999999965,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":11.799999999999999,"a26eea36-25f1-4754-a534-13ffd38f7ad5":180.39999999999972,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":162.79999999999967,"94e729cf-448c-490b-9926-bb9f5a1d4d50":7.500000000000002,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":91.39999999999995,"c4751b72-883d-40fe-8990-cb7dfeaac47b":182.59999999999965,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":231.3999999999994,"4b17d938-0d77-4ccc-8da7-82cd9167218a":3.2,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":63.90000000000004,"07a53c4b-373d-4075-816e-c32fde3184db":259.99999999999943,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":41.40000000000002,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":351.10000000000065,"6e4bf9a4-092a-42d3-81f0-b8563690b929":3.3000000000000003,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":144.69999999999973,"1d83d33b-2146-4427-89b2-5b3c846a294d":147.69999999999976,"b83a94df-c760-4322-994f-f3ad2a31e883":322.90000000000026,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":241.49999999999955,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":469.10000000000235,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":101.19999999999995,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1330.4999999999998,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":2.5999999999999996,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":247.7999999999994,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":7.100000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":111.79999999999988,"5157f0c1-5938-4987-b80d-0329f8758ca1":337.50000000000045,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":156.99999999999966,"51f1833c-800c-451c-8c34-79e667ccae4a":171.8999999999996,"ebfeeb92-1900-4ad6-aec6-275dcce12453":3.5000000000000004,"9531118f-2926-4918-9156-ef8a543e757f":480.3000000000029,"5a8d4c24-fff0-43cd-954f-201770da5be1":8.499999999999998,"fa8e1c6f-b07b-4553-b154-146604e82c05":218.1999999999994,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":303.1000000000001,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":19.6,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":6.2,"f83a2b6e-e700-40c7-a406-3931b4ce8780":3.8000000000000003,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":17.900000000000002,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":4,"ce7b47f5-9331-45ac-b319-406722b07466":3.5999999999999996,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":357.3000000000006,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":4.5,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":762.8000000000059,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":829.4000000000075,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":580.2000000000039,"a53e97ce-02e6-454c-b13a-0a26e2956e92":6.1,"0ebbc1b7-a451-4540-bbc6-96224926c015":692.2000000000048,"56c68e50-f532-4925-9592-1cddf47850cd":532.3000000000033,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":240.59999999999934,"15f4bf7c-bb20-400b-b70e-45754916f38a":130.09999999999985,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":222.0999999999995,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":398.0000000000008,"cd1fd534-4f13-443d-966d-3021ba004440":134.2999999999998,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":3.9000000000000004,"918ee6bd-06b4-4288-a58c-f89f0389c978":228.09999999999937,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":140.79999999999973,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":281.0999999999995,"ab99af69-2ebc-4543-a1fd-37895121e02f":356.8000000000007,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":3.1,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":69.80000000000003,"9e36f778-6b04-4cb3-a674-e4960347cda8":72.90000000000002,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":43.00000000000002,"6f2cc188-8453-4faa-853c-8c4a69917830":924.8000000000102,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":94.49999999999994,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":60.50000000000003,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":462.500000000002,"943fde3e-1809-490b-acd4-83db59006c30":82.89999999999996,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":77.9,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":406.6000000000013,"00ebe386-442b-4f95-9825-0ebda1b41813":321.90000000000015,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":443.9000000000014,"e2c1f860-e618-4521-b4f2-46e52fb6314d":981.1000000000091,"6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":75.6,"9a86ca77-4c06-41c4-9270-136103ecce10":183.59999999999962,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":208.3999999999996,"e0089026-ea1d-42dd-9093-a9696de6857b":407.90000000000066,"6b22c41d-1724-4bac-a2df-d9d61f442c95":224.8999999999995,"e932ec12-66bb-42d3-bdba-c2e40fa27623":277.59999999999957,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":20.500000000000004,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":293.8999999999998,"03294ca0-8782-4468-a2fe-e138754f3156":39.80000000000002,"2579167d-dced-4fca-aebf-e703dff1884b":42.90000000000002,"70417a45-7af3-4c1f-97c5-6b9116c31f05":160.0999999999997,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":134.9999999999998,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":368.80000000000075,"26fae03b-6bfe-4254-8d90-19f01e8bde31":642.0000000000047,"787256d8-659b-4297-9514-5e3b4bf87f36":396.2000000000012,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":44.00000000000002,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":184.09999999999968,"327248c9-fba5-4973-a853-6041d1b7777c":231.19999999999945,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":373.8000000000009,"8636cd1d-0358-44ef-ac0f-c301bfecf738":441.5000000000017,"8263c87d-5688-421e-abc4-438d81b41480":268.1999999999996,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":906.4000000000084,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":438.80000000000183,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":163.99999999999966,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":96.39999999999992,"f2b7fcd6-959a-4b73-8b53-e5a500643a84":63.100000000000044},"recentlyPlayedIds":["46136499-85f3-4da2-9484-9f451d511905","ccd7fabf-d277-4420-84a8-4e5ff5b66d67","a26eea36-25f1-4754-a534-13ffd38f7ad5","51f1833c-800c-451c-8c34-79e667ccae4a","d629ffbc-dada-4dab-ab5b-cd0a800cc184","e2c1f860-e618-4521-b4f2-46e52fb6314d","e6657092-d62b-4754-a347-548d0f3bde39","8d9660f6-95dc-40c7-bf37-3963bcc6ecf4","be6f92a1-abc7-4992-9c9e-96e2701774c9","26fae03b-6bfe-4254-8d90-19f01e8bde31","787256d8-659b-4297-9514-5e3b4bf87f36","6b948690-fcfa-4fc9-adaf-7ea6582a89a4","327248c9-fba5-4973-a853-6041d1b7777c","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","c94a4670-1f14-4e93-8e18-6a75c6562d6f","5157f0c1-5938-4987-b80d-0329f8758ca1","f82eeec8-0dfa-4220-9865-dc5ef41dd146","8c853546-b82b-46f6-ba04-0fc90d54965d","2db28891-244e-4cc7-8bbe-b50f54f46bdd","6d493502-16ce-4915-8160-7b36cfd5cd05","f40239c2-1f6b-45c5-9416-9eb733f7cd19","e0089026-ea1d-42dd-9093-a9696de6857b","c0cbee49-81ba-4e72-8c52-410308ad361f","fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8","d84c6343-8fa6-45e3-bc7a-a2803a8b220b","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","07a53c4b-373d-4075-816e-c32fde3184db","d3328021-ffc8-4534-a748-44d195efc3cd","908b2deb-0831-4091-b5e1-dd77e0695a5c","bf558395-c784-4100-93eb-cfa239715ca9","c4751b72-883d-40fe-8990-cb7dfeaac47b","8e0b4d15-45be-49dd-9692-2e171d330c09","9e515d2e-f8a7-41d4-a111-0d5233512391","72903aae-1d9a-487d-930f-418cfa6b0205","923ec288-02e0-4ae2-a13c-accde7ab486e","7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc","f54b3464-b992-466d-9b96-8ca95c1ad5ce","fe63e132-d030-4bc5-9ce2-a11e077f60ab","8636cd1d-0358-44ef-ac0f-c301bfecf738","cd1fd534-4f13-443d-966d-3021ba004440","8263c87d-5688-421e-abc4-438d81b41480","258e9ddc-de55-467f-bed6-202ee00c3466","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc","9531118f-2926-4918-9156-ef8a543e757f","0ebbc1b7-a451-4540-bbc6-96224926c015","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4","6f2cc188-8453-4faa-853c-8c4a69917830","0f80a99a-c418-4669-88ca-d64a5c857fdc","fb2647d3-d6fa-4150-a8f5-fc841ae176c2","56c68e50-f532-4925-9592-1cddf47850cd","39fd084d-c05f-42dc-9cdf-369d47b44153","dc0121d6-b3c4-4d60-aabb-c3000d7e3585","918ee6bd-06b4-4288-a58c-f89f0389c978","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8","b83a94df-c760-4322-994f-f3ad2a31e883","5ba2a0c3-89ca-4229-9ae9-514806d0363a","ab99af69-2ebc-4543-a1fd-37895121e02f","0591dd49-6c49-40ee-8ec6-996c430b9691"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Energetic","0591dd49-6c49-40ee-8ec6-996c430b9691":"Festival","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Energetic","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Energetic","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party","e6dd87c2-4847-4aef-bcfe-09569d3d1358":"Energetic","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":"Electronic","d6c4f539-c83d-4934-9bbe-41d5c16cdee2":"Romantic","908b2deb-0831-4091-b5e1-dd77e0695a5c":"Romantic","d7f9d821-191e-4f5b-af3e-bfb98b155465":"Romantic","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":"Retro","d17498d3-d2dc-4124-83a4-ae45d66c2aab":"Pop","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":"Pop","f6e83060-33c6-457b-8ccf-b825929b2be4":"Pop","8e0b4d15-45be-49dd-9692-2e171d330c09":"Romantic","d3328021-ffc8-4534-a748-44d195efc3cd":"Romantic","6973477f-4917-4f28-9ff8-888f03de9ba2":"Romantic","c0cbee49-81ba-4e72-8c52-410308ad361f":"Romantic","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":"Sad","2fa75852-1544-407c-a771-b9a2f7688e00":"Energetic","46136499-85f3-4da2-9484-9f451d511905":"Pop","63eb50bd-9772-4c3f-ab26-976301fd2705":"Energetic","d724987f-83a9-4351-bd60-3a7502a87c59":"Pop","f726f995-1776-4a2d-97c4-024cf22e851e":"Classical","9a5b4484-7ea6-4d04-bcd9-b49426cec421":"Romantic","ffe570a6-d0cb-491d-9cda-f3ba839f6d72":"Energetic","dd640b9c-21da-4d72-99ca-6b78c143997a":"Party","2db28891-244e-4cc7-8bbe-b50f54f46bdd":"Chill","39fd084d-c05f-42dc-9cdf-369d47b44153":"Romantic","0f80a99a-c418-4669-88ca-d64a5c857fdc":"Pop","eb4f3985-fd6a-4a20-a48f-10717982804a":"Pop","f7e6d9a4-e9b9-467b-bbf0-30e929696803":"Pop","684b60fa-6f36-4e0b-b122-dd966f2ef7c3":"Romantic","e758b7f7-1169-4bf9-8a41-e883b9f24b3a":"Chill","a26eea36-25f1-4754-a534-13ffd38f7ad5":"Romantic","d84c6343-8fa6-45e3-bc7a-a2803a8b220b":"Energetic","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":"Pop","8c853546-b82b-46f6-ba04-0fc90d54965d":"Pop","94e729cf-448c-490b-9926-bb9f5a1d4d50":"Chill","c0d286b0-5df5-485b-8963-5532c0b47991":"Romantic","10ea99a7-be01-45c2-82fd-14fa0bcadb58":"Chill","c4751b72-883d-40fe-8990-cb7dfeaac47b":"Energetic","3c6bb417-0b5e-475d-b8f0-3671a51b657b":"Romantic","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":"Romantic","e69cc1b8-f224-4cdd-8cae-aef42da87b5b":"Energetic","b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":"Energetic","a44df24d-9512-4327-ba2c-a5e86e4ba7cf":"Energetic","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":"Energetic","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":"Chill","1d83d33b-2146-4427-89b2-5b3c846a294d":"Desi Pop","b83a94df-c760-4322-994f-f3ad2a31e883":"Desi Pop","5ba2a0c3-89ca-4229-9ae9-514806d0363a":"Romantic","7a28b082-d69c-4ff8-ad0f-dbfda05f0685":"Romantic","a18f0c10-38ad-4de3-acd0-6dd637e1de10":"Chill","f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":"Chill","262fa689-d42b-42bf-bf33-b8f53c0c173c":"Classical","b35c820f-6400-4814-ab0e-2bbb1efb8f4a":"Romantic","fb2647d3-d6fa-4150-a8f5-fc841ae176c2":"Party","ebfeeb92-1900-4ad6-aec6-275dcce12453":"Chill","5a8d4c24-fff0-43cd-954f-201770da5be1":"Romantic","0924bcb2-c1dc-4cdb-a3e7-6881f473f668":"Romantic","a9e28652-60ce-46aa-b167-711225e2df54":"Sad","6aa041f9-9aa2-4fa4-882e-db9a4aac209b":"Romantic","f89d39c2-c7bf-48fa-8cd7-f242893f3609":"Romantic","572ad7f8-ea06-4521-bb3c-55410468ede0":"Romantic","14664d25-20dd-4660-a0e1-f9f11fcc98c4":"Energetic","f83a2b6e-e700-40c7-a406-3931b4ce8780":"Chill","daac84d3-0e68-40b3-94ea-9b9dbd01677c":"Sad","477ac65b-7ec7-4995-bfdf-656a0da42e6e":"Desi Pop","ce7b47f5-9331-45ac-b319-406722b07466":"Desi Pop","6b948690-fcfa-4fc9-adaf-7ea6582a89a4":"Chill","c63e6167-400a-4ff9-8c8c-e4737988d5aa":"Romantic","258e9ddc-de55-467f-bed6-202ee00c3466":"Desi Pop","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":"Desi Pop","f54b3464-b992-466d-9b96-8ca95c1ad5ce":"Pop","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":"Energetic","a53e97ce-02e6-454c-b13a-0a26e2956e92":"Chill","0ebbc1b7-a451-4540-bbc6-96224926c015":"Party","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":"Party","15f4bf7c-bb20-400b-b70e-45754916f38a":"Energetic","2b0e12fe-8ceb-426b-b758-6c62e22d783d":"Party","7abc6aed-540e-4cce-9fd5-5d59d45a360a":"Chill","ee60c07f-468b-419b-ad09-1ae770e2fbc4":"Romantic","918ee6bd-06b4-4288-a58c-f89f0389c978":"Energetic","30ad7c9d-0182-444d-b05f-3acac2f9ef35":"Energetic","ccd7fabf-d277-4420-84a8-4e5ff5b66d67":"Chill","ab99af69-2ebc-4543-a1fd-37895121e02f":"Romantic","9e36f778-6b04-4cb3-a674-e4960347cda8":"Chill","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":"Romantic","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":"Energetic","b1beda6e-b846-478f-bae6-d92ec4128556":"Romantic","6f2cc188-8453-4faa-853c-8c4a69917830":"Energetic","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":"Party","61243ae6-1193-4cb1-ab1d-37ef5a95a055":"Monsoon","a0e110cc-62dc-46f7-ba0a-ff8c781b5585":"Monsoon","748d9b27-fec5-4dd9-a872-e3b15582e0b5":"Sad","943fde3e-1809-490b-acd4-83db59006c30":"Monsoon","bc010c39-b880-42e6-91fa-0336d8b0bc6c":"Sad","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":"Romantic","00ebe386-442b-4f95-9825-0ebda1b41813":"Pop","f82eeec8-0dfa-4220-9865-dc5ef41dd146":"Pop","e2c1f860-e618-4521-b4f2-46e52fb6314d":"Chill","6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":"Romantic","e0089026-ea1d-42dd-9093-a9696de6857b":"Pop","6b22c41d-1724-4bac-a2df-d9d61f442c95":"Chill","9a86ca77-4c06-41c4-9270-136103ecce10":"Sad","e932ec12-66bb-42d3-bdba-c2e40fa27623":"Energetic","1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":"Romantic","cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":"Pop","7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":"Chill","03294ca0-8782-4468-a2fe-e138754f3156":"Pop","2579167d-dced-4fca-aebf-e703dff1884b":"Pop","70417a45-7af3-4c1f-97c5-6b9116c31f05":"Romantic","fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":"Energetic","cd9f67bb-f9bb-49a1-a699-df27dedefe25":"Pop","26fae03b-6bfe-4254-8d90-19f01e8bde31":"Pop","787256d8-659b-4297-9514-5e3b4bf87f36":"Chill","f840a011-96b7-4b8f-8c0f-e30d4b52037d":"Chill","a72625ec-ca27-4357-9d70-6f85c17ef9a7":"Energetic","efba21ea-42c2-4657-bc4a-9b3b08e10e07":"Energetic","327248c9-fba5-4973-a853-6041d1b7777c":"Pop","8636cd1d-0358-44ef-ac0f-c301bfecf738":"Energetic","8263c87d-5688-421e-abc4-438d81b41480":"Energetic","fe63e132-d030-4bc5-9ce2-a11e077f60ab":"Pop","0074e3e9-7cc6-42d7-b4ef-999ebacd219e":"Pop","f2b7fcd6-959a-4b73-8b53-e5a500643a84":"Energetic","4119cb2e-21ef-49b2-bccd-ee85253a1ad1":"Pop","e088c9c8-d047-46fe-b9de-8d0c1efa344e":"Pop"},"updatedAt":"2026-10-21T06:42:30.043Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":1,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":2,"e6657092-d62b-4754-a347-548d0f3bde39":10,"e718bc53-19ab-497e-8ac7-43a2359a19d6":3,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":3,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":5,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":2,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":2,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":2,"47d3fd86-a418-444e-9fdd-842ea10d06b7":2,"be6f92a1-abc7-4992-9c9e-96e2701774c9":3,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":2,"4a14527e-95d0-43c9-a06a-281aebd6ff34":2,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":3,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":3,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":2,"46136499-85f3-4da2-9484-9f451d511905":2,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":5,"258e9ddc-de55-467f-bed6-202ee00c3466":4,"8c853546-b82b-46f6-ba04-0fc90d54965d":3,"ab99af69-2ebc-4543-a1fd-37895121e02f":2,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":6,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":6,"fa8e1c6f-b07b-4553-b154-146604e82c05":1,"b83a94df-c760-4322-994f-f3ad2a31e883":4,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":8,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":2,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":5,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":3,"9531118f-2926-4918-9156-ef8a543e757f":3,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":4,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":5,"908b2deb-0831-4091-b5e1-dd77e0695a5c":3,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":3,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"923ec288-02e0-4ae2-a13c-accde7ab486e":5,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":5,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":5,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2,"947df50e-7088-46bc-805f-0ad97369e835":1,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":3,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":2,"15f4bf7c-bb20-400b-b70e-45754916f38a":2,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"5157f0c1-5938-4987-b80d-0329f8758ca1":2,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":4,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":2,"56c68e50-f532-4925-9592-1cddf47850cd":4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"d3328021-ffc8-4534-a748-44d195efc3cd":5,"c55017cd-15ec-4546-99e8-f12bd5626f11":1,"354bb599-a2c0-413e-bbba-70cc7b783841":3,"9e515d2e-f8a7-41d4-a111-0d5233512391":5,"6d493502-16ce-4915-8160-7b36cfd5cd05":4,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":2,"918ee6bd-06b4-4288-a58c-f89f0389c978":2,"39fd084d-c05f-42dc-9cdf-369d47b44153":1,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":1,"0f80a99a-c418-4669-88ca-d64a5c857fdc":1,"6f2cc188-8453-4faa-853c-8c4a69917830":4,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":2,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":3,"00ebe386-442b-4f95-9825-0ebda1b41813":2,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":3,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":3,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":1,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":1,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":2,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":1,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":1,"e2c1f860-e618-4521-b4f2-46e52fb6314d":6,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1,"9a86ca77-4c06-41c4-9270-136103ecce10":1,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":2,"e0089026-ea1d-42dd-9093-a9696de6857b":4,"26fae03b-6bfe-4254-8d90-19f01e8bde31":6,"e932ec12-66bb-42d3-bdba-c2e40fa27623":2,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":2,"6973477f-4917-4f28-9ff8-888f03de9ba2":2,"70417a45-7af3-4c1f-97c5-6b9116c31f05":2,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":2,"900af1a9-8b64-4092-913d-9dde80274d93":5,"787256d8-659b-4297-9514-5e3b4bf87f36":4,"327248c9-fba5-4973-a853-6041d1b7777c":3,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":3,"8636cd1d-0358-44ef-ac0f-c301bfecf738":3,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":7,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":2,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"6b22c41d-1724-4bac-a2df-d9d61f442c95":2,"642a9c68-e797-48ea-8dab-c42287322c26":5,"8263c87d-5688-421e-abc4-438d81b41480":1,"cd1fd534-4f13-443d-966d-3021ba004440":1,"72903aae-1d9a-487d-930f-418cfa6b0205":2,"8e0b4d15-45be-49dd-9692-2e171d330c09":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"bf558395-c784-4100-93eb-cfa239715ca9":1,"07a53c4b-373d-4075-816e-c32fde3184db":2,"c0cbee49-81ba-4e72-8c52-410308ad361f":2,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":2,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":2,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":1,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":5,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":2,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":2,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":2,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":1,"51f1833c-800c-451c-8c34-79e667ccae4a":2,"a26eea36-25f1-4754-a534-13ffd38f7ad5":2,"8b390487-4bb1-48d5-9dcf-447be1265589":5,"f456351b-e85d-444e-8a17-9fff90e946ca":1,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":3,"f83a2b6e-e700-40c7-a406-3931b4ce8780":1,"a53e97ce-02e6-454c-b13a-0a26e2956e92":1,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":1,"f6e83060-33c6-457b-8ccf-b825929b2be4":2,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":1,"5a8d4c24-fff0-43cd-954f-201770da5be1":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":1,"1557fb62-6334-4922-86cb-c37ded9c04d8":2,"5bc16c90-38c4-4562-9aa8-89cf0785b079":1,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2,"41fa8b8a-fa9a-4539-8eed-01151434f639":1,"bb75c978-3a90-4772-9293-eadf698df19d":1,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":1,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":880.4000000000076,"0591dd49-6c49-40ee-8ec6-996c430b9691":871.1000000000091,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":170.7999999999997,"c3e49428-958a-4272-b658-dcc665373ba6":37.40000000000001,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":283.9999999999997,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":321.5000000000001,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":239.7999999999994,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":400.00000000000136,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":338.80000000000064,"47d3fd86-a418-444e-9fdd-842ea10d06b7":350.30000000000035,"be6f92a1-abc7-4992-9c9e-96e2701774c9":480.30000000000206,"f6e83060-33c6-457b-8ccf-b825929b2be4":443.30000000000143,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":375.5000000000008,"4a14527e-95d0-43c9-a06a-281aebd6ff34":418.8000000000018,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":323.09999999999997,"b1beda6e-b846-478f-bae6-d92ec4128556":93.69999999999995,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":231.69999999999942,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":662.3000000000056,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":451.3000000000016,"a9e28652-60ce-46aa-b167-711225e2df54":212.09999999999943,"c0d286b0-5df5-485b-8963-5532c0b47991":185.99999999999957,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":489.00000000000307,"900af1a9-8b64-4092-913d-9dde80274d93":1000.0000000000094,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":284.59999999999985,"9e515d2e-f8a7-41d4-a111-0d5233512391":747.7000000000058,"e718bc53-19ab-497e-8ac7-43a2359a19d6":438.6000000000016,"46136499-85f3-4da2-9484-9f451d511905":263.99999999999943,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":298.3999999999999,"e6657092-d62b-4754-a347-548d0f3bde39":1368.1999999999955,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":118.49999999999986,"bf558395-c784-4100-93eb-cfa239715ca9":206.49999999999952,"86ff8290-aa80-454d-8d35-b408f6463b49":49.10000000000003,"c55017cd-15ec-4546-99e8-f12bd5626f11":186.19999999999976,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":821.9000000000074,"72903aae-1d9a-487d-930f-418cfa6b0205":368.70000000000095,"6d493502-16ce-4915-8160-7b36cfd5cd05":775.5000000000066,"923ec288-02e0-4ae2-a13c-accde7ab486e":890.8000000000086,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":1058.0000000000082,"283edc91-b796-45aa-a22e-e5ecf26c164f":22.3,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":309.5000000000001,"83e790e9-1900-4ff5-ac56-7700d9d88354":9.3,"258e9ddc-de55-467f-bed6-202ee00c3466":510.10000000000264,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":193.1999999999996,"8c853546-b82b-46f6-ba04-0fc90d54965d":472.300000000002,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":237.89999999999938,"642a9c68-e797-48ea-8dab-c42287322c26":1134.7000000000057,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":164.89999999999975,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":395.9000000000008,"908b2deb-0831-4091-b5e1-dd77e0695a5c":771.3000000000075,"d7f9d821-191e-4f5b-af3e-bfb98b155465":591.6000000000039,"354bb599-a2c0-413e-bbba-70cc7b783841":546.4000000000035,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":282.19999999999953,"947df50e-7088-46bc-805f-0ad97369e835":252.5999999999993,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":24.000000000000004,"8e0b4d15-45be-49dd-9692-2e171d330c09":149.9999999999998,"d3328021-ffc8-4534-a748-44d195efc3cd":850.0000000000081,"6973477f-4917-4f28-9ff8-888f03de9ba2":505.7000000000028,"c0cbee49-81ba-4e72-8c52-410308ad361f":491.0000000000019,"2fa75852-1544-407c-a771-b9a2f7688e00":19.1,"63eb50bd-9772-4c3f-ab26-976301fd2705":11.799999999999999,"d724987f-83a9-4351-bd60-3a7502a87c59":51.300000000000026,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":1074.5000000000082,"f726f995-1776-4a2d-97c4-024cf22e851e":5.1000000000000005,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":304.7999999999999,"dd640b9c-21da-4d72-99ca-6b78c143997a":12.199999999999998,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":623.8000000000044,"39fd084d-c05f-42dc-9cdf-369d47b44153":229.49999999999935,"0f80a99a-c418-4669-88ca-d64a5c857fdc":164.69999999999965,"eb4f3985-fd6a-4a20-a48f-10717982804a":31.30000000000001,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":175.09999999999965,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":11.799999999999999,"a26eea36-25f1-4754-a534-13ffd38f7ad5":292.29999999999995,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":321.4000000000002,"94e729cf-448c-490b-9926-bb9f5a1d4d50":7.500000000000002,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":91.39999999999995,"c4751b72-883d-40fe-8990-cb7dfeaac47b":182.59999999999965,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":231.3999999999994,"4b17d938-0d77-4ccc-8da7-82cd9167218a":4.9,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":65.50000000000004,"07a53c4b-373d-4075-816e-c32fde3184db":479.6000000000017,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":42.00000000000002,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":575.6000000000041,"6e4bf9a4-092a-42d3-81f0-b8563690b929":254.6999999999995,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":373.80000000000075,"1d83d33b-2146-4427-89b2-5b3c846a294d":147.69999999999976,"b83a94df-c760-4322-994f-f3ad2a31e883":639.5000000000043,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":244.29999999999953,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":910.5000000000093,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":101.19999999999995,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1580.999999999988,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":10.399999999999999,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":256.09999999999934,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":10.700000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":111.79999999999988,"5157f0c1-5938-4987-b80d-0329f8758ca1":337.70000000000044,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":198.89999999999944,"51f1833c-800c-451c-8c34-79e667ccae4a":238.1999999999994,"ebfeeb92-1900-4ad6-aec6-275dcce12453":6.1,"9531118f-2926-4918-9156-ef8a543e757f":613.7000000000055,"5a8d4c24-fff0-43cd-954f-201770da5be1":96.79999999999995,"fa8e1c6f-b07b-4553-b154-146604e82c05":221.39999999999938,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":303.1000000000001,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":19.6,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":6.2,"f83a2b6e-e700-40c7-a406-3931b4ce8780":253.5999999999993,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":77.30000000000001,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":153.69999999999968,"ce7b47f5-9331-45ac-b319-406722b07466":8.2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":359.4000000000006,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":4.5,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1122.2000000000037,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":890.0000000000085,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":580.2000000000039,"a53e97ce-02e6-454c-b13a-0a26e2956e92":321.49999999999994,"0ebbc1b7-a451-4540-bbc6-96224926c015":1360.5999999999945,"56c68e50-f532-4925-9592-1cddf47850cd":532.3000000000033,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":482.1000000000018,"15f4bf7c-bb20-400b-b70e-45754916f38a":320.10000000000025,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":451.40000000000225,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":400.70000000000084,"cd1fd534-4f13-443d-966d-3021ba004440":135.4999999999998,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":3.9000000000000004,"918ee6bd-06b4-4288-a58c-f89f0389c978":436.50000000000057,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":603.1000000000041,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":281.0999999999995,"ab99af69-2ebc-4543-a1fd-37895121e02f":360.2000000000007,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":3.1,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":69.80000000000003,"9e36f778-6b04-4cb3-a674-e4960347cda8":72.90000000000002,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":48.300000000000026,"6f2cc188-8453-4faa-853c-8c4a69917830":1190.4000000000033,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":96.59999999999994,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":114.29999999999994,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":777.9000000000065,"943fde3e-1809-490b-acd4-83db59006c30":121.99999999999984,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":80.8,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":618.9000000000041,"00ebe386-442b-4f95-9825-0ebda1b41813":342.4000000000003,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":448.0000000000015,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1169.2000000000053,"6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":75.6,"9a86ca77-4c06-41c4-9270-136103ecce10":186.19999999999962,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":357.0000000000008,"e0089026-ea1d-42dd-9093-a9696de6857b":490.20000000000164,"6b22c41d-1724-4bac-a2df-d9d61f442c95":355.0000000000007,"e932ec12-66bb-42d3-bdba-c2e40fa27623":279.79999999999956,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":20.500000000000004,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":293.8999999999998,"03294ca0-8782-4468-a2fe-e138754f3156":44.700000000000024,"2579167d-dced-4fca-aebf-e703dff1884b":52.10000000000004,"70417a45-7af3-4c1f-97c5-6b9116c31f05":298.39999999999975,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":236.89999999999947,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":382.50000000000085,"26fae03b-6bfe-4254-8d90-19f01e8bde31":783.2000000000075,"787256d8-659b-4297-9514-5e3b4bf87f36":396.2000000000012,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":75.40000000000002,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":188.79999999999967,"327248c9-fba5-4973-a853-6041d1b7777c":402.40000000000134,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":394.50000000000114,"8636cd1d-0358-44ef-ac0f-c301bfecf738":448.1000000000017,"8263c87d-5688-421e-abc4-438d81b41480":287.79999999999984,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":1173.6000000000024,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":668.3000000000052,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":235.89999999999938,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":273.69999999999953,"f2b7fcd6-959a-4b73-8b53-e5a500643a84":63.100000000000044,"f456351b-e85d-444e-8a17-9fff90e946ca":126.79999999999994,"8b390487-4bb1-48d5-9dcf-447be1265589":931.1000000000089,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":634.4000000000053,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":132.79999999999984,"1557fb62-6334-4922-86cb-c37ded9c04d8":301.9,"5bc16c90-38c4-4562-9aa8-89cf0785b079":156.4999999999998,"7d68389a-2538-4bfc-a4c7-cf515a572b26":172.89999999999966,"41fa8b8a-fa9a-4539-8eed-01151434f639":158.89999999999975,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":74.00000000000003,"bb75c978-3a90-4772-9293-eadf698df19d":146.09999999999985,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":20.5},"recentlyPlayedIds":["e718bc53-19ab-497e-8ac7-43a2359a19d6","7d68389a-2538-4bfc-a4c7-cf515a572b26","8c853546-b82b-46f6-ba04-0fc90d54965d","9e515d2e-f8a7-41d4-a111-0d5233512391","1557fb62-6334-4922-86cb-c37ded9c04d8","327248c9-fba5-4973-a853-6041d1b7777c","e0089026-ea1d-42dd-9093-a9696de6857b","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9","ffe570a6-d0cb-491d-9cda-f3ba839f6d72","6d493502-16ce-4915-8160-7b36cfd5cd05","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8","eb239fdd-2d58-4f54-9169-985d14dc9ccd","bb75c978-3a90-4772-9293-eadf698df19d","41fa8b8a-fa9a-4539-8eed-01151434f639","5bc16c90-38c4-4562-9aa8-89cf0785b079","30ad7c9d-0182-444d-b05f-3acac2f9ef35","642a9c68-e797-48ea-8dab-c42287322c26","0591dd49-6c49-40ee-8ec6-996c430b9691","4a14527e-95d0-43c9-a06a-281aebd6ff34","b83a94df-c760-4322-994f-f3ad2a31e883","2b0e12fe-8ceb-426b-b758-6c62e22d783d","dc0121d6-b3c4-4d60-aabb-c3000d7e3585","3c6bb417-0b5e-475d-b8f0-3671a51b657b","1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a","26fae03b-6bfe-4254-8d90-19f01e8bde31","0074e3e9-7cc6-42d7-b4ef-999ebacd219e","fe63e132-d030-4bc5-9ce2-a11e077f60ab","acf108a0-de76-41ac-ab5b-d5b1017d4ac4","51f1833c-800c-451c-8c34-79e667ccae4a","4119cb2e-21ef-49b2-bccd-ee85253a1ad1","a53e97ce-02e6-454c-b13a-0a26e2956e92","6b22c41d-1724-4bac-a2df-d9d61f442c95","0ebbc1b7-a451-4540-bbc6-96224926c015","f83a2b6e-e700-40c7-a406-3931b4ce8780","862a7fa8-2236-42b0-bbd6-b8a280a49c69","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb","8b390487-4bb1-48d5-9dcf-447be1265589","f456351b-e85d-444e-8a17-9fff90e946ca","70417a45-7af3-4c1f-97c5-6b9116c31f05","fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8","e088c9c8-d047-46fe-b9de-8d0c1efa344e","354bb599-a2c0-413e-bbba-70cc7b783841","6f2cc188-8453-4faa-853c-8c4a69917830","efba21ea-42c2-4657-bc4a-9b3b08e10e07","a72625ec-ca27-4357-9d70-6f85c17ef9a7","a18f0c10-38ad-4de3-acd0-6dd637e1de10","cd9f67bb-f9bb-49a1-a699-df27dedefe25","787256d8-659b-4297-9514-5e3b4bf87f36","8636cd1d-0358-44ef-ac0f-c301bfecf738","900af1a9-8b64-4092-913d-9dde80274d93","e2c1f860-e618-4521-b4f2-46e52fb6314d","b35c820f-6400-4814-ab0e-2bbb1efb8f4a","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb","d7f9d821-191e-4f5b-af3e-bfb98b155465","923ec288-02e0-4ae2-a13c-accde7ab486e","6973477f-4917-4f28-9ff8-888f03de9ba2","7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8","d629ffbc-dada-4dab-ab5b-cd0a800cc184","e932ec12-66bb-42d3-bdba-c2e40fa27623"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Pop","0591dd49-6c49-40ee-8ec6-996c430b9691":"Festival","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Pop","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Pop","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party","e6dd87c2-4847-4aef-bcfe-09569d3d1358":"Energetic","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":"Electronic","d6c4f539-c83d-4934-9bbe-41d5c16cdee2":"Romantic","908b2deb-0831-4091-b5e1-dd77e0695a5c":"Romantic","d7f9d821-191e-4f5b-af3e-bfb98b155465":"Romantic","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":"Retro","d17498d3-d2dc-4124-83a4-ae45d66c2aab":"Pop","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":"Pop","f6e83060-33c6-457b-8ccf-b825929b2be4":"Pop","8e0b4d15-45be-49dd-9692-2e171d330c09":"Romantic","d3328021-ffc8-4534-a748-44d195efc3cd":"Romantic","6973477f-4917-4f28-9ff8-888f03de9ba2":"Romantic","c0cbee49-81ba-4e72-8c52-410308ad361f":"Romantic","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":"Sad","2fa75852-1544-407c-a771-b9a2f7688e00":"Energetic","46136499-85f3-4da2-9484-9f451d511905":"Pop","63eb50bd-9772-4c3f-ab26-976301fd2705":"Energetic","d724987f-83a9-4351-bd60-3a7502a87c59":"Pop","f726f995-1776-4a2d-97c4-024cf22e851e":"Classical","9a5b4484-7ea6-4d04-bcd9-b49426cec421":"Romantic","ffe570a6-d0cb-491d-9cda-f3ba839f6d72":"Energetic","dd640b9c-21da-4d72-99ca-6b78c143997a":"Party","2db28891-244e-4cc7-8bbe-b50f54f46bdd":"Pop","39fd084d-c05f-42dc-9cdf-369d47b44153":"Romantic","0f80a99a-c418-4669-88ca-d64a5c857fdc":"Pop","eb4f3985-fd6a-4a20-a48f-10717982804a":"Pop","f7e6d9a4-e9b9-467b-bbf0-30e929696803":"Pop","684b60fa-6f36-4e0b-b122-dd966f2ef7c3":"Romantic","e758b7f7-1169-4bf9-8a41-e883b9f24b3a":"Chill","a26eea36-25f1-4754-a534-13ffd38f7ad5":"Romantic","d84c6343-8fa6-45e3-bc7a-a2803a8b220b":"Energetic","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":"Pop","8c853546-b82b-46f6-ba04-0fc90d54965d":"Pop","94e729cf-448c-490b-9926-bb9f5a1d4d50":"Chill","c0d286b0-5df5-485b-8963-5532c0b47991":"Romantic","10ea99a7-be01-45c2-82fd-14fa0bcadb58":"Chill","c4751b72-883d-40fe-8990-cb7dfeaac47b":"Energetic","3c6bb417-0b5e-475d-b8f0-3671a51b657b":"Romantic","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":"Romantic","e69cc1b8-f224-4cdd-8cae-aef42da87b5b":"Energetic","b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":"Energetic","a44df24d-9512-4327-ba2c-a5e86e4ba7cf":"Energetic","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":"Energetic","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":"Chill","1d83d33b-2146-4427-89b2-5b3c846a294d":"Desi Pop","b83a94df-c760-4322-994f-f3ad2a31e883":"Desi Pop","5ba2a0c3-89ca-4229-9ae9-514806d0363a":"Energetic","7a28b082-d69c-4ff8-ad0f-dbfda05f0685":"Romantic","a18f0c10-38ad-4de3-acd0-6dd637e1de10":"Chill","f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":"Chill","262fa689-d42b-42bf-bf33-b8f53c0c173c":"Classical","b35c820f-6400-4814-ab0e-2bbb1efb8f4a":"Romantic","fb2647d3-d6fa-4150-a8f5-fc841ae176c2":"Party","ebfeeb92-1900-4ad6-aec6-275dcce12453":"Chill","5a8d4c24-fff0-43cd-954f-201770da5be1":"Romantic","0924bcb2-c1dc-4cdb-a3e7-6881f473f668":"Romantic","a9e28652-60ce-46aa-b167-711225e2df54":"Sad","6aa041f9-9aa2-4fa4-882e-db9a4aac209b":"Romantic","f89d39c2-c7bf-48fa-8cd7-f242893f3609":"Romantic","572ad7f8-ea06-4521-bb3c-55410468ede0":"Romantic","14664d25-20dd-4660-a0e1-f9f11fcc98c4":"Energetic","f83a2b6e-e700-40c7-a406-3931b4ce8780":"Chill","daac84d3-0e68-40b3-94ea-9b9dbd01677c":"Sad","477ac65b-7ec7-4995-bfdf-656a0da42e6e":"Desi Pop","ce7b47f5-9331-45ac-b319-406722b07466":"Desi Pop","6b948690-fcfa-4fc9-adaf-7ea6582a89a4":"Chill","c63e6167-400a-4ff9-8c8c-e4737988d5aa":"Romantic","258e9ddc-de55-467f-bed6-202ee00c3466":"Desi Pop","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":"Desi Pop","f54b3464-b992-466d-9b96-8ca95c1ad5ce":"Pop","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":"Energetic","a53e97ce-02e6-454c-b13a-0a26e2956e92":"Sad","0ebbc1b7-a451-4540-bbc6-96224926c015":"Party","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":"Party","15f4bf7c-bb20-400b-b70e-45754916f38a":"Energetic","2b0e12fe-8ceb-426b-b758-6c62e22d783d":"Party","7abc6aed-540e-4cce-9fd5-5d59d45a360a":"Chill","ee60c07f-468b-419b-ad09-1ae770e2fbc4":"Romantic","918ee6bd-06b4-4288-a58c-f89f0389c978":"Energetic","30ad7c9d-0182-444d-b05f-3acac2f9ef35":"Energetic","ccd7fabf-d277-4420-84a8-4e5ff5b66d67":"Chill","ab99af69-2ebc-4543-a1fd-37895121e02f":"Romantic","9e36f778-6b04-4cb3-a674-e4960347cda8":"Chill","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":"Romantic","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":"Energetic","b1beda6e-b846-478f-bae6-d92ec4128556":"Romantic","6f2cc188-8453-4faa-853c-8c4a69917830":"Energetic","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":"Party","61243ae6-1193-4cb1-ab1d-37ef5a95a055":"Monsoon","a0e110cc-62dc-46f7-ba0a-ff8c781b5585":"Monsoon","748d9b27-fec5-4dd9-a872-e3b15582e0b5":"Sad","943fde3e-1809-490b-acd4-83db59006c30":"Monsoon","bc010c39-b880-42e6-91fa-0336d8b0bc6c":"Sad","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":"Romantic","00ebe386-442b-4f95-9825-0ebda1b41813":"Pop","f82eeec8-0dfa-4220-9865-dc5ef41dd146":"Pop","e2c1f860-e618-4521-b4f2-46e52fb6314d":"Chill","6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":"Romantic","e0089026-ea1d-42dd-9093-a9696de6857b":"Pop","6b22c41d-1724-4bac-a2df-d9d61f442c95":"Chill","9a86ca77-4c06-41c4-9270-136103ecce10":"Sad","e932ec12-66bb-42d3-bdba-c2e40fa27623":"Energetic","1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":"Romantic","cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":"Pop","7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":"Chill","03294ca0-8782-4468-a2fe-e138754f3156":"Pop","2579167d-dced-4fca-aebf-e703dff1884b":"Pop","70417a45-7af3-4c1f-97c5-6b9116c31f05":"Romantic","fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":"Energetic","cd9f67bb-f9bb-49a1-a699-df27dedefe25":"Pop","26fae03b-6bfe-4254-8d90-19f01e8bde31":"Pop","787256d8-659b-4297-9514-5e3b4bf87f36":"Chill","f840a011-96b7-4b8f-8c0f-e30d4b52037d":"Chill","a72625ec-ca27-4357-9d70-6f85c17ef9a7":"Energetic","efba21ea-42c2-4657-bc4a-9b3b08e10e07":"Energetic","327248c9-fba5-4973-a853-6041d1b7777c":"Pop","8636cd1d-0358-44ef-ac0f-c301bfecf738":"Energetic","8263c87d-5688-421e-abc4-438d81b41480":"Chill","fe63e132-d030-4bc5-9ce2-a11e077f60ab":"Pop","0074e3e9-7cc6-42d7-b4ef-999ebacd219e":"Pop","f2b7fcd6-959a-4b73-8b53-e5a500643a84":"Energetic","4119cb2e-21ef-49b2-bccd-ee85253a1ad1":"Pop","e088c9c8-d047-46fe-b9de-8d0c1efa344e":"Pop","8b390487-4bb1-48d5-9dcf-447be1265589":"Party","f456351b-e85d-444e-8a17-9fff90e946ca":"Party","acf108a0-de76-41ac-ab5b-d5b1017d4ac4":"Party","eb239fdd-2d58-4f54-9169-985d14dc9ccd":"Festival","1557fb62-6334-4922-86cb-c37ded9c04d8":"Festival","5bc16c90-38c4-4562-9aa8-89cf0785b079":"Festival","7d68389a-2538-4bfc-a4c7-cf515a572b26":"Festival","41fa8b8a-fa9a-4539-8eed-01151434f639":"Pop","c3cfc5bf-1b28-4cff-8626-c818d919b1a4":"Pop","bb75c978-3a90-4772-9293-eadf698df19d":"Chill","bf153fd9-45c8-4c7e-8439-d023cd2fb014":"Pop"},"updatedAt":"2026-10-26T15:06:19.087Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('2b35caac-5d09-49a2-a0e8-cd414a57c0f5', '__euphony_user_data__:::{"version":1,"userId":"e1f037de-41f6-4ce0-9fc4-f90b4aa27d62","email":"garv.anand187@gmail.com","playCounts":{"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"eb4f3985-fd6a-4a20-a48f-10717982804a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"e6657092-d62b-4754-a347-548d0f3bde39":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1},"listenSeconds":{"283edc91-b796-45aa-a22e-e5ecf26c164f":245.3999999999994,"47d3fd86-a418-444e-9fdd-842ea10d06b7":7.8,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":195.19999999999956,"83e790e9-1900-4ff5-ac56-7700d9d88354":113.99999999999987,"9e515d2e-f8a7-41d4-a111-0d5233512391":56.00000000000003,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1.3,"eb4f3985-fd6a-4a20-a48f-10717982804a":80.49999999999999,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":69.60000000000001,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":197.89999999999955,"e6657092-d62b-4754-a347-548d0f3bde39":180.99999999999963,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":194.4999999999996,"c4751b72-883d-40fe-8990-cb7dfeaac47b":67.80000000000003,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":214.3999999999995,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":106.69999999999987},"recentlyPlayedIds":["f7e6d9a4-e9b9-467b-bbf0-30e929696803","eb4f3985-fd6a-4a20-a48f-10717982804a","83e790e9-1900-4ff5-ac56-7700d9d88354","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4","283edc91-b796-45aa-a22e-e5ecf26c164f","daac84d3-0e68-40b3-94ea-9b9dbd01677c","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c","c4751b72-883d-40fe-8990-cb7dfeaac47b","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","e6657092-d62b-4754-a347-548d0f3bde39","30ad7c9d-0182-444d-b05f-3acac2f9ef35"],"customMoods":{},"updatedAt":"2026-10-17T10:38:52.093Z"}', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-13T08:06:36.196156+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('b51ec0af-c205-4b09-8025-cb3fbadf04ba', '__euphony_user_data__:::{"version":1,"userId":"9a70cd01-9ddd-43bb-97ab-b868721cb2c6","email":"rishabhraj17853@gmail.com","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"updatedAt":"2026-10-14T07:41:03.078Z"}', '9a70cd01-9ddd-43bb-97ab-b868721cb2c6', '2026-10-14T07:40:25.960109+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d69d5801-2605-4b18-935a-d41dd43ab4f1', 'Liked Songs', '9a70cd01-9ddd-43bb-97ab-b868721cb2c6', '2026-10-14T07:40:26.37098+00:00') ON CONFLICT (id) DO NOTHING;

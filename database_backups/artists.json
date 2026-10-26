@@ -760,5 +760,71 @@
     "name": "Wyclef Jean",
     "image_url": null,
     "created_at": "2026-10-20T06:29:50.958142+00:00"
+  },
+  {
+    "id": "71f56325-8109-4711-a0f5-20cf410fa9ab",
+    "name": "Geeta Zaildar",
+    "image_url": null,
+    "created_at": "2026-10-21T13:03:46.433904+00:00"
+  },
+  {
+    "id": "386e24b4-35f3-4b3f-b581-a3d77c62b41c",
+    "name": "Sarbjit Cheema",
+    "image_url": null,
+    "created_at": "2026-10-21T13:06:45.833881+00:00"
+  },
+  {
+    "id": "c6cf1248-f913-4490-92fe-a08d0adfc0e6",
+    "name": "Sukhpal Sukh",
+    "image_url": null,
+    "created_at": "2026-10-21T13:07:01.500888+00:00"
+  },
+  {
+    "id": "69782039-d1a9-4e3f-8610-8bb2f9dabf65",
+    "name": "Shankar Mahadevan",
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1793027192/sgq0digs1cckfcyyesud.jpg",
+    "created_at": "2026-10-21T13:20:35.970785+00:00"
+  },
+  {
+    "id": "c4ef2449-1df1-44a2-8fb0-2cccda769b65",
+    "name": "Alyssa Mendonca",
+    "image_url": null,
+    "created_at": "2026-10-21T13:21:05.310732+00:00"
+  },
+  {
+    "id": "f92796d5-8f44-4b7a-8299-f39fd0e1be41",
+    "name": "Mariah Carey",
+    "image_url": null,
+    "created_at": "2026-10-26T07:05:20.073559+00:00"
+  },
+  {
+    "id": "d0a3f516-7e05-4875-9b4e-27888e12ebd9",
+    "name": "Sia",
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1793027192/m0tqbepsqr77tprdn1la.jpg",
+    "created_at": "2026-10-26T08:01:00.314593+00:00"
+  },
+  {
+    "id": "37751cce-cf95-4b6a-b5af-9ea7714edaaa",
+    "name": "Wham!",
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1793027193/wlkmhvuz3tpquzhhgs1j.jpg",
+    "created_at": "2026-10-26T08:02:49.439598+00:00"
+  },
+  {
+    "id": "5d55a996-5ee8-4865-8d5e-fffc9d1d413b",
+    "name": "Aqua",
+    "image_url": null,
+    "created_at": "2026-10-26T08:08:15.370161+00:00"
+  },
+  {
+    "id": "72819fe9-8216-471c-8121-291a930d98d8",
+    "name": "Bambee",
+    "image_url": null,
+    "created_at": "2026-10-26T08:09:25.302245+00:00"
+  },
+  {
+    "id": "4577bef3-7d8b-43db-992e-be53a3162ced",
+    "name": "FIFTY FIFTY",
+    "image_url": "https://res.cloudinary.com/cpsimhz1/image/upload/v1793027194/m1rmmncaewgz0dtykbmj.jpg",
+    "created_at": "2026-10-26T08:10:33.035944+00:00"
   }
 ]
