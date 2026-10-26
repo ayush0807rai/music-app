@@ -4185,7 +4185,7 @@ export default function App() {
     const sliderHeight = customHeight || (isMobile ? 140 : 160);
     return (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "20px 18px", background: customBg !== undefined ? customBg : (isDarkMode ? "rgba(10, 15, 26, 0.75)" : "rgba(250, 250, 247, 0.85)"), backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: customBg !== undefined ? "0" : "12px", textAlign: "center", color: isDarkMode ? "#FFFFFF" : COLORS.primary, display: "flex", flexDirection: "column" }}>
-      {!currentTrack?.stem_vocals || stemsBroken ? (
+      {!currentTrack?.stem_vocals ? (
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
           {isGeneratingStems ? (
             <><Loader2 className="animate-spin" size={40} color={COLORS.spotifyGreen} style={{ marginBottom: "16px" }} /><p style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen }}>{generationStatus}</p></>
@@ -4923,10 +4923,10 @@ export default function App() {
         }}
         className="loop-audio-fix"
       />
-      <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_vocals && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={drumsRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_drums  && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={bassRef}   src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_bass   && setStemsBroken(true)} className="loop-audio-fix" />
-      <audio ref={otherRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => currentTrack?.stem_other  && setStemsBroken(true)} className="loop-audio-fix" />
+      <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
+      <audio ref={drumsRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
+      <audio ref={bassRef}   src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
+      <audio ref={otherRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
 
       {/* TOASTS */}
       {renderQueueToast && (

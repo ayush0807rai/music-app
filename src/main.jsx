@@ -19,6 +19,8 @@ if (Capacitor.isNativePlatform()) {
 // Automatically purge legacy poisoned cache so stale Supabase database queries are cleared immediately
 if (typeof window !== 'undefined' && 'caches' in window) {
   caches.delete('euphony-audio-cache').catch(() => {});
+  caches.delete('euphony-cloudinary-audio-v1').catch(() => {});
+  caches.delete('euphony-cloudinary-audio-v2').catch(() => {});
 }
 
 // Prevent context menu (except on text inputs and textareas) and image dragging globally
@@ -37,7 +39,12 @@ if (typeof window !== 'undefined') {
   }, { capture: true });
 }
 
-registerSW({ immediate: true })
+const updateSW = registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    updateSW(true);
+  }
+});
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
