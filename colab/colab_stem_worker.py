@@ -5,6 +5,7 @@
 # This worker polls your Supabase database for songs marked `needs_stems: true`,
 # isolates 4 stems (Vocals, Drums, Bass, Other) using Demucs AI, uploads them
 # directly to CLOUDINARY (0 MB used on Supabase Storage!), and updates the DB.
+# Automatically mirrors stems to secondary cloud (skqqgkpt) for instant backup.
 # ==============================================================================
 
 # Step 1: Install dependencies (run once in Colab)
@@ -25,9 +26,13 @@ from supabase import create_client, Client
 SUPABASE_URL = "https://gbkaflawosewcrmjkmrt.supabase.co"
 SUPABASE_KEY = "sb_publishable_6XDSsjzOs-pig92lW5wvJQ_BYFEzikN"
 
+# Primary & Mirror Cloudinary Environments
 CLOUDINARY_CLOUD_NAME = "cpsimhz1"
 CLOUDINARY_PRESET = "app_songs"
 CLOUDINARY_UPLOAD_URL = f"https://api.cloudinary.com/v1_1/{CLOUDINARY_CLOUD_NAME}/auto/upload"
+
+MIRROR_CLOUD_NAME = "skqqgkpt"
+MIRROR_UPLOAD_URL = f"https://api.cloudinary.com/v1_1/{MIRROR_CLOUD_NAME}/auto/upload"
 
 # Initialize Supabase client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -41,7 +46,7 @@ model.eval()
 print(f"✅ Demucs model ready on {device.upper()}!")
 
 def upload_stem_to_cloudinary(file_path: str, filename: str) -> str:
-    """Uploads an audio file directly to Cloudinary using unsigned preset."""
+    """Uploads an audio file directly to Cloudinary using unsigned preset, and mirrors to secondary."""
     mime = "audio/wav" if filename.endswith(".wav") else "audio/mpeg"
     with open(file_path, "rb") as f:
         res = requests.post(
@@ -51,7 +56,22 @@ def upload_stem_to_cloudinary(file_path: str, filename: str) -> str:
         )
     if res.status_code != 200:
         raise Exception(f"Cloudinary upload failed: {res.text}")
-    return res.json()["secure_url"]
+    primary_url = res.json()["secure_url"]
+
+    # Also mirror stem to secondary cloud (skqqgkpt)
+    try:
+        with open(file_path, "rb") as f2:
+            requests.post(
+                MIRROR_UPLOAD_URL,
+                data={"upload_preset": CLOUDINARY_PRESET},
+                files={"file": (filename, f2, mime)},
+                timeout=15
+            )
+        print(f"      ☁️ Mirrored {filename} to {MIRROR_CLOUD_NAME}")
+    except Exception as e:
+        print(f"      ⚠️ Mirror upload notice: {e}")
+
+    return primary_url
 
 def process_song(song):
     song_id = song["id"]
