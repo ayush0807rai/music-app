@@ -30,3 +30,9 @@ dist-ssr
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Large Raw Media Vaults (Physical media archives > 100MB)
+cpsimhz1_complete_vault/
+cpsimhz1_complete_vault.zip
+raw_media_backup/
+*.zip.part*
