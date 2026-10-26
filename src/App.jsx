@@ -3494,6 +3494,27 @@ export default function App() {
         throw new Error("Poster image upload failed. A valid poster image is required.");
       }
 
+      // Parallel backup upload to secondary mirror (skqqgkpt)
+      try {
+        const mirrorAudioForm = new FormData();
+        mirrorAudioForm.append("upload_preset", "app_songs");
+        mirrorAudioForm.append("file", uploadFile);
+        fetch("https://api.cloudinary.com/v1_1/skqqgkpt/auto/upload", {
+          method: "POST",
+          body: mirrorAudioForm
+        }).catch(() => {});
+
+        const mirrorPosterForm = new FormData();
+        mirrorPosterForm.append("upload_preset", "app_songs");
+        mirrorPosterForm.append("file", uploadPoster);
+        fetch("https://api.cloudinary.com/v1_1/skqqgkpt/auto/upload", {
+          method: "POST",
+          body: mirrorPosterForm
+        }).catch(() => {});
+      } catch (mirrorErr) {
+        console.warn("Secondary mirror upload notice:", mirrorErr);
+      }
+
       // 3. Save song metadata and direct Cloudinary URL into Supabase database (mood assignment restricted to owner)
       const effectiveMood = isOwner ? uploadMood : "";
       let lyricsToStore = uploadLyrics ? uploadLyrics.trim() : null;

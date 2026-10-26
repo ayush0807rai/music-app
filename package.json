@@ -10,7 +10,11 @@
     "preview": "vite preview",
     "backup": "node backup_entire_database.cjs",
     "backup:zip": "node scripts/create_complete_project_zip.cjs",
-    "backup:sync": "node scripts/sync_backup_and_zip.cjs"
+    "backup:sync": "node scripts/sync_backup_and_zip.cjs",
+    "sync-vault": "node scripts/sync_vault.cjs",
+    "mirror:skqqgkpt": "node scripts/wipe_and_mirror_to_skqqgkpt.cjs",
+    "switch:skqqgkpt": "node scripts/switch_to_skqqgkpt.cjs",
+    "switch:cpsimhz1": "node scripts/switch_to_cpsimhz1.cjs"
   },
   "dependencies": {
     "@awesome-cordova-plugins/background-mode": "^9.6.0",
