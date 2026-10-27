@@ -500,13 +500,13 @@ const getSongThemeGradients = (rgb, isDark) => {
         ? "0 28px 70px rgba(0,0,0,0.85), 0 0 40px rgba(40, 60, 100, 0.2)"
         : "0 20px 50px rgba(26, 43, 76, 0.16)",
       playerBg: isDark
-        ? "radial-gradient(ellipse 95% 75% at 50% 32%, rgba(28, 45, 75, 0.65) 0%, rgba(7, 10, 17, 0.88) 75%, #070A11 100%)"
+        ? "radial-gradient(ellipse 95% 75% at 50% 32%, rgba(45, 65, 105, 0.60) 0%, rgba(16, 22, 36, 0.86) 75%, #080C14 100%)"
         : "radial-gradient(ellipse 95% 75% at 50% 30%, rgba(26, 43, 76, 0.12) 0%, rgba(244, 239, 230, 0.88) 75%, #F4EFE6 100%)",
       mobilePlayerBg: isDark
-        ? "radial-gradient(circle at 50% 28%, rgba(28, 45, 75, 0.6) 0%, #070A11 100%)"
+        ? "radial-gradient(circle at 50% 28%, rgba(45, 65, 105, 0.58) 0%, rgba(16, 22, 36, 0.86) 75%, #080C14 100%)"
         : "radial-gradient(circle at 50% 28%, rgba(26, 43, 76, 0.10) 0%, #F4EFE6 100%)",
       sidebarBg: isDark
-        ? "radial-gradient(circle at 50% 26%, rgba(28, 45, 75, 0.35) 0%, rgba(16, 24, 38, 0.75) 70%, #0E1524 100%)"
+        ? "radial-gradient(circle at 50% 26%, rgba(45, 65, 105, 0.55) 0%, rgba(18, 26, 42, 0.82) 72%, #0A0F1A 100%)"
         : "radial-gradient(circle at 50% 26%, rgba(26, 43, 76, 0.14) 0%, rgba(26, 43, 76, 0.05) 45%, #F4EFE6 100%)",
       textColor: isDark ? "#FFFFFF" : "#1A2B4C",
       textMuted: isDark ? "rgba(255, 255, 255, 0.65)" : "rgba(26, 43, 76, 0.65)",
@@ -518,14 +518,21 @@ const getSongThemeGradients = (rgb, isDark) => {
 
   const { r, g, b } = rgb;
   if (isDark) {
+    const darkTintR = Math.round(r * 0.14 + 10);
+    const darkTintG = Math.round(g * 0.14 + 12);
+    const darkTintB = Math.round(b * 0.14 + 18);
+    const darkBaseR = Math.round(r * 0.08 + 6);
+    const darkBaseG = Math.round(g * 0.08 + 8);
+    const darkBaseB = Math.round(b * 0.08 + 12);
+
     return {
       modalBg: `radial-gradient(circle at 50% -10%, rgba(${r}, ${g}, ${b}, 0.58) 0%, rgba(${r}, ${g}, ${b}, 0.24) 40%, rgba(13, 17, 26, 0.97) 82%, #07090E 100%)`,
       modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.32) 0%, rgba(0, 0, 0, 0.80) 65%, rgba(0, 0, 0, 0.92) 100%)`,
       modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.42)`,
       modalShadow: `0 28px 70px rgba(0,0,0,0.85), 0 0 50px rgba(${r}, ${g}, ${b}, 0.35)`,
-      playerBg: `radial-gradient(ellipse 95% 75% at 50% 32%, rgba(${r}, ${g}, ${b}, 0.55) 0%, rgba(${r}, ${g}, ${b}, 0.22) 48%, rgba(7, 10, 17, 0.88) 78%, #070A11 100%)`,
-      mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.52) 0%, rgba(${r}, ${g}, ${b}, 0.20) 45%, rgba(7, 10, 17, 0.88) 75%, #070A11 100%)`,
-      sidebarBg: `radial-gradient(circle at 50% 26%, rgba(${r}, ${g}, ${b}, 0.28) 0%, rgba(${r}, ${g}, ${b}, 0.10) 45%, rgba(16, 24, 38, 0.78) 75%, #0E1524 100%)`,
+      playerBg: `radial-gradient(ellipse 95% 75% at 50% 32%, rgba(${r}, ${g}, ${b}, 0.62) 0%, rgba(${r}, ${g}, ${b}, 0.30) 48%, rgba(${darkTintR}, ${darkTintG}, ${darkTintB}, 0.84) 76%, rgba(${darkBaseR}, ${darkBaseG}, ${darkBaseB}, 0.96) 100%)`,
+      mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.60) 0%, rgba(${r}, ${g}, ${b}, 0.28) 46%, rgba(${darkTintR}, ${darkTintG}, ${darkTintB}, 0.84) 76%, rgba(${darkBaseR}, ${darkBaseG}, ${darkBaseB}, 0.96) 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 26%, rgba(${r}, ${g}, ${b}, 0.58) 0%, rgba(${r}, ${g}, ${b}, 0.30) 44%, rgba(${darkTintR}, ${darkTintG}, ${darkTintB}, 0.82) 75%, rgba(${darkBaseR}, ${darkBaseG}, ${darkBaseB}, 0.96) 100%)`,
       textColor: "#FFFFFF",
       textMuted: "rgba(255, 255, 255, 0.65)",
       rowBg: "rgba(255, 255, 255, 0.08)",
@@ -539,9 +546,9 @@ const getSongThemeGradients = (rgb, isDark) => {
       modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.16) 0%, rgba(18, 26, 47, 0.42) 70%, rgba(18, 26, 47, 0.55) 100%)`,
       modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.28)`,
       modalShadow: `0 24px 60px rgba(26, 43, 76, 0.16), 0 0 35px rgba(${r}, ${g}, ${b}, 0.18)`,
-      playerBg: `radial-gradient(ellipse 95% 75% at 50% 30%, rgba(${r}, ${g}, ${b}, 0.32) 0%, rgba(${r}, ${g}, ${b}, 0.12) 48%, rgba(244, 239, 230, 0.88) 78%, #F4EFE6 100%)`,
-      mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.30) 0%, rgba(${r}, ${g}, ${b}, 0.12) 45%, rgba(244, 239, 230, 0.88) 75%, #F4EFE6 100%)`,
-      sidebarBg: `radial-gradient(circle at 50% 26%, rgba(${r}, ${g}, ${b}, 0.38) 0%, rgba(${r}, ${g}, ${b}, 0.16) 42%, rgba(244, 239, 230, 0.85) 75%, #F4EFE6 100%)`,
+      playerBg: `radial-gradient(ellipse 95% 75% at 50% 30%, rgba(${r}, ${g}, ${b}, 0.38) 0%, rgba(${r}, ${g}, ${b}, 0.16) 48%, rgba(244, 239, 230, 0.86) 78%, #F4EFE6 100%)`,
+      mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.36) 0%, rgba(${r}, ${g}, ${b}, 0.15) 45%, rgba(244, 239, 230, 0.86) 75%, #F4EFE6 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 26%, rgba(${r}, ${g}, ${b}, 0.42) 0%, rgba(${r}, ${g}, ${b}, 0.18) 42%, rgba(244, 239, 230, 0.82) 75%, #F4EFE6 100%)`,
       textColor: "#1A2B4C",
       textMuted: "rgba(26, 43, 76, 0.65)",
       rowBg: "rgba(255, 255, 255, 0.8)",
@@ -686,18 +693,18 @@ export default function App() {
   const bottomBarGradient = useMemo(() => {
     return isDarkMode
       ? (dominantRgb
-          ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.35) 0%, rgba(7, 10, 17, 0.82) 100%)`
-          : "linear-gradient(180deg, rgba(28, 45, 75, 0.45) 0%, rgba(7, 10, 17, 0.88) 100%)")
+          ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.50) 0%, rgba(${Math.round(dominantRgb.r * 0.14 + 10)}, ${Math.round(dominantRgb.g * 0.14 + 12)}, ${Math.round(dominantRgb.b * 0.14 + 18)}, 0.86) 100%)`
+          : "linear-gradient(180deg, rgba(45, 65, 105, 0.50) 0%, rgba(16, 22, 36, 0.88) 100%)")
       : (dominantRgb
-          ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.32) 0%, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.52) 100%)`
+          ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.35) 0%, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.55) 100%)`
           : "linear-gradient(180deg, rgba(26, 43, 76, 0.22) 0%, rgba(26, 43, 76, 0.40) 100%)");
   }, [dominantRgb, isDarkMode]);
 
   const outgoingBottomBarGradient = useMemo(() => {
     if (!outgoingDominantRgb) return null;
     return isDarkMode
-      ? `linear-gradient(180deg, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.35) 0%, rgba(7, 10, 17, 0.82) 100%)`
-      : `linear-gradient(180deg, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.32) 0%, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.52) 100%)`;
+      ? `linear-gradient(180deg, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.50) 0%, rgba(${Math.round(outgoingDominantRgb.r * 0.14 + 10)}, ${Math.round(outgoingDominantRgb.g * 0.14 + 12)}, ${Math.round(outgoingDominantRgb.b * 0.14 + 18)}, 0.86) 100%)`
+      : `linear-gradient(180deg, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.35) 0%, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.55) 100%)`;
   }, [outgoingDominantRgb, isDarkMode]);
 
   const AUDIO_CACHE_NAME = 'euphony-audio-cache-v2';
@@ -8070,7 +8077,9 @@ export default function App() {
           <div style={{
             width: "320px",
             flexShrink: 0,
-            background: isDarkMode ? "#0E1524" : "#F4EFE6",
+            background: isDarkMode
+              ? (dominantRgb ? `rgb(${Math.round(dominantRgb.r * 0.08 + 6)}, ${Math.round(dominantRgb.g * 0.08 + 8)}, ${Math.round(dominantRgb.b * 0.08 + 12)})` : "#0A0F1A")
+              : "#F4EFE6",
             borderRadius: "12px",
             padding: "24px",
             display: "flex",
@@ -8078,14 +8087,14 @@ export default function App() {
             boxSizing: "border-box",
             position: "relative",
             overflow: "hidden",
-            border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.25)` : "1px solid rgba(255, 255, 255, 0.1)") : `1px solid ${COLORS.border}`,
-            boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.12)` : "none") : "0 8px 24px rgba(26,43,76,0.06)",
+            border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.32)` : "1px solid rgba(255, 255, 255, 0.1)") : `1px solid ${COLORS.border}`,
+            boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 24px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.22)` : "none") : "0 8px 24px rgba(26,43,76,0.06)",
             transition: "background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease"
           }}>
             {renderCrossfadingBackdrop(
               currentTrack.poster_url,
-              isDarkMode ? "blur(70px) brightness(0.80) saturate(135%)" : "blur(80px) brightness(1.05) saturate(145%)",
-              isDarkMode ? 0.28 : 0.38,
+              isDarkMode ? "blur(75px) brightness(0.88) saturate(160%)" : "blur(80px) brightness(1.05) saturate(145%)",
+              isDarkMode ? 0.55 : 0.40,
               { top: "-20%", left: "-20%", width: "140%", height: "140%" },
               songTheme.sidebarBg,
               outgoingSongTheme?.sidebarBg
@@ -8240,7 +8249,7 @@ export default function App() {
           position: "fixed", 
           inset: 0, 
           zIndex: 4000, 
-          backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
+          backgroundColor: isDarkMode ? (dominantRgb ? `rgb(${Math.round(dominantRgb.r * 0.08 + 6)}, ${Math.round(dominantRgb.g * 0.08 + 8)}, ${Math.round(dominantRgb.b * 0.08 + 12)})` : "#070A11") : "#F4EFE6",
           display: "flex", 
           flexDirection: "column", 
           overflow: "hidden" 
@@ -8250,7 +8259,7 @@ export default function App() {
             style={{
               position: "absolute",
               inset: 0,
-              backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
+              backgroundColor: isDarkMode ? (dominantRgb ? `rgb(${Math.round(dominantRgb.r * 0.08 + 6)}, ${Math.round(dominantRgb.g * 0.08 + 8)}, ${Math.round(dominantRgb.b * 0.08 + 12)})` : "#070A11") : "#F4EFE6",
               zIndex: 0
             }}
           />
@@ -8258,8 +8267,8 @@ export default function App() {
           {/* Dynamic Ambient Blurred Cover Art Backdrop & Theme Shade */}
           {renderCrossfadingBackdrop(
             currentTrack?.poster_url,
-            isDarkMode ? "blur(80px) brightness(0.72) saturate(160%)" : "blur(80px) brightness(1.1) saturate(130%)",
-            isDarkMode ? 0.52 : 0.35,
+            isDarkMode ? "blur(80px) brightness(0.82) saturate(160%)" : "blur(80px) brightness(1.1) saturate(130%)",
+            isDarkMode ? 0.58 : 0.38,
             { top: "-20%", left: "-20%", width: "140%", height: "140%" },
             songTheme.mobilePlayerBg,
             outgoingSongTheme?.mobilePlayerBg
@@ -8357,7 +8366,7 @@ export default function App() {
             zIndex: 10000,
             display: "flex",
             flexDirection: "column",
-            backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
+            backgroundColor: isDarkMode ? (dominantRgb ? `rgb(${Math.round(dominantRgb.r * 0.08 + 6)}, ${Math.round(dominantRgb.g * 0.08 + 8)}, ${Math.round(dominantRgb.b * 0.08 + 12)})` : "#070A11") : "#F4EFE6",
             overflow: "hidden",
             color: isDarkMode ? "#FFFFFF" : "#1A2B4C",
             fontFamily: "inherit"
@@ -8368,7 +8377,7 @@ export default function App() {
             style={{
               position: "absolute",
               inset: 0,
-              backgroundColor: isDarkMode ? "#070A11" : "#F4EFE6",
+              backgroundColor: isDarkMode ? (dominantRgb ? `rgb(${Math.round(dominantRgb.r * 0.08 + 6)}, ${Math.round(dominantRgb.g * 0.08 + 8)}, ${Math.round(dominantRgb.b * 0.08 + 12)})` : "#070A11") : "#F4EFE6",
               zIndex: 0
             }}
           />
@@ -8376,8 +8385,8 @@ export default function App() {
           {/* Dynamic Ambient Blurred Cover Art Backdrop & Theme Shade */}
           {renderCrossfadingBackdrop(
             currentTrack.poster_url,
-            isDarkMode ? "blur(90px) brightness(0.72) saturate(165%)" : "blur(90px) brightness(1.05) saturate(135%)",
-            isDarkMode ? 0.55 : 0.38,
+            isDarkMode ? "blur(90px) brightness(0.80) saturate(165%)" : "blur(90px) brightness(1.05) saturate(135%)",
+            isDarkMode ? 0.60 : 0.40,
             { top: "-20%", left: "-20%", width: "140%", height: "140%" },
             songTheme.playerBg,
             outgoingSongTheme?.playerBg
@@ -8967,7 +8976,7 @@ export default function App() {
               style={{
                 position: "absolute",
                 inset: 0,
-                backgroundColor: isDarkMode ? "#070A11" : "#EAE4D6",
+                backgroundColor: isDarkMode ? (dominantRgb ? `rgb(${Math.round(dominantRgb.r * 0.08 + 6)}, ${Math.round(dominantRgb.g * 0.08 + 8)}, ${Math.round(dominantRgb.b * 0.08 + 12)})` : "#070A11") : "#EAE4D6",
                 zIndex: 0
               }}
             />
@@ -8975,7 +8984,7 @@ export default function App() {
             {/* Dynamic Ambient Blurred Cover Art Backdrop & Theme Shade in Bottom Bar */}
             {renderCrossfadingBackdrop(
               currentTrack.poster_url,
-              isDarkMode ? "blur(75px) brightness(0.72) saturate(165%)" : "blur(75px) brightness(0.92) saturate(145%)",
+              isDarkMode ? "blur(75px) brightness(0.82) saturate(165%)" : "blur(75px) brightness(0.92) saturate(145%)",
               isDarkMode ? 0.65 : 0.50,
               { top: "-80%", left: "-20%", width: "140%", height: "260%" },
               bottomBarGradient,
