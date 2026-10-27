@@ -504,10 +504,10 @@ const getSongThemeGradients = (rgb, isDark) => {
         : "radial-gradient(ellipse 95% 75% at 50% 30%, rgba(26, 43, 76, 0.12) 0%, rgba(244, 239, 230, 0.88) 75%, #F4EFE6 100%)",
       mobilePlayerBg: isDark
         ? "radial-gradient(circle at 50% 28%, rgba(45, 65, 105, 0.58) 0%, rgba(16, 22, 36, 0.86) 75%, #080C14 100%)"
-        : "radial-gradient(circle at 50% 28%, rgba(26, 43, 76, 0.10) 0%, #F4EFE6 100%)",
+        : "radial-gradient(circle at 50% 26%, rgba(26, 43, 76, 0.18) 0%, rgba(26, 43, 76, 0.08) 42%, rgba(244, 239, 230, 0.12) 65%), linear-gradient(180deg, rgba(244, 239, 230, 0) 35%, rgba(26, 43, 76, 0.16) 68%, rgba(26, 43, 76, 0.28) 100%)",
       sidebarBg: isDark
         ? "radial-gradient(circle at 50% 26%, rgba(45, 65, 105, 0.55) 0%, rgba(18, 26, 42, 0.82) 72%, #0A0F1A 100%)"
-        : "radial-gradient(circle at 50% 26%, rgba(26, 43, 76, 0.14) 0%, rgba(26, 43, 76, 0.05) 45%, #F4EFE6 100%)",
+        : "radial-gradient(circle at 50% 24%, rgba(26, 43, 76, 0.18) 0%, rgba(26, 43, 76, 0.08) 42%, rgba(244, 239, 230, 0.12) 65%), linear-gradient(180deg, rgba(244, 239, 230, 0) 35%, rgba(26, 43, 76, 0.16) 68%, rgba(26, 43, 76, 0.28) 100%)",
       textColor: isDark ? "#FFFFFF" : "#1A2B4C",
       textMuted: isDark ? "rgba(255, 255, 255, 0.65)" : "rgba(26, 43, 76, 0.65)",
       rowBg: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.8)",
@@ -541,14 +541,18 @@ const getSongThemeGradients = (rgb, isDark) => {
     };
   } else {
     // Light Mode Variant
+    const rShade = Math.round(r * 0.72 + 15);
+    const gShade = Math.round(g * 0.72 + 15);
+    const bShade = Math.round(b * 0.72 + 20);
+
     return {
       modalBg: `radial-gradient(circle at 50% -10%, rgba(${r}, ${g}, ${b}, 0.28) 0%, rgba(${r}, ${g}, ${b}, 0.09) 38%, rgba(250, 250, 247, 0.96) 75%, rgba(243, 240, 230, 0.98) 100%)`,
       modalOverlay: `radial-gradient(circle at 50% 40%, rgba(${r}, ${g}, ${b}, 0.16) 0%, rgba(18, 26, 47, 0.42) 70%, rgba(18, 26, 47, 0.55) 100%)`,
       modalBorder: `1px solid rgba(${r}, ${g}, ${b}, 0.28)`,
       modalShadow: `0 24px 60px rgba(26, 43, 76, 0.16), 0 0 35px rgba(${r}, ${g}, ${b}, 0.18)`,
       playerBg: `radial-gradient(ellipse 95% 75% at 50% 30%, rgba(${r}, ${g}, ${b}, 0.38) 0%, rgba(${r}, ${g}, ${b}, 0.16) 48%, rgba(244, 239, 230, 0.86) 78%, #F4EFE6 100%)`,
-      mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.36) 0%, rgba(${r}, ${g}, ${b}, 0.15) 45%, rgba(244, 239, 230, 0.86) 75%, #F4EFE6 100%)`,
-      sidebarBg: `radial-gradient(circle at 50% 26%, rgba(${r}, ${g}, ${b}, 0.42) 0%, rgba(${r}, ${g}, ${b}, 0.18) 42%, rgba(244, 239, 230, 0.82) 75%, #F4EFE6 100%)`,
+      mobilePlayerBg: `radial-gradient(circle at 50% 26%, rgba(${r}, ${g}, ${b}, 0.45) 0%, rgba(${r}, ${g}, ${b}, 0.20) 42%, rgba(244, 239, 230, 0.12) 65%), linear-gradient(180deg, rgba(244, 239, 230, 0) 35%, rgba(${r}, ${g}, ${b}, 0.36) 68%, rgba(${rShade}, ${gShade}, ${bShade}, 0.52) 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 24%, rgba(${r}, ${g}, ${b}, 0.48) 0%, rgba(${r}, ${g}, ${b}, 0.22) 42%, rgba(244, 239, 230, 0.12) 65%), linear-gradient(180deg, rgba(244, 239, 230, 0) 35%, rgba(${r}, ${g}, ${b}, 0.36) 68%, rgba(${rShade}, ${gShade}, ${bShade}, 0.52) 100%)`,
       textColor: "#1A2B4C",
       textMuted: "rgba(26, 43, 76, 0.65)",
       rowBg: "rgba(255, 255, 255, 0.8)",
@@ -8093,8 +8097,8 @@ export default function App() {
           }}>
             {renderCrossfadingBackdrop(
               currentTrack.poster_url,
-              isDarkMode ? "blur(75px) brightness(0.88) saturate(160%)" : "blur(80px) brightness(1.05) saturate(145%)",
-              isDarkMode ? 0.55 : 0.40,
+              isDarkMode ? "blur(75px) brightness(0.88) saturate(160%)" : "blur(80px) brightness(0.98) saturate(155%)",
+              isDarkMode ? 0.55 : 0.42,
               { top: "-20%", left: "-20%", width: "140%", height: "140%" },
               songTheme.sidebarBg,
               outgoingSongTheme?.sidebarBg
@@ -8267,8 +8271,8 @@ export default function App() {
           {/* Dynamic Ambient Blurred Cover Art Backdrop & Theme Shade */}
           {renderCrossfadingBackdrop(
             currentTrack?.poster_url,
-            isDarkMode ? "blur(80px) brightness(0.82) saturate(160%)" : "blur(80px) brightness(1.1) saturate(130%)",
-            isDarkMode ? 0.58 : 0.38,
+            isDarkMode ? "blur(80px) brightness(0.82) saturate(160%)" : "blur(80px) brightness(0.98) saturate(155%)",
+            isDarkMode ? 0.58 : 0.42,
             { top: "-20%", left: "-20%", width: "140%", height: "140%" },
             songTheme.mobilePlayerBg,
             outgoingSongTheme?.mobilePlayerBg
