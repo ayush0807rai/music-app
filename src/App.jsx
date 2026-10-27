@@ -2767,11 +2767,21 @@ export default function App() {
     const incoming = crossfadeIncomingAudioRef.current || audioRef.current;
 
     if (outgoing) {
-      try {
-        outgoing.pause();
-        outgoing.currentTime = 0;
-        outgoing.src = '';
-      } catch (e) {}
+      if (finalize && incoming && incoming.paused) {
+        console.warn("Incoming deck not playing at crossfade finalization; rescuing playback on outgoing deck");
+        try {
+          outgoing.src = incoming.src;
+          outgoing.currentTime = incoming.currentTime || 0;
+          outgoing.volume = baseVol;
+          outgoing.play().catch(e => e);
+        } catch (e) {}
+      } else {
+        try {
+          outgoing.pause();
+          outgoing.currentTime = 0;
+          outgoing.src = '';
+        } catch (e) {}
+      }
       crossfadeOutgoingAudioRef.current = null;
     }
 
@@ -3906,6 +3916,130 @@ export default function App() {
     setPlayMode(PLAY_MODES[(idx + 1) % PLAY_MODES.length]);
   };
 
+  const performBackgroundCrossfade = useCallback((incomingTrack, transitionSecs, currentAudio) => {
+    if (!currentAudio || !incomingTrack) return false;
+    if (currentAudio.paused || !currentAudio.src) return false;
+
+    stopCrossfade(false);
+
+    isCrossfadingRef.current = true;
+    crossfadeTriggeredRef.current = false;
+
+    const baseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    const fadeOutDuration = Math.min(transitionSecs || 2.5, 2.0);
+    const fadeOutMs = Math.max(800, fadeOutDuration * 1000);
+    const fadeStartTime = Date.now();
+
+    const doSwitchAndFadeIn = () => {
+      const cdnUrl = getCdnUrl(incomingTrack.url);
+      const objUrl = blobCacheRef.current?.get(cdnUrl) || cdnUrl;
+
+      currentAudio.src = objUrl;
+      try { currentAudio.currentTime = 0; } catch (e) {}
+      currentAudio.volume = 0;
+      setCurrentTime(0);
+      try { localStorage.setItem("euphony_current_time", 0); } catch (e) {}
+      lastSavedTimeRef.current = 0;
+
+      if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+        recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+        pendingListenDurationRef.current = 0;
+      }
+      sessionListenDurationRef.current = 0;
+      lastListenTickRef.current = Date.now();
+      qualifiedPlayLoggedRef.current = null;
+
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: incomingTrack.title || 'Unknown Title',
+          artist: incomingTrack.artist || 'Unknown Artist',
+          album: incomingTrack.album || '-',
+          artwork: [{ src: incomingTrack.poster_url || 'https://via.placeholder.com/512.png', sizes: '512x512', type: 'image/png' }]
+        });
+        navigator.mediaSession.playbackState = 'playing';
+      }
+
+      const playPromise = currentAudio.play();
+      const fadeInMs = fadeOutMs;
+      const fadeInStartTime = Date.now();
+
+      const tickFadeIn = () => {
+        if (!isCrossfadingRef.current) return;
+        const elapsed = Date.now() - fadeInStartTime;
+        const p = Math.min(1, elapsed / fadeInMs);
+        const factor = Math.sqrt(p);
+        if (currentAudio && !isMutedRef.current && !isMixerActiveRef.current) {
+          currentAudio.volume = Math.max(0, Math.min(1, baseVol * factor));
+        }
+        if (p >= 1) {
+          isCrossfadingRef.current = false;
+          if (crossfadeWorkerRef.current) {
+            try {
+              crossfadeWorkerRef.current.onmessage = null;
+              crossfadeWorkerRef.current.postMessage('stop');
+            } catch (e) {}
+          }
+          if (crossfadeIntervalRef.current) {
+            clearInterval(crossfadeIntervalRef.current);
+            crossfadeIntervalRef.current = null;
+          }
+          currentAudio.volume = baseVol;
+        }
+      };
+
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          if (crossfadeWorkerRef.current) {
+            crossfadeWorkerRef.current.onmessage = tickFadeIn;
+            try { crossfadeWorkerRef.current.postMessage('start'); } catch (e) {}
+          }
+          crossfadeIntervalRef.current = setInterval(tickFadeIn, 25);
+        }).catch((err) => {
+          console.warn("Background audio play retry notice:", err);
+          currentAudio.volume = baseVol;
+          isCrossfadingRef.current = false;
+          currentAudio.play().catch(e => e);
+        });
+      } else {
+        currentAudio.volume = baseVol;
+        isCrossfadingRef.current = false;
+      }
+    };
+
+    let switchExecuted = false;
+    const tickFadeOut = () => {
+      if (!isCrossfadingRef.current || switchExecuted) return;
+      const elapsed = Date.now() - fadeStartTime;
+      const p = Math.min(1, elapsed / fadeOutMs);
+      const factor = Math.sqrt(Math.max(0, 1 - p));
+      if (currentAudio) {
+        currentAudio.volume = Math.max(0, Math.min(1, baseVol * factor));
+      }
+      if (p >= 1) {
+        switchExecuted = true;
+        if (crossfadeWorkerRef.current) {
+          try {
+            crossfadeWorkerRef.current.onmessage = null;
+            crossfadeWorkerRef.current.postMessage('stop');
+          } catch (e) {}
+        }
+        if (crossfadeIntervalRef.current) {
+          clearInterval(crossfadeIntervalRef.current);
+          crossfadeIntervalRef.current = null;
+        }
+        doSwitchAndFadeIn();
+      }
+    };
+
+    if (crossfadeWorkerRef.current) {
+      crossfadeWorkerRef.current.onmessage = tickFadeOut;
+      try { crossfadeWorkerRef.current.postMessage('start'); } catch (e) {}
+    }
+    crossfadeIntervalRef.current = setInterval(tickFadeOut, 25);
+
+    return true;
+  }, [stopCrossfade, currentTrack]);
+
   const performCrossfadeTransition = useCallback((incomingTrack, transitionSecs = crossfadeDuration) => {
     const currentAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     const nextAudio = activeDeckRef.current === 'A' ? deckBRef.current : deckARef.current;
@@ -3916,6 +4050,19 @@ export default function App() {
     // Must have an active playing track to crossfade out from
     if (currentAudio.paused || !currentAudio.src || currentAudio.currentTime < 0.5) {
       return false;
+    }
+
+    const isMobileDevice = typeof navigator !== 'undefined' && (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '') ||
+      (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /Macintosh/i.test(navigator.userAgent || ''))
+    );
+    const isBackgrounded = typeof document !== 'undefined' && document.hidden;
+
+    // When minimized / mobile screen is turned off:
+    // Mobile browsers disallow dual-deck audio initiation in the background without user gesture.
+    // Seamless single-deck transition on currentAudio guarantees uninterrupted background playback and lock-screen sync!
+    if (isMobileDevice && isBackgrounded) {
+      return performBackgroundCrossfade(incomingTrack, transitionSecs, currentAudio);
     }
 
     // Capture outgoing track for seamless visual cover art cross-dissolve
@@ -4012,9 +4159,19 @@ export default function App() {
 
     crossfadeProgressUpdaterRef.current = tick;
 
+    let fallbackTriggered = false;
+    const triggerFallbackToCurrentAudio = () => {
+      if (fallbackTriggered) return;
+      fallbackTriggered = true;
+      console.warn("Dual-deck playback unavailable; falling back to active audio element");
+      stopCrossfade(false);
+      activeDeckRef.current = activeDeckRef.current === 'A' ? 'B' : 'A';
+      playTrackWithMetadata(incomingTrack, currentAudio, blobCacheRef.current);
+    };
+
     let blendStarted = false;
     const startSimultaneousBlend = () => {
-      if (blendStarted || !isCrossfadingRef.current) return;
+      if (blendStarted || !isCrossfadingRef.current || fallbackTriggered) return;
       blendStarted = true;
       startTime = Date.now();
 
@@ -4055,15 +4212,23 @@ export default function App() {
         startSimultaneousBlend();
       }).catch((err) => {
         console.warn("Crossfade play retry notice:", err.message);
-        nextAudio.play().then(startSimultaneousBlend).catch(e => e);
+        nextAudio.play().then(startSimultaneousBlend).catch(() => {
+          triggerFallbackToCurrentAudio();
+        });
       });
     }
 
-    // Safety fallback: if hardware doesn't fire 'playing' within 350ms, start simultaneous blend
-    setTimeout(startSimultaneousBlend, 350);
+    // Safety fallback: if nextAudio has not started playing within 400ms:
+    setTimeout(() => {
+      if (nextAudio.paused) {
+        triggerFallbackToCurrentAudio();
+      } else {
+        startSimultaneousBlend();
+      }
+    }, 400);
 
     return true;
-  }, [stopCrossfade, crossfadeDuration, currentTrack]);
+  }, [stopCrossfade, crossfadeDuration, currentTrack, performBackgroundCrossfade, playTrackWithMetadata]);
 
   const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
