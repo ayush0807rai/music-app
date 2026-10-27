@@ -4986,11 +4986,11 @@ export default function App() {
         {/* Outgoing Poster Layer: remains steady at zIndex: 1 underneath incoming layer during crossfade */}
         {isTransitioning && outgoingPoster && (
           <img
-            key={`out-${outgoingPoster}`}
+            key={`cover-${outgoingPoster}`}
             src={outgoingPoster}
             alt=""
             loading="eager"
-            decoding="sync"
+            decoding="async"
             style={{
               position: "absolute",
               top: 0,
@@ -5013,7 +5013,7 @@ export default function App() {
             src={currentPoster}
             alt=""
             loading="eager"
-            decoding="sync"
+            decoding="async"
             style={{
               position: "absolute",
               top: 0,
@@ -5064,20 +5064,21 @@ export default function App() {
     const currentTitle = customTitleText ? customTitleText(currentSong) : (currentSong?.title || "Unknown Title");
     const currentArtist = customArtistText ? customArtistText(currentSong) : (currentSong?.artist || "Unknown Artist");
 
-    if (isTransitioning) {
-      const outgoingTitle = customTitleText ? customTitleText(outgoing) : (outgoing?.title || "Unknown Title");
-      const outgoingArtist = customArtistText ? customArtistText(outgoing) : (outgoing?.artist || "Unknown Artist");
+    const outgoingTitle = customTitleText ? customTitleText(outgoing) : (outgoing?.title || "Unknown Title");
+    const outgoingArtist = customArtistText ? customArtistText(outgoing) : (outgoing?.artist || "Unknown Artist");
 
-      return (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", gridTemplateRows: "1fr", minWidth: 0, width: "100%", ...containerStyle }}>
-          {/* Outgoing track info */}
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gridTemplateRows: "1fr", minWidth: 0, width: "100%", ...containerStyle }}>
+        {/* Outgoing track info: persistent key preserves existing DOM node when switching */}
+        {isTransitioning && outgoing && (
           <div
-            key={`info-out-${outgoing.id || outgoing.title}`}
+            key={`info-${outgoing.id || outgoing.title}`}
             style={{
               gridArea: "1 / 1",
               minWidth: 0,
               width: "100%",
               overflow: "hidden",
+              zIndex: 1,
               animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
               pointerEvents: "none"
             }}
@@ -5085,30 +5086,26 @@ export default function App() {
             <TitleElement style={titleStyle}>{outgoingTitle}</TitleElement>
             <ArtistElement style={artistStyle}>{outgoingArtist}</ArtistElement>
           </div>
+        )}
 
-          {/* Incoming track info */}
-          <div
-            key={`info-in-${currentSong?.id || currentSong?.title}`}
-            style={{
-              gridArea: "1 / 1",
-              minWidth: 0,
-              width: "100%",
-              overflow: "hidden",
-              animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-              pointerEvents: "none"
-            }}
-          >
-            <TitleElement style={titleStyle}>{currentTitle}</TitleElement>
-            <ArtistElement style={artistStyle}>{currentArtist}</ArtistElement>
-          </div>
+        {/* Incoming / Active track info: persistent key preserves DOM node seamlessly across states */}
+        <div
+          key={`info-${currentSong?.id || currentSong?.title || 'active'}`}
+          style={{
+            gridArea: "1 / 1",
+            minWidth: 0,
+            width: "100%",
+            overflow: "hidden",
+            zIndex: 2,
+            pointerEvents: "none",
+            ...(isTransitioning ? {
+              animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+            } : {})
+          }}
+        >
+          <TitleElement style={titleStyle}>{currentTitle}</TitleElement>
+          <ArtistElement style={artistStyle}>{currentArtist}</ArtistElement>
         </div>
-      );
-    }
-
-    return (
-      <div style={{ minWidth: 0, width: "100%", overflow: "hidden", ...containerStyle }}>
-        <TitleElement style={titleStyle}>{currentTitle}</TitleElement>
-        <ArtistElement style={artistStyle}>{currentArtist}</ArtistElement>
       </div>
     );
   };
@@ -5160,107 +5157,6 @@ export default function App() {
 
     const animSecs = Math.max(artTransitionDuration, 1);
 
-    if (isTransitioning) {
-      return (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            overflow: "hidden",
-            zIndex: 0,
-            pointerEvents: "none"
-          }}
-        >
-          {/* OUTGOING BACKDROP & SHADE LAYER */}
-          {(outgoingPoster || outgoingGradientOverlay) && (
-            <div
-              key={`bd-out-wrap-${outgoingPoster || 'grad'}`}
-              style={{
-                position: "absolute",
-                inset: 0,
-                overflow: "hidden",
-                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-                zIndex: 0
-              }}
-            >
-              {outgoingPoster && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: bounds.top,
-                    left: bounds.left,
-                    width: bounds.width,
-                    height: bounds.height,
-                    backgroundImage: `url(${outgoingPoster})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    filter: filterStyle,
-                    opacity: opacityStyle,
-                    transform: "scale(1.2)",
-                    zIndex: 0
-                  }}
-                />
-              )}
-              {outgoingGradientOverlay && (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: outgoingGradientOverlay,
-                    zIndex: 1
-                  }}
-                />
-              )}
-            </div>
-          )}
-
-          {/* INCOMING BACKDROP & SHADE LAYER */}
-          {(currentPoster || gradientOverlay) && (
-            <div
-              key={`bd-in-wrap-${currentPoster || 'grad'}`}
-              style={{
-                position: "absolute",
-                inset: 0,
-                overflow: "hidden",
-                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-                zIndex: 1
-              }}
-            >
-              {currentPoster && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: bounds.top,
-                    left: bounds.left,
-                    width: bounds.width,
-                    height: bounds.height,
-                    backgroundImage: `url(${currentPoster})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    filter: filterStyle,
-                    opacity: opacityStyle,
-                    transform: "scale(1.2)",
-                    zIndex: 0
-                  }}
-                />
-              )}
-              {gradientOverlay && (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: gradientOverlay,
-                    zIndex: 1
-                  }}
-                />
-              )}
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Static (not transitioning)
     return (
       <div
         style={{
@@ -5271,34 +5167,96 @@ export default function App() {
           pointerEvents: "none"
         }}
       >
-        {currentPoster && (
+        {/* Outgoing Backdrop Layer: persistent key preserves existing DOM node when switching */}
+        {isTransitioning && (outgoingPoster || outgoingGradientOverlay) && (
           <div
-            style={{
-              position: "absolute",
-              top: bounds.top,
-              left: bounds.left,
-              width: bounds.width,
-              height: bounds.height,
-              backgroundImage: `url(${currentPoster})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: filterStyle,
-              opacity: opacityStyle,
-              transform: "scale(1.2)",
-              zIndex: 0
-            }}
-          />
-        )}
-        {gradientOverlay && (
-          <div
+            key={`bd-${outgoingPoster || 'grad'}`}
             style={{
               position: "absolute",
               inset: 0,
-              background: gradientOverlay,
-              transition: "background 0.5s ease",
-              zIndex: 1
+              overflow: "hidden",
+              zIndex: 0,
+              pointerEvents: "none",
+              ...(!currentPoster && !gradientOverlay ? {
+                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+              } : {})
             }}
-          />
+          >
+            {outgoingPoster && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: bounds.top,
+                  left: bounds.left,
+                  width: bounds.width,
+                  height: bounds.height,
+                  backgroundImage: `url(${outgoingPoster})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  filter: filterStyle,
+                  opacity: opacityStyle,
+                  transform: "scale(1.2)",
+                  zIndex: 0
+                }}
+              />
+            )}
+            {outgoingGradientOverlay && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: outgoingGradientOverlay,
+                  zIndex: 1
+                }}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Incoming / Active Backdrop Layer: persistent key preserves DOM node seamlessly across states */}
+        {(currentPoster || gradientOverlay) && (
+          <div
+            key={`bd-${currentPoster || 'grad'}`}
+            style={{
+              position: "absolute",
+              inset: 0,
+              overflow: "hidden",
+              zIndex: 1,
+              pointerEvents: "none",
+              ...(isTransitioning ? {
+                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+              } : {})
+            }}
+          >
+            {currentPoster && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: bounds.top,
+                  left: bounds.left,
+                  width: bounds.width,
+                  height: bounds.height,
+                  backgroundImage: `url(${currentPoster})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  filter: filterStyle,
+                  opacity: opacityStyle,
+                  transform: "scale(1.2)",
+                  zIndex: 0
+                }}
+              />
+            )}
+            {gradientOverlay && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: gradientOverlay,
+                  zIndex: 1
+                }}
+              />
+            )}
+          </div>
         )}
       </div>
     );
