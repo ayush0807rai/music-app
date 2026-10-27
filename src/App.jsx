@@ -1232,6 +1232,54 @@ export default function App() {
   const isCrossfadingRef = useRef(false);
   const crossfadeTriggeredRef = useRef(false);
   const crossfadeAnimFrameRef = useRef(null);
+  const crossfadeIntervalRef = useRef(null);
+  const crossfadeWorkerRef = useRef(null);
+  const crossfadeProgressUpdaterRef = useRef(null);
+  const crossfadeIncomingAudioRef = useRef(null);
+  const crossfadeOutgoingAudioRef = useRef(null);
+  const volumeRef = useRef(0.8);
+  const isMutedRef = useRef(false);
+  const isMixerActiveRef = useRef(false);
+
+  // Dedicated background Web Worker ticker:
+  // Browsers pause requestAnimationFrame and clamp main-thread timers when a tab is in the background or screen is off.
+  // A dedicated Worker executes on an independent OS thread and ticks without throttling,
+  // guaranteeing uninterrupted crossfade volume blending across mobile screen-lock and background tabs.
+  useEffect(() => {
+    let worker = null;
+    try {
+      const workerCode = `
+        let timer = null;
+        self.onmessage = function(e) {
+          if (e.data === 'start') {
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => {
+              self.postMessage('tick');
+            }, 25);
+          } else if (e.data === 'stop') {
+            if (timer) {
+              clearInterval(timer);
+              timer = null;
+            }
+          }
+        };
+      `;
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      worker = new Worker(URL.createObjectURL(blob));
+      crossfadeWorkerRef.current = worker;
+    } catch (err) {
+      console.warn('Crossfade Web Worker ticker creation notice:', err);
+      crossfadeWorkerRef.current = null;
+    }
+    return () => {
+      if (worker) {
+        try {
+          worker.postMessage('stop');
+          worker.terminate();
+        } catch (e) {}
+      }
+    };
+  }, []);
 
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
@@ -2678,6 +2726,47 @@ export default function App() {
     setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.other === 0);
   }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken, isMixerActive]);
 
+  volumeRef.current = volume;
+  isMutedRef.current = isMuted;
+  isMixerActiveRef.current = isMixerActive;
+
+  const stopCrossfade = useCallback((finalize = false) => {
+    if (crossfadeWorkerRef.current) {
+      try {
+        crossfadeWorkerRef.current.onmessage = null;
+        crossfadeWorkerRef.current.postMessage('stop');
+      } catch (e) {}
+    }
+    if (crossfadeAnimFrameRef.current) {
+      cancelAnimationFrame(crossfadeAnimFrameRef.current);
+      crossfadeAnimFrameRef.current = null;
+    }
+    if (crossfadeIntervalRef.current) {
+      clearInterval(crossfadeIntervalRef.current);
+      crossfadeIntervalRef.current = null;
+    }
+    crossfadeProgressUpdaterRef.current = null;
+    isCrossfadingRef.current = false;
+
+    const baseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    const outgoing = crossfadeOutgoingAudioRef.current;
+    const incoming = crossfadeIncomingAudioRef.current || audioRef.current;
+
+    if (outgoing) {
+      try {
+        outgoing.pause();
+        outgoing.currentTime = 0;
+        outgoing.src = '';
+      } catch (e) {}
+      crossfadeOutgoingAudioRef.current = null;
+    }
+
+    if (incoming && !isMixerActiveRef.current && !isMutedRef.current) {
+      incoming.volume = baseVol;
+    }
+    crossfadeIncomingAudioRef.current = null;
+  }, [audioRef]);
+
   useEffect(() => {
     if (shouldLoadStems && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime;
@@ -2793,7 +2882,9 @@ export default function App() {
 
         // Crossfade auto-trigger when approaching song end:
         if (crossfadeEnabled && !isCrossfadingRef.current && !crossfadeTriggeredRef.current && playMode !== 'repeat-one') {
-          const totalDur = duration || (audioRef.current ? audioRef.current.duration : 0);
+          const totalDur = (audioRef.current && isFinite(audioRef.current.duration) && audioRef.current.duration > 0)
+            ? audioRef.current.duration
+            : (duration || 0);
           if (totalDur && isFinite(totalDur) && totalDur > (crossfadeDuration * 1.8) && time >= (totalDur - crossfadeDuration)) {
             crossfadeTriggeredRef.current = true;
             handleNext(null, true);
@@ -2963,18 +3054,7 @@ export default function App() {
   const handleSeek = (e) => {
     const seekTime = Number(e.target.value);
     if (isCrossfadingRef.current) {
-      if (crossfadeAnimFrameRef.current) {
-        cancelAnimationFrame(crossfadeAnimFrameRef.current);
-        crossfadeAnimFrameRef.current = null;
-      }
-      if (fadeAudioRef.current) {
-        fadeAudioRef.current.pause();
-        fadeAudioRef.current.src = "";
-      }
-      isCrossfadingRef.current = false;
-      if (audioRef.current && !isMixerActive && !isMuted) {
-        audioRef.current.volume = volume;
-      }
+      stopCrossfade(false);
     }
     if (audioRef.current) {
       audioRef.current.currentTime = seekTime;
@@ -2989,6 +3069,9 @@ export default function App() {
 
   const handleLyricClick = (time, e) => {
     if (e) e.stopPropagation();
+    if (isCrossfadingRef.current) {
+      stopCrossfade(false);
+    }
     if (audioRef.current) { 
       audioRef.current.currentTime = time; 
       setCurrentTime(time); 
@@ -3792,11 +3875,7 @@ export default function App() {
       isPlayingRef.current = false;
       setIsPlaying(false);
       if (isCrossfadingRef.current) {
-        if (crossfadeAnimFrameRef.current) {
-          cancelAnimationFrame(crossfadeAnimFrameRef.current);
-          crossfadeAnimFrameRef.current = null;
-        }
-        isCrossfadingRef.current = false;
+        stopCrossfade(false);
       }
       deckARef.current?.pause();
       deckBRef.current?.pause();
@@ -3825,21 +3904,18 @@ export default function App() {
       return false;
     }
 
-    const baseVol = (isMuted || isMixerActive) ? 0 : volume;
-
-    if (crossfadeAnimFrameRef.current) {
-      cancelAnimationFrame(crossfadeAnimFrameRef.current);
-      crossfadeAnimFrameRef.current = null;
-    }
+    // Stop any existing crossfade in progress cleanly
+    stopCrossfade(false);
 
     // 1. Prepare and start the incoming track on nextAudio from 0:00 at 0 volume
     const cdnUrl = getCdnUrl(incomingTrack.url);
     const objUrl = blobCacheRef.current?.get(cdnUrl) || cdnUrl;
 
-    nextAudio.src = objUrl;
+    if (nextAudio.src !== objUrl) {
+      nextAudio.src = objUrl;
+    }
     try { nextAudio.currentTime = 0; } catch (e) {}
     nextAudio.volume = 0;
-    nextAudio.load();
 
     const playPromise = nextAudio.play();
     if (playPromise !== undefined) {
@@ -3866,16 +3942,29 @@ export default function App() {
     lastSavedTimeRef.current = 0;
     crossfadeTriggeredRef.current = false;
 
-    // 3. Start smooth equal-power crossfade animation
+    if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
+      recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
+      pendingListenDurationRef.current = 0;
+    }
+    sessionListenDurationRef.current = 0;
+    lastListenTickRef.current = Date.now();
+    qualifiedPlayLoggedRef.current = null;
+
+    // 3. Setup references & wall-clock timeline
+    crossfadeOutgoingAudioRef.current = currentAudio;
+    crossfadeIncomingAudioRef.current = nextAudio;
     isCrossfadingRef.current = true;
-    const startTime = performance.now();
+
+    const startTime = Date.now();
     const durationMs = Math.max(1000, transitionSecs * 1000);
 
-    const step = (now) => {
+    const tick = () => {
+      if (!isCrossfadingRef.current) return;
+      const now = Date.now();
       const elapsed = now - startTime;
       const p = Math.min(1, elapsed / durationMs);
 
-      const currentBaseVol = (isMuted || isMixerActive) ? 0 : volume;
+      const currentBaseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
       // Apple Music Equal-Power Sinusoidal Crossfade
       const outVol = currentBaseVol * Math.cos(p * 0.5 * Math.PI);
       const inVol = currentBaseVol * Math.sin(p * 0.5 * Math.PI);
@@ -3883,32 +3972,43 @@ export default function App() {
       if (currentAudio) {
         currentAudio.volume = Math.max(0, Math.min(1, outVol));
       }
-      if (nextAudio && !isMixerActive && !isMuted) {
+      if (nextAudio && !isMixerActiveRef.current && !isMutedRef.current) {
         nextAudio.volume = Math.max(0, Math.min(1, inVol));
       }
 
-      if (p < 1) {
-        crossfadeAnimFrameRef.current = requestAnimationFrame(step);
-      } else {
-        // Crossfade completed: cleanly pause and unload outgoing deck
-        if (currentAudio) {
-          try {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
-            currentAudio.src = "";
-          } catch (e) {}
-        }
-        if (nextAudio && !isMixerActive && !isMuted) {
-          nextAudio.volume = currentBaseVol;
-        }
-        isCrossfadingRef.current = false;
-        crossfadeAnimFrameRef.current = null;
+      if (p >= 1) {
+        stopCrossfade(true);
       }
     };
 
-    crossfadeAnimFrameRef.current = requestAnimationFrame(step);
+    crossfadeProgressUpdaterRef.current = tick;
+
+    // Multi-layer ticker execution:
+    // Layer 1: Background Web Worker (unthrottled by background tab / screen-off)
+    if (crossfadeWorkerRef.current) {
+      crossfadeWorkerRef.current.onmessage = () => {
+        tick();
+      };
+      try {
+        crossfadeWorkerRef.current.postMessage('start');
+      } catch (e) {}
+    }
+
+    // Layer 2: Main thread timer interval (25ms)
+    crossfadeIntervalRef.current = setInterval(tick, 25);
+
+    // Layer 3: Foreground requestAnimationFrame loop (60fps smooth rendering when tab is visible)
+    const rafLoop = () => {
+      if (!isCrossfadingRef.current) return;
+      tick();
+      if (isCrossfadingRef.current) {
+        crossfadeAnimFrameRef.current = requestAnimationFrame(rafLoop);
+      }
+    };
+    crossfadeAnimFrameRef.current = requestAnimationFrame(rafLoop);
+
     return true;
-  }, [volume, isMuted, isMixerActive, crossfadeDuration]);
+  }, [stopCrossfade, crossfadeDuration, currentTrack?.id]);
 
   const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
@@ -3990,6 +4090,9 @@ export default function App() {
 
   const handlePrev = (e) => {
     if (e) e.stopPropagation();
+    if (isCrossfadingRef.current) {
+      stopCrossfade(false);
+    }
     
     let activeQueue = (playbackQueue && playbackQueue.length > 0) ? playbackQueue : playlist;
     if (activeQueue.length <= 1 && playlist.length > 1) {
@@ -5059,13 +5162,20 @@ export default function App() {
           updateProgressVisuals();
         }}
         onTimeUpdate={() => {
+          if (isCrossfadingRef.current && crossfadeProgressUpdaterRef.current) {
+            crossfadeProgressUpdaterRef.current();
+          }
           if (activeDeckRef.current !== 'A') return;
           setCurrentTime(deckARef.current?.currentTime || 0);
           handleTimeUpdateRef.current && handleTimeUpdateRef.current();
         }}
         onEnded={() => {
           if (activeDeckRef.current !== 'A') {
-            try { deckARef.current?.pause(); if (deckARef.current) deckARef.current.src = ""; } catch (err) {}
+            if (isCrossfadingRef.current) {
+              stopCrossfade(true);
+            } else {
+              try { deckARef.current?.pause(); if (deckARef.current) deckARef.current.src = ""; } catch (err) {}
+            }
             return;
           }
           handleTrackEnded();
@@ -5156,13 +5266,20 @@ export default function App() {
           updateProgressVisuals();
         }}
         onTimeUpdate={() => {
+          if (isCrossfadingRef.current && crossfadeProgressUpdaterRef.current) {
+            crossfadeProgressUpdaterRef.current();
+          }
           if (activeDeckRef.current !== 'B') return;
           setCurrentTime(deckBRef.current?.currentTime || 0);
           handleTimeUpdateRef.current && handleTimeUpdateRef.current();
         }}
         onEnded={() => {
           if (activeDeckRef.current !== 'B') {
-            try { deckBRef.current?.pause(); if (deckBRef.current) deckBRef.current.src = ""; } catch (err) {}
+            if (isCrossfadingRef.current) {
+              stopCrossfade(true);
+            } else {
+              try { deckBRef.current?.pause(); if (deckBRef.current) deckBRef.current.src = ""; } catch (err) {}
+            }
             return;
           }
           handleTrackEnded();
