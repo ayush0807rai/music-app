@@ -1229,6 +1229,16 @@ export default function App() {
     } catch (e) { return 5; }
   });
   const [showCrossfadeModal, setShowCrossfadeModal] = useState(false);
+  const [tempCrossfadeEnabled, setTempCrossfadeEnabled] = useState(crossfadeEnabled);
+  const [tempCrossfadeDuration, setTempCrossfadeDuration] = useState(crossfadeDuration);
+
+  // Synchronize modal draft state with committed crossfade state whenever the modal opens
+  useEffect(() => {
+    if (showCrossfadeModal) {
+      setTempCrossfadeEnabled(crossfadeEnabled);
+      setTempCrossfadeDuration(crossfadeDuration);
+    }
+  }, [showCrossfadeModal, crossfadeEnabled, crossfadeDuration]);
   const isCrossfadingRef = useRef(false);
   const crossfadeTriggeredRef = useRef(false);
   const crossfadeAnimFrameRef = useRef(null);
@@ -6172,15 +6182,15 @@ export default function App() {
                   width: "42px",
                   height: "42px",
                   borderRadius: "12px",
-                  background: crossfadeEnabled ? "linear-gradient(135deg, #1DB954 0%, #15883e 100%)" : (isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)"),
+                  background: tempCrossfadeEnabled ? "linear-gradient(135deg, #1DB954 0%, #15883e 100%)" : (isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)"),
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  boxShadow: crossfadeEnabled ? "0 4px 14px rgba(29, 185, 84, 0.4)" : "none",
+                  boxShadow: tempCrossfadeEnabled ? "0 4px 14px rgba(29, 185, 84, 0.4)" : "none",
                   transition: "all 0.3s ease"
                 }}
               >
-                <CrossfadeIcon size={22} color={crossfadeEnabled ? "#FFFFFF" : songTheme.textColor} />
+                <CrossfadeIcon size={22} color={tempCrossfadeEnabled ? "#FFFFFF" : songTheme.textColor} />
               </div>
               <div>
                 <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", letterSpacing: "-0.3px", color: songTheme.textColor }}>
@@ -6210,8 +6220,8 @@ export default function App() {
                 <div style={{ fontWeight: "700", fontSize: "15px", color: songTheme.textColor }}>
                   Crossfade Songs
                 </div>
-                <div style={{ fontSize: "12px", color: crossfadeEnabled ? COLORS.spotifyGreen : songTheme.textMuted, marginTop: "2px", fontWeight: "600" }}>
-                  {crossfadeEnabled ? `Active (${crossfadeDuration}s transition)` : "Disabled"}
+                <div style={{ fontSize: "12px", color: tempCrossfadeEnabled ? COLORS.spotifyGreen : songTheme.textMuted, marginTop: "2px", fontWeight: "600" }}>
+                  {tempCrossfadeEnabled ? `Active (${tempCrossfadeDuration}s transition)` : "Disabled"}
                 </div>
               </div>
 
@@ -6219,16 +6229,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => {
-                  const nextVal = !crossfadeEnabled;
-                  setCrossfadeEnabled(nextVal);
-                  try { localStorage.setItem("euphony_crossfade_enabled", String(nextVal)); } catch (e) {}
+                  setTempCrossfadeEnabled(prev => !prev);
                 }}
                 style={{
                   width: "52px",
                   height: "30px",
                   borderRadius: "15px",
                   border: "none",
-                  background: crossfadeEnabled ? COLORS.spotifyGreen : (isDarkMode ? "rgba(255,255,255,0.2)" : "rgba(26,43,76,0.2)"),
+                  background: tempCrossfadeEnabled ? COLORS.spotifyGreen : (isDarkMode ? "rgba(255,255,255,0.2)" : "rgba(26,43,76,0.2)"),
                   padding: "3px",
                   cursor: "pointer",
                   display: "flex",
@@ -6236,7 +6244,7 @@ export default function App() {
                   transition: "background-color 0.25s ease",
                   outline: "none"
                 }}
-                title={crossfadeEnabled ? "Turn off crossfade" : "Turn on crossfade"}
+                title={tempCrossfadeEnabled ? "Turn off crossfade" : "Turn on crossfade"}
               >
                 <div
                   style={{
@@ -6245,7 +6253,7 @@ export default function App() {
                     borderRadius: "50%",
                     background: "#FFFFFF",
                     boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-                    transform: crossfadeEnabled ? "translateX(22px)" : "translateX(0px)",
+                    transform: tempCrossfadeEnabled ? "translateX(22px)" : "translateX(0px)",
                     transition: "transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)"
                   }}
                 />
@@ -6253,7 +6261,7 @@ export default function App() {
             </div>
 
             {/* Duration Slider & Presets (Visible when enabled) */}
-            {crossfadeEnabled && (
+            {tempCrossfadeEnabled && (
               <div className="fade-enter" style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "20px" }}>
                 {/* Duration Value Box */}
                 <div
@@ -6279,7 +6287,7 @@ export default function App() {
                         border: "1px solid rgba(29, 185, 84, 0.3)"
                       }}
                     >
-                      {crossfadeDuration}s
+                      {tempCrossfadeDuration}s
                     </span>
                   </div>
 
@@ -6289,11 +6297,9 @@ export default function App() {
                     min={1}
                     max={12}
                     step={1}
-                    value={crossfadeDuration}
+                    value={tempCrossfadeDuration}
                     onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setCrossfadeDuration(val);
-                      try { localStorage.setItem("euphony_crossfade_duration", String(val)); } catch (err) {}
+                      setTempCrossfadeDuration(Number(e.target.value));
                     }}
                     className={isDarkMode ? "glow-slider" : "glow-slider-light"}
                     style={{
@@ -6301,21 +6307,20 @@ export default function App() {
                       marginBottom: "14px",
                       borderRadius: "6px",
                       background: isDarkMode
-                        ? `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${((crossfadeDuration - 1) / 11) * 100}%, rgba(255,255,255,0.15) ${((crossfadeDuration - 1) / 11) * 100}%)`
-                        : `linear-gradient(to right, #1A2B4C 0%, #1A2B4C ${((crossfadeDuration - 1) / 11) * 100}%, rgba(26, 43, 76, 0.15) ${((crossfadeDuration - 1) / 11) * 100}%)`
+                        ? `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${((tempCrossfadeDuration - 1) / 11) * 100}%, rgba(255,255,255,0.15) ${((tempCrossfadeDuration - 1) / 11) * 100}%)`
+                        : `linear-gradient(to right, #1A2B4C 0%, #1A2B4C ${((tempCrossfadeDuration - 1) / 11) * 100}%, rgba(26, 43, 76, 0.15) ${((tempCrossfadeDuration - 1) / 11) * 100}%)`
                     }}
                   />
 
                   {/* Quick Preset Pills */}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "6px" }}>
                     {[2, 4, 6, 8, 10, 12].map(sec => {
-                      const isSel = crossfadeDuration === sec;
+                      const isSel = tempCrossfadeDuration === sec;
                       return (
                         <button
                           key={sec}
                           onClick={() => {
-                            setCrossfadeDuration(sec);
-                            try { localStorage.setItem("euphony_crossfade_duration", String(sec)); } catch (err) {}
+                            setTempCrossfadeDuration(sec);
                           }}
                           style={{
                             padding: "6px 0",
@@ -6372,7 +6377,7 @@ export default function App() {
                       }}
                     />
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
-                      {crossfadeDuration}s Blend Window
+                      {tempCrossfadeDuration}s Blend Window
                     </div>
                   </div>
                   <div style={{ fontSize: "11px", color: songTheme.textMuted, textAlign: "center", marginTop: "2px" }}>
@@ -6384,7 +6389,19 @@ export default function App() {
 
             {/* Done Action Button */}
             <button
-              onClick={() => setShowCrossfadeModal(false)}
+              onClick={() => {
+                setCrossfadeEnabled(tempCrossfadeEnabled);
+                setCrossfadeDuration(tempCrossfadeDuration);
+                try {
+                  localStorage.setItem("euphony_crossfade_enabled", String(tempCrossfadeEnabled));
+                  localStorage.setItem("euphony_crossfade_duration", String(tempCrossfadeDuration));
+                } catch (e) {}
+                if (!tempCrossfadeEnabled && isCrossfadingRef.current) {
+                  stopCrossfade(false);
+                }
+                triggerToast(tempCrossfadeEnabled ? `Crossfade enabled (${tempCrossfadeDuration}s)` : "Crossfade disabled");
+                setShowCrossfadeModal(false);
+              }}
               className="hover-effect"
               style={{
                 width: "100%",
