@@ -673,6 +673,26 @@ export default function App() {
     } catch (e) { return null; }
   });
   const songTheme = getSongThemeGradients(dominantRgb, isDarkMode);
+  const outgoingSongTheme = useMemo(() => {
+    return outgoingDominantRgb ? getSongThemeGradients(outgoingDominantRgb, isDarkMode) : null;
+  }, [outgoingDominantRgb, isDarkMode]);
+
+  const bottomBarGradient = useMemo(() => {
+    return isDarkMode
+      ? (dominantRgb
+          ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.35) 0%, rgba(7, 10, 17, 0.82) 100%)`
+          : "linear-gradient(180deg, rgba(28, 45, 75, 0.45) 0%, rgba(7, 10, 17, 0.88) 100%)")
+      : (dominantRgb
+          ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.32) 0%, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.52) 100%)`
+          : "linear-gradient(180deg, rgba(26, 43, 76, 0.22) 0%, rgba(26, 43, 76, 0.40) 100%)");
+  }, [dominantRgb, isDarkMode]);
+
+  const outgoingBottomBarGradient = useMemo(() => {
+    if (!outgoingDominantRgb) return null;
+    return isDarkMode
+      ? `linear-gradient(180deg, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.35) 0%, rgba(7, 10, 17, 0.82) 100%)`
+      : `linear-gradient(180deg, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.32) 0%, rgba(${outgoingDominantRgb.r}, ${outgoingDominantRgb.g}, ${outgoingDominantRgb.b}, 0.52) 100%)`;
+  }, [outgoingDominantRgb, isDarkMode]);
 
   const AUDIO_CACHE_NAME = 'euphony-audio-cache-v2';
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -1264,6 +1284,7 @@ export default function App() {
   const isMutedRef = useRef(false);
   const isMixerActiveRef = useRef(false);
   const [outgoingTrackForArt, setOutgoingTrackForArt] = useState(null);
+  const [outgoingDominantRgb, setOutgoingDominantRgb] = useState(null);
   const [artTransitionDuration, setArtTransitionDuration] = useState(0);
   const artTransitionTimerRef = useRef(null);
 
@@ -2786,6 +2807,7 @@ export default function App() {
     }
     isCrossfadingRef.current = false;
     setOutgoingTrackForArt(null);
+    setOutgoingDominantRgb(null);
     setArtTransitionDuration(0);
 
     const baseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
@@ -2969,6 +2991,35 @@ export default function App() {
                 if (nextSong.poster_url) {
                   try {
                     const pImg = new Image();
+                    pImg.crossOrigin = "anonymous";
+                    pImg.onload = () => {
+                      try {
+                        const canvas = document.createElement("canvas");
+                        canvas.width = 24; canvas.height = 24;
+                        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                        ctx.drawImage(pImg, 0, 0, 24, 24);
+                        const imgData = ctx.getImageData(0, 0, 24, 24).data;
+                        let bestR = 24, bestG = 40, bestB = 68;
+                        let maxScore = -1, totalR = 0, totalG = 0, totalB = 0, count = 0;
+                        for (let i = 0; i < imgData.length; i += 4) {
+                          const r = imgData[i], g = imgData[i+1], b = imgData[i+2], a = imgData[i+3];
+                          if (a < 128) continue;
+                          totalR += r; totalG += g; totalB += b; count++;
+                          const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                          const delta = max - min, lightness = (max + min) / 2;
+                          if (lightness > 18 && lightness < 240) {
+                            const saturation = delta / (255 - Math.abs(2 * lightness - 255) || 1);
+                            const score = saturation * 2.5 + (1 - Math.abs(lightness - 120) / 120);
+                            if (score > maxScore) { maxScore = score; bestR = r; bestG = g; bestB = b; }
+                          }
+                        }
+                        if (maxScore < 0.25 && count > 0) {
+                          bestR = Math.round(totalR / count); bestG = Math.round(totalG / count); bestB = Math.round(totalB / count);
+                        }
+                        const preRgb = { r: bestR, g: bestG, b: bestB };
+                        localStorage.setItem(`euphony_color_${nextSong.id || nextSong.title}`, JSON.stringify(preRgb));
+                      } catch (e) {}
+                    };
                     pImg.src = nextSong.poster_url;
                   } catch (e) {}
                 }
@@ -4018,17 +4069,31 @@ export default function App() {
     // Stop any existing crossfade in progress cleanly FIRST
     stopCrossfade(false);
 
-    // Capture outgoing track for seamless visual cover art cross-dissolve AFTER stopping previous crossfade!
+    // Capture outgoing track & color for seamless visual cover art and shade cross-dissolve
     if (outgoing) {
       setOutgoingTrackForArt(outgoing);
+      setOutgoingDominantRgb(dominantRgb);
       setArtTransitionDuration(transitionSecs);
       if (artTransitionTimerRef.current) clearTimeout(artTransitionTimerRef.current);
       const animSecs = Math.max(transitionSecs, 1);
       artTransitionTimerRef.current = setTimeout(() => {
         setOutgoingTrackForArt(null);
+        setOutgoingDominantRgb(null);
         setArtTransitionDuration(0);
       }, animSecs * 1000 + 100);
     }
+
+    // Immediately synchronize dominant color for incoming track if cached so backdrop shade never lags
+    try {
+      const cachedColor = localStorage.getItem(`euphony_color_${incomingTrack.id || incomingTrack.title}`);
+      if (cachedColor) {
+        const parsed = JSON.parse(cachedColor);
+        if (parsed?.r !== undefined && parsed?.g !== undefined && parsed?.b !== undefined) {
+          setDominantRgb(parsed);
+          setDominantColor(`rgb(${parsed.r}, ${parsed.g}, ${parsed.b})`);
+        }
+      }
+    } catch (e) {}
 
     // 1. Prepare incoming track on nextAudio (preserving pre-warmed buffer if already loaded)
     const cdnUrl = getCdnUrl(incomingTrack.url);
@@ -4768,66 +4833,156 @@ export default function App() {
     );
   };
 
-  const renderCrossfadingBackdrop = (currentPoster, filterStyle, opacityStyle, bounds = { top: "-20%", left: "-20%", width: "140%", height: "140%" }) => {
+  const renderCrossfadingBackdrop = (
+    currentPoster,
+    filterStyle,
+    opacityStyle,
+    bounds = { top: "-20%", left: "-20%", width: "140%", height: "140%" },
+    gradientOverlay = null,
+    outgoingGradientOverlay = null
+  ) => {
     const outgoingPoster = outgoingTrackForArt?.poster_url;
-    const isTransitioning = Boolean(outgoingPoster && outgoingPoster !== currentPoster && artTransitionDuration > 0);
+    const isTransitioning = Boolean(
+      (outgoingPoster || outgoingGradientOverlay) &&
+      (outgoingPoster !== currentPoster || outgoingGradientOverlay !== gradientOverlay) &&
+      artTransitionDuration > 0
+    );
 
-    if (!currentPoster && !outgoingPoster) return null;
+    if (!currentPoster && !outgoingPoster && !gradientOverlay && !outgoingGradientOverlay) return null;
 
     const animSecs = Math.max(artTransitionDuration, 1);
 
+    if (isTransitioning) {
+      return (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            overflow: "hidden",
+            zIndex: 0,
+            pointerEvents: "none"
+          }}
+        >
+          {/* OUTGOING BACKDROP & SHADE LAYER */}
+          {(outgoingPoster || outgoingGradientOverlay) && (
+            <div
+              key={`bd-out-wrap-${outgoingPoster || 'grad'}`}
+              style={{
+                position: "absolute",
+                inset: 0,
+                overflow: "hidden",
+                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                zIndex: 0
+              }}
+            >
+              {outgoingPoster && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: bounds.top,
+                    left: bounds.left,
+                    width: bounds.width,
+                    height: bounds.height,
+                    backgroundImage: `url(${outgoingPoster})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    filter: filterStyle,
+                    opacity: opacityStyle,
+                    transform: "scale(1.2)"
+                  }}
+                />
+              )}
+              {outgoingGradientOverlay && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: outgoingGradientOverlay
+                  }}
+                />
+              )}
+            </div>
+          )}
+
+          {/* INCOMING BACKDROP & SHADE LAYER */}
+          {(currentPoster || gradientOverlay) && (
+            <div
+              key={`bd-in-wrap-${currentPoster || 'grad'}`}
+              style={{
+                position: "absolute",
+                inset: 0,
+                overflow: "hidden",
+                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                zIndex: 1
+              }}
+            >
+              {currentPoster && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: bounds.top,
+                    left: bounds.left,
+                    width: bounds.width,
+                    height: bounds.height,
+                    backgroundImage: `url(${currentPoster})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    filter: filterStyle,
+                    opacity: opacityStyle,
+                    transform: "scale(1.2)"
+                  }}
+                />
+              )}
+              {gradientOverlay && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: gradientOverlay
+                  }}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Static (not transitioning)
     return (
       <div
         style={{
           position: "absolute",
-          top: bounds.top,
-          left: bounds.left,
-          width: bounds.width,
-          height: bounds.height,
+          inset: 0,
           overflow: "hidden",
           zIndex: 0,
-          pointerEvents: "none",
-          transform: "translateZ(0)",
-          WebkitTransform: "translateZ(0)"
+          pointerEvents: "none"
         }}
       >
-        {isTransitioning && outgoingPoster && (
-          <div
-            key={`bd-out-${outgoingPoster}`}
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: `url(${outgoingPoster})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: filterStyle,
-              opacity: opacityStyle,
-              animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-              transform: "scale(1.2) translateZ(0)",
-              WebkitTransform: "scale(1.2) translateZ(0)",
-              willChange: "opacity",
-              zIndex: 0
-            }}
-          />
-        )}
         {currentPoster && (
           <div
-            key={`bd-in-${currentPoster}`}
             style={{
               position: "absolute",
-              inset: 0,
+              top: bounds.top,
+              left: bounds.left,
+              width: bounds.width,
+              height: bounds.height,
               backgroundImage: `url(${currentPoster})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               filter: filterStyle,
               opacity: opacityStyle,
-              animation: isTransitioning
-                ? `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
-                : "none",
-              transform: "scale(1.2) translateZ(0)",
-              WebkitTransform: "scale(1.2) translateZ(0)",
-              willChange: isTransitioning ? "opacity" : "auto",
-              zIndex: 1
+              transform: "scale(1.2)"
+            }}
+          />
+        )}
+        {gradientOverlay && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: gradientOverlay,
+              transition: "opacity 0.5s ease"
             }}
           />
         )}
@@ -7701,11 +7856,28 @@ export default function App() {
 
         {/* RIGHT DESKTOP PLAYER */}
         {isDesktop && currentTrack && (
-          <div style={{ width: "320px", flexShrink: 0, background: songTheme.sidebarBg, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", boxSizing: "border-box", position: "relative", overflow: "hidden", border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.25)` : "1px solid rgba(255, 255, 255, 0.1)") : `1px solid ${COLORS.border}`, boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.12)` : "none") : "0 8px 24px rgba(26,43,76,0.06)" }}>
-            {currentTrack.poster_url && renderCrossfadingBackdrop(
+          <div style={{
+            width: "320px",
+            flexShrink: 0,
+            background: isDarkMode ? "#070A10" : "#F3F0E6",
+            borderRadius: "12px",
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            boxSizing: "border-box",
+            position: "relative",
+            overflow: "hidden",
+            border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.25)` : "1px solid rgba(255, 255, 255, 0.1)") : `1px solid ${COLORS.border}`,
+            boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.12)` : "none") : "0 8px 24px rgba(26,43,76,0.06)",
+            transition: "border 0.6s ease, box-shadow 0.6s ease"
+          }}>
+            {renderCrossfadingBackdrop(
               currentTrack.poster_url,
               isDarkMode ? "blur(50px) brightness(0.65) saturate(120%)" : "blur(50px) brightness(1.1) saturate(95%)",
-              isDarkMode ? 0.35 : 0.18
+              isDarkMode ? 0.35 : 0.18,
+              { top: "-20%", left: "-20%", width: "140%", height: "140%" },
+              songTheme.sidebarBg,
+              outgoingSongTheme?.sidebarBg
             )}
             
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
@@ -7864,23 +8036,15 @@ export default function App() {
             }}
           />
 
-          {/* Dynamic Ambient Blurred Cover Art Backdrop */}
-          {currentTrack?.poster_url && renderCrossfadingBackdrop(
-            currentTrack.poster_url,
+          {/* Dynamic Ambient Blurred Cover Art Backdrop & Theme Shade */}
+          {renderCrossfadingBackdrop(
+            currentTrack?.poster_url,
             isDarkMode ? "blur(80px) brightness(0.72) saturate(160%)" : "blur(80px) brightness(1.05) saturate(130%)",
-            isDarkMode ? 0.52 : 0.35
+            isDarkMode ? 0.52 : 0.35,
+            { top: "-20%", left: "-20%", width: "140%", height: "140%" },
+            songTheme.mobilePlayerBg,
+            outgoingSongTheme?.mobilePlayerBg
           )}
-
-          {/* Dynamic Song Theme Radial Gradient Overlay */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: songTheme.mobilePlayerBg,
-              zIndex: 0,
-              pointerEvents: "none"
-            }}
-          />
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
               <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><ChevronDown size={32} /></button>
@@ -7986,23 +8150,15 @@ export default function App() {
             }}
           />
 
-          {/* Dynamic Ambient Blurred Cover Art Backdrop */}
-          {currentTrack.poster_url && renderCrossfadingBackdrop(
+          {/* Dynamic Ambient Blurred Cover Art Backdrop & Theme Shade */}
+          {renderCrossfadingBackdrop(
             currentTrack.poster_url,
             isDarkMode ? "blur(90px) brightness(0.72) saturate(165%)" : "blur(90px) brightness(1.05) saturate(135%)",
-            isDarkMode ? 0.55 : 0.38
+            isDarkMode ? 0.55 : 0.38,
+            { top: "-20%", left: "-20%", width: "140%", height: "140%" },
+            songTheme.playerBg,
+            outgoingSongTheme?.playerBg
           )}
-
-          {/* Dynamic Song Theme Radial Gradient Overlay */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: songTheme.playerBg,
-              zIndex: 0,
-              pointerEvents: "none"
-            }}
-          />
 
           {/* FULLSCREEN TOP BAR */}
           <div
@@ -8591,30 +8747,15 @@ export default function App() {
               }}
             />
 
-            {/* Dynamic Ambient Blurred Cover Art Backdrop in Bottom Bar */}
-            {currentTrack.poster_url && renderCrossfadingBackdrop(
+            {/* Dynamic Ambient Blurred Cover Art Backdrop & Theme Shade in Bottom Bar */}
+            {renderCrossfadingBackdrop(
               currentTrack.poster_url,
               isDarkMode ? "blur(75px) brightness(0.72) saturate(165%)" : "blur(75px) brightness(0.92) saturate(145%)",
               isDarkMode ? 0.65 : 0.50,
-              { top: "-80%", left: "-20%", width: "140%", height: "260%" }
+              { top: "-80%", left: "-20%", width: "140%", height: "260%" },
+              bottomBarGradient,
+              outgoingBottomBarGradient
             )}
-
-            {/* Dynamic Song Theme Gradient Overlay in Bottom Bar */}
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: isDarkMode
-                  ? (dominantRgb
-                      ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.35) 0%, rgba(7, 10, 17, 0.82) 100%)`
-                      : "linear-gradient(180deg, rgba(28, 45, 75, 0.45) 0%, rgba(7, 10, 17, 0.88) 100%)")
-                  : (dominantRgb
-                      ? `linear-gradient(180deg, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.32) 0%, rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.52) 100%)`
-                      : "linear-gradient(180deg, rgba(26, 43, 76, 0.22) 0%, rgba(26, 43, 76, 0.40) 100%)"),
-                zIndex: 0,
-                pointerEvents: "none"
-              }}
-            />
 
             {/* Left: Track Info & Like */}
             <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0, position: "relative", zIndex: 1 }}>
