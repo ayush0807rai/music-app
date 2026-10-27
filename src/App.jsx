@@ -506,8 +506,8 @@ const getSongThemeGradients = (rgb, isDark) => {
         ? "radial-gradient(circle at 50% 28%, rgba(28, 45, 75, 0.6) 0%, #070A11 100%)"
         : "radial-gradient(circle at 50% 28%, rgba(26, 43, 76, 0.10) 0%, #F4EFE6 100%)",
       sidebarBg: isDark
-        ? "radial-gradient(circle at 50% 0%, rgba(24, 40, 68, 0.4) 0%, #0A0F1A 100%)"
-        : "radial-gradient(circle at 50% 0%, rgba(26, 43, 76, 0.06) 0%, #FAFAF7 70%, #F3F0E6 100%)",
+        ? "radial-gradient(circle at 50% 26%, rgba(28, 45, 75, 0.35) 0%, rgba(16, 24, 38, 0.75) 70%, #0E1524 100%)"
+        : "radial-gradient(circle at 50% 26%, rgba(26, 43, 76, 0.14) 0%, rgba(26, 43, 76, 0.05) 45%, #F4EFE6 100%)",
       textColor: isDark ? "#FFFFFF" : "#1A2B4C",
       textMuted: isDark ? "rgba(255, 255, 255, 0.65)" : "rgba(26, 43, 76, 0.65)",
       rowBg: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.8)",
@@ -525,7 +525,7 @@ const getSongThemeGradients = (rgb, isDark) => {
       modalShadow: `0 28px 70px rgba(0,0,0,0.85), 0 0 50px rgba(${r}, ${g}, ${b}, 0.35)`,
       playerBg: `radial-gradient(ellipse 95% 75% at 50% 32%, rgba(${r}, ${g}, ${b}, 0.55) 0%, rgba(${r}, ${g}, ${b}, 0.22) 48%, rgba(7, 10, 17, 0.88) 78%, #070A11 100%)`,
       mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.52) 0%, rgba(${r}, ${g}, ${b}, 0.20) 45%, rgba(7, 10, 17, 0.88) 75%, #070A11 100%)`,
-      sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.35) 0%, rgba(10, 14, 22, 0.95) 70%, #070A10 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 26%, rgba(${r}, ${g}, ${b}, 0.28) 0%, rgba(${r}, ${g}, ${b}, 0.10) 45%, rgba(16, 24, 38, 0.78) 75%, #0E1524 100%)`,
       textColor: "#FFFFFF",
       textMuted: "rgba(255, 255, 255, 0.65)",
       rowBg: "rgba(255, 255, 255, 0.08)",
@@ -541,7 +541,7 @@ const getSongThemeGradients = (rgb, isDark) => {
       modalShadow: `0 24px 60px rgba(26, 43, 76, 0.16), 0 0 35px rgba(${r}, ${g}, ${b}, 0.18)`,
       playerBg: `radial-gradient(ellipse 95% 75% at 50% 30%, rgba(${r}, ${g}, ${b}, 0.32) 0%, rgba(${r}, ${g}, ${b}, 0.12) 48%, rgba(244, 239, 230, 0.88) 78%, #F4EFE6 100%)`,
       mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.30) 0%, rgba(${r}, ${g}, ${b}, 0.12) 45%, rgba(244, 239, 230, 0.88) 75%, #F4EFE6 100%)`,
-      sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.18) 0%, rgba(250, 250, 247, 0.95) 70%, #F3F0E6 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 26%, rgba(${r}, ${g}, ${b}, 0.38) 0%, rgba(${r}, ${g}, ${b}, 0.16) 42%, rgba(244, 239, 230, 0.85) 75%, #F4EFE6 100%)`,
       textColor: "#1A2B4C",
       textMuted: "rgba(26, 43, 76, 0.65)",
       rowBg: "rgba(255, 255, 255, 0.8)",
@@ -8070,7 +8070,7 @@ export default function App() {
           <div style={{
             width: "320px",
             flexShrink: 0,
-            background: songTheme.sidebarBg,
+            background: isDarkMode ? "#0E1524" : "#F4EFE6",
             borderRadius: "12px",
             padding: "24px",
             display: "flex",
@@ -8082,10 +8082,13 @@ export default function App() {
             boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.12)` : "none") : "0 8px 24px rgba(26,43,76,0.06)",
             transition: "background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease"
           }}>
-            {currentTrack.poster_url && renderCrossfadingBackdrop(
+            {renderCrossfadingBackdrop(
               currentTrack.poster_url,
-              isDarkMode ? "blur(50px) brightness(0.65) saturate(120%)" : "blur(50px) brightness(1.1) saturate(95%)",
-              isDarkMode ? 0.35 : 0.18
+              isDarkMode ? "blur(70px) brightness(0.80) saturate(135%)" : "blur(80px) brightness(1.05) saturate(145%)",
+              isDarkMode ? 0.28 : 0.38,
+              { top: "-20%", left: "-20%", width: "140%", height: "140%" },
+              songTheme.sidebarBg,
+              outgoingSongTheme?.sidebarBg
             )}
             
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
