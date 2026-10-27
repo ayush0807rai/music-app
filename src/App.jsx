@@ -400,7 +400,7 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
 // --- LYRICS PARSER ---
 const parseLyrics = (lrcString) => {
   if (!lrcString) return [];
-  const lines = lrcString.split('\n');
+  const lines = lrcString.split('\r\n');
   const lineRegex = /\[(\d{2}):(\d{2}(?:\.\d{2,3})?)\](.*)/;
   const wordRegex = /<(\d{2}):(\d{2}(?:\.\d{2,3})?)>([^<]*)/g;
   const parsed = [];
@@ -1230,8 +1230,8 @@ export default function App() {
       const targetSong = playlist.find(s => s.id === songId);
       if (targetSong) {
         let currentLyrics = targetSong.lyrics || "";
-        let cleanLyrics = currentLyrics.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, "").trim();
-        let newLyrics = moodId ? (cleanLyrics ? `[mood: ${moodId}]\n${cleanLyrics}` : `[mood: ${moodId}]`) : (cleanLyrics || null);
+        let cleanLyrics = currentLyrics.replace(/\[mood:\s*[a-zA-Z\s]+\]\r\n?/gi, "").trim();
+        let newLyrics = moodId ? (cleanLyrics ? `[mood: ${moodId}]\r\n${cleanLyrics}` : `[mood: ${moodId}]`) : (cleanLyrics || null);
 
         // Optimistically update all song references immediately for 0ms UI latency
         setPlaylist(prev => prev.map(s => s.id === songId ? { ...s, lyrics: newLyrics } : s));
@@ -1833,6 +1833,9 @@ export default function App() {
     };
   }, [currentTrack?.id, currentTrack?.poster_url]);
 
+  const themeColorAnimRef = useRef(null);
+  const currentThemeRgbRef = useRef(null);
+
   useEffect(() => {
     let metaTheme = document.querySelector('meta[name="theme-color"]');
     if (!metaTheme) {
@@ -1840,17 +1843,94 @@ export default function App() {
       metaTheme.name = 'theme-color';
       document.head.appendChild(metaTheme);
     }
-    
+
+    const parseColorToRgb = (col, fallback) => {
+      if (!col) return fallback;
+      if (typeof col === 'object' && col.r !== undefined) return col;
+      if (typeof col === 'string') {
+        const rgbMatch = col.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+          return { r: parseInt(rgbMatch[1], 10), g: parseInt(rgbMatch[2], 10), b: parseInt(rgbMatch[3], 10) };
+        }
+        if (col.startsWith('#')) {
+          const hex = col.slice(1);
+          if (hex.length === 6) {
+            return {
+              r: parseInt(hex.slice(0, 2), 16),
+              g: parseInt(hex.slice(2, 4), 16),
+              b: parseInt(hex.slice(4, 6), 16)
+            };
+          }
+        }
+      }
+      return fallback;
+    };
+
+    const targetRgb = isMobilePlayerOpen
+      ? parseColorToRgb(dominantRgb || dominantColor, { r: 18, g: 18, b: 18 })
+      : parseColorToRgb(COLORS.bgBase, { r: 18, g: 26, b: 43 });
+
+    // Initial load: set directly
+    if (!currentThemeRgbRef.current) {
+      currentThemeRgbRef.current = targetRgb;
+      metaTheme.content = `rgb(${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b})`;
+      if (isMobilePlayerOpen) {
+        setTimeout(updateProgressVisuals, 10);
+        setTimeout(updateProgressVisuals, 100);
+      }
+      return;
+    }
+
+    // Cancel any active animation frame
+    if (themeColorAnimRef.current) {
+      cancelAnimationFrame(themeColorAnimRef.current);
+      themeColorAnimRef.current = null;
+    }
+
+    const startRgb = outgoingDominantRgb || currentThemeRgbRef.current;
+    const durationMs = artTransitionDuration > 0
+      ? Math.max(400, artTransitionDuration * 1000)
+      : 350;
+
+    const startTime = performance.now();
+
+    const animateThemeColor = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / durationMs);
+
+      // Smooth easeInOut: 3 * t^2 - 2 * t^3
+      const ease = progress * progress * (3 - 2 * progress);
+
+      const r = Math.round(startRgb.r + (targetRgb.r - startRgb.r) * ease);
+      const g = Math.round(startRgb.g + (targetRgb.g - startRgb.g) * ease);
+      const b = Math.round(startRgb.b + (targetRgb.b - startRgb.b) * ease);
+
+      currentThemeRgbRef.current = { r, g, b };
+      metaTheme.content = `rgb(${r}, ${g}, ${b})`;
+
+      if (progress < 1) {
+        themeColorAnimRef.current = requestAnimationFrame(animateThemeColor);
+      } else {
+        currentThemeRgbRef.current = targetRgb;
+        metaTheme.content = `rgb(${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b})`;
+        themeColorAnimRef.current = null;
+      }
+    };
+
+    themeColorAnimRef.current = requestAnimationFrame(animateThemeColor);
+
     if (isMobilePlayerOpen) {
-      metaTheme.content = dominantColor || "#121212";
-      // The modal just mounted, meaning mobileProgressRef just attached to a new input with defaultValue=0.
-      // Force it to sync with actual audio time. Use small timeouts to wait for React to attach the DOM node.
       setTimeout(updateProgressVisuals, 10);
       setTimeout(updateProgressVisuals, 100);
-    } else {
-      metaTheme.content = COLORS.bgBase;
     }
-  }, [isMobilePlayerOpen, dominantColor, COLORS.bgBase]);
+
+    return () => {
+      if (themeColorAnimRef.current) {
+        cancelAnimationFrame(themeColorAnimRef.current);
+        themeColorAnimRef.current = null;
+      }
+    };
+  }, [isMobilePlayerOpen, dominantRgb, dominantColor, outgoingDominantRgb, artTransitionDuration, COLORS.bgBase]);
 
   const [upcomingSourceList, setUpcomingSourceList] = useState([]);
   const [playbackHistory, setPlaybackHistory] = useState(() => {
@@ -3339,7 +3419,7 @@ export default function App() {
         setGenerationStatus(prev => { if (prev) { setIsGeneratingStems(false); alert("Processing timed out. Please ensure your Colab worker is running."); } return ""; });
       }, 300000);
     } catch (err) {
-      console.error("Stem request error:", err); alert("Database Error:\n" + err.message);
+      console.error("Stem request error:", err); alert("Database Error:\r\n" + err.message);
       setIsGeneratingStems(false); setGenerationStatus("");
     }
   };
@@ -3481,6 +3561,17 @@ export default function App() {
 
   const playTrackWithMetadata = (track, audioEl, cacheMap) => {
     if (!audioEl || !track) return;
+    if (currentTrack && track && (currentTrack.id !== track.id || currentTrack.title !== track.title) && !isCrossfadingRef.current) {
+      setOutgoingTrackForArt(currentTrack);
+      setOutgoingDominantRgb(dominantRgb);
+      setArtTransitionDuration(0.4);
+      if (artTransitionTimerRef.current) clearTimeout(artTransitionTimerRef.current);
+      artTransitionTimerRef.current = setTimeout(() => {
+        setOutgoingTrackForArt(null);
+        setOutgoingDominantRgb(null);
+        setArtTransitionDuration(0);
+      }, 450);
+    }
     if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
       recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
       pendingListenDurationRef.current = 0;
@@ -3848,12 +3939,12 @@ export default function App() {
       let lyricsToStore = uploadLyrics ? uploadLyrics.trim() : null;
       if (lyricsToStore && !isOwner) {
         // Strip any spoofed [mood: ...] tags entered by non-owners
-        lyricsToStore = lyricsToStore.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, "").trim() || null;
+        lyricsToStore = lyricsToStore.replace(/\[mood:\s*[a-zA-Z\s]+\]\r\n?/gi, "").trim() || null;
       }
       if (effectiveMood) {
-        const cleanLyrics = lyricsToStore ? lyricsToStore.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, "").trim() : "";
+        const cleanLyrics = lyricsToStore ? lyricsToStore.replace(/\[mood:\s*[a-zA-Z\s]+\]\r\n?/gi, "").trim() : "";
         lyricsToStore = cleanLyrics 
-          ? `[mood: ${effectiveMood}]\n${cleanLyrics}` 
+          ? `[mood: ${effectiveMood}]\r\n${cleanLyrics}` 
           : `[mood: ${effectiveMood}]`;
       }
 
@@ -4770,7 +4861,12 @@ export default function App() {
 
   const renderCrossfadingCover = (currentPoster, fallbackSize = 80, rounded = "12px") => {
     const outgoingPoster = outgoingTrackForArt?.poster_url;
-    const isTransitioning = Boolean(outgoingPoster && outgoingPoster !== currentPoster && artTransitionDuration > 0);
+    const isTransitioning = Boolean(
+      outgoingTrackForArt &&
+      (outgoingPoster || currentPoster) &&
+      (outgoingPoster !== currentPoster || outgoingTrackForArt.id !== currentTrack?.id) &&
+      artTransitionDuration > 0
+    );
 
     if (!currentPoster && !outgoingPoster) {
       return (
@@ -4781,7 +4877,7 @@ export default function App() {
     }
 
     if (isTransitioning) {
-      const animSecs = Math.max(artTransitionDuration, 1);
+      const animSecs = Math.max(artTransitionDuration, 0.4);
       return (
         <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: rounded }}>
           {outgoingPoster && (
@@ -4831,6 +4927,110 @@ export default function App() {
         <ImageIcon size={fallbackSize} color={COLORS.textMuted} />
       </div>
     );
+  };
+
+  const renderCrossfadingTrackInfo = (
+    currentSong,
+    {
+      titleTag = "h3",
+      titleStyle = {},
+      artistTag = "p",
+      artistStyle = {},
+      containerStyle = {},
+      customTitleText = null,
+      customArtistText = null
+    } = {}
+  ) => {
+    const outgoing = outgoingTrackForArt;
+    const isTransitioning = Boolean(
+      outgoing &&
+      currentSong &&
+      (outgoing.id ? outgoing.id !== currentSong.id : outgoing.title !== currentSong.title) &&
+      artTransitionDuration > 0
+    );
+
+    const animSecs = Math.max(artTransitionDuration, 0.4);
+    const TitleElement = titleTag;
+    const ArtistElement = artistTag;
+
+    const currentTitle = customTitleText ? customTitleText(currentSong) : (currentSong?.title || "Unknown Title");
+    const currentArtist = customArtistText ? customArtistText(currentSong) : (currentSong?.artist || "Unknown Artist");
+
+    if (isTransitioning) {
+      const outgoingTitle = customTitleText ? customTitleText(outgoing) : (outgoing?.title || "Unknown Title");
+      const outgoingArtist = customArtistText ? customArtistText(outgoing) : (outgoing?.artist || "Unknown Artist");
+
+      return (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr", gridTemplateRows: "1fr", minWidth: 0, width: "100%", ...containerStyle }}>
+          {/* Outgoing track info */}
+          <div
+            key={`info-out-${outgoing.id || outgoing.title}`}
+            style={{
+              gridArea: "1 / 1",
+              minWidth: 0,
+              width: "100%",
+              overflow: "hidden",
+              animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+              pointerEvents: "none"
+            }}
+          >
+            <TitleElement style={titleStyle}>{outgoingTitle}</TitleElement>
+            <ArtistElement style={artistStyle}>{outgoingArtist}</ArtistElement>
+          </div>
+
+          {/* Incoming track info */}
+          <div
+            key={`info-in-${currentSong?.id || currentSong?.title}`}
+            style={{
+              gridArea: "1 / 1",
+              minWidth: 0,
+              width: "100%",
+              overflow: "hidden",
+              animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+              pointerEvents: "none"
+            }}
+          >
+            <TitleElement style={titleStyle}>{currentTitle}</TitleElement>
+            <ArtistElement style={artistStyle}>{currentArtist}</ArtistElement>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={{ minWidth: 0, width: "100%", overflow: "hidden", ...containerStyle }}>
+        <TitleElement style={titleStyle}>{currentTitle}</TitleElement>
+        <ArtistElement style={artistStyle}>{currentArtist}</ArtistElement>
+      </div>
+    );
+  };
+
+  const renderCrossfadingDuration = (currentDur, style = {}) => {
+    const outgoing = outgoingTrackForArt;
+    const isTransitioning = Boolean(
+      outgoing &&
+      currentTrack &&
+      (outgoing.id ? outgoing.id !== currentTrack.id : outgoing.title !== currentTrack.title) &&
+      artTransitionDuration > 0
+    );
+
+    const animSecs = Math.max(artTransitionDuration, 0.4);
+    const incomingVal = (isFinite(currentDur) && currentDur > 0) ? currentDur : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0);
+    const incomingText = formatTime(incomingVal);
+
+    if (isTransitioning) {
+      const outgoingVal = outgoing?.duration || (outgoing?.id && STATIC_SONG_DURATIONS[outgoing.id]) || 0;
+      const outgoingText = formatTime(outgoingVal);
+
+      return (
+        <span style={{ display: "inline-grid", gridTemplateColumns: "1fr", gridTemplateRows: "1fr", ...style }}>
+          <span style={{ gridArea: "1 / 1", animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`, pointerEvents: "none" }}>{outgoingText}</span>
+          <span style={{ gridArea: "1 / 1", animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`, pointerEvents: "none" }}>{incomingText}</span>
+        </span>
+      );
+    }
+
+    return <span style={style}>{incomingText}</span>;
   };
 
   const renderCrossfadingBackdrop = (
@@ -5129,7 +5329,7 @@ export default function App() {
           </div>
         ) : (
           <div style={{ color: inactiveColor, textShadow: inactiveShadow, opacity: 0.8, fontSize: "15px", fontWeight: "600", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {trackLyrics ? (trackLyrics.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, '').trim() || "No synchronized lyrics available.") : "No synchronized lyrics available."}
+            {trackLyrics ? (trackLyrics.replace(/\[mood:\s*[a-zA-Z\s]+\]\r\n?/gi, '').trim() || "No synchronized lyrics available.") : "No synchronized lyrics available."}
           </div>
         )}
       </div>
@@ -5148,8 +5348,12 @@ export default function App() {
                 {currentTrack.poster_url ? renderCrossfadingCover(currentTrack.poster_url, 18, "4px") : <ImageIcon size={18} color={isDark ? "rgba(255,255,255,0.6)" : COLORS.textMuted} />}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</div>
-                <div style={{ fontSize: "12px", color: isDark ? "rgba(255,255,255,0.7)" : COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.artist}</div>
+                {renderCrossfadingTrackInfo(currentTrack, {
+                  titleTag: "div",
+                  titleStyle: { fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+                  artistTag: "div",
+                  artistStyle: { fontSize: "12px", color: isDark ? "rgba(255,255,255,0.7)" : COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }
+                })}
               </div>
               {isPlaying && (
                 <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "14px", width: "16px", paddingBottom: "1px" }}>
@@ -5397,7 +5601,6 @@ export default function App() {
         
         @keyframes crossfade-art-fade-out {
           0% { opacity: 1; }
-          60% { opacity: 0.85; }
           100% { opacity: 0; }
         }
         @keyframes crossfade-art-fade-in {
@@ -7869,7 +8072,7 @@ export default function App() {
             overflow: "hidden",
             border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.25)` : "1px solid rgba(255, 255, 255, 0.1)") : `1px solid ${COLORS.border}`,
             boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.12)` : "none") : "0 8px 24px rgba(26,43,76,0.06)",
-            transition: "border 0.6s ease, box-shadow 0.6s ease"
+            transition: `border ${Math.max(artTransitionDuration, 0.4)}s ease, box-shadow ${Math.max(artTransitionDuration, 0.4)}s ease`
           }}>
             {renderCrossfadingBackdrop(
               currentTrack.poster_url,
@@ -7924,8 +8127,12 @@ export default function App() {
               {/* TRACK INFO & SECONDARY ACTIONS */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexShrink: 0 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
-                  <h3 style={{ margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack.title}</h3>
-                  <p style={{ margin: 0, color: "rgba(255, 255, 255, 0.85)", fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack.artist}</p>
+                  {renderCrossfadingTrackInfo(currentTrack, {
+                    titleTag: "h3",
+                    titleStyle: { margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" },
+                    artistTag: "p",
+                    artistStyle: { margin: 0, color: "rgba(255, 255, 255, 0.85)", fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }
+                  })}
                 </div>
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
                   {[
@@ -7947,7 +8154,7 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
                   <input type="range" min={0} max={(isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 100)} defaultValue={0} ref={desktopProgressRef} onChange={handleSeek} className="glow-slider" style={{ flex: 1 }} />
-                  <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime((isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0))}</span>
+                  {renderCrossfadingDuration(duration, { fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" })}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
@@ -7997,8 +8204,12 @@ export default function App() {
                 {renderCrossfadingCover(currentTrack.poster_url, 20, "6px")}
               </div>
               <div style={{ overflow: "hidden", flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: "15px", fontWeight: "bold", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</div>
-                <div style={{ fontSize: "13px", color: COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }}>{currentTrack.artist}</div>
+                {renderCrossfadingTrackInfo(currentTrack, {
+                  titleTag: "div",
+                  titleStyle: { fontSize: "15px", fontWeight: "bold", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+                  artistTag: "div",
+                  artistStyle: { fontSize: "13px", color: COLORS.textMuted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500" }
+                })}
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
@@ -8045,8 +8256,8 @@ export default function App() {
             songTheme.mobilePlayerBg,
             outgoingSongTheme?.mobilePlayerBg
           )}
-          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "24px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "16px" }}>
+          <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "calc(env(safe-area-inset-top, 0px) + 12px) 24px calc(env(safe-area-inset-bottom, 0px) + 24px) 24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "4px" }}>
               <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><ChevronDown size={32} /></button>
               <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
                 {showMixer ? "Stem Mixer" : showQueue ? "Current Queue" : showLyrics ? "Lyrics" : "Now Playing"}
@@ -8064,8 +8275,12 @@ export default function App() {
 
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <h2 style={{ margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}>{currentTrack?.title}</h2>
-                <p style={{ margin: 0, color: "rgba(255,255,255,0.85)", fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{currentTrack?.artist}</p>
+                {renderCrossfadingTrackInfo(currentTrack, {
+                  titleTag: "h2",
+                  titleStyle: { margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" },
+                  artistTag: "p",
+                  artistStyle: { margin: 0, color: "rgba(255,255,255,0.85)", fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }
+                })}
               </div>
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
                 <button onClick={toggleStemMixer} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><SlidersHorizontal size={17} /></button>
@@ -8100,7 +8315,7 @@ export default function App() {
               <input type="range" min={0} max={(isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 100)} defaultValue={0} ref={mobileProgressRef} onChange={handleSeek} className="glow-slider" style={{ width: "100%", marginBottom: "8px", borderRadius: "6px" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
-                <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime((isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0))}</span>
+                {renderCrossfadingDuration(duration, { fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" })}
               </div>
             </div>
 
@@ -8404,12 +8619,14 @@ export default function App() {
                       </button>
                     </div>
                     <div style={{ marginTop: "10px" }}>
-                      <div style={{ fontSize: "15px", fontWeight: "700", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {currentTrack.artist}
-                      </div>
-                      <div style={{ fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.55)" : "#64748B", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        Main Artist {currentTrack.album ? `• ${currentTrack.album}` : ""}
-                      </div>
+                      {renderCrossfadingTrackInfo(currentTrack, {
+                        titleTag: "div",
+                        titleStyle: { fontSize: "15px", fontWeight: "700", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+                        artistTag: "div",
+                        artistStyle: { fontSize: "12px", color: isDarkMode ? "rgba(255,255,255,0.55)" : "#64748B", marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+                        customTitleText: (track) => track?.artist || "Unknown Artist",
+                        customArtistText: (track) => `Main Artist ${track?.album ? `• ${track.album}` : ""}`
+                      })}
                     </div>
                   </div>
 
@@ -8709,7 +8926,7 @@ export default function App() {
                     })
                   ) : (
                     <div style={{ color: "rgba(255, 255, 255, 0.65)", fontSize: "20px", fontWeight: "600", lineHeight: "1.8", whiteSpace: "pre-line", padding: "60px 0" }}>
-                      {((currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics)?.replace(/\[mood:\s*[a-zA-Z\s]+\]\n?/gi, '').trim()) || "No synchronized lyrics available for this song."}
+                      {((currentTrack?.lyrics || playlist.find(s => s.id === currentTrack?.id)?.lyrics)?.replace(/\[mood:\s*[a-zA-Z\s]+\]\r\n?/gi, '').trim()) || "No synchronized lyrics available for this song."}
                     </div>
                   )}
                 </div>
@@ -8763,12 +8980,12 @@ export default function App() {
                 {renderCrossfadingCover(currentTrack.poster_url, 22, "8px")}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: "14px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {currentTrack.title}
-                </div>
-                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }}>
-                  {currentTrack.artist}
-                </div>
+                {renderCrossfadingTrackInfo(currentTrack, {
+                  titleTag: "div",
+                  titleStyle: { fontSize: "14px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+                  artistTag: "div",
+                  artistStyle: { fontSize: "12px", color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: "2px" }
+                })}
               </div>
               <button
                 title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === currentTrack.id) ? "Unlike" : "Like"}
