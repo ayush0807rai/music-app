@@ -4632,20 +4632,20 @@ export default function App() {
       );
       if (isTextInput) return;
 
-      // 2. Next / Prev Track: Shift + Arrow, Ctrl + Arrow, or N / P keys
-      if (((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "ArrowRight") || e.key.toLowerCase() === "n") {
+      // 2. Ignore Ctrl / Meta / Alt combos to preserve native browser shortcuts
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      // 3. Next / Prev Track: Shift + Arrow keys only
+      if (e.shiftKey && e.key === "ArrowRight") {
         e.preventDefault();
         handleNext();
         return;
       }
-      if (((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "ArrowLeft") || e.key.toLowerCase() === "p") {
+      if (e.shiftKey && e.key === "ArrowLeft") {
         e.preventDefault();
         handlePrev();
         return;
       }
-
-      // Ignore other Ctrl / Meta / Alt combos to preserve native browser shortcuts (e.g. Ctrl+R, Ctrl+W)
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       // 3. Handle Escape key for closing modals & fullscreen
       if (e.key === "Escape") {
@@ -4700,8 +4700,8 @@ export default function App() {
       // If text/form modals are open, do not trigger playback hotkeys
       if (showUploadModal || showPlaylistModal || showPasswordResetModal) return;
 
-      // 4. Space / K: Play / Pause (blur active button to prevent double-toggle on Space)
-      if (e.code === "Space" || e.key === " " || e.key.toLowerCase() === "k") {
+      // 4. Space: Play / Pause (blur active button to prevent double-toggle on Space)
+      if (e.code === "Space" || e.key === " ") {
         e.preventDefault();
         if (document.activeElement && typeof document.activeElement.blur === "function") {
           document.activeElement.blur();
@@ -4710,7 +4710,7 @@ export default function App() {
         return;
       }
 
-      // 5. Left / Right Arrow / J: Seek 5s backward / forward
+      // 5. Left / Right Arrow: Seek 5s backward / forward
       if (e.key === "ArrowRight") {
         e.preventDefault();
         if (audioRef.current && currentTrack) {
@@ -4734,7 +4734,7 @@ export default function App() {
         return;
       }
 
-      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "j") {
+      if (e.key === "ArrowLeft") {
         e.preventDefault();
         if (audioRef.current && currentTrack) {
           if (isCrossfadingRef.current) {
@@ -6553,9 +6553,9 @@ export default function App() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[
-                { key: "Space  /  K", label: "Play / Pause" },
+                { key: "Space", label: "Play / Pause" },
                 { key: "←  /  →", label: "Seek backward / forward 5s" },
-                { key: "Shift + ← / →  or  N / P", label: "Previous / Next track" },
+                { key: "Shift + ←  /  →", label: "Previous / Next track" },
                 { key: "↑  /  ↓", label: "Volume up / down (5%)" },
                 { key: "M", label: "Mute / Unmute" },
                 { key: "L", label: "Toggle Lyrics" },
