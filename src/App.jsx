@@ -672,6 +672,12 @@ export default function App() {
       return null;
     } catch (e) { return null; }
   });
+
+  const [outgoingTrackForArt, setOutgoingTrackForArt] = useState(null);
+  const [outgoingDominantRgb, setOutgoingDominantRgb] = useState(null);
+  const [artTransitionDuration, setArtTransitionDuration] = useState(0);
+  const artTransitionTimerRef = useRef(null);
+
   const songTheme = getSongThemeGradients(dominantRgb, isDarkMode);
   const outgoingSongTheme = useMemo(() => {
     return outgoingDominantRgb ? getSongThemeGradients(outgoingDominantRgb, isDarkMode) : null;
@@ -1283,10 +1289,6 @@ export default function App() {
   const volumeRef = useRef(0.8);
   const isMutedRef = useRef(false);
   const isMixerActiveRef = useRef(false);
-  const [outgoingTrackForArt, setOutgoingTrackForArt] = useState(null);
-  const [outgoingDominantRgb, setOutgoingDominantRgb] = useState(null);
-  const [artTransitionDuration, setArtTransitionDuration] = useState(0);
-  const artTransitionTimerRef = useRef(null);
 
   // Dedicated background Web Worker ticker:
   // Browsers pause requestAnimationFrame and clamp main-thread timers when a tab is in the background or screen is off.
