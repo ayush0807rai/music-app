@@ -1252,6 +1252,7 @@ export default function App() {
   const isMixerActiveRef = useRef(false);
   const [outgoingTrackForArt, setOutgoingTrackForArt] = useState(null);
   const [artTransitionDuration, setArtTransitionDuration] = useState(0);
+  const artTransitionTimerRef = useRef(null);
 
   // Dedicated background Web Worker ticker:
   // Browsers pause requestAnimationFrame and clamp main-thread timers when a tab is in the background or screen is off.
@@ -2758,6 +2759,10 @@ export default function App() {
       crossfadeIntervalRef.current = null;
     }
     crossfadeProgressUpdaterRef.current = null;
+    if (artTransitionTimerRef.current) {
+      clearTimeout(artTransitionTimerRef.current);
+      artTransitionTimerRef.current = null;
+    }
     isCrossfadingRef.current = false;
     setOutgoingTrackForArt(null);
     setArtTransitionDuration(0);
@@ -3332,11 +3337,12 @@ export default function App() {
     const rawSong = userQueue[index];
     const full = playlist.find(s => s.id === rawSong?.id);
     const song = (full?.lyrics && !rawSong?.lyrics) ? { ...rawSong, lyrics: full.lyrics } : rawSong;
+    const outgoingSong = currentTrack;
     setUserQueue(prev => prev.filter((_, i) => i !== index));
     setQueueCurrentTrack(song);
     setIsPlaying(true);
     if (crossfadeEnabled && isPlaying) {
-      if (performCrossfadeTransition(song, Math.min(crossfadeDuration, 2.5))) {
+      if (performCrossfadeTransition(song, Math.min(crossfadeDuration, 2.5), outgoingSong)) {
         return;
       }
     }
@@ -3488,10 +3494,11 @@ export default function App() {
     setPlaybackQueue(queueWithIds);
     setPlaybackIndex(actualIndex);
     setPlaybackSourceName(resolvedSource || "Global Library");
+    const outgoingSong = currentTrack;
     setQueueCurrentTrack(null);
     setIsPlaying(true);
     if (crossfadeEnabled && isPlaying) {
-      if (performCrossfadeTransition(track, Math.min(crossfadeDuration, 2.5))) {
+      if (performCrossfadeTransition(track, Math.min(crossfadeDuration, 2.5), outgoingSong)) {
         return;
       }
     }
@@ -3916,11 +3923,24 @@ export default function App() {
     setPlayMode(PLAY_MODES[(idx + 1) % PLAY_MODES.length]);
   };
 
-  const performBackgroundCrossfade = useCallback((incomingTrack, transitionSecs, currentAudio) => {
+  const performBackgroundCrossfade = useCallback((incomingTrack, transitionSecs, currentAudio, explicitOutgoingTrack = null) => {
     if (!currentAudio || !incomingTrack) return false;
     if (currentAudio.paused || !currentAudio.src) return false;
 
+    const outgoing = explicitOutgoingTrack || currentTrack;
+
     stopCrossfade(false);
+
+    if (outgoing) {
+      setOutgoingTrackForArt(outgoing);
+      setArtTransitionDuration(transitionSecs || 2.5);
+      if (artTransitionTimerRef.current) clearTimeout(artTransitionTimerRef.current);
+      const animSecs = Math.min(Math.max(transitionSecs || 2.5, 1.2), 2.2);
+      artTransitionTimerRef.current = setTimeout(() => {
+        setOutgoingTrackForArt(null);
+        setArtTransitionDuration(0);
+      }, animSecs * 1000 + 100);
+    }
 
     isCrossfadingRef.current = true;
     crossfadeTriggeredRef.current = false;
@@ -4040,7 +4060,7 @@ export default function App() {
     return true;
   }, [stopCrossfade, currentTrack]);
 
-  const performCrossfadeTransition = useCallback((incomingTrack, transitionSecs = crossfadeDuration) => {
+  const performCrossfadeTransition = useCallback((incomingTrack, transitionSecs = crossfadeDuration, explicitOutgoingTrack = null) => {
     const currentAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     const nextAudio = activeDeckRef.current === 'A' ? deckBRef.current : deckARef.current;
     const nextDeckId = activeDeckRef.current === 'A' ? 'B' : 'A';
@@ -4052,6 +4072,8 @@ export default function App() {
       return false;
     }
 
+    const outgoing = explicitOutgoingTrack || currentTrack;
+
     const isMobileDevice = typeof navigator !== 'undefined' && (
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '') ||
       (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /Macintosh/i.test(navigator.userAgent || ''))
@@ -4062,17 +4084,31 @@ export default function App() {
     // Mobile browsers disallow dual-deck audio initiation in the background without user gesture.
     // Seamless single-deck transition on currentAudio guarantees uninterrupted background playback and lock-screen sync!
     if (isMobileDevice && isBackgrounded) {
-      return performBackgroundCrossfade(incomingTrack, transitionSecs, currentAudio);
+      return performBackgroundCrossfade(incomingTrack, transitionSecs, currentAudio, outgoing);
     }
 
-    // Capture outgoing track for seamless visual cover art cross-dissolve
-    if (currentTrack) {
-      setOutgoingTrackForArt(currentTrack);
-      setArtTransitionDuration(transitionSecs);
+    // Preload incoming track image for instant render so crossfade never flashes white/empty
+    if (incomingTrack?.poster_url) {
+      try {
+        const preImg = new Image();
+        preImg.src = incomingTrack.poster_url;
+      } catch (e) {}
     }
 
-    // Stop any existing crossfade in progress cleanly
+    // Stop any existing crossfade in progress cleanly FIRST
     stopCrossfade(false);
+
+    // Capture outgoing track for seamless visual cover art cross-dissolve AFTER stopping previous crossfade!
+    if (outgoing) {
+      setOutgoingTrackForArt(outgoing);
+      setArtTransitionDuration(transitionSecs);
+      if (artTransitionTimerRef.current) clearTimeout(artTransitionTimerRef.current);
+      const animSecs = Math.min(Math.max(transitionSecs, 1.2), 2.2);
+      artTransitionTimerRef.current = setTimeout(() => {
+        setOutgoingTrackForArt(null);
+        setArtTransitionDuration(0);
+      }, animSecs * 1000 + 100);
+    }
 
     // 1. Prepare and start the incoming track on nextAudio from 0:00 at 0 volume
     const cdnUrl = getCdnUrl(incomingTrack.url);
@@ -4237,12 +4273,13 @@ export default function App() {
       const rawNextSong = userQueue[0];
       const full = playlist.find(s => s.id === rawNextSong?.id);
       const nextSong = (full?.lyrics && !rawNextSong?.lyrics) ? { ...rawNextSong, lyrics: full.lyrics } : rawNextSong;
+      const outgoingSong = currentTrack;
       setUserQueue(prev => prev.slice(1));
       setQueueCurrentTrack(nextSong);
       setIsPlaying(true);
       if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
         const fadeSecs = isAutoCrossfade ? crossfadeDuration : Math.min(crossfadeDuration, 2.5);
-        if (performCrossfadeTransition(nextSong, fadeSecs)) return;
+        if (performCrossfadeTransition(nextSong, fadeSecs, outgoingSong)) return;
       }
       resetPlaybackTime();
       playTrackWithMetadata(nextSong, audioRef.current, blobCacheRef.current);
@@ -4297,12 +4334,13 @@ export default function App() {
     const nextTrack = activeQueue[nextIdx];
     if (!nextTrack) return;
 
+    const outgoingSong = currentTrack;
     setQueueCurrentTrack(null);
     setPlaybackIndex(nextIdx);
     setIsPlaying(true);
     if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
       const fadeSecs = isAutoCrossfade ? crossfadeDuration : Math.min(crossfadeDuration, 2.5);
-      if (performCrossfadeTransition(nextTrack, fadeSecs)) return;
+      if (performCrossfadeTransition(nextTrack, fadeSecs, outgoingSong)) return;
     }
     resetPlaybackTime();
     playTrackWithMetadata(nextTrack, audioRef.current, blobCacheRef.current);
@@ -4734,7 +4772,7 @@ export default function App() {
 
   const renderCrossfadingCover = (currentPoster, fallbackSize = 80, rounded = "12px") => {
     const outgoingPoster = outgoingTrackForArt?.poster_url;
-    const isTransitioning = isCrossfadingRef.current && outgoingPoster && outgoingPoster !== currentPoster && artTransitionDuration > 0;
+    const isTransitioning = Boolean(outgoingPoster && outgoingPoster !== currentPoster && artTransitionDuration > 0);
 
     if (!currentPoster && !outgoingPoster) {
       return (
@@ -4745,6 +4783,7 @@ export default function App() {
     }
 
     if (isTransitioning) {
+      const animSecs = Math.min(Math.max(artTransitionDuration, 1.2), 2.2);
       return (
         <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: rounded }}>
           {outgoingPoster && (
@@ -4758,8 +4797,9 @@ export default function App() {
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
-                animation: `crossfade-art-fade-out ${artTransitionDuration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-                zIndex: 1
+                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.25, 1, 0.5, 1) forwards`,
+                zIndex: 1,
+                pointerEvents: "none"
               }}
             />
           )}
@@ -4774,8 +4814,9 @@ export default function App() {
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
-                animation: `crossfade-art-fade-in ${artTransitionDuration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-                zIndex: 2
+                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.25, 1, 0.5, 1) forwards`,
+                zIndex: 2,
+                pointerEvents: "none"
               }}
             />
           )}
@@ -4794,11 +4835,12 @@ export default function App() {
 
   const renderCrossfadingBackdrop = (currentPoster, filterStyle, opacityStyle, bounds = { top: "-20%", left: "-20%", width: "140%", height: "140%" }) => {
     const outgoingPoster = outgoingTrackForArt?.poster_url;
-    const isTransitioning = isCrossfadingRef.current && outgoingPoster && outgoingPoster !== currentPoster && artTransitionDuration > 0;
+    const isTransitioning = Boolean(outgoingPoster && outgoingPoster !== currentPoster && artTransitionDuration > 0);
 
     if (!currentPoster && !outgoingPoster) return null;
 
     if (isTransitioning) {
+      const animSecs = Math.min(Math.max(artTransitionDuration, 1.2), 2.2);
       return (
         <div
           style={{
@@ -4823,7 +4865,8 @@ export default function App() {
                 backgroundPosition: "center",
                 filter: filterStyle,
                 opacity: opacityStyle,
-                animation: `crossfade-art-fade-out ${artTransitionDuration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.25, 1, 0.5, 1) forwards`,
+                transform: "scale(1.2)"
               }}
             />
           )}
@@ -4838,7 +4881,8 @@ export default function App() {
                 backgroundPosition: "center",
                 filter: filterStyle,
                 opacity: opacityStyle,
-                animation: `crossfade-art-fade-in ${artTransitionDuration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.25, 1, 0.5, 1) forwards`,
+                transform: "scale(1.2)"
               }}
             />
           )}
@@ -5726,7 +5770,31 @@ export default function App() {
 
       {/* TOASTS */}
       {renderQueueToast && (
-        <div className={queueToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", top: "80px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "10px 20px", borderRadius: "20px", fontSize: "14px", fontWeight: "600", zIndex: 10010, boxShadow: "0 8px 16px rgba(0,0,0,0.25)", pointerEvents: "none", transform: "translateX(-50%)" }}>
+        <div
+          className={queueToastClosing ? "toast-exit" : "toast-enter"}
+          style={{
+            position: "fixed",
+            top: "80px",
+            left: "50%",
+            background: COLORS.primary,
+            color: COLORS.bgPanel,
+            padding: "8px 18px",
+            borderRadius: "20px",
+            fontSize: "14px",
+            fontWeight: "700",
+            zIndex: 10010,
+            boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+            pointerEvents: "none",
+            transform: "translateX(-50%)",
+            whiteSpace: "nowrap",
+            width: "max-content",
+            maxWidth: "92vw",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            lineHeight: 1.2
+          }}
+        >
           {safeQueueToast}
         </div>
       )}
