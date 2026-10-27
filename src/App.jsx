@@ -23,7 +23,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc, Maximize2, Minimize2, Keyboard,
-  History, Flame, BarChart2, Sparkles
+  History, Flame, BarChart2, Sparkles, Blend
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -50,22 +50,7 @@ const SORT_CYCLE = [null, "title", "created_at", "duration"];
 const SORT_LABELS = { default: "Default", title: "Name (A-Z)", created_at: "Date Added", duration: "Duration" };
 
 const CrossfadeIcon = ({ size = 20, color = "currentColor", style = {} }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={color}
-    strokeWidth="2.2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={{ ...style, flexShrink: 0 }}
-  >
-    <path d="M4 7h4c2.5 0 4.5 2 6 5s3.5 5 6 5h0" />
-    <polyline points="18 14 21 17 18 20" />
-    <path d="M4 17h4c2.5 0 4.5-2 6-5s3.5-5 6-5h0" />
-    <polyline points="18 4 21 7 18 10" />
-  </svg>
+  <Blend size={size} color={color} style={{ ...style, flexShrink: 0 }} />
 );
 
 const SortableSourceItem = ({ item, playSong, sourceName, isDarkMode = true }) => {
