@@ -1240,6 +1240,8 @@ export default function App() {
   const volumeRef = useRef(0.8);
   const isMutedRef = useRef(false);
   const isMixerActiveRef = useRef(false);
+  const [outgoingTrackForArt, setOutgoingTrackForArt] = useState(null);
+  const [artTransitionDuration, setArtTransitionDuration] = useState(0);
 
   // Dedicated background Web Worker ticker:
   // Browsers pause requestAnimationFrame and clamp main-thread timers when a tab is in the background or screen is off.
@@ -2747,6 +2749,8 @@ export default function App() {
     }
     crossfadeProgressUpdaterRef.current = null;
     isCrossfadingRef.current = false;
+    setOutgoingTrackForArt(null);
+    setArtTransitionDuration(0);
 
     const baseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
     const outgoing = crossfadeOutgoingAudioRef.current;
@@ -3904,6 +3908,12 @@ export default function App() {
       return false;
     }
 
+    // Capture outgoing track for seamless visual cover art cross-dissolve
+    if (currentTrack) {
+      setOutgoingTrackForArt(currentTrack);
+      setArtTransitionDuration(transitionSecs);
+    }
+
     // Stop any existing crossfade in progress cleanly
     stopCrossfade(false);
 
@@ -3916,14 +3926,6 @@ export default function App() {
     }
     try { nextAudio.currentTime = 0; } catch (e) {}
     nextAudio.volume = 0;
-
-    const playPromise = nextAudio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((err) => {
-        console.warn("Crossfade play retry notice:", err.message);
-        nextAudio.play().catch(e => e);
-      });
-    }
 
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -3955,25 +3957,42 @@ export default function App() {
     crossfadeIncomingAudioRef.current = nextAudio;
     isCrossfadingRef.current = true;
 
-    const startTime = Date.now();
     const durationMs = Math.max(1000, transitionSecs * 1000);
+    let startTime = null;
 
     const tick = () => {
       if (!isCrossfadingRef.current) return;
+      if (!startTime) return;
       const now = Date.now();
       const elapsed = now - startTime;
       const p = Math.min(1, elapsed / durationMs);
 
       const currentBaseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
-      // Apple Music Equal-Power Sinusoidal Crossfade
-      const outVol = currentBaseVol * Math.cos(p * 0.5 * Math.PI);
-      const inVol = currentBaseVol * Math.sin(p * 0.5 * Math.PI);
+      
+      // Equal-Power Perceptual Curve (Constant 0 dB Power)
+      // Math.sqrt(p) and Math.sqrt(1 - p) guarantees that total acoustic energy
+      // (inVol^2 + outVol^2) remains constant at 100%.
+      // The incoming song's beats and components punch through right from the first seconds,
+      // and both songs simultaneously drive the mix with 71% presence each at the midpoint!
+      const inFactor = Math.sqrt(p);
+      const outFactor = Math.sqrt(1 - p);
+      const outVol = currentBaseVol * outFactor;
+      const inVol = currentBaseVol * inFactor;
 
       if (currentAudio) {
         currentAudio.volume = Math.max(0, Math.min(1, outVol));
       }
       if (nextAudio && !isMixerActiveRef.current && !isMutedRef.current) {
         nextAudio.volume = Math.max(0, Math.min(1, inVol));
+      }
+
+      // Smoothly blend stem components if stem mixer is active
+      if (isMixerActiveRef.current && !isMutedRef.current) {
+        const stemBase = volumeRef.current;
+        if (vocalsRef.current) vocalsRef.current.volume = Math.max(0, Math.min(1, stemVolumes.vocals * stemBase * outFactor));
+        if (drumsRef.current)  drumsRef.current.volume  = Math.max(0, Math.min(1, stemVolumes.drums * stemBase * outFactor));
+        if (bassRef.current)   bassRef.current.volume   = Math.max(0, Math.min(1, stemVolumes.bass * stemBase * outFactor));
+        if (otherRef.current)  otherRef.current.volume  = Math.max(0, Math.min(1, stemVolumes.other * stemBase * outFactor));
       }
 
       if (p >= 1) {
@@ -3983,32 +4002,58 @@ export default function App() {
 
     crossfadeProgressUpdaterRef.current = tick;
 
-    // Multi-layer ticker execution:
-    // Layer 1: Background Web Worker (unthrottled by background tab / screen-off)
-    if (crossfadeWorkerRef.current) {
-      crossfadeWorkerRef.current.onmessage = () => {
+    let blendStarted = false;
+    const startSimultaneousBlend = () => {
+      if (blendStarted || !isCrossfadingRef.current) return;
+      blendStarted = true;
+      startTime = Date.now();
+
+      // Trigger first tick
+      tick();
+
+      // Layer 1: Background Web Worker
+      if (crossfadeWorkerRef.current) {
+        crossfadeWorkerRef.current.onmessage = () => {
+          tick();
+        };
+        try {
+          crossfadeWorkerRef.current.postMessage('start');
+        } catch (e) {}
+      }
+
+      // Layer 2: Main thread timer interval (25ms)
+      crossfadeIntervalRef.current = setInterval(tick, 25);
+
+      // Layer 3: Foreground requestAnimationFrame loop (60fps)
+      const rafLoop = () => {
+        if (!isCrossfadingRef.current) return;
         tick();
+        if (isCrossfadingRef.current) {
+          crossfadeAnimFrameRef.current = requestAnimationFrame(rafLoop);
+        }
       };
-      try {
-        crossfadeWorkerRef.current.postMessage('start');
-      } catch (e) {}
+      crossfadeAnimFrameRef.current = requestAnimationFrame(rafLoop);
+    };
+
+    // Keep outgoing audio at full volume until incoming audio is confirmed playing
+    currentAudio.volume = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+
+    nextAudio.addEventListener('playing', startSimultaneousBlend, { once: true });
+    const playPromise = nextAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        startSimultaneousBlend();
+      }).catch((err) => {
+        console.warn("Crossfade play retry notice:", err.message);
+        nextAudio.play().then(startSimultaneousBlend).catch(e => e);
+      });
     }
 
-    // Layer 2: Main thread timer interval (25ms)
-    crossfadeIntervalRef.current = setInterval(tick, 25);
-
-    // Layer 3: Foreground requestAnimationFrame loop (60fps smooth rendering when tab is visible)
-    const rafLoop = () => {
-      if (!isCrossfadingRef.current) return;
-      tick();
-      if (isCrossfadingRef.current) {
-        crossfadeAnimFrameRef.current = requestAnimationFrame(rafLoop);
-      }
-    };
-    crossfadeAnimFrameRef.current = requestAnimationFrame(rafLoop);
+    // Safety fallback: if hardware doesn't fire 'playing' within 350ms, start simultaneous blend
+    setTimeout(startSimultaneousBlend, 350);
 
     return true;
-  }, [stopCrossfade, crossfadeDuration, currentTrack?.id]);
+  }, [stopCrossfade, crossfadeDuration, currentTrack]);
 
   const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
@@ -4512,6 +4557,141 @@ export default function App() {
     );
   };
 
+  const renderCrossfadingCover = (currentPoster, fallbackSize = 80, rounded = "12px") => {
+    const outgoingPoster = outgoingTrackForArt?.poster_url;
+    const isTransitioning = isCrossfadingRef.current && outgoingPoster && outgoingPoster !== currentPoster && artTransitionDuration > 0;
+
+    if (!currentPoster && !outgoingPoster) {
+      return (
+        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <ImageIcon size={fallbackSize} color={COLORS.textMuted} />
+        </div>
+      );
+    }
+
+    if (isTransitioning) {
+      return (
+        <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: rounded }}>
+          {outgoingPoster && (
+            <img
+              key={`out-${outgoingPoster}`}
+              src={outgoingPoster}
+              alt=""
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                animation: `crossfade-art-fade-out ${artTransitionDuration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                zIndex: 1
+              }}
+            />
+          )}
+          {currentPoster && (
+            <img
+              key={`in-${currentPoster}`}
+              src={currentPoster}
+              alt=""
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                animation: `crossfade-art-fade-in ${artTransitionDuration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                zIndex: 2
+              }}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return currentPoster ? (
+      <img src={currentPoster} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    ) : (
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <ImageIcon size={fallbackSize} color={COLORS.textMuted} />
+      </div>
+    );
+  };
+
+  const renderCrossfadingBackdrop = (currentPoster, filterStyle, opacityStyle, bounds = { top: "-20%", left: "-20%", width: "140%", height: "140%" }) => {
+    const outgoingPoster = outgoingTrackForArt?.poster_url;
+    const isTransitioning = isCrossfadingRef.current && outgoingPoster && outgoingPoster !== currentPoster && artTransitionDuration > 0;
+
+    if (!currentPoster && !outgoingPoster) return null;
+
+    if (isTransitioning) {
+      return (
+        <div
+          style={{
+            position: "absolute",
+            top: bounds.top,
+            left: bounds.left,
+            width: bounds.width,
+            height: bounds.height,
+            overflow: "hidden",
+            zIndex: 0,
+            pointerEvents: "none"
+          }}
+        >
+          {outgoingPoster && (
+            <div
+              key={`bd-out-${outgoingPoster}`}
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url(${outgoingPoster})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: filterStyle,
+                opacity: opacityStyle,
+                animation: `crossfade-art-fade-out ${artTransitionDuration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+              }}
+            />
+          )}
+          {currentPoster && (
+            <div
+              key={`bd-in-${currentPoster}`}
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url(${currentPoster})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: filterStyle,
+                opacity: opacityStyle,
+                animation: `crossfade-art-fade-in ${artTransitionDuration}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+              }}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: bounds.top,
+          left: bounds.left,
+          width: bounds.width,
+          height: bounds.height,
+          backgroundImage: `url(${currentPoster})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: filterStyle,
+          opacity: opacityStyle,
+          zIndex: 0,
+          pointerEvents: "none",
+          transition: "opacity 0.5s ease"
+        }}
+      />
+    );
+  };
+
   const renderMixerBlock = (isMobile, customHeight, customBg) => {
     const sliderHeight = customHeight || (isMobile ? 140 : 160);
     return (
@@ -4917,6 +5097,15 @@ export default function App() {
         @keyframes toastDown { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, 20px); } }
         @keyframes bounceEq { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
         
+        @keyframes crossfade-art-fade-out {
+          0% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.96); }
+        }
+        @keyframes crossfade-art-fade-in {
+          0% { opacity: 0; transform: scale(1.04); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+
         .fade-enter { animation: fadeIn 0.3s ease-out forwards; }
         .fade-exit { animation: fadeOut 0.3s ease-out forwards; }
         .slide-up-enter { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -7297,8 +7486,10 @@ export default function App() {
         {/* RIGHT DESKTOP PLAYER */}
         {isDesktop && currentTrack && (
           <div style={{ width: "320px", flexShrink: 0, background: songTheme.sidebarBg, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", boxSizing: "border-box", position: "relative", overflow: "hidden", border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.25)` : "1px solid rgba(255, 255, 255, 0.1)") : `1px solid ${COLORS.border}`, boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.12)` : "none") : "0 8px 24px rgba(26,43,76,0.06)" }}>
-            {currentTrack.poster_url && (
-              <div className="fade-enter" style={{ position: "absolute", top: "-20%", left: "-20%", width: "140%", height: "140%", backgroundImage: `url(${currentTrack.poster_url})`, backgroundSize: "cover", backgroundPosition: "center", filter: isDarkMode ? "blur(50px) brightness(0.65) saturate(120%)" : "blur(50px) brightness(1.1) saturate(95%)", opacity: isDarkMode ? 0.35 : 0.18, zIndex: 0, pointerEvents: "none" }} />
+            {currentTrack.poster_url && renderCrossfadingBackdrop(
+              currentTrack.poster_url,
+              isDarkMode ? "blur(50px) brightness(0.65) saturate(120%)" : "blur(50px) brightness(1.1) saturate(95%)",
+              isDarkMode ? 0.35 : 0.18
             )}
             
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
@@ -7337,7 +7528,7 @@ export default function App() {
               <div style={{ width: "100%", flex: 1, minHeight: 0, marginBottom: "20px", display: "flex", flexDirection: "column" }}>
                 <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(26,43,76,0.05)" : "rgba(26,43,76,0.04)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isDarkMode ? "0 12px 30px rgba(26,43,76,0.12)" : "0 12px 30px rgba(26,43,76,0.08)", position: "relative" }}>
                   <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
-                    {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : (currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={80} color={COLORS.textMuted} /></div>)}
+                    {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : renderCrossfadingCover(currentTrack.poster_url, 80, "12px")}
                   </div>
                 </div>
               </div>
@@ -7414,8 +7605,8 @@ export default function App() {
         <div onClick={() => setIsMobilePlayerOpen(true)} className="slide-up-enter" style={{ position: "fixed", bottom: "16px", left: "12px", right: "12px", background: COLORS.bgPanel, borderRadius: "12px", display: "flex", flexDirection: "column", boxShadow: "0 8px 24px rgba(26,43,76,0.15)", zIndex: 2000, border: `1px solid ${COLORS.border}`, cursor: "pointer", overflow: "hidden" }}>
           <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px", overflow: "hidden", flex: 1, minWidth: 0 }}>
-              <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
+              <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                {renderCrossfadingCover(currentTrack.poster_url, 20, "6px")}
               </div>
               <div style={{ overflow: "hidden", flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: "15px", fontWeight: "bold", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</div>
@@ -7458,21 +7649,10 @@ export default function App() {
           />
 
           {/* Dynamic Ambient Blurred Cover Art Backdrop */}
-          {currentTrack?.poster_url && (
-            <div className="fade-enter" style={{ 
-              position: "absolute", 
-              top: "-20%", 
-              left: "-20%", 
-              width: "140%", 
-              height: "140%", 
-              backgroundImage: `url(${currentTrack?.poster_url})`, 
-              backgroundSize: "cover", 
-              backgroundPosition: "center", 
-              filter: isDarkMode ? "blur(80px) brightness(0.72) saturate(160%)" : "blur(80px) brightness(1.05) saturate(130%)", 
-              opacity: isDarkMode ? 0.52 : 0.35, 
-              zIndex: 0, 
-              pointerEvents: "none" 
-            }} />
+          {currentTrack?.poster_url && renderCrossfadingBackdrop(
+            currentTrack.poster_url,
+            isDarkMode ? "blur(80px) brightness(0.72) saturate(160%)" : "blur(80px) brightness(1.05) saturate(130%)",
+            isDarkMode ? 0.52 : 0.35
           )}
 
           {/* Dynamic Song Theme Radial Gradient Overlay */}
@@ -7497,7 +7677,7 @@ export default function App() {
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
               <div style={{ width: "100%", height: "100%", maxHeight: "400px", borderRadius: "16px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(26,43,76,0.05)" : "rgba(26,43,76,0.04)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: (showLyrics || showQueue || showMixer) ? "none" : (isDarkMode ? "0 20px 40px rgba(0,0,0,0.5)" : "0 20px 40px rgba(26,43,76,0.18)"), transition: "box-shadow 0.3s ease" }}>
                 <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
-                  {showMixer ? renderMixerBlock(true) : showQueue ? renderQueueBlock(true) : showLyrics ? renderLyricsBlock(true) : (currentTrack?.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><ImageIcon size={100} color={COLORS.textMuted} /></div>)}
+                  {showMixer ? renderMixerBlock(true) : showQueue ? renderQueueBlock(true) : showLyrics ? renderLyricsBlock(true) : renderCrossfadingCover(currentTrack?.poster_url, 100, "16px")}
                 </div>
               </div>
             </div>
@@ -7816,15 +7996,7 @@ export default function App() {
                     flexShrink: 0
                   }}
                 >
-                  {currentTrack.poster_url ? (
-                    <img
-                      src={currentTrack.poster_url}
-                      alt={currentTrack.title}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <ImageIcon size={100} color={isDarkMode ? "rgba(255,255,255,0.3)" : "#64748B"} />
-                  )}
+                  {renderCrossfadingCover(currentTrack.poster_url, 100, "16px")}
                 </div>
 
                 {/* Dual Cards: Credits & Next in queue */}
@@ -8217,25 +8389,11 @@ export default function App() {
             />
 
             {/* Dynamic Ambient Blurred Cover Art Backdrop in Bottom Bar */}
-            {currentTrack.poster_url && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-80%",
-                  left: "-20%",
-                  width: "140%",
-                  height: "260%",
-                  backgroundImage: `url(${currentTrack.poster_url})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  filter: isDarkMode
-                    ? "blur(75px) brightness(0.72) saturate(165%)"
-                    : "blur(75px) brightness(0.92) saturate(145%)",
-                  opacity: isDarkMode ? 0.65 : 0.50,
-                  zIndex: 0,
-                  pointerEvents: "none"
-                }}
-              />
+            {currentTrack.poster_url && renderCrossfadingBackdrop(
+              currentTrack.poster_url,
+              isDarkMode ? "blur(75px) brightness(0.72) saturate(165%)" : "blur(75px) brightness(0.92) saturate(145%)",
+              isDarkMode ? 0.65 : 0.50,
+              { top: "-80%", left: "-20%", width: "140%", height: "260%" }
             )}
 
             {/* Dynamic Song Theme Gradient Overlay in Bottom Bar */}
@@ -8257,12 +8415,8 @@ export default function App() {
 
             {/* Left: Track Info & Like */}
             <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0, position: "relative", zIndex: 1 }}>
-              <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(26, 43, 76, 0.08)", flexShrink: 0, boxShadow: isDarkMode ? "0 4px 12px rgba(0,0,0,0.4)" : "0 4px 12px rgba(26, 43, 76, 0.1)" }}>
-                {currentTrack.poster_url ? (
-                  <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                ) : (
-                  <ImageIcon size={22} color="rgba(255,255,255,0.4)" />
-                )}
+              <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(26, 43, 76, 0.08)", flexShrink: 0, boxShadow: isDarkMode ? "0 4px 12px rgba(0,0,0,0.4)" : "0 4px 12px rgba(26, 43, 76, 0.1)", position: "relative" }}>
+                {renderCrossfadingCover(currentTrack.poster_url, 22, "8px")}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: "14px", fontWeight: "700", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
