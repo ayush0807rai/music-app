@@ -5997,9 +5997,6 @@ export default function App() {
                 <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", letterSpacing: "-0.3px", color: songTheme.textColor }}>
                   Crossfade
                 </h2>
-                <div style={{ fontSize: "12px", color: songTheme.textMuted }}>
-                  Apple Music Style Smooth Transitions
-                </div>
               </div>
             </div>
 
@@ -6109,11 +6106,14 @@ export default function App() {
                       setCrossfadeDuration(val);
                       try { localStorage.setItem("euphony_crossfade_duration", String(val)); } catch (err) {}
                     }}
-                    className="glow-slider"
+                    className={isDarkMode ? "glow-slider" : "glow-slider-light"}
                     style={{
                       width: "100%",
                       marginBottom: "14px",
-                      background: `linear-gradient(to right, ${COLORS.spotifyGreen} 0%, ${COLORS.spotifyGreen} ${((crossfadeDuration - 1) / 11) * 100}%, rgba(255,255,255,0.15) ${((crossfadeDuration - 1) / 11) * 100}%)`
+                      borderRadius: "6px",
+                      background: isDarkMode
+                        ? `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${((crossfadeDuration - 1) / 11) * 100}%, rgba(255,255,255,0.15) ${((crossfadeDuration - 1) / 11) * 100}%)`
+                        : `linear-gradient(to right, #1A2B4C 0%, #1A2B4C ${((crossfadeDuration - 1) / 11) * 100}%, rgba(26, 43, 76, 0.15) ${((crossfadeDuration - 1) / 11) * 100}%)`
                     }}
                   />
 
