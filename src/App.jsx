@@ -2875,6 +2875,19 @@ export default function App() {
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
+
+  // Keep duration state strictly synchronized with current track and audio element
+  useEffect(() => {
+    if (!currentTrack) return;
+    const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+    const resolvedDur = (activeEl && isFinite(activeEl.duration) && activeEl.duration > 0)
+      ? activeEl.duration
+      : (activeEl?._cachedDuration || currentTrack.duration || (currentTrack.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0);
+    if (resolvedDur > 0) {
+      setDuration(resolvedDur);
+    }
+    updateProgressVisuals();
+  }, [currentTrack?.id, currentTrack?.duration]);
   
   useEffect(() => {
     handleTimeUpdateRef.current = () => {
@@ -2889,20 +2902,7 @@ export default function App() {
           lastSavedTimeRef.current = currentInt;
         }
 
-        // Keep duration state strictly synchronized with current track and audio element
-  useEffect(() => {
-    if (!currentTrack) return;
-    const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
-    const resolvedDur = (activeEl && isFinite(activeEl.duration) && activeEl.duration > 0)
-      ? activeEl.duration
-      : (activeEl?._cachedDuration || currentTrack.duration || (currentTrack.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0);
-    if (resolvedDur > 0) {
-      setDuration(resolvedDur);
-    }
-    updateProgressVisuals();
-  }, [currentTrack?.id, currentTrack?.duration]);
-
-  // Continuous wall-clock listening duration accumulation (calculated per active second/minute)
+        // Continuous wall-clock listening duration accumulation (calculated per active second/minute)
         const now = Date.now();
         if (lastListenTickRef.current && isPlaying && audioRef.current && !audioRef.current.paused && currentTrack?.id) {
           const delta = (now - lastListenTickRef.current) / 1000;
@@ -4715,63 +4715,55 @@ export default function App() {
       );
     }
 
-    const animSecs = Math.max(artTransitionDuration, 1);
+    if (isTransitioning) {
+      const animSecs = Math.max(artTransitionDuration, 1);
+      return (
+        <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: rounded }}>
+          {outgoingPoster && (
+            <img
+              key={`out-${outgoingPoster}`}
+              src={outgoingPoster}
+              alt=""
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                zIndex: 1,
+                pointerEvents: "none"
+              }}
+            />
+          )}
+          {currentPoster && (
+            <img
+              key={`in-${currentPoster}`}
+              src={currentPoster}
+              alt=""
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                zIndex: 2,
+                pointerEvents: "none"
+              }}
+            />
+          )}
+        </div>
+      );
+    }
 
-    return (
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
-          overflow: "hidden",
-          borderRadius: rounded,
-          transform: "translateZ(0)",
-          WebkitTransform: "translateZ(0)"
-        }}
-      >
-        {isTransitioning && outgoingPoster && (
-          <img
-            key={`out-${outgoingPoster}`}
-            src={outgoingPoster}
-            alt=""
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-              zIndex: 1,
-              pointerEvents: "none",
-              willChange: "opacity",
-              transform: "translateZ(0)",
-              WebkitTransform: "translateZ(0)"
-            }}
-          />
-        )}
-        {currentPoster && (
-          <img
-            key={`in-${currentPoster}`}
-            src={currentPoster}
-            alt=""
-            style={{
-              position: isTransitioning ? "absolute" : "relative",
-              inset: isTransitioning ? 0 : undefined,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-              animation: isTransitioning
-                ? `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
-                : "none",
-              zIndex: 2,
-              pointerEvents: "none",
-              willChange: isTransitioning ? "opacity" : "auto",
-              transform: "translateZ(0)",
-              WebkitTransform: "translateZ(0)"
-            }}
-          />
-        )}
+    return currentPoster ? (
+      <img src={currentPoster} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: rounded }} />
+    ) : (
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <ImageIcon size={fallbackSize} color={COLORS.textMuted} />
       </div>
     );
   };
