@@ -1031,26 +1031,18 @@ export default function App() {
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const setActiveDeck = useCallback((deckId) => {
-    activeDeckRef.current = deckId;
-    if (deckId === 'A') {
-      audioRef.current = deckARef.current;
-      fadeAudioRef.current = deckBRef.current;
-    } else {
-      audioRef.current = deckBRef.current;
-      fadeAudioRef.current = deckARef.current;
+  // Unlock both decks on any user interaction so background timer transitions are never blocked by browser autoplay
+  const primeAudioDecks = useCallback(() => {
+    const inactive = activeDeckRef.current === 'A' ? deckBRef.current : deckARef.current;
+    if (inactive && (!inactive.src || inactive.src === window.location.href)) {
+      inactive.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+      inactive.volume = 0;
+      inactive.play().then(() => {
+        inactive.pause();
+        inactive.currentTime = 0;
+      }).catch(() => {});
     }
   }, []);
-
-  useEffect(() => {
-    if (activeDeckRef.current === 'A') {
-      audioRef.current = deckARef.current;
-      fadeAudioRef.current = deckBRef.current;
-    } else {
-      audioRef.current = deckBRef.current;
-      fadeAudioRef.current = deckARef.current;
-    }
-  });
 
   const isPlayingRef = useRef(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -1237,7 +1229,6 @@ export default function App() {
     } catch (e) { return 5; }
   });
   const [showCrossfadeModal, setShowCrossfadeModal] = useState(false);
-  const fadeAudioRef = useRef(null);
   const isCrossfadingRef = useRef(false);
   const crossfadeTriggeredRef = useRef(false);
   const crossfadeAnimFrameRef = useRef(null);
@@ -1345,8 +1336,29 @@ export default function App() {
   const silentAudioRef = useRef(null);
   const deckARef = useRef(null);
   const deckBRef = useRef(null);
-  const audioRef = useRef(null);
   const activeDeckRef = useRef('A');
+
+  // Synchronous proxies: ALWAYS point to the active and background decks with zero delay
+  const audioRef = useMemo(() => ({
+    get current() {
+      return activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+    },
+    set current(el) {
+      if (activeDeckRef.current === 'A') deckARef.current = el;
+      else deckBRef.current = el;
+    }
+  }), []);
+
+  const fadeAudioRef = useMemo(() => ({
+    get current() {
+      return activeDeckRef.current === 'A' ? deckBRef.current : deckARef.current;
+    },
+    set current(el) {
+      if (activeDeckRef.current === 'A') deckBRef.current = el;
+      else deckARef.current = el;
+    }
+  }), []);
+
   const blobCacheRef = useRef(new Map());
   const preloadAbortRef = useRef(null);
   const nextTrackPreloadAttemptedRef = useRef(null);
@@ -2654,7 +2666,7 @@ export default function App() {
 
   useEffect(() => {
     const setVol = (ref, targetVol, targetMuted) => {
-      if (!ref.current || (ref === audioRef && isCrossfadingRef.current)) return;
+      if (!ref.current || isCrossfadingRef.current) return;
       if (Math.abs(ref.current.volume - targetVol) > 0.01) ref.current.volume = targetVol;
       if (ref.current.muted !== targetMuted) ref.current.muted = targetMuted;
     };
@@ -3209,6 +3221,7 @@ export default function App() {
 
   const playFromQueue = (index, e) => {
     if (e) e.stopPropagation();
+    primeAudioDecks();
     const rawSong = userQueue[index];
     const full = playlist.find(s => s.id === rawSong?.id);
     const song = (full?.lyrics && !rawSong?.lyrics) ? { ...rawSong, lyrics: full.lyrics } : rawSong;
@@ -3304,6 +3317,7 @@ export default function App() {
   };
   
   const handlePlaySong = (index, listToSet, sourceName) => {
+    primeAudioDecks();
     let queueToSet = listToSet;
     let actualIndex = index;
     let resolvedSource = sourceName;
@@ -3747,6 +3761,7 @@ export default function App() {
 
   const handlePlayPause = (e) => {
     if (e) e.stopPropagation();
+    primeAudioDecks();
     if (!audioRef.current) return;
     if (playbackQueue.length === 0 && playlist.length > 0) {
        handlePlaySong(0, playlist, "Global Library");
@@ -3817,14 +3832,22 @@ export default function App() {
       crossfadeAnimFrameRef.current = null;
     }
 
-    // 1. Prepare and start the incoming track on the other deck from 0:00 at 0 volume
+    // 1. Prepare and start the incoming track on nextAudio from 0:00 at 0 volume
     const cdnUrl = getCdnUrl(incomingTrack.url);
     const objUrl = blobCacheRef.current?.get(cdnUrl) || cdnUrl;
 
     nextAudio.src = objUrl;
     try { nextAudio.currentTime = 0; } catch (e) {}
     nextAudio.volume = 0;
-    nextAudio.play().catch(e => console.log('Crossfade play error:', e));
+    nextAudio.load();
+
+    const playPromise = nextAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => {
+        console.warn("Crossfade play retry notice:", err.message);
+        nextAudio.play().catch(e => e);
+      });
+    }
 
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -3837,7 +3860,7 @@ export default function App() {
     }
 
     // 2. Switch active deck to the incoming deck for UI, scrubber & lyric tracking
-    setActiveDeck(nextDeckId);
+    activeDeckRef.current = nextDeckId;
     setCurrentTime(0);
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
@@ -3871,6 +3894,7 @@ export default function App() {
         if (currentAudio) {
           try {
             currentAudio.pause();
+            currentAudio.currentTime = 0;
             currentAudio.src = "";
           } catch (e) {}
         }
@@ -3884,7 +3908,7 @@ export default function App() {
 
     crossfadeAnimFrameRef.current = requestAnimationFrame(step);
     return true;
-  }, [volume, isMuted, isMixerActive, crossfadeDuration, setActiveDeck]);
+  }, [volume, isMuted, isMixerActive, crossfadeDuration]);
 
   const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
