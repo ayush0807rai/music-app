@@ -1851,25 +1851,31 @@ export default function App() {
 
   const updateProgressVisuals = () => {
     if (!audioRef.current) return;
-    const time = audioRef.current.currentTime;
-    const dur = audioRef.current.duration || 100;
-    const percent = dur > 0 ? (time / dur) * 100 : 0;
+    const time = audioRef.current.currentTime || 0;
+    const audioDur = audioRef.current.duration;
+    const effectiveDur = (isFinite(audioDur) && audioDur > 0)
+      ? audioDur
+      : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || (duration > 0 ? duration : 100));
+    const percent = effectiveDur > 0 ? Math.min(100, Math.max(0, (time / effectiveDur) * 100)) : 0;
     
     const darkGradient = `linear-gradient(to right, rgba(255,255,255,0.8) 0%, #FFFFFF ${percent}%, rgba(255,255,255,0.15) ${percent}%)`;
     const lightGradient = `linear-gradient(to right, #1A2B4C 0%, #1A2B4C ${percent}%, rgba(26, 43, 76, 0.15) ${percent}%)`;
     
-    if (desktopProgressRef.current) {
-      desktopProgressRef.current.value = time;
-      desktopProgressRef.current.style.background = darkGradient;
-    }
-    if (fullscreenProgressRef.current) {
-      fullscreenProgressRef.current.value = time;
-      fullscreenProgressRef.current.style.background = darkGradient;
-    }
-    if (mobileProgressRef.current) {
-      mobileProgressRef.current.value = time;
-      mobileProgressRef.current.style.background = darkGradient;
-    }
+    const syncSlider = (ref) => {
+      if (!ref?.current) return;
+      const el = ref.current;
+      const durStr = String(effectiveDur);
+      if (el.max !== durStr) {
+        el.max = durStr;
+      }
+      el.value = time;
+      el.style.background = darkGradient;
+    };
+
+    syncSlider(desktopProgressRef);
+    syncSlider(fullscreenProgressRef);
+    syncSlider(mobileProgressRef);
+
     if (mobileMiniProgressRef.current) {
       mobileMiniProgressRef.current.style.width = `${percent}%`;
     }
@@ -2514,12 +2520,13 @@ export default function App() {
   }, [playlist, playlistSongs, currentSortKey]);
 
   const fetchAllData = useCallback(async (showToastNotice = false) => {
-    if (!session?.user?.id) return;
     try {
       setIsRefreshing(true);
       const pSongs = supabase.from("songs").select("*").order("created_at", { ascending: true }).limit(1000);
       const pArtists = supabase.from("artists").select("*").order("created_at", { ascending: true });
-      const pPlaylists = supabase.from("playlists").select("*, playlist_songs(song_id, songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true });
+      const pPlaylists = session?.user?.id
+        ? supabase.from("playlists").select("*, playlist_songs(song_id, songs(poster_url))").eq("user_id", session.user.id).order("created_at", { ascending: true })
+        : Promise.resolve({ data: [] });
 
       const [songsRes, artistsRes, playlistRes] = await Promise.all([pSongs, pArtists, pPlaylists]);
       
@@ -2537,14 +2544,15 @@ export default function App() {
             const fresh = songMap.get(item.id);
             if (!fresh) return item;
             return {
-              ...fresh,
               ...item,
+              ...fresh,
+              _play_id: item._play_id,
               lyrics: fresh.lyrics || item.lyrics,
               stem_vocals: fresh.stem_vocals || item.stem_vocals,
               stem_drums: fresh.stem_drums || item.stem_drums,
               stem_bass: fresh.stem_bass || item.stem_bass,
               stem_other: fresh.stem_other || item.stem_other,
-              duration: fresh.duration || item.duration
+              duration: fresh.duration || item.duration || (fresh.id && STATIC_SONG_DURATIONS[fresh.id]) || 0
             };
           });
         });
@@ -2554,13 +2562,14 @@ export default function App() {
           const fresh = songMap.get(prev.id);
           if (!fresh) return prev;
           return {
-            ...fresh,
             ...prev,
+            ...fresh,
             lyrics: fresh.lyrics || prev.lyrics,
             stem_vocals: fresh.stem_vocals || prev.stem_vocals,
             stem_drums: fresh.stem_drums || prev.stem_drums,
             stem_bass: fresh.stem_bass || prev.stem_bass,
-            stem_other: fresh.stem_other || prev.stem_other
+            stem_other: fresh.stem_other || prev.stem_other,
+            duration: fresh.duration || prev.duration || (fresh.id && STATIC_SONG_DURATIONS[fresh.id]) || 0
           };
         });
       }
@@ -2615,7 +2624,6 @@ export default function App() {
   }, [session?.user?.id]);
 
   useEffect(() => {
-    if (!session?.user?.id) return;
     fetchAllData();
 
     const channel = supabase.channel('public:songs')
@@ -2881,7 +2889,20 @@ export default function App() {
           lastSavedTimeRef.current = currentInt;
         }
 
-        // Continuous wall-clock listening duration accumulation (calculated per active second/minute)
+        // Keep duration state strictly synchronized with current track and audio element
+  useEffect(() => {
+    if (!currentTrack) return;
+    const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+    const resolvedDur = (activeEl && isFinite(activeEl.duration) && activeEl.duration > 0)
+      ? activeEl.duration
+      : (activeEl?._cachedDuration || currentTrack.duration || (currentTrack.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0);
+    if (resolvedDur > 0) {
+      setDuration(resolvedDur);
+    }
+    updateProgressVisuals();
+  }, [currentTrack?.id, currentTrack?.duration]);
+
+  // Continuous wall-clock listening duration accumulation (calculated per active second/minute)
         const now = Date.now();
         if (lastListenTickRef.current && isPlaying && audioRef.current && !audioRef.current.paused && currentTrack?.id) {
           const delta = (now - lastListenTickRef.current) / 1000;
@@ -3436,6 +3457,13 @@ export default function App() {
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
     crossfadeTriggeredRef.current = false;
+
+    const initialDur = (isFinite(audioEl.duration) && audioEl.duration > 0)
+      ? audioEl.duration
+      : (audioEl._cachedDuration || track?.duration || (track?.id && STATIC_SONG_DURATIONS[track.id]) || 0);
+    if (initialDur > 0) {
+      setDuration(initialDur);
+    }
     
     if (audioEl.src !== objUrl) {
       audioEl.src = objUrl;
@@ -4030,6 +4058,15 @@ export default function App() {
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
     crossfadeTriggeredRef.current = false;
+
+    // Immediately synchronize duration state with the incoming deck
+    const incomingDur = (isFinite(nextAudio.duration) && nextAudio.duration > 0)
+      ? nextAudio.duration
+      : (nextAudio._cachedDuration || incomingTrack?.duration || (incomingTrack?.id && STATIC_SONG_DURATIONS[incomingTrack.id]) || 0);
+    if (incomingDur > 0) {
+      setDuration(incomingDur);
+    }
+    updateProgressVisuals();
 
     if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
       recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
@@ -5455,22 +5492,33 @@ export default function App() {
       <audio
         ref={deckARef}
         onLoadedMetadata={(e) => {
-          if (activeDeckRef.current !== 'A') return;
-          setDuration(e.target.duration);
-          if (!restoreInitialTimeHandlerRef.current) {
-            if (e.target.currentTime !== 0 && !isCrossfadingRef.current) {
-              try { e.target.currentTime = 0; } catch (err) {}
+          const dur = e.target.duration;
+          if (isFinite(dur) && dur > 0) {
+            deckARef.current._cachedDuration = dur;
+            if (activeDeckRef.current === 'A') {
+              setDuration(dur);
             }
-            if (!isCrossfadingRef.current) setCurrentTime(0);
           }
-          updateProgressVisuals();
+          if (activeDeckRef.current === 'A') {
+            if (!restoreInitialTimeHandlerRef.current) {
+              if (e.target.currentTime !== 0 && !isCrossfadingRef.current) {
+                try { e.target.currentTime = 0; } catch (err) {}
+              }
+              if (!isCrossfadingRef.current) setCurrentTime(0);
+            }
+            updateProgressVisuals();
+          }
         }}
         onTimeUpdate={() => {
           if (isCrossfadingRef.current && crossfadeProgressUpdaterRef.current) {
             crossfadeProgressUpdaterRef.current();
           }
           if (activeDeckRef.current !== 'A') return;
-          setCurrentTime(deckARef.current?.currentTime || 0);
+          const activeEl = deckARef.current;
+          if (activeEl && isFinite(activeEl.duration) && activeEl.duration > 0) {
+            setDuration(prev => (Math.abs(prev - activeEl.duration) > 0.8 ? activeEl.duration : prev));
+          }
+          setCurrentTime(activeEl?.currentTime || 0);
           handleTimeUpdateRef.current && handleTimeUpdateRef.current();
         }}
         onEnded={() => {
@@ -5559,22 +5607,33 @@ export default function App() {
       <audio
         ref={deckBRef}
         onLoadedMetadata={(e) => {
-          if (activeDeckRef.current !== 'B') return;
-          setDuration(e.target.duration);
-          if (!restoreInitialTimeHandlerRef.current) {
-            if (e.target.currentTime !== 0 && !isCrossfadingRef.current) {
-              try { e.target.currentTime = 0; } catch (err) {}
+          const dur = e.target.duration;
+          if (isFinite(dur) && dur > 0) {
+            deckBRef.current._cachedDuration = dur;
+            if (activeDeckRef.current === 'B') {
+              setDuration(dur);
             }
-            if (!isCrossfadingRef.current) setCurrentTime(0);
           }
-          updateProgressVisuals();
+          if (activeDeckRef.current === 'B') {
+            if (!restoreInitialTimeHandlerRef.current) {
+              if (e.target.currentTime !== 0 && !isCrossfadingRef.current) {
+                try { e.target.currentTime = 0; } catch (err) {}
+              }
+              if (!isCrossfadingRef.current) setCurrentTime(0);
+            }
+            updateProgressVisuals();
+          }
         }}
         onTimeUpdate={() => {
           if (isCrossfadingRef.current && crossfadeProgressUpdaterRef.current) {
             crossfadeProgressUpdaterRef.current();
           }
           if (activeDeckRef.current !== 'B') return;
-          setCurrentTime(deckBRef.current?.currentTime || 0);
+          const activeEl = deckBRef.current;
+          if (activeEl && isFinite(activeEl.duration) && activeEl.duration > 0) {
+            setDuration(prev => (Math.abs(prev - activeEl.duration) > 0.8 ? activeEl.duration : prev));
+          }
+          setCurrentTime(activeEl?.currentTime || 0);
           handleTimeUpdateRef.current && handleTimeUpdateRef.current();
         }}
         onEnded={() => {
@@ -7723,8 +7782,8 @@ export default function App() {
               <div style={{ marginTop: "auto", paddingBottom: "0px", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
-                  <input type="range" min={0} max={duration || 100} defaultValue={0} ref={desktopProgressRef} onChange={handleSeek} className="glow-slider" style={{ flex: 1 }} />
-                  <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
+                  <input type="range" min={0} max={(isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 100)} defaultValue={0} ref={desktopProgressRef} onChange={handleSeek} className="glow-slider" style={{ flex: 1 }} />
+                  <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime((isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0))}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
@@ -7882,10 +7941,10 @@ export default function App() {
             </div>
 
             <div style={{ marginBottom: "24px" }}>
-              <input type="range" min={0} max={duration || 100} defaultValue={0} ref={mobileProgressRef} onChange={handleSeek} className="glow-slider" style={{ width: "100%", marginBottom: "8px", borderRadius: "6px" }} />
+              <input type="range" min={0} max={(isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 100)} defaultValue={0} ref={mobileProgressRef} onChange={handleSeek} className="glow-slider" style={{ width: "100%", marginBottom: "8px", borderRadius: "6px" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
-                <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(duration)}</span>
+                <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime((isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0))}</span>
               </div>
             </div>
 
@@ -8674,7 +8733,7 @@ export default function App() {
                 <input
                   type="range"
                   min={0}
-                  max={duration || 100}
+                  max={(isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 100)}
                   defaultValue={0}
                   ref={fullscreenProgressRef}
                   onChange={handleSeek}
@@ -8682,7 +8741,7 @@ export default function App() {
                   style={{ flex: 1 }}
                 />
                 <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.7)", minWidth: "34px", textAlign: "left", fontWeight: "600" }}>
-                  {formatTime(duration)}
+                  {formatTime((isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0))}
                 </span>
               </div>
             </div>
