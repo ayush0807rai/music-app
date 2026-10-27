@@ -4620,24 +4620,41 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // 1. Ignore if user is typing in any input field or textarea
+      // 1. Ignore if user is typing in any real text input field or textarea (exclude range/checkbox/radio)
       const target = e.target;
       const isTextInput = target && (
-        target.tagName === "INPUT" ||
+        (target.tagName === "INPUT" && target.type !== "range" && target.type !== "checkbox" && target.type !== "radio" && target.type !== "button") ||
         target.tagName === "TEXTAREA" ||
         target.tagName === "SELECT" ||
         target.isContentEditable ||
-        target.getAttribute?.("role") === "textbox"
+        target.getAttribute?.("role") === "textbox" ||
+        target.getAttribute?.("role") === "searchbox"
       );
       if (isTextInput) return;
 
-      // 2. Ignore Ctrl / Meta / Alt combos to preserve native browser shortcuts
+      // 2. Next / Prev Track: Shift + Arrow, Ctrl + Arrow, or N / P keys
+      if (((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "ArrowRight") || e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        handleNext();
+        return;
+      }
+      if (((e.ctrlKey || e.metaKey || e.shiftKey) && e.key === "ArrowLeft") || e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        handlePrev();
+        return;
+      }
+
+      // Ignore other Ctrl / Meta / Alt combos to preserve native browser shortcuts (e.g. Ctrl+R, Ctrl+W)
       if (e.ctrlKey || e.metaKey || e.altKey) return;
 
       // 3. Handle Escape key for closing modals & fullscreen
       if (e.key === "Escape") {
         if (showShortcutsModal) {
           setShowShortcutsModal(false);
+          return;
+        }
+        if (showCrossfadeModal) {
+          setShowCrossfadeModal(false);
           return;
         }
         if (window.history.state?.page === 'modal') {
@@ -4683,19 +4700,23 @@ export default function App() {
       // If text/form modals are open, do not trigger playback hotkeys
       if (showUploadModal || showPlaylistModal || showPasswordResetModal) return;
 
-      // 4. Space: Play / Pause
-      if (e.code === "Space" || e.key === " ") {
+      // 4. Space / K: Play / Pause (blur active button to prevent double-toggle on Space)
+      if (e.code === "Space" || e.key === " " || e.key.toLowerCase() === "k") {
         e.preventDefault();
+        if (document.activeElement && typeof document.activeElement.blur === "function") {
+          document.activeElement.blur();
+        }
         handlePlayPause();
         return;
       }
 
-      // 5. Left / Right Arrow: Seek 5s backward / forward (Shift + Arrow: Prev / Next track)
+      // 5. Left / Right Arrow / J: Seek 5s backward / forward
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        if (e.shiftKey) {
-          handleNext();
-        } else if (audioRef.current && currentTrack) {
+        if (audioRef.current && currentTrack) {
+          if (isCrossfadingRef.current) {
+            stopCrossfade(false);
+          }
           const cur = audioRef.current.currentTime || 0;
           const dur = duration || audioRef.current.duration || 0;
           const target = dur > 0 ? Math.min(dur, cur + 5) : cur + 5;
@@ -4713,11 +4734,12 @@ export default function App() {
         return;
       }
 
-      if (e.key === "ArrowLeft") {
+      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "j") {
         e.preventDefault();
-        if (e.shiftKey) {
-          handlePrev();
-        } else if (audioRef.current && currentTrack) {
+        if (audioRef.current && currentTrack) {
+          if (isCrossfadingRef.current) {
+            stopCrossfade(false);
+          }
           const cur = audioRef.current.currentTime || 0;
           const target = Math.max(0, cur - 5);
           audioRef.current.currentTime = target;
@@ -4737,9 +4759,17 @@ export default function App() {
       // 6. Up / Down Arrow: Volume control
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        if (isMuted) setIsMuted(false);
+        if (isMutedRef.current) {
+          isMutedRef.current = false;
+          setIsMuted(false);
+        }
         setVolume(prev => {
           const next = Math.min(1, Math.round((prev + 0.05) * 100) / 100);
+          volumeRef.current = next;
+          if (audioRef.current && !isMixerActiveRef.current) {
+            audioRef.current.volume = next;
+            audioRef.current.muted = false;
+          }
           triggerToast(`Volume: ${Math.round(next * 100)}%`);
           return next;
         });
@@ -4750,7 +4780,14 @@ export default function App() {
         e.preventDefault();
         setVolume(prev => {
           const next = Math.max(0, Math.round((prev - 0.05) * 100) / 100);
-          if (next === 0) setIsMuted(true);
+          volumeRef.current = next;
+          if (next === 0) {
+            isMutedRef.current = true;
+            setIsMuted(true);
+            if (audioRef.current) audioRef.current.muted = true;
+          } else if (audioRef.current && !isMixerActiveRef.current) {
+            audioRef.current.volume = next;
+          }
           triggerToast(`Volume: ${Math.round(next * 100)}%`);
           return next;
         });
@@ -4794,7 +4831,32 @@ export default function App() {
         return;
       }
 
-      // 10. F / f: Toggle Fullscreen Player
+      // 10. Q / q: Toggle Queue
+      if (e.key.toLowerCase() === "q") {
+        e.preventDefault();
+        if (isDesktopFullscreen) {
+          setShowFullscreenQueueModal(prev => !prev);
+        } else {
+          setShowQueue(prev => {
+            const next = !prev;
+            if (next) {
+              setShowLyrics(false);
+              setShowMixer(false);
+            }
+            return next;
+          });
+        }
+        return;
+      }
+
+      // 11. C / c: Toggle Crossfade Settings
+      if (e.key.toLowerCase() === "c") {
+        e.preventDefault();
+        setShowCrossfadeModal(prev => !prev);
+        return;
+      }
+
+      // 12. F / f: Toggle Fullscreen Player
       if (e.key.toLowerCase() === "f") {
         e.preventDefault();
         if (currentTrack) {
@@ -4803,8 +4865,8 @@ export default function App() {
         return;
       }
 
-      // 11. ? (Shift + /): Toggle Shortcuts Cheat Sheet
-      if (e.key === "?") {
+      // 13. ? (Shift + /): Toggle Shortcuts Cheat Sheet
+      if (e.key === "?" || (e.shiftKey && e.key === "/")) {
         e.preventDefault();
         setShowShortcutsModal(prev => !prev);
         return;
@@ -4824,7 +4886,9 @@ export default function App() {
     fullscreenView,
     showLyrics,
     showMixer,
+    showQueue,
     showShortcutsModal,
+    showCrossfadeModal,
     showFullscreenQueueModal,
     showTrackArtistsModal,
     showTrackOptionsModal,
@@ -4839,7 +4903,9 @@ export default function App() {
     handlePrev,
     toggleMute,
     toggleStemMixer,
-    triggerToast
+    triggerToast,
+    stopCrossfade,
+    updateProgressVisuals
   ]);
 
   const formatTime = (secs) => {
@@ -6487,13 +6553,15 @@ export default function App() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {[
-                { key: "Space", label: "Play / Pause" },
+                { key: "Space  /  K", label: "Play / Pause" },
                 { key: "←  /  →", label: "Seek backward / forward 5s" },
-                { key: "Shift + ←  /  →", label: "Previous / Next track" },
+                { key: "Shift + ← / →  or  N / P", label: "Previous / Next track" },
                 { key: "↑  /  ↓", label: "Volume up / down (5%)" },
                 { key: "M", label: "Mute / Unmute" },
                 { key: "L", label: "Toggle Lyrics" },
                 { key: "S", label: "Toggle Stem Mixer" },
+                { key: "Q", label: "Toggle Queue" },
+                { key: "C", label: "Crossfade Settings" },
                 { key: "F", label: "Toggle Fullscreen Player" },
                 { key: "?", label: "Toggle this guide" },
                 { key: "Esc", label: "Close modal / Fullscreen" }
@@ -8190,23 +8258,24 @@ export default function App() {
                     onClick={() => setShowCrossfadeModal(true)}
                     title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
                     style={{
-                      background: crossfadeEnabled ? "rgba(29, 185, 84, 0.22)" : "transparent",
-                      border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : "1px solid transparent",
-                      color: crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF",
-                      borderRadius: "8px",
-                      padding: "4px 7px",
+                      background: crossfadeEnabled ? COLORS.spotifyGreen : "rgba(255, 255, 255, 0.16)",
+                      border: crossfadeEnabled ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid rgba(255, 255, 255, 0.2)",
+                      color: "#FFFFFF",
+                      borderRadius: "20px",
+                      padding: "5px 11px",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      gap: "4px",
+                      gap: "5px",
+                      boxShadow: crossfadeEnabled ? "0 2px 10px rgba(29, 185, 84, 0.45)" : "none",
                       filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
                       transition: "all 0.2s ease"
                     }}
                     className="hover-effect"
                   >
-                    <CrossfadeIcon size={18} color={crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF"} />
+                    <CrossfadeIcon size={16} color="#FFFFFF" />
                     {crossfadeEnabled && (
-                      <span style={{ fontSize: "11px", fontWeight: "800", lineHeight: 1 }}>{crossfadeDuration}s</span>
+                      <span style={{ fontSize: "11px", fontWeight: "800", lineHeight: 1, color: "#FFFFFF" }}>{crossfadeDuration}s</span>
                     )}
                   </button>
                 </div>
@@ -9063,22 +9132,24 @@ export default function App() {
                   onClick={() => setShowCrossfadeModal(true)}
                   title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
                   style={{
-                    background: crossfadeEnabled ? "rgba(29, 185, 84, 0.22)" : "transparent",
-                    border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : "1px solid transparent",
-                    color: crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF",
-                    borderRadius: "8px",
-                    padding: "4px 8px",
+                    background: crossfadeEnabled ? COLORS.spotifyGreen : "rgba(255, 255, 255, 0.12)",
+                    border: crossfadeEnabled ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid rgba(255, 255, 255, 0.18)",
+                    color: "#FFFFFF",
+                    borderRadius: "16px",
+                    padding: "4px 9px",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
-                    gap: "4px",
+                    gap: "5px",
+                    boxShadow: crossfadeEnabled ? "0 2px 8px rgba(29, 185, 84, 0.45)" : "none",
+                    filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
                     transition: "all 0.2s ease"
                   }}
                   className="hover-effect"
                 >
-                  <CrossfadeIcon size={18} color={crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF"} />
+                  <CrossfadeIcon size={16} color="#FFFFFF" />
                   {crossfadeEnabled && (
-                    <span style={{ fontSize: "11px", fontWeight: "800", lineHeight: 1 }}>{crossfadeDuration}s</span>
+                    <span style={{ fontSize: "11px", fontWeight: "800", lineHeight: 1, color: "#FFFFFF" }}>{crossfadeDuration}s</span>
                   )}
                 </button>
               </div>
