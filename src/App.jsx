@@ -49,6 +49,25 @@ const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
 const SORT_CYCLE = [null, "title", "created_at", "duration"];
 const SORT_LABELS = { default: "Default", title: "Name (A-Z)", created_at: "Date Added", duration: "Duration" };
 
+const CrossfadeIcon = ({ size = 20, color = "currentColor", style = {} }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{ ...style, flexShrink: 0 }}
+  >
+    <path d="M4 7h4c2.5 0 4.5 2 6 5s3.5 5 6 5h0" />
+    <polyline points="18 14 21 17 18 20" />
+    <path d="M4 17h4c2.5 0 4.5-2 6-5s3.5-5 6-5h0" />
+    <polyline points="18 4 21 7 18 10" />
+  </svg>
+);
+
 const SortableSourceItem = ({ item, playSong, sourceName, isDarkMode = true }) => {
   const song = item.track;
   const actualIndex = item.originalIndex;
@@ -1202,6 +1221,21 @@ export default function App() {
     }
   }, [isOwner, triggerToast, playlist, session?.user?.id]);
   const [showSleepTimerModal, setShowSleepTimerModal] = useState(false);
+  const [crossfadeEnabled, setCrossfadeEnabled] = useState(() => {
+    try { return localStorage.getItem("euphony_crossfade_enabled") === "true"; } catch (e) { return false; }
+  });
+  const [crossfadeDuration, setCrossfadeDuration] = useState(() => {
+    try {
+      const saved = Number(localStorage.getItem("euphony_crossfade_duration"));
+      return (saved >= 1 && saved <= 12) ? saved : 5;
+    } catch (e) { return 5; }
+  });
+  const [showCrossfadeModal, setShowCrossfadeModal] = useState(false);
+  const fadeAudioRef = useRef(null);
+  const isCrossfadingRef = useRef(false);
+  const crossfadeTriggeredRef = useRef(false);
+  const crossfadeAnimFrameRef = useRef(null);
+
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
@@ -1353,6 +1387,7 @@ export default function App() {
   const { render: renderUpload, isClosing: uploadClosing } = useAnimatedPresence(showUploadModal, null, 300);
   const { render: renderPlaylistModal, isClosing: playlistModalClosing } = useAnimatedPresence(showPlaylistModal, null, 300);
   const { render: renderSleepTimer, isClosing: sleepTimerClosing } = useAnimatedPresence(showSleepTimerModal, null, 300);
+  const { render: renderCrossfade, isClosing: crossfadeClosing } = useAnimatedPresence(showCrossfadeModal, null, 300);
   const { render: renderTrackOptions, isClosing: trackOptionsClosing } = useAnimatedPresence(showTrackOptionsModal, null, 300);
   const { render: renderTrackArtists, isClosing: trackArtistsClosing } = useAnimatedPresence(showTrackArtistsModal, null, 300);
   const { render: renderSongForPlaylist, isClosing: songForPlaylistClosing, data: safeSongForPlaylist } = useAnimatedPresence(!!songForPlaylistModal, songForPlaylistModal, 300);
@@ -2610,7 +2645,7 @@ export default function App() {
 
   useEffect(() => {
     const setVol = (ref, targetVol, targetMuted) => {
-      if (!ref.current) return;
+      if (!ref.current || (ref === audioRef && isCrossfadingRef.current)) return;
       if (Math.abs(ref.current.volume - targetVol) > 0.01) ref.current.volume = targetVol;
       if (ref.current.muted !== targetMuted) ref.current.muted = targetMuted;
     };
@@ -2733,6 +2768,15 @@ export default function App() {
               position: audioRef.current.currentTime
             });
           } catch(e) {}
+        }
+
+        // Crossfade auto-trigger when approaching song end:
+        if (crossfadeEnabled && !isCrossfadingRef.current && !crossfadeTriggeredRef.current && playMode !== 'repeat-one') {
+          const totalDur = duration || (audioRef.current ? audioRef.current.duration : 0);
+          if (totalDur && isFinite(totalDur) && totalDur > (crossfadeDuration * 1.8) && time >= (totalDur - crossfadeDuration)) {
+            crossfadeTriggeredRef.current = true;
+            handleNext(null, true);
+          }
         }
 
         // Screen-off background audio safety:
@@ -2897,6 +2941,20 @@ export default function App() {
 
   const handleSeek = (e) => {
     const seekTime = Number(e.target.value);
+    if (isCrossfadingRef.current) {
+      if (crossfadeAnimFrameRef.current) {
+        cancelAnimationFrame(crossfadeAnimFrameRef.current);
+        crossfadeAnimFrameRef.current = null;
+      }
+      if (fadeAudioRef.current) {
+        fadeAudioRef.current.pause();
+        fadeAudioRef.current.src = "";
+      }
+      isCrossfadingRef.current = false;
+      if (audioRef.current && !isMixerActive && !isMuted) {
+        audioRef.current.volume = volume;
+      }
+    }
     if (audioRef.current) {
       audioRef.current.currentTime = seekTime;
       setCurrentTime(seekTime);
@@ -3156,6 +3214,7 @@ export default function App() {
     setCurrentTime(0);
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
+    crossfadeTriggeredRef.current = false;
     if (audioRef.current) {
       try { audioRef.current.currentTime = 0; } catch (e) {}
     }
@@ -3194,6 +3253,7 @@ export default function App() {
     setCurrentTime(0);
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
+    crossfadeTriggeredRef.current = false;
     
     if (audioEl.src !== objUrl) {
       audioEl.src = objUrl;
@@ -3711,7 +3771,72 @@ export default function App() {
     setPlayMode(PLAY_MODES[(idx + 1) % PLAY_MODES.length]);
   };
 
-  const handleNext = (e) => {
+  const performCrossfadeTransition = useCallback((incomingTrack, transitionSecs = crossfadeDuration) => {
+    if (!audioRef.current || !fadeAudioRef.current || !incomingTrack) return false;
+    const outgoing = audioRef.current;
+    const incoming = fadeAudioRef.current;
+
+    if (outgoing.paused || !outgoing.src || outgoing.currentTime < 1) {
+      return false;
+    }
+
+    const baseVol = (isMuted || isMixerActive) ? 0 : volume;
+    if (baseVol <= 0) return false;
+
+    if (crossfadeAnimFrameRef.current) {
+      cancelAnimationFrame(crossfadeAnimFrameRef.current);
+      crossfadeAnimFrameRef.current = null;
+    }
+
+    incoming.src = outgoing.src;
+    try {
+      incoming.currentTime = outgoing.currentTime;
+    } catch (e) {}
+    incoming.volume = baseVol;
+    incoming.play().catch(() => {});
+
+    outgoing.volume = 0;
+    playTrackWithMetadata(incomingTrack, outgoing, blobCacheRef.current);
+
+    isCrossfadingRef.current = true;
+    const startTime = performance.now();
+    const durationMs = Math.max(800, transitionSecs * 1000);
+
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const p = Math.min(1, elapsed / durationMs);
+
+      const currentBaseVol = (isMuted || isMixerActive) ? 0 : volume;
+      const outVol = currentBaseVol * Math.cos(p * 0.5 * Math.PI);
+      const inVol = currentBaseVol * Math.sin(p * 0.5 * Math.PI);
+
+      if (fadeAudioRef.current) {
+        fadeAudioRef.current.volume = Math.max(0, Math.min(1, outVol));
+      }
+      if (audioRef.current && !isMixerActive && !isMuted) {
+        audioRef.current.volume = Math.max(0, Math.min(1, inVol));
+      }
+
+      if (p < 1) {
+        crossfadeAnimFrameRef.current = requestAnimationFrame(step);
+      } else {
+        if (fadeAudioRef.current) {
+          fadeAudioRef.current.pause();
+          fadeAudioRef.current.src = "";
+        }
+        if (audioRef.current && !isMixerActive && !isMuted) {
+          audioRef.current.volume = currentBaseVol;
+        }
+        isCrossfadingRef.current = false;
+        crossfadeAnimFrameRef.current = null;
+      }
+    };
+
+    crossfadeAnimFrameRef.current = requestAnimationFrame(step);
+    return true;
+  }, [volume, isMuted, isMixerActive, crossfadeDuration, playTrackWithMetadata]);
+
+  const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
     
     if (userQueue.length > 0) {
@@ -3722,6 +3847,10 @@ export default function App() {
       setQueueCurrentTrack(nextSong);
       resetPlaybackTime();
       setIsPlaying(true);
+      if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
+        const fadeSecs = isAutoCrossfade ? crossfadeDuration : Math.min(crossfadeDuration, 2.5);
+        if (performCrossfadeTransition(nextSong, fadeSecs)) return;
+      }
       playTrackWithMetadata(nextSong, audioRef.current, blobCacheRef.current);
       return;
     }
@@ -3778,6 +3907,10 @@ export default function App() {
     setPlaybackIndex(nextIdx);
     resetPlaybackTime();
     setIsPlaying(true);
+    if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
+      const fadeSecs = isAutoCrossfade ? crossfadeDuration : Math.min(crossfadeDuration, 2.5);
+      if (performCrossfadeTransition(nextTrack, fadeSecs)) return;
+    }
     playTrackWithMetadata(nextTrack, audioRef.current, blobCacheRef.current);
   };
 
@@ -4837,6 +4970,7 @@ export default function App() {
 
       {/* ── AUDIO ELEMENTS ── */}
       <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay style={{ display: 'none' }} />
+      <audio ref={fadeAudioRef} playsInline style={{ display: 'none' }} />
       <audio
         ref={audioRef}
         onLoadedMetadata={(e) => {
@@ -5512,6 +5646,300 @@ export default function App() {
         </div>
       )}
 
+      {/* ── CROSSFADE MODAL (APPLE MUSIC STYLE) ── */}
+      {renderCrossfade && (
+        <div
+          className={crossfadeClosing ? "fade-exit" : "fade-enter"}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: songTheme.modalOverlay,
+            backdropFilter: "blur(18px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10005,
+            padding: "20px"
+          }}
+          onClick={() => setShowCrossfadeModal(false)}
+        >
+          <div
+            className={`${crossfadeClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`}
+            style={{
+              background: songTheme.modalBg,
+              backdropFilter: "blur(24px)",
+              border: songTheme.modalBorder,
+              padding: "28px 24px",
+              borderRadius: "24px",
+              width: "100%",
+              maxWidth: "380px",
+              position: "relative",
+              maxHeight: "85vh",
+              overflowY: "auto",
+              boxShadow: songTheme.modalShadow,
+              color: songTheme.textColor
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setShowCrossfadeModal(false)}
+              style={{
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                background: "none",
+                border: "none",
+                color: songTheme.textColor,
+                cursor: "pointer",
+                padding: "6px"
+              }}
+              className="hover-effect"
+            >
+              <X size={22} />
+            </button>
+
+            {/* Title & Header */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+              <div
+                style={{
+                  width: "42px",
+                  height: "42px",
+                  borderRadius: "12px",
+                  background: crossfadeEnabled ? "linear-gradient(135deg, #1DB954 0%, #15883e 100%)" : (isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)"),
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: crossfadeEnabled ? "0 4px 14px rgba(29, 185, 84, 0.4)" : "none",
+                  transition: "all 0.3s ease"
+                }}
+              >
+                <CrossfadeIcon size={22} color={crossfadeEnabled ? "#FFFFFF" : songTheme.textColor} />
+              </div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", letterSpacing: "-0.3px", color: songTheme.textColor }}>
+                  Crossfade
+                </h2>
+                <div style={{ fontSize: "12px", color: songTheme.textMuted }}>
+                  Apple Music Style Smooth Transitions
+                </div>
+              </div>
+            </div>
+
+            <p style={{ margin: "10px 0 20px 0", fontSize: "13px", lineHeight: "1.5", color: songTheme.textMuted }}>
+              Allows songs to blend smoothly into each other by fading out the current track while fading in the next.
+            </p>
+
+            {/* Toggle Switch Card */}
+            <div
+              style={{
+                padding: "16px",
+                borderRadius: "16px",
+                background: songTheme.rowBg,
+                border: songTheme.rowBorder,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "16px"
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: "700", fontSize: "15px", color: songTheme.textColor }}>
+                  Crossfade Songs
+                </div>
+                <div style={{ fontSize: "12px", color: crossfadeEnabled ? COLORS.spotifyGreen : songTheme.textMuted, marginTop: "2px", fontWeight: "600" }}>
+                  {crossfadeEnabled ? `Active (${crossfadeDuration}s transition)` : "Disabled"}
+                </div>
+              </div>
+
+              {/* iOS Style Toggle Switch */}
+              <button
+                type="button"
+                onClick={() => {
+                  const nextVal = !crossfadeEnabled;
+                  setCrossfadeEnabled(nextVal);
+                  try { localStorage.setItem("euphony_crossfade_enabled", String(nextVal)); } catch (e) {}
+                }}
+                style={{
+                  width: "52px",
+                  height: "30px",
+                  borderRadius: "15px",
+                  border: "none",
+                  background: crossfadeEnabled ? COLORS.spotifyGreen : (isDarkMode ? "rgba(255,255,255,0.2)" : "rgba(26,43,76,0.2)"),
+                  padding: "3px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  transition: "background-color 0.25s ease",
+                  outline: "none"
+                }}
+                title={crossfadeEnabled ? "Turn off crossfade" : "Turn on crossfade"}
+              >
+                <div
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    background: "#FFFFFF",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+                    transform: crossfadeEnabled ? "translateX(22px)" : "translateX(0px)",
+                    transition: "transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)"
+                  }}
+                />
+              </button>
+            </div>
+
+            {/* Duration Slider & Presets (Visible when enabled) */}
+            {crossfadeEnabled && (
+              <div className="fade-enter" style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "20px" }}>
+                {/* Duration Value Box */}
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "16px",
+                    background: songTheme.rowBg,
+                    border: songTheme.rowBorder
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                    <span style={{ fontSize: "13px", fontWeight: "700", color: songTheme.textMuted, textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      Transition Length
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "800",
+                        color: COLORS.spotifyGreen,
+                        background: "rgba(29, 185, 84, 0.15)",
+                        padding: "3px 10px",
+                        borderRadius: "12px",
+                        border: "1px solid rgba(29, 185, 84, 0.3)"
+                      }}
+                    >
+                      {crossfadeDuration}s
+                    </span>
+                  </div>
+
+                  {/* Range Slider */}
+                  <input
+                    type="range"
+                    min={1}
+                    max={12}
+                    step={1}
+                    value={crossfadeDuration}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setCrossfadeDuration(val);
+                      try { localStorage.setItem("euphony_crossfade_duration", String(val)); } catch (err) {}
+                    }}
+                    className="glow-slider"
+                    style={{
+                      width: "100%",
+                      marginBottom: "14px",
+                      background: `linear-gradient(to right, ${COLORS.spotifyGreen} 0%, ${COLORS.spotifyGreen} ${((crossfadeDuration - 1) / 11) * 100}%, rgba(255,255,255,0.15) ${((crossfadeDuration - 1) / 11) * 100}%)`
+                    }}
+                  />
+
+                  {/* Quick Preset Pills */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "6px" }}>
+                    {[2, 4, 6, 8, 10, 12].map(sec => {
+                      const isSel = crossfadeDuration === sec;
+                      return (
+                        <button
+                          key={sec}
+                          onClick={() => {
+                            setCrossfadeDuration(sec);
+                            try { localStorage.setItem("euphony_crossfade_duration", String(sec)); } catch (err) {}
+                          }}
+                          style={{
+                            padding: "6px 0",
+                            borderRadius: "8px",
+                            border: isSel ? `1px solid ${COLORS.spotifyGreen}` : (isDarkMode ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(26,43,76,0.1)"),
+                            background: isSel ? "rgba(29, 185, 84, 0.2)" : "transparent",
+                            color: isSel ? COLORS.spotifyGreen : songTheme.textColor,
+                            fontSize: "12px",
+                            fontWeight: isSel ? "800" : "600",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease"
+                          }}
+                          className="hover-effect"
+                        >
+                          {sec}s
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Visual Representation of Overlapping Audio Waves */}
+                <div
+                  style={{
+                    padding: "14px 16px",
+                    borderRadius: "16px",
+                    background: isDarkMode ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.6)",
+                    border: songTheme.rowBorder,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px"
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", fontWeight: "700", color: songTheme.textMuted }}>
+                    <span>Track 1 Fading Out</span>
+                    <span>Track 2 Fading In</span>
+                  </div>
+                  {/* Crossover graphic */}
+                  <div style={{ position: "relative", height: "36px", width: "100%", borderRadius: "8px", overflow: "hidden", background: isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(26,43,76,0.04)" }}>
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(to right, rgba(59, 130, 246, 0.7) 0%, rgba(59, 130, 246, 0) 80%)",
+                        clipPath: "polygon(0 0, 100% 100%, 0 100%)"
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: `linear-gradient(to right, rgba(29, 185, 84, 0) 20%, ${COLORS.spotifyGreen} 100%)`,
+                        clipPath: "polygon(100% 0, 100% 100%, 0 100%)"
+                      }}
+                    />
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "800", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                      {crossfadeDuration}s Blend Window
+                    </div>
+                  </div>
+                  <div style={{ fontSize: "11px", color: songTheme.textMuted, textAlign: "center", marginTop: "2px" }}>
+                    Transitions happen automatically on song completion & when clicking Next
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Done Action Button */}
+            <button
+              onClick={() => setShowCrossfadeModal(false)}
+              className="hover-effect"
+              style={{
+                width: "100%",
+                padding: "14px",
+                borderRadius: "14px",
+                border: "none",
+                background: COLORS.spotifyGreen,
+                color: "#FFFFFF",
+                fontSize: "15px",
+                fontWeight: "800",
+                cursor: "pointer",
+                boxShadow: "0 4px 16px rgba(29, 185, 84, 0.4)"
+              }}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+      
+      
       {/* TRACK OPTIONS MODAL */}
       {renderTrackOptions && (trackForOptions || currentTrack) && (() => {
         const targetTrackForOptions = trackForOptions || currentTrack;
@@ -6674,7 +7102,29 @@ export default function App() {
                     </button>
                     <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
                   </div>
-                  <button onClick={toggleMute} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
+                  <button
+                    onClick={() => setShowCrossfadeModal(true)}
+                    title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
+                    style={{
+                      background: crossfadeEnabled ? "rgba(29, 185, 84, 0.22)" : "transparent",
+                      border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : "1px solid transparent",
+                      color: crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF",
+                      borderRadius: "8px",
+                      padding: "4px 7px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
+                      transition: "all 0.2s ease"
+                    }}
+                    className="hover-effect"
+                  >
+                    <CrossfadeIcon size={18} color={crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF"} />
+                    {crossfadeEnabled && (
+                      <span style={{ fontSize: "11px", fontWeight: "800", lineHeight: 1 }}>{crossfadeDuration}s</span>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
@@ -6782,7 +7232,29 @@ export default function App() {
               </div>
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
                 <button onClick={toggleStemMixer} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><SlidersHorizontal size={17} /></button>
-                <button onClick={e => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowSleepTimerModal(true); }} style={{ background: sleepTimerTarget ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Moon size={17} /></button>
+                <button
+                  onClick={e => { e.stopPropagation(); setShowCrossfadeModal(true); }}
+                  title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
+                  style={{
+                    background: crossfadeEnabled ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)",
+                    color: "#FFFFFF",
+                    border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: "20px",
+                    padding: "10px 14px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    backdropFilter: "blur(4px)",
+                    transition: "all 0.2s ease"
+                  }}
+                  className="hover-effect"
+                >
+                  <CrossfadeIcon size={17} color="#FFFFFF" />
+                  {crossfadeEnabled && (
+                    <span style={{ fontSize: "12px", fontWeight: "800", lineHeight: 1 }}>{crossfadeDuration}s</span>
+                  )}
+                </button>
                 <button onClick={() => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} style={{ background: showLyrics ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Mic2 size={17} /></button>
               </div>
             </div>
@@ -7544,7 +8016,7 @@ export default function App() {
             {/* Center: Playback Controls & Scrubber */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px", margin: "0 auto", position: "relative", zIndex: 1 }}>
               {/* Buttons row */}
-              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "8px", transform: "translateX(-24px)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "8px" }}>
                 <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer" }} className="hover-effect" title={`Mode: ${playMode}`}>
                   {renderModeIcon("#FFFFFF")}
                 </button>
@@ -7573,6 +8045,28 @@ export default function App() {
                 </button>
                 <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex" }} className="hover-effect" title="Next">
                   <SkipForward size={20} fill="currentColor" />
+                </button>
+                <button
+                  onClick={() => setShowCrossfadeModal(true)}
+                  title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
+                  style={{
+                    background: crossfadeEnabled ? "rgba(29, 185, 84, 0.22)" : "transparent",
+                    border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : "1px solid transparent",
+                    color: crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF",
+                    borderRadius: "8px",
+                    padding: "4px 8px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    transition: "all 0.2s ease"
+                  }}
+                  className="hover-effect"
+                >
+                  <CrossfadeIcon size={18} color={crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF"} />
+                  {crossfadeEnabled && (
+                    <span style={{ fontSize: "11px", fontWeight: "800", lineHeight: 1 }}>{crossfadeDuration}s</span>
+                  )}
                 </button>
               </div>
 
