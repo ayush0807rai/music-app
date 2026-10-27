@@ -3137,6 +3137,12 @@ export default function App() {
             if (!blobCacheRef.current.has(nextCdn)) {
               cacheAudioTrack(upcoming[0].url, null).catch(() => {});
             }
+            if (upcoming[0]?.poster_url) {
+              try {
+                const preImg = new Image();
+                preImg.src = upcoming[0].poster_url;
+              } catch (e) {}
+            }
           }
         }
 
@@ -3574,6 +3580,12 @@ export default function App() {
 
   const playTrackWithMetadata = (track, audioEl, cacheMap) => {
     if (!audioEl || !track) return;
+    if (track?.poster_url) {
+      try {
+        const preImg = new Image();
+        preImg.src = track.poster_url;
+      } catch (e) {}
+    }
     if (currentTrack && track && (currentTrack.id !== track.id || currentTrack.title !== track.title) && !isCrossfadingRef.current) {
       setOutgoingTrackForArt(currentTrack);
       setOutgoingDominantRgb(dominantRgb);
@@ -4435,6 +4447,12 @@ export default function App() {
 
     const nextTrack = activeQueue[nextIdx];
     if (!nextTrack) return;
+    if (nextTrack?.poster_url) {
+      try {
+        const preImg = new Image();
+        preImg.src = nextTrack.poster_url;
+      } catch (e) {}
+    }
 
     const outgoingSong = currentTrack;
     setQueueCurrentTrack(null);
@@ -4587,6 +4605,12 @@ export default function App() {
 
     const nextTrack = activeQueue[nextIdx];
     if (nextTrack) {
+      if (nextTrack?.poster_url) {
+        try {
+          const preImg = new Image();
+          preImg.src = nextTrack.poster_url;
+        } catch (e) {}
+      }
       setQueueCurrentTrack(null);
       setPlaybackIndex(nextIdx);
       resetPlaybackTime();
@@ -4943,67 +4967,72 @@ export default function App() {
     const isTransitioning = Boolean(
       outgoingTrackForArt &&
       (outgoingPoster || currentPoster) &&
-      (outgoingPoster !== currentPoster || outgoingTrackForArt.id !== currentTrack?.id) &&
+      outgoingPoster !== currentPoster &&
       artTransitionDuration > 0
     );
 
     if (!currentPoster && !outgoingPoster) {
       return (
-        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ position: "relative", width: "100%", height: "100%", borderRadius: rounded, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <ImageIcon size={fallbackSize} color={COLORS.textMuted} />
         </div>
       );
     }
 
-    if (isTransitioning) {
-      const animSecs = Math.max(artTransitionDuration, 0.4);
-      return (
-        <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: rounded }}>
-          {outgoingPoster && (
-            <img
-              key={`out-${outgoingPoster}`}
-              src={outgoingPoster}
-              alt=""
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-                zIndex: 1,
-                pointerEvents: "none"
-              }}
-            />
-          )}
-          {currentPoster && (
-            <img
-              key={`in-${currentPoster}`}
-              src={currentPoster}
-              alt=""
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
-                zIndex: 2,
-                pointerEvents: "none"
-              }}
-            />
-          )}
-        </div>
-      );
-    }
+    const animSecs = Math.max(artTransitionDuration, 0.4);
 
-    return currentPoster ? (
-      <img src={currentPoster} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: rounded }} />
-    ) : (
-      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <ImageIcon size={fallbackSize} color={COLORS.textMuted} />
+    return (
+      <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: rounded }}>
+        {/* Outgoing Poster Layer: remains steady at zIndex: 1 underneath incoming layer during crossfade */}
+        {isTransitioning && outgoingPoster && (
+          <img
+            key={`out-${outgoingPoster}`}
+            src={outgoingPoster}
+            alt=""
+            loading="eager"
+            decoding="sync"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              zIndex: 1,
+              pointerEvents: "none",
+              ...(!currentPoster ? {
+                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+              } : {})
+            }}
+          />
+        )}
+        {/* Current Poster Layer: sits on top at zIndex: 2 with stable key so DOM node is preserved seamlessly after fade */}
+        {currentPoster ? (
+          <img
+            key={`cover-${currentPoster}`}
+            src={currentPoster}
+            alt=""
+            loading="eager"
+            decoding="sync"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              zIndex: 2,
+              pointerEvents: "none",
+              ...(isTransitioning ? {
+                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+              } : {})
+            }}
+          />
+        ) : (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>
+            <ImageIcon size={fallbackSize} color={COLORS.textMuted} />
+          </div>
+        )}
       </div>
     );
   };
@@ -5430,7 +5459,7 @@ export default function App() {
           {currentTrack && (
             <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "12px", background: songTheme.rowBg, border: songTheme.rowBorder }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(26,43,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {currentTrack.poster_url ? renderCrossfadingCover(currentTrack.poster_url, 18, "4px") : <ImageIcon size={18} color={isDark ? "rgba(255,255,255,0.6)" : COLORS.textMuted} />}
+                {renderCrossfadingCover(currentTrack?.poster_url, 18, "4px")}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 {renderCrossfadingTrackInfo(currentTrack, {
@@ -8208,7 +8237,7 @@ export default function App() {
               <div style={{ width: "100%", flex: 1, minHeight: 0, marginBottom: "20px", display: "flex", flexDirection: "column" }}>
                 <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(26,43,76,0.05)" : "rgba(26,43,76,0.04)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isDarkMode ? "0 12px 30px rgba(26,43,76,0.12)" : "0 12px 30px rgba(26,43,76,0.08)", position: "relative" }}>
                   <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
-                    {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : renderCrossfadingCover(currentTrack.poster_url, 80, "12px")}
+                    {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : renderCrossfadingCover(currentTrack?.poster_url, 80, "12px")}
                   </div>
                 </div>
               </div>
@@ -8291,7 +8320,7 @@ export default function App() {
           <div style={{ padding: "10px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "14px", overflow: "hidden", flex: 1, minWidth: 0 }}>
               <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: "#EAE2CF", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                {renderCrossfadingCover(currentTrack.poster_url, 20, "6px")}
+                {renderCrossfadingCover(currentTrack?.poster_url, 20, "6px")}
               </div>
               <div style={{ overflow: "hidden", flex: 1, minWidth: 0 }}>
                 {renderCrossfadingTrackInfo(currentTrack, {
@@ -8660,7 +8689,7 @@ export default function App() {
                     flexShrink: 0
                   }}
                 >
-                  {renderCrossfadingCover(currentTrack.poster_url, 100, "16px")}
+                  {renderCrossfadingCover(currentTrack?.poster_url, 100, "16px")}
                 </div>
 
                 {/* Dual Cards: Credits & Next in queue */}
@@ -9067,7 +9096,7 @@ export default function App() {
             {/* Left: Track Info & Like */}
             <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0, position: "relative", zIndex: 1 }}>
               <div style={{ width: "52px", height: "52px", borderRadius: "8px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(26, 43, 76, 0.08)", flexShrink: 0, boxShadow: isDarkMode ? "0 4px 12px rgba(0,0,0,0.4)" : "0 4px 12px rgba(26, 43, 76, 0.1)", position: "relative" }}>
-                {renderCrossfadingCover(currentTrack.poster_url, 22, "8px")}
+                {renderCrossfadingCover(currentTrack?.poster_url, 22, "8px")}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 {renderCrossfadingTrackInfo(currentTrack, {
