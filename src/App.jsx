@@ -3405,7 +3405,7 @@ export default function App() {
     setQueueCurrentTrack(song);
     setIsPlaying(true);
     if (crossfadeEnabled && isPlaying) {
-      if (performCrossfadeTransition(song, Math.min(crossfadeDuration, 2.5), outgoingSong)) {
+      if (performCrossfadeTransition(song, crossfadeDuration, outgoingSong)) {
         return;
       }
     }
@@ -3568,7 +3568,7 @@ export default function App() {
     setQueueCurrentTrack(null);
     setIsPlaying(true);
     if (crossfadeEnabled && isPlaying) {
-      if (performCrossfadeTransition(track, Math.min(crossfadeDuration, 2.5), outgoingSong)) {
+      if (performCrossfadeTransition(track, crossfadeDuration, outgoingSong)) {
         return;
       }
     }
@@ -4023,7 +4023,7 @@ export default function App() {
       setOutgoingTrackForArt(outgoing);
       setArtTransitionDuration(transitionSecs);
       if (artTransitionTimerRef.current) clearTimeout(artTransitionTimerRef.current);
-      const animSecs = Math.min(Math.max(transitionSecs, 1.2), 2.2);
+      const animSecs = Math.max(transitionSecs, 1);
       artTransitionTimerRef.current = setTimeout(() => {
         setOutgoingTrackForArt(null);
         setArtTransitionDuration(0);
@@ -4211,7 +4211,7 @@ export default function App() {
       setQueueCurrentTrack(nextSong);
       setIsPlaying(true);
       if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
-        const fadeSecs = isAutoCrossfade ? crossfadeDuration : Math.min(crossfadeDuration, 2.5);
+        const fadeSecs = crossfadeDuration;
         if (performCrossfadeTransition(nextSong, fadeSecs, outgoingSong)) return;
       }
       resetPlaybackTime();
@@ -4272,7 +4272,7 @@ export default function App() {
     setPlaybackIndex(nextIdx);
     setIsPlaying(true);
     if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
-      const fadeSecs = isAutoCrossfade ? crossfadeDuration : Math.min(crossfadeDuration, 2.5);
+      const fadeSecs = crossfadeDuration;
       if (performCrossfadeTransition(nextTrack, fadeSecs, outgoingSong)) return;
     }
     resetPlaybackTime();
@@ -4715,53 +4715,63 @@ export default function App() {
       );
     }
 
-    if (isTransitioning) {
-      const animSecs = Math.min(Math.max(artTransitionDuration, 1.2), 2.2);
-      return (
-        <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", borderRadius: rounded }}>
-          {outgoingPoster && (
-            <img
-              key={`out-${outgoingPoster}`}
-              src={outgoingPoster}
-              alt=""
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.25, 1, 0.5, 1) forwards`,
-                zIndex: 1,
-                pointerEvents: "none"
-              }}
-            />
-          )}
-          {currentPoster && (
-            <img
-              key={`in-${currentPoster}`}
-              src={currentPoster}
-              alt=""
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.25, 1, 0.5, 1) forwards`,
-                zIndex: 2,
-                pointerEvents: "none"
-              }}
-            />
-          )}
-        </div>
-      );
-    }
+    const animSecs = Math.max(artTransitionDuration, 1);
 
-    return currentPoster ? (
-      <img src={currentPoster} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-    ) : (
-      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <ImageIcon size={fallbackSize} color={COLORS.textMuted} />
+    return (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          overflow: "hidden",
+          borderRadius: rounded,
+          transform: "translateZ(0)",
+          WebkitTransform: "translateZ(0)"
+        }}
+      >
+        {isTransitioning && outgoingPoster && (
+          <img
+            key={`out-${outgoingPoster}`}
+            src={outgoingPoster}
+            alt=""
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+              zIndex: 1,
+              pointerEvents: "none",
+              willChange: "opacity",
+              transform: "translateZ(0)",
+              WebkitTransform: "translateZ(0)"
+            }}
+          />
+        )}
+        {currentPoster && (
+          <img
+            key={`in-${currentPoster}`}
+            src={currentPoster}
+            alt=""
+            style={{
+              position: isTransitioning ? "absolute" : "relative",
+              inset: isTransitioning ? 0 : undefined,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+              animation: isTransitioning
+                ? `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+                : "none",
+              zIndex: 2,
+              pointerEvents: "none",
+              willChange: isTransitioning ? "opacity" : "auto",
+              transform: "translateZ(0)",
+              WebkitTransform: "translateZ(0)"
+            }}
+          />
+        )}
       </div>
     );
   };
@@ -4772,56 +4782,7 @@ export default function App() {
 
     if (!currentPoster && !outgoingPoster) return null;
 
-    if (isTransitioning) {
-      const animSecs = Math.min(Math.max(artTransitionDuration, 1.2), 2.2);
-      return (
-        <div
-          style={{
-            position: "absolute",
-            top: bounds.top,
-            left: bounds.left,
-            width: bounds.width,
-            height: bounds.height,
-            overflow: "hidden",
-            zIndex: 0,
-            pointerEvents: "none"
-          }}
-        >
-          {outgoingPoster && (
-            <div
-              key={`bd-out-${outgoingPoster}`}
-              style={{
-                position: "absolute",
-                inset: 0,
-                backgroundImage: `url(${outgoingPoster})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                filter: filterStyle,
-                opacity: opacityStyle,
-                animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.25, 1, 0.5, 1) forwards`,
-                transform: "scale(1.2)"
-              }}
-            />
-          )}
-          {currentPoster && (
-            <div
-              key={`bd-in-${currentPoster}`}
-              style={{
-                position: "absolute",
-                inset: 0,
-                backgroundImage: `url(${currentPoster})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                filter: filterStyle,
-                opacity: opacityStyle,
-                animation: `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.25, 1, 0.5, 1) forwards`,
-                transform: "scale(1.2)"
-              }}
-            />
-          )}
-        </div>
-      );
-    }
+    const animSecs = Math.max(artTransitionDuration, 1);
 
     return (
       <div
@@ -4831,16 +4792,54 @@ export default function App() {
           left: bounds.left,
           width: bounds.width,
           height: bounds.height,
-          backgroundImage: `url(${currentPoster})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: filterStyle,
-          opacity: opacityStyle,
+          overflow: "hidden",
           zIndex: 0,
           pointerEvents: "none",
-          transition: "opacity 0.5s ease"
+          transform: "translateZ(0)",
+          WebkitTransform: "translateZ(0)"
         }}
-      />
+      >
+        {isTransitioning && outgoingPoster && (
+          <div
+            key={`bd-out-${outgoingPoster}`}
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${outgoingPoster})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: filterStyle,
+              opacity: opacityStyle,
+              animation: `crossfade-art-fade-out ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+              transform: "scale(1.2) translateZ(0)",
+              WebkitTransform: "scale(1.2) translateZ(0)",
+              willChange: "opacity",
+              zIndex: 0
+            }}
+          />
+        )}
+        {currentPoster && (
+          <div
+            key={`bd-in-${currentPoster}`}
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${currentPoster})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: filterStyle,
+              opacity: opacityStyle,
+              animation: isTransitioning
+                ? `crossfade-art-fade-in ${animSecs}s cubic-bezier(0.4, 0, 0.2, 1) forwards`
+                : "none",
+              transform: "scale(1.2) translateZ(0)",
+              WebkitTransform: "scale(1.2) translateZ(0)",
+              willChange: isTransitioning ? "opacity" : "auto",
+              zIndex: 1
+            }}
+          />
+        )}
+      </div>
     );
   };
 
@@ -4999,7 +4998,7 @@ export default function App() {
           {currentTrack && (
             <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 10px", borderRadius: "12px", background: songTheme.rowBg, border: songTheme.rowBorder }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "4px", overflow: "hidden", flexShrink: 0, backgroundColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(26,43,76,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {currentTrack.poster_url ? <img src={currentTrack.poster_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={18} color={isDark ? "rgba(255,255,255,0.6)" : COLORS.textMuted} />}
+                {currentTrack.poster_url ? renderCrossfadingCover(currentTrack.poster_url, 18, "4px") : <ImageIcon size={18} color={isDark ? "rgba(255,255,255,0.6)" : COLORS.textMuted} />}
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: "14px", fontWeight: "bold", color: COLORS.spotifyGreen, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentTrack.title}</div>
@@ -5250,12 +5249,13 @@ export default function App() {
         @keyframes bounceEq { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
         
         @keyframes crossfade-art-fade-out {
-          0% { opacity: 1; transform: scale(1); }
-          100% { opacity: 0; transform: scale(0.96); }
+          0% { opacity: 1; }
+          60% { opacity: 0.85; }
+          100% { opacity: 0; }
         }
         @keyframes crossfade-art-fade-in {
-          0% { opacity: 0; transform: scale(1.04); }
-          100% { opacity: 1; transform: scale(1); }
+          0% { opacity: 0; }
+          100% { opacity: 1; }
         }
 
         .fade-enter { animation: fadeIn 0.3s ease-out forwards; }
@@ -7995,23 +7995,10 @@ export default function App() {
           />
 
           {/* Dynamic Ambient Blurred Cover Art Backdrop */}
-          {currentTrack.poster_url && (
-            <div
-              style={{
-                position: "absolute",
-                top: "-20%",
-                left: "-20%",
-                width: "140%",
-                height: "140%",
-                backgroundImage: `url(${currentTrack.poster_url})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                filter: isDarkMode ? "blur(90px) brightness(0.72) saturate(165%)" : "blur(90px) brightness(1.05) saturate(135%)",
-                opacity: isDarkMode ? 0.55 : 0.38,
-                zIndex: 0,
-                pointerEvents: "none"
-              }}
-            />
+          {currentTrack.poster_url && renderCrossfadingBackdrop(
+            currentTrack.poster_url,
+            isDarkMode ? "blur(90px) brightness(0.72) saturate(165%)" : "blur(90px) brightness(1.05) saturate(135%)",
+            isDarkMode ? 0.55 : 0.38
           )}
 
           {/* Dynamic Song Theme Radial Gradient Overlay */}
