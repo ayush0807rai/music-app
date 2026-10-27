@@ -400,7 +400,7 @@ const SwipeableTrack = React.memo(({ track, onAddQueue, children, baseColor, act
 // --- LYRICS PARSER ---
 const parseLyrics = (lrcString) => {
   if (!lrcString) return [];
-  const lines = lrcString.split('\r\n');
+  const lines = lrcString.split(/\r?\n/);
   const lineRegex = /\[(\d{2}):(\d{2}(?:\.\d{2,3})?)\](.*)/;
   const wordRegex = /<(\d{2}):(\d{2}(?:\.\d{2,3})?)>([^<]*)/g;
   const parsed = [];
@@ -506,8 +506,8 @@ const getSongThemeGradients = (rgb, isDark) => {
         ? "radial-gradient(circle at 50% 28%, rgba(28, 45, 75, 0.6) 0%, #070A11 100%)"
         : "radial-gradient(circle at 50% 28%, rgba(26, 43, 76, 0.10) 0%, #F4EFE6 100%)",
       sidebarBg: isDark
-        ? "radial-gradient(circle at 50% 15%, rgba(24, 40, 68, 0.45) 0%, rgba(15, 25, 45, 0.25) 50%, #0A0F1A 100%)"
-        : "radial-gradient(circle at 50% 15%, rgba(26, 43, 76, 0.10) 0%, rgba(26, 43, 76, 0.04) 50%, #F3F0E6 100%)",
+        ? "radial-gradient(circle at 50% 0%, rgba(24, 40, 68, 0.4) 0%, #0A0F1A 100%)"
+        : "radial-gradient(circle at 50% 0%, rgba(26, 43, 76, 0.06) 0%, #FAFAF7 70%, #F3F0E6 100%)",
       textColor: isDark ? "#FFFFFF" : "#1A2B4C",
       textMuted: isDark ? "rgba(255, 255, 255, 0.65)" : "rgba(26, 43, 76, 0.65)",
       rowBg: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.8)",
@@ -525,7 +525,7 @@ const getSongThemeGradients = (rgb, isDark) => {
       modalShadow: `0 28px 70px rgba(0,0,0,0.85), 0 0 50px rgba(${r}, ${g}, ${b}, 0.35)`,
       playerBg: `radial-gradient(ellipse 95% 75% at 50% 32%, rgba(${r}, ${g}, ${b}, 0.55) 0%, rgba(${r}, ${g}, ${b}, 0.22) 48%, rgba(7, 10, 17, 0.88) 78%, #070A11 100%)`,
       mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.52) 0%, rgba(${r}, ${g}, ${b}, 0.20) 45%, rgba(7, 10, 17, 0.88) 75%, #070A11 100%)`,
-      sidebarBg: `radial-gradient(circle at 50% 15%, rgba(${r}, ${g}, ${b}, 0.40) 0%, rgba(${r}, ${g}, ${b}, 0.18) 50%, rgba(10, 14, 22, 0.80) 80%, #070A10 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.35) 0%, rgba(10, 14, 22, 0.95) 70%, #070A10 100%)`,
       textColor: "#FFFFFF",
       textMuted: "rgba(255, 255, 255, 0.65)",
       rowBg: "rgba(255, 255, 255, 0.08)",
@@ -541,7 +541,7 @@ const getSongThemeGradients = (rgb, isDark) => {
       modalShadow: `0 24px 60px rgba(26, 43, 76, 0.16), 0 0 35px rgba(${r}, ${g}, ${b}, 0.18)`,
       playerBg: `radial-gradient(ellipse 95% 75% at 50% 30%, rgba(${r}, ${g}, ${b}, 0.32) 0%, rgba(${r}, ${g}, ${b}, 0.12) 48%, rgba(244, 239, 230, 0.88) 78%, #F4EFE6 100%)`,
       mobilePlayerBg: `radial-gradient(circle at 50% 28%, rgba(${r}, ${g}, ${b}, 0.30) 0%, rgba(${r}, ${g}, ${b}, 0.12) 45%, rgba(244, 239, 230, 0.88) 75%, #F4EFE6 100%)`,
-      sidebarBg: `radial-gradient(circle at 50% 15%, rgba(${r}, ${g}, ${b}, 0.22) 0%, rgba(${r}, ${g}, ${b}, 0.08) 50%, rgba(250, 250, 247, 0.85) 80%, #F3F0E6 100%)`,
+      sidebarBg: `radial-gradient(circle at 50% 0%, rgba(${r}, ${g}, ${b}, 0.18) 0%, rgba(250, 250, 247, 0.95) 70%, #F3F0E6 100%)`,
       textColor: "#1A2B4C",
       textMuted: "rgba(26, 43, 76, 0.65)",
       rowBg: "rgba(255, 255, 255, 0.8)",
@@ -5077,16 +5077,6 @@ export default function App() {
                 zIndex: 0
               }}
             >
-              {outgoingGradientOverlay && (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: outgoingGradientOverlay,
-                    zIndex: 0
-                  }}
-                />
-              )}
               {outgoingPoster && (
                 <div
                   style={{
@@ -5101,6 +5091,16 @@ export default function App() {
                     filter: filterStyle,
                     opacity: opacityStyle,
                     transform: "scale(1.2)",
+                    zIndex: 0
+                  }}
+                />
+              )}
+              {outgoingGradientOverlay && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: outgoingGradientOverlay,
                     zIndex: 1
                   }}
                 />
@@ -5120,16 +5120,6 @@ export default function App() {
                 zIndex: 1
               }}
             >
-              {gradientOverlay && (
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: gradientOverlay,
-                    zIndex: 0
-                  }}
-                />
-              )}
               {currentPoster && (
                 <div
                   style={{
@@ -5144,6 +5134,16 @@ export default function App() {
                     filter: filterStyle,
                     opacity: opacityStyle,
                     transform: "scale(1.2)",
+                    zIndex: 0
+                  }}
+                />
+              )}
+              {gradientOverlay && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: gradientOverlay,
                     zIndex: 1
                   }}
                 />
@@ -5165,17 +5165,6 @@ export default function App() {
           pointerEvents: "none"
         }}
       >
-        {gradientOverlay && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: gradientOverlay,
-              transition: "background 0.5s ease",
-              zIndex: 0
-            }}
-          />
-        )}
         {currentPoster && (
           <div
             style={{
@@ -5190,6 +5179,17 @@ export default function App() {
               filter: filterStyle,
               opacity: opacityStyle,
               transform: "scale(1.2)",
+              zIndex: 0
+            }}
+          />
+        )}
+        {gradientOverlay && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: gradientOverlay,
+              transition: "background 0.5s ease",
               zIndex: 1
             }}
           />
@@ -8070,7 +8070,7 @@ export default function App() {
           <div style={{
             width: "320px",
             flexShrink: 0,
-            background: isDarkMode ? "#070A10" : "#F3F0E6",
+            background: songTheme.sidebarBg,
             borderRadius: "12px",
             padding: "24px",
             display: "flex",
@@ -8080,21 +8080,18 @@ export default function App() {
             overflow: "hidden",
             border: isDarkMode ? (dominantRgb ? `1px solid rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.25)` : "1px solid rgba(255, 255, 255, 0.1)") : `1px solid ${COLORS.border}`,
             boxShadow: isDarkMode ? (dominantRgb ? `0 12px 36px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.12)` : "none") : "0 8px 24px rgba(26,43,76,0.06)",
-            transition: `border ${Math.max(artTransitionDuration, 0.4)}s ease, box-shadow ${Math.max(artTransitionDuration, 0.4)}s ease`
+            transition: "background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease"
           }}>
-            {renderCrossfadingBackdrop(
+            {currentTrack.poster_url && renderCrossfadingBackdrop(
               currentTrack.poster_url,
-              isDarkMode ? "blur(50px) brightness(0.85) saturate(135%)" : "blur(50px) brightness(1.05) saturate(110%)",
-              isDarkMode ? 0.45 : 0.28,
-              { top: "-20%", left: "-20%", width: "140%", height: "140%" },
-              songTheme.sidebarBg,
-              outgoingSongTheme?.sidebarBg
+              isDarkMode ? "blur(50px) brightness(0.65) saturate(120%)" : "blur(50px) brightness(1.1) saturate(95%)",
+              isDarkMode ? 0.35 : 0.18
             )}
             
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
               {/* TOP HEADER WITH MAXIMIZE BUTTON (Desktop Only) */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexShrink: 0 }}>
-                <span style={{ fontSize: "13px", fontWeight: "700", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", letterSpacing: "0.5px", textShadow: isDarkMode ? "0 1px 4px rgba(0,0,0,0.7)" : "none", textTransform: "uppercase" }}>
+                <span style={{ fontSize: "13px", fontWeight: "700", color: "#FFFFFF", letterSpacing: "0.5px", textShadow: "0 1px 4px rgba(0,0,0,0.7)", textTransform: "uppercase" }}>
                   Now Playing
                 </span>
                 <button
@@ -8104,9 +8101,9 @@ export default function App() {
                   }}
                   title="Full screen"
                   style={{
-                    background: isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)",
-                    border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.2)" : "1px solid rgba(26, 43, 76, 0.12)",
-                    color: isDarkMode ? "#FFFFFF" : "#1A2B4C",
+                    background: "rgba(255, 255, 255, 0.12)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    color: "#FFFFFF",
                     width: "30px",
                     height: "30px",
                     borderRadius: "50%",
@@ -8137,9 +8134,9 @@ export default function App() {
                 <div style={{ minWidth: 0, flex: 1 }}>
                   {renderCrossfadingTrackInfo(currentTrack, {
                     titleTag: "h3",
-                    titleStyle: { margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", textShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.7)" : "none" },
+                    titleStyle: { margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" },
                     artistTag: "p",
-                    artistStyle: { margin: 0, color: isDarkMode ? "rgba(255, 255, 255, 0.85)" : "rgba(26, 43, 76, 0.75)", fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: isDarkMode ? "0 1px 4px rgba(0,0,0,0.7)" : "none" }
+                    artistStyle: { margin: 0, color: "rgba(255, 255, 255, 0.85)", fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }
                   })}
                 </div>
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
@@ -8150,7 +8147,7 @@ export default function App() {
                     { label: "Lyrics", active: showLyrics, icon: <Mic2 size={15} />, action: () => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } } },
                     { label: "Queue", active: showQueue, icon: <ListMusic size={15} />, action: () => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } } }
                   ].map(({ label, active, icon, action }) => (
-                    <button key={label} onClick={action} title={label} style={{ background: active ? COLORS.spotifyGreen : (isDarkMode ? "rgba(255, 255, 255, 0.12)" : "rgba(26, 43, 76, 0.08)"), color: active ? "#FFFFFF" : (isDarkMode ? "#FFFFFF" : "#1A2B4C"), border: active ? `1px solid ${COLORS.spotifyGreen}` : (isDarkMode ? "1px solid rgba(255, 255, 255, 0.18)" : "1px solid rgba(26, 43, 76, 0.12)"), borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                    <button key={label} onClick={action} title={label} style={{ background: active ? COLORS.spotifyGreen : "rgba(255, 255, 255, 0.12)", color: "#FFFFFF", border: "1px solid rgba(255, 255, 255, 0.18)", borderRadius: "20px", padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                       {icon}
                     </button>
                   ))}
@@ -8160,38 +8157,38 @@ export default function App() {
               {/* PRIMARY CONTROLS & PROGRESS */}
               <div style={{ marginTop: "auto", paddingBottom: "0px", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "12px", color: isDarkMode ? "rgba(255, 255, 255, 0.9)" : "rgba(26, 43, 76, 0.85)", minWidth: "36px", fontWeight: "600", textShadow: isDarkMode ? "0 1px 4px rgba(0,0,0,0.7)" : "none" }}>{formatTime(currentTime)}</span>
+                  <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
                   <input type="range" min={0} max={(isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 100)} defaultValue={0} ref={desktopProgressRef} onChange={handleSeek} className="glow-slider" style={{ flex: 1 }} />
-                  {renderCrossfadingDuration(duration, { fontSize: "12px", color: isDarkMode ? "rgba(255, 255, 255, 0.9)" : "rgba(26, 43, 76, 0.85)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: isDarkMode ? "0 1px 4px rgba(0,0,0,0.7)" : "none" })}
+                  {renderCrossfadingDuration(duration, { fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" })}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none" }} className="hover-effect">{renderModeIcon(isDarkMode ? "#FFFFFF" : "#1A2B4C")}</button>
+                  <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", cursor: "pointer", display: "flex", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: isDarkMode ? "#FFFFFF" : "#1A2B4C", color: isDarkMode ? "#1A2B4C" : "#FFFFFF", cursor: "pointer", boxShadow: isDarkMode ? "0 8px 16px rgba(0,0,0,0.3)" : "0 8px 16px rgba(26,43,76,0.18)" }}>
+                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
+                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
-                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", cursor: "pointer", display: "flex", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
+                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
                   </div>
                   <button
                     onClick={() => setShowCrossfadeModal(true)}
                     title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
                     style={{
                       background: crossfadeEnabled ? "rgba(29, 185, 84, 0.22)" : "transparent",
-                      border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : (isDarkMode ? "1px solid transparent" : "1px solid rgba(26, 43, 76, 0.12)"),
-                      color: crossfadeEnabled ? COLORS.spotifyGreen : (isDarkMode ? "#FFFFFF" : "#1A2B4C"),
+                      border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : "1px solid transparent",
+                      color: crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF",
                       borderRadius: "8px",
                       padding: "4px 7px",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       gap: "4px",
-                      filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none",
+                      filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
                       transition: "all 0.2s ease"
                     }}
                     className="hover-effect"
                   >
-                    <CrossfadeIcon size={18} color={crossfadeEnabled ? COLORS.spotifyGreen : (isDarkMode ? "#FFFFFF" : "#1A2B4C")} />
+                    <CrossfadeIcon size={18} color={crossfadeEnabled ? COLORS.spotifyGreen : "#FFFFFF"} />
                     {crossfadeEnabled && (
                       <span style={{ fontSize: "11px", fontWeight: "800", lineHeight: 1 }}>{crossfadeDuration}s</span>
                     )}
@@ -8258,7 +8255,7 @@ export default function App() {
           {/* Dynamic Ambient Blurred Cover Art Backdrop & Theme Shade */}
           {renderCrossfadingBackdrop(
             currentTrack?.poster_url,
-            isDarkMode ? "blur(80px) brightness(0.72) saturate(160%)" : "blur(80px) brightness(1.05) saturate(130%)",
+            isDarkMode ? "blur(80px) brightness(0.72) saturate(160%)" : "blur(80px) brightness(1.1) saturate(130%)",
             isDarkMode ? 0.52 : 0.35,
             { top: "-20%", left: "-20%", width: "140%", height: "140%" },
             songTheme.mobilePlayerBg,
@@ -8266,11 +8263,11 @@ export default function App() {
           )}
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "calc(env(safe-area-inset-top, 0px) + 12px) 24px calc(env(safe-area-inset-bottom, 0px) + 24px) 24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "4px" }}>
-              <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", cursor: "pointer", padding: "4px", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none" }} className="hover-effect"><ChevronDown size={32} /></button>
-              <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", textShadow: isDarkMode ? "0 1px 4px rgba(0,0,0,0.7)" : "none" }}>
+              <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><ChevronDown size={32} /></button>
+              <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
                 {showMixer ? "Stem Mixer" : showQueue ? "Current Queue" : showLyrics ? "Lyrics" : "Now Playing"}
               </span>
-              <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); }} style={{ background: "transparent", border: "none", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", cursor: "pointer", padding: "4px", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none" }} className="hover-effect"><MoreVertical size={32} /></button>
+              <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); }} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><MoreVertical size={32} /></button>
             </div>
 
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
@@ -8285,20 +8282,20 @@ export default function App() {
               <div style={{ minWidth: 0, flex: 1 }}>
                 {renderCrossfadingTrackInfo(currentTrack, {
                   titleTag: "h2",
-                  titleStyle: { margin: "0 0 4px 0", fontSize: "28px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", textShadow: isDarkMode ? "0 2px 8px rgba(0,0,0,0.7)" : "none" },
+                  titleStyle: { margin: "0 0 6px 0", fontSize: "24px", fontWeight: "800", color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textShadow: "0 2px 8px rgba(0,0,0,0.7)" },
                   artistTag: "p",
-                  artistStyle: { margin: 0, color: isDarkMode ? "rgba(255,255,255,0.85)" : "rgba(26, 43, 76, 0.75)", fontSize: "18px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: isDarkMode ? "0 1px 4px rgba(0,0,0,0.7)" : "none" }
+                  artistStyle: { margin: 0, fontSize: "16px", color: "rgba(255,255,255,0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }
                 })}
               </div>
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
-                <button onClick={toggleStemMixer} style={{ background: showMixer ? COLORS.spotifyGreen : (isDarkMode ? "rgba(255,255,255,0.15)" : "rgba(26, 43, 76, 0.08)"), color: isDarkMode ? "#FFFFFF" : (showMixer ? "#FFFFFF" : "#1A2B4C"), border: isDarkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(26, 43, 76, 0.12)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><SlidersHorizontal size={17} /></button>
+                <button onClick={toggleStemMixer} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><SlidersHorizontal size={17} /></button>
                 <button
                   onClick={e => { e.stopPropagation(); setShowCrossfadeModal(true); }}
                   title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
                   style={{
-                    background: crossfadeEnabled ? COLORS.spotifyGreen : (isDarkMode ? "rgba(255,255,255,0.15)" : "rgba(26, 43, 76, 0.08)"),
-                    color: crossfadeEnabled ? "#FFFFFF" : (isDarkMode ? "#FFFFFF" : "#1A2B4C"),
-                    border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : (isDarkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(26, 43, 76, 0.12)"),
+                    background: crossfadeEnabled ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)",
+                    color: "#FFFFFF",
+                    border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : "1px solid rgba(255,255,255,0.2)",
                     borderRadius: "20px",
                     padding: "10px 14px",
                     cursor: "pointer",
@@ -8310,33 +8307,33 @@ export default function App() {
                   }}
                   className="hover-effect"
                 >
-                  <CrossfadeIcon size={17} color={crossfadeEnabled ? "#FFFFFF" : (isDarkMode ? "#FFFFFF" : "#1A2B4C")} />
+                  <CrossfadeIcon size={17} color="#FFFFFF" />
                   {crossfadeEnabled && (
                     <span style={{ fontSize: "12px", fontWeight: "800", lineHeight: 1 }}>{crossfadeDuration}s</span>
                   )}
                 </button>
-                <button onClick={() => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} style={{ background: showLyrics ? COLORS.spotifyGreen : (isDarkMode ? "rgba(255,255,255,0.15)" : "rgba(26, 43, 76, 0.08)"), color: isDarkMode ? "#FFFFFF" : (showLyrics ? "#FFFFFF" : "#1A2B4C"), border: isDarkMode ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(26, 43, 76, 0.12)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Mic2 size={17} /></button>
+                <button onClick={() => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } }} style={{ background: showLyrics ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: "pointer", display: "flex", backdropFilter: "blur(4px)" }}><Mic2 size={17} /></button>
               </div>
             </div>
 
             <div style={{ marginBottom: "24px" }}>
               <input type="range" min={0} max={(isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 100)} defaultValue={0} ref={mobileProgressRef} onChange={handleSeek} className="glow-slider" style={{ width: "100%", marginBottom: "8px", borderRadius: "6px" }} />
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: "13px", color: isDarkMode ? "rgba(255,255,255,0.9)" : "rgba(26,43,76,0.85)", fontWeight: "600", textShadow: isDarkMode ? "0 1px 4px rgba(0,0,0,0.7)" : "none" }}>{formatTime(currentTime)}</span>
-                {renderCrossfadingDuration(duration, { fontSize: "13px", color: isDarkMode ? "rgba(255,255,255,0.9)" : "rgba(26,43,76,0.85)", fontWeight: "600", textShadow: isDarkMode ? "0 1px 4px rgba(0,0,0,0.7)" : "none" })}
+                <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
+                {renderCrossfadingDuration(duration, { fontSize: "13px", color: "rgba(255,255,255,0.9)", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" })}
               </div>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
-              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none" }} className="hover-effect">{renderModeIcon(isDarkMode ? "#FFFFFF" : "#1A2B4C")}</button>
+              <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", cursor: "pointer", display: "flex", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
-                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: isDarkMode ? "#FFFFFF" : "#1A2B4C", color: isDarkMode ? "#1A2B4C" : "#FFFFFF", cursor: "pointer", boxShadow: isDarkMode ? "0 12px 24px rgba(0,0,0,0.3)" : "0 12px 24px rgba(26,43,76,0.18)", transition: "transform 0.2s ease" }} className="hover-effect">
+                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
+                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease" }} className="hover-effect">
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
                 </button>
-                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: isDarkMode ? "#FFFFFF" : "#1A2B4C", cursor: "pointer", display: "flex", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
+                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
               </div>
-              <button onClick={() => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} style={{ background: "transparent", border: "none", color: showQueue ? COLORS.spotifyGreen : (isDarkMode ? "#FFFFFF" : "#1A2B4C"), cursor: "pointer", padding: "8px", filter: isDarkMode ? "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" : "none", position: "relative" }} className="hover-effect">
+              <button onClick={() => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} style={{ background: "transparent", border: "none", color: showQueue ? COLORS.spotifyGreen : "#FFFFFF", cursor: "pointer", padding: "8px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", position: "relative" }} className="hover-effect">
                 <ListMusic size={26} />
                 {userQueue.length > 0 && (
                   <span style={{ position: "absolute", top: "2px", right: "2px", background: COLORS.spotifyGreen, color: "#FFFFFF", fontSize: "10px", fontWeight: "bold", borderRadius: "50%", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>{userQueue.length}</span>
