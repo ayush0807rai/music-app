@@ -9907,22 +9907,6 @@ export default function App() {
               >
                 <Heart size={18} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === currentTrack.id) ? COLORS.spotifyGreen : "none"} />
               </button>
-              <button
-                title="Share song"
-                onClick={(e) => handleShareSong(currentTrack, e)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "rgba(255,255,255,0.7)",
-                  cursor: "pointer",
-                  padding: "6px",
-                  display: "flex",
-                  alignItems: "center"
-                }}
-                className="hover-effect"
-              >
-                <Share2 size={18} />
-              </button>
             </div>
 
             {/* Center: Playback Controls & Scrubber */}
