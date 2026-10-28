@@ -23,7 +23,8 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
   Shuffle, Repeat, Repeat1, ArrowRight, Loader2, Plus, X, UploadCloud, Image as ImageIcon, Mic2, FolderPlus, Trash2, Clock, Home, ListMusic, LogOut, ChevronDown, RefreshCw, ListPlus, Moon, Sun, SlidersHorizontal, ArrowUpDown, Search, GripVertical, Heart, MoreVertical, User, Disc, Maximize2, Minimize2, Keyboard,
-  History, Flame, BarChart2, Sparkles, Blend
+  History, Flame, BarChart2, Sparkles, Blend,
+  Share2, Radio, Users, Copy
 } from "lucide-react";
 import { supabase } from "./supabase";
 import Auth from "./Auth";
@@ -1347,6 +1348,29 @@ export default function App() {
   const [showTrackOptionsModal, setShowTrackOptionsModal] = useState(false);
   const [showTrackArtistsModal, setShowTrackArtistsModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [showJamModal, setShowJamModal] = useState(false);
+  const [jamRoomId, setJamRoomId] = useState(() => {
+    try { return sessionStorage.getItem('euphony_active_jam_id') || null; } catch (e) { return null; }
+  });
+  const [isJamHost, setIsJamHost] = useState(() => {
+    try { return sessionStorage.getItem('euphony_is_jam_host') === 'true'; } catch (e) { return false; }
+  });
+  const [jamListenersCount, setJamListenersCount] = useState(1);
+  const [jamHostName, setJamHostName] = useState("");
+  const [jamJoinCodeInput, setJamJoinCodeInput] = useState("");
+  const jamChannelRef = useRef(null);
+  const isProcessingRemoteJamEventRef = useRef(false);
+  const hasAutoPlayedSharedSongRef = useRef(false);
+  const isJamHostRef = useRef(isJamHost);
+  const jamRoomIdRef = useRef(jamRoomId);
+  const currentTrackRef = useRef(currentTrack);
+  const lastJamDriftSyncRef = useRef(0);
+
+  useEffect(() => {
+    isJamHostRef.current = isJamHost;
+    jamRoomIdRef.current = jamRoomId;
+    currentTrackRef.current = currentTrack;
+  }, [isJamHost, jamRoomId, currentTrack]);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
   const [showMixer, setShowMixer] = useState(false);
@@ -1393,6 +1417,7 @@ export default function App() {
     showSleepTimerModal: false,
     showTrackArtistsModal: false,
     showStatsModal: false,
+    showJamModal: false,
     hasSongForPlaylist: false,
     hasViewedPlaylist: false,
     hasSelectedArtist: false,
@@ -1412,6 +1437,7 @@ export default function App() {
       showSleepTimerModal,
       showTrackArtistsModal,
       showStatsModal,
+      showJamModal,
       hasSongForPlaylist: !!songForPlaylistModal,
       hasViewedPlaylist: viewedPlaylistId !== null,
       hasSelectedArtist: selectedArtist !== null,
@@ -1529,6 +1555,7 @@ export default function App() {
   const { render: renderExitToast, isClosing: exitToastClosing } = useAnimatedPresence(showExitToast, null, 300);
   const { render: renderShortcuts, isClosing: shortcutsClosing } = useAnimatedPresence(showShortcutsModal, null, 250);
   const { render: renderStats, isClosing: statsClosing } = useAnimatedPresence(showStatsModal, null, 300);
+  const { render: renderJam, isClosing: jamClosing } = useAnimatedPresence(showJamModal, null, 300);
 
   const rawViewedSongs = useMemo(() => {
     if (viewedPlaylistId === null) return playlist;
@@ -2397,6 +2424,7 @@ export default function App() {
       showTrackOptionsModal,
       showTrackArtistsModal,
       showStatsModal,
+      showJamModal,
       isMobilePlayerOpen,
       viewedPlaylistId,
       showQueue,
@@ -2415,6 +2443,7 @@ export default function App() {
     showTrackOptionsModal,
     showTrackArtistsModal,
     showStatsModal,
+    showJamModal,
     isMobilePlayerOpen,
     viewedPlaylistId,
     showQueue,
@@ -2524,6 +2553,9 @@ export default function App() {
       } else if (s.showPlaylistModal) {
         setShowPlaylistModal(false);
         handled = true;
+      } else if (s.showJamModal) {
+        setShowJamModal(false);
+        handled = true;
       }
       // Tier 4: Overlay panels (Queue & Mixer)
       else if (s.showQueue) {
@@ -2596,6 +2628,88 @@ export default function App() {
     });
     return () => { window.removeEventListener("resize", handleResize); subscription.unsubscribe(); };
   }, []);
+
+  // Capture shared link parameters (?song=... and ?jam=...) and cache in sessionStorage
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlSongId = params.get('song');
+      const urlJamId = params.get('jam');
+      if (urlSongId) {
+        sessionStorage.setItem('euphony_pending_song_id', urlSongId);
+      }
+      if (urlJamId) {
+        sessionStorage.setItem('euphony_pending_jam_id', urlJamId);
+      }
+    } catch (e) {}
+  }, []);
+
+  // Handle shared song link playback after session and playlist are loaded
+  useEffect(() => {
+    if (!session || !playlist || playlist.length === 0 || hasAutoPlayedSharedSongRef.current) return;
+    
+    let pendingSongId = null;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      pendingSongId = params.get('song') || sessionStorage.getItem('euphony_pending_song_id');
+    } catch (e) {}
+
+    if (pendingSongId) {
+      hasAutoPlayedSharedSongRef.current = true;
+      try { sessionStorage.removeItem('euphony_pending_song_id'); } catch (e) {}
+      
+      const songIdx = playlist.findIndex(s => s.id === pendingSongId);
+      if (songIdx !== -1) {
+        handlePlaySong(songIdx, playlist, "Shared Song");
+        triggerToast(`Playing shared song: "${playlist[songIdx].title}"`);
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('song');
+          window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + window.location.hash);
+        } catch (e) {}
+      } else {
+        supabase.from('songs').select('*').eq('id', pendingSongId).single().then(({ data: song, error }) => {
+          if (!error && song) {
+            setPlaylist(prev => [song, ...prev.filter(s => s.id !== song.id)]);
+            handlePlaySong(0, [song, ...playlist], "Shared Song");
+            triggerToast(`Playing shared song: "${song.title}"`);
+            try {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('song');
+              window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + window.location.hash);
+            } catch (e) {}
+          }
+        }).catch(() => {});
+      }
+    }
+  }, [session, playlist, handlePlaySong, triggerToast]);
+
+  // Handle shared jam room auto-join after session is loaded
+  useEffect(() => {
+    if (!session) return;
+    let pendingJamId = null;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      pendingJamId = params.get('jam') || sessionStorage.getItem('euphony_pending_jam_id');
+    } catch (e) {}
+
+    if (pendingJamId && !jamRoomId) {
+      try { sessionStorage.removeItem('euphony_pending_jam_id'); } catch (e) {}
+      const clean = pendingJamId.trim().toUpperCase();
+      setIsJamHost(false);
+      setJamRoomId(clean);
+      try {
+        sessionStorage.setItem('euphony_active_jam_id', clean);
+        sessionStorage.setItem('euphony_is_jam_host', 'false');
+      } catch (e) {}
+      triggerToast(`Connected to Live Jam Session: ${clean}`);
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('jam');
+        window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + window.location.hash);
+      } catch (e) {}
+    }
+  }, [session, jamRoomId, triggerToast]);
 
   useEffect(() => {
     if (viewedPlaylistId) localStorage.setItem("euphony_playlist_id", viewedPlaylistId);
@@ -3034,6 +3148,25 @@ export default function App() {
           lastListenTickRef.current = now;
         }
 
+        // Live Jam periodic drift synchronization (Host pings listeners every ~3.5s)
+        if (jamChannelRef.current && isJamHostRef.current && isPlaying && !isProcessingRemoteJamEventRef.current) {
+          if (now - lastJamDriftSyncRef.current > 3500) {
+            lastJamDriftSyncRef.current = now;
+            jamChannelRef.current.send({
+              type: 'broadcast',
+              event: 'jam_sync',
+              payload: {
+                type: 'drift_sync',
+                currentTime: time,
+                song: currentTrack,
+                isPlaying: true,
+                hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+                timestamp: now
+              }
+            });
+          }
+        }
+
         // Flush accumulated duration in small increments (>= 1.0s) to keep stats accurate without excessive storage calls
         if (pendingListenDurationRef.current >= 1.0 && currentTrack?.id) {
           recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
@@ -3314,6 +3447,20 @@ export default function App() {
       if (bassRef.current)   bassRef.current.currentTime   = seekTime;
       if (otherRef.current)  otherRef.current.currentTime  = seekTime;
     }
+    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
+      jamChannelRef.current.send({
+        type: 'broadcast',
+        event: 'jam_sync',
+        payload: {
+          type: 'seek',
+          currentTime: seekTime,
+          song: currentTrack,
+          isPlaying: isPlayingRef.current,
+          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          timestamp: Date.now()
+        }
+      });
+    }
   };
 
   const handleLyricClick = (time, e) => {
@@ -3326,6 +3473,20 @@ export default function App() {
       setCurrentTime(time); 
       updateProgressVisuals();
       if (!isPlaying) setIsPlaying(true); 
+    }
+    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
+      jamChannelRef.current.send({
+        type: 'broadcast',
+        event: 'jam_sync',
+        payload: {
+          type: 'seek',
+          currentTime: time,
+          song: currentTrack,
+          isPlaying: true,
+          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          timestamp: Date.now()
+        }
+      });
     }
   };
 
@@ -3655,6 +3816,22 @@ export default function App() {
     
     updateProgressVisuals();
     audioEl.play().catch(e => console.log(e));
+
+    // Live Jam Host Track Change Broadcast
+    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
+      jamChannelRef.current.send({
+        type: 'broadcast',
+        event: 'jam_sync',
+        payload: {
+          type: 'track_change',
+          song: track,
+          isPlaying: true,
+          currentTime: 0,
+          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          timestamp: Date.now()
+        }
+      });
+    }
 
     // If objUrl was fallback cdnUrl, check CacheStorage in background to store in memory for future replays
     if (objUrl === cdnUrl && typeof window !== "undefined" && 'caches' in window) {
@@ -4168,6 +4345,22 @@ export default function App() {
         stopCrossfade(false);
       }
     }
+
+    // Live Jam Host Play/Pause Broadcast
+    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
+      jamChannelRef.current.send({
+        type: 'broadcast',
+        event: 'jam_sync',
+        payload: {
+          type: 'play_pause',
+          song: currentTrack,
+          isPlaying: !isPlaying,
+          currentTime: audioRef.current?.currentTime || 0,
+          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          timestamp: Date.now()
+        }
+      });
+    }
   };
 
   const cyclePlayMode = () => {
@@ -4392,6 +4585,22 @@ export default function App() {
         }
       }
     }, 3500);
+
+    // Live Jam Host Track Change Broadcast on Crossfade
+    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
+      jamChannelRef.current.send({
+        type: 'broadcast',
+        event: 'jam_sync',
+        payload: {
+          type: 'track_change',
+          song: incomingTrack,
+          isPlaying: true,
+          currentTime: 0,
+          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          timestamp: Date.now()
+        }
+      });
+    }
 
     return true;
   }, [stopCrossfade, crossfadeDuration, currentTrack, playTrackWithMetadata]);
@@ -4947,6 +5156,266 @@ export default function App() {
     stopCrossfade,
     updateProgressVisuals
   ]);
+
+  const handleShareSong = useCallback((song, e) => {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (!song) return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?song=${song.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: song.title || 'Euphony Song',
+        text: `Listen to "${song.title || 'Unknown'}" by ${song.artist || 'Unknown'} on Euphony!`,
+        url: shareUrl
+      }).catch(err => {
+        if (err.name !== 'AbortError') {
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            triggerToast("Song link copied to clipboard!");
+          }).catch(() => {
+            triggerToast("Link: " + shareUrl);
+          });
+        }
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        triggerToast("Song link copied to clipboard!");
+      }).catch(() => {
+        triggerToast("Link: " + shareUrl);
+      });
+    }
+  }, [triggerToast]);
+
+  const startJamSession = useCallback(() => {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    setIsJamHost(true);
+    setJamRoomId(code);
+    try {
+      sessionStorage.setItem('euphony_active_jam_id', code);
+      sessionStorage.setItem('euphony_is_jam_host', 'true');
+    } catch (e) {}
+    setShowJamModal(true);
+    triggerToast(`Live Jam created! Room Code: ${code}`);
+  }, [triggerToast]);
+
+  const joinJamSession = useCallback((codeToJoin) => {
+    const raw = codeToJoin !== undefined ? codeToJoin : jamJoinCodeInput;
+    const clean = (raw || "").trim().toUpperCase();
+    if (!clean || clean.length < 3) {
+      triggerToast("Please enter a valid Jam Room Code");
+      return;
+    }
+    setIsJamHost(false);
+    setJamRoomId(clean);
+    setJamJoinCodeInput("");
+    try {
+      sessionStorage.setItem('euphony_active_jam_id', clean);
+      sessionStorage.setItem('euphony_is_jam_host', 'false');
+    } catch (e) {}
+    triggerToast(`Joined Jam Room: ${clean}`);
+  }, [jamJoinCodeInput, triggerToast]);
+
+  const leaveJamSession = useCallback(() => {
+    if (jamChannelRef.current) {
+      supabase.removeChannel(jamChannelRef.current);
+      jamChannelRef.current = null;
+    }
+    setJamRoomId(null);
+    setIsJamHost(false);
+    setJamListenersCount(1);
+    setJamHostName("");
+    try {
+      sessionStorage.removeItem('euphony_active_jam_id');
+      sessionStorage.removeItem('euphony_is_jam_host');
+    } catch (e) {}
+    setShowJamModal(false);
+    triggerToast("Left Jam Session");
+  }, [triggerToast]);
+
+  const shareJamRoom = useCallback((e) => {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (!jamRoomId) return;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?jam=${jamRoomId}`;
+    if (navigator.share) {
+      navigator.share({
+        title: "Join my Live Jam on Euphony!",
+        text: `Listen along with me in real time on Euphony! Room code: ${jamRoomId}`,
+        url: shareUrl
+      }).catch(err => {
+        if (err.name !== 'AbortError') {
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            triggerToast("Jam link copied to clipboard!");
+          }).catch(() => {
+            triggerToast("Link: " + shareUrl);
+          });
+        }
+      });
+    } else {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        triggerToast("Jam link copied to clipboard!");
+      }).catch(() => {
+        triggerToast("Link: " + shareUrl);
+      });
+    }
+  }, [jamRoomId, triggerToast]);
+
+  // Live Jam Realtime Channel Effect (Supabase Broadcast & Presence)
+  useEffect(() => {
+    if (!jamRoomId) {
+      if (jamChannelRef.current) {
+        supabase.removeChannel(jamChannelRef.current);
+        jamChannelRef.current = null;
+      }
+      return;
+    }
+
+    const channelName = `jam_${jamRoomId.toLowerCase()}`;
+    const channel = supabase.channel(channelName, {
+      config: {
+        broadcast: { self: false },
+        presence: { key: session?.user?.id || `guest_${Math.random().toString(36).substring(2, 7)}` }
+      }
+    });
+
+    jamChannelRef.current = channel;
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = channel.presenceState();
+        let totalCount = 0;
+        Object.keys(presenceState).forEach(key => {
+          totalCount += presenceState[key].length;
+        });
+        setJamListenersCount(Math.max(1, totalCount));
+      })
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
+        newPresences.forEach(p => {
+          const myName = activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0];
+          if (p.name && p.name !== myName) {
+            triggerToast(`${p.name} joined the Jam!`);
+          }
+        });
+      })
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        leftPresences.forEach(p => {
+          if (p.name) {
+            triggerToast(`${p.name} left the Jam`);
+          }
+        });
+      })
+      .on('broadcast', { event: 'jam_sync' }, ({ payload }) => {
+        if (!payload) return;
+        if (isJamHostRef.current) return;
+
+        isProcessingRemoteJamEventRef.current = true;
+        if (payload.hostName) setJamHostName(payload.hostName);
+
+        const currentActiveAudio = audioRef.current || (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current);
+
+        if (payload.type === 'track_change' && payload.song) {
+          const songId = payload.song.id;
+          const targetSong = (playlist || []).find(s => s.id === songId) || payload.song;
+          setPlaylist(prev => {
+            if (prev.find(s => s.id === targetSong.id)) return prev;
+            return [targetSong, ...prev];
+          });
+          setQueueCurrentTrack(targetSong);
+          localStorage.setItem("euphony_queue_current_track", JSON.stringify(targetSong));
+          if (currentActiveAudio) {
+            playTrackWithMetadata(targetSong, currentActiveAudio, blobCacheRef.current);
+            if (typeof payload.currentTime === 'number' && payload.currentTime > 0) {
+              try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
+            }
+            if (payload.isPlaying === false) {
+              currentActiveAudio.pause();
+              setIsPlaying(false);
+              isPlayingRef.current = false;
+            } else {
+              currentActiveAudio.play().then(() => {
+                setIsPlaying(true);
+                isPlayingRef.current = true;
+              }).catch(() => {});
+            }
+          }
+        } else if (payload.type === 'play_pause') {
+          if (currentActiveAudio) {
+            if (payload.isPlaying) {
+              currentActiveAudio.play().then(() => {
+                setIsPlaying(true);
+                isPlayingRef.current = true;
+              }).catch(() => {});
+            } else {
+              currentActiveAudio.pause();
+              setIsPlaying(false);
+              isPlayingRef.current = false;
+            }
+            if (typeof payload.currentTime === 'number') {
+              const diff = Math.abs((currentActiveAudio.currentTime || 0) - payload.currentTime);
+              if (diff > 2.0) {
+                try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
+              }
+            }
+          }
+        } else if (payload.type === 'seek') {
+          if (currentActiveAudio && typeof payload.currentTime === 'number') {
+            try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
+            setCurrentTime(payload.currentTime);
+            updateProgressVisuals();
+          }
+        } else if (payload.type === 'drift_sync') {
+          if (currentActiveAudio && typeof payload.currentTime === 'number') {
+            const diff = Math.abs((currentActiveAudio.currentTime || 0) - payload.currentTime);
+            if (diff > 2.5) {
+              try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
+              setCurrentTime(payload.currentTime);
+              updateProgressVisuals();
+            }
+          }
+        }
+
+        setTimeout(() => {
+          isProcessingRemoteJamEventRef.current = false;
+        }, 150);
+      })
+      .on('broadcast', { event: 'jam_request_state' }, () => {
+        if (isJamHostRef.current && currentTrackRef.current) {
+          const currentActiveAudio = audioRef.current || (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current);
+          channel.send({
+            type: 'broadcast',
+            event: 'jam_sync',
+            payload: {
+              type: 'track_change',
+              song: currentTrackRef.current,
+              isPlaying: isPlayingRef.current,
+              currentTime: currentActiveAudio?.currentTime || 0,
+              hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+              timestamp: Date.now()
+            }
+          });
+        }
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          const userName = activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Guest";
+          channel.track({
+            name: userName,
+            isHost: isJamHostRef.current,
+            joinedAt: Date.now()
+          });
+
+          if (!isJamHostRef.current) {
+            channel.send({
+              type: 'broadcast',
+              event: 'jam_request_state',
+              payload: { requester: userName }
+            });
+          }
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      jamChannelRef.current = null;
+    };
+  }, [jamRoomId, session?.user?.id, activeUser, playlist, playTrackWithMetadata, updateProgressVisuals, triggerToast]);
 
   const formatTime = (secs) => {
     if (!secs || isNaN(secs)) return "0:00";
@@ -7069,6 +7538,229 @@ export default function App() {
         </div>
       )}
       
+      {/* JAM SESSION MODAL */}
+      {renderJam && (
+        <div
+          className={jamClosing ? "fade-exit" : "fade-enter"}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: songTheme.modalOverlay,
+            backdropFilter: "blur(18px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10005,
+            padding: "20px"
+          }}
+          onClick={() => setShowJamModal(false)}
+        >
+          <div
+            className={`${jamClosing ? 'pop-exit' : 'pop-enter'} custom-scrollbar`}
+            style={{
+              background: songTheme.modalBg,
+              backdropFilter: "blur(24px)",
+              border: songTheme.modalBorder,
+              padding: "28px 24px",
+              borderRadius: "20px",
+              width: "100%",
+              maxWidth: "380px",
+              position: "relative",
+              maxHeight: "85vh",
+              overflowY: "auto",
+              boxShadow: songTheme.modalShadow,
+              color: songTheme.textColor
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowJamModal(false)}
+              style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#FFFFFF", cursor: "pointer" }}
+              className="hover-effect"
+            >
+              <X size={24} />
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(34, 197, 94, 0.2)", border: "1px solid rgba(34, 197, 94, 0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Radio size={20} color="#4ade80" />
+              </div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: "19px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.3px" }}>
+                  Live Jam Session
+                </h2>
+                <p style={{ margin: 0, fontSize: "12px", color: songTheme.textMuted }}>
+                  Listen along in real-time with friends
+                </p>
+              </div>
+            </div>
+
+            {jamRoomId ? (
+              <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                {/* Active Session Info Box */}
+                <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", textAlign: "center" }}>
+                  <div style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px", color: "#4ade80", marginBottom: "6px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 8px #4ade80" }} />
+                    {isJamHost ? "You are the Host (DJ)" : `Listening to ${jamHostName || "Host"}`}
+                  </div>
+                  <div style={{ fontSize: "32px", fontWeight: "900", letterSpacing: "4px", color: "#FFFFFF", margin: "8px 0" }}>
+                    {jamRoomId}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "13px", color: songTheme.textMuted }}>
+                    <Users size={16} />
+                    <span>{jamListenersCount} {jamListenersCount === 1 ? "listener" : "listeners"} connected</span>
+                  </div>
+                </div>
+
+                {/* Share / Copy buttons */}
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={shareJamRoom}
+                    className="hover-effect"
+                    style={{
+                      flex: 1,
+                      padding: "12px",
+                      borderRadius: "12px",
+                      background: COLORS.spotifyGreen,
+                      border: "none",
+                      color: "#FFFFFF",
+                      fontWeight: "700",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      boxShadow: "0 4px 14px rgba(29, 185, 84, 0.4)"
+                    }}
+                  >
+                    <Share2 size={16} /> Invite Friends
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?jam=${jamRoomId}`).then(() => {
+                        triggerToast("Jam link copied to clipboard!");
+                      });
+                    }}
+                    className="hover-effect"
+                    title="Copy Link"
+                    style={{
+                      padding: "12px",
+                      borderRadius: "12px",
+                      background: songTheme.rowBg,
+                      border: songTheme.rowBorder,
+                      color: songTheme.textColor,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}
+                  >
+                    <Copy size={16} />
+                  </button>
+                </div>
+
+                {/* Leave Session */}
+                <button
+                  onClick={leaveJamSession}
+                  className="hover-effect"
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "12px",
+                    background: "rgba(239, 68, 68, 0.15)",
+                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    color: "#f87171",
+                    fontWeight: "700",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px"
+                  }}
+                >
+                  Leave Session
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                {/* Host a new session */}
+                <button
+                  onClick={startJamSession}
+                  className="hover-effect"
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    borderRadius: "14px",
+                    background: COLORS.spotifyGreen,
+                    border: "none",
+                    color: "#FFFFFF",
+                    fontSize: "15px",
+                    fontWeight: "800",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    boxShadow: "0 4px 16px rgba(29, 185, 84, 0.4)"
+                  }}
+                >
+                  <Radio size={18} /> Start a Jam Session
+                </button>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "4px 0" }}>
+                  <div style={{ flex: 1, height: "1px", background: songTheme.rowBorder }} />
+                  <span style={{ fontSize: "11px", fontWeight: "700", color: songTheme.textMuted, textTransform: "uppercase" }}>OR JOIN ONE</span>
+                  <div style={{ flex: 1, height: "1px", background: songTheme.rowBorder }} />
+                </div>
+
+                {/* Join existing room by code */}
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input
+                    type="text"
+                    value={jamJoinCodeInput}
+                    onChange={e => setJamJoinCodeInput(e.target.value.toUpperCase())}
+                    onKeyDown={e => { if (e.key === 'Enter') joinJamSession(); }}
+                    placeholder="Enter 6-char Code"
+                    maxLength={10}
+                    style={{
+                      flex: 1,
+                      padding: "12px 14px",
+                      borderRadius: "12px",
+                      background: songTheme.rowBg,
+                      border: songTheme.rowBorder,
+                      color: "#FFFFFF",
+                      fontSize: "14px",
+                      fontWeight: "700",
+                      letterSpacing: "1px",
+                      textTransform: "uppercase",
+                      outline: "none"
+                    }}
+                  />
+                  <button
+                    onClick={() => joinJamSession()}
+                    disabled={!jamJoinCodeInput.trim()}
+                    className="hover-effect"
+                    style={{
+                      padding: "12px 18px",
+                      borderRadius: "12px",
+                      background: jamJoinCodeInput.trim() ? COLORS.primary : "rgba(255,255,255,0.1)",
+                      border: "none",
+                      color: jamJoinCodeInput.trim() ? COLORS.bgPanel : "rgba(255,255,255,0.4)",
+                      fontWeight: "800",
+                      fontSize: "13px",
+                      cursor: jamJoinCodeInput.trim() ? "pointer" : "default"
+                    }}
+                  >
+                    Join
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       {/* TRACK OPTIONS MODAL */}
       {renderTrackOptions && (trackForOptions || currentTrack) && (() => {
@@ -7153,6 +7845,9 @@ export default function App() {
                 </div>
                 <div onClick={() => { openedFromTrackOptionsRef.current = false; setSelectedAlbum(targetTrackForOptions.album || targetTrackForOptions.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); setTrackForOptions(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                   <Disc size={18} /> Go to album
+                </div>
+                <div onClick={(e) => { openedFromTrackOptionsRef.current = false; handleShareSong(targetTrackForOptions, e); setShowTrackOptionsModal(false); setTrackForOptions(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
+                  <Share2 size={18} /> Share song
                 </div>
                 {currentTrack?.id === targetTrackForOptions.id && (
                   <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
@@ -7533,6 +8228,27 @@ export default function App() {
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             {isDesktop && (isDarkMode ? " Light" : " Dark")}
           </button>
+          <button
+            className="hover-effect"
+            onClick={() => setShowJamModal(true)}
+            style={{
+              background: jamRoomId ? "rgba(34, 197, 94, 0.2)" : "transparent",
+              border: `1px solid ${jamRoomId ? "#22c55e" : COLORS.primary}`,
+              borderRadius: "20px",
+              padding: isDesktop ? "8px 16px" : "8px 12px",
+              color: jamRoomId ? "#22c55e" : COLORS.primary,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "13px",
+              fontWeight: "bold"
+            }}
+            title={jamRoomId ? `Live Jam: ${jamRoomId} (${jamListenersCount})` : "Start or Join Live Jam"}
+          >
+            <Radio size={16} />
+            {isDesktop ? (jamRoomId ? `Jam (${jamRoomId})` : "Live Jam") : (jamRoomId ? "Jam" : "")}
+          </button>
           {isDesktop && (
             <button className="hover-effect" onClick={() => setShowShortcutsModal(true)} title="Keyboard Shortcuts (?)" style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: "8px 16px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
               <Keyboard size={16} color={COLORS.bgPanel} /> Shortcuts
@@ -7832,6 +8548,7 @@ export default function App() {
                               <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "2px", flexShrink: 0 }}>
                                 <button type="button" title="Add to Queue" onPointerDown={e => e.stopPropagation()} onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
                                 <button type="button" title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onPointerDown={e => e.stopPropagation()} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} style={{ pointerEvents: "none" }} /></button>
+                                <button type="button" title="Share Song" onPointerDown={e => e.stopPropagation()} onClick={e => handleShareSong(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Share2 size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
                                 {!activePlaylistObj?.isSmart && (
                                   <button type="button" title="Remove from playlist" onPointerDown={e => e.stopPropagation()} onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
                                 )}
@@ -8115,6 +8832,9 @@ export default function App() {
                             <button type="button" title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onPointerDown={e => e.stopPropagation()} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
                               <Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} style={{ pointerEvents: "none" }} />
                             </button>
+                            <button type="button" title="Share Song" onPointerDown={e => e.stopPropagation()} onClick={(e) => handleShareSong(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
+                              <Share2 size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} />
+                            </button>
                             {userPlaylists.length > 0 && (
                               <button type="button" title="Add to Playlist" onPointerDown={e => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
                                 <FolderPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} />
@@ -8352,10 +9072,39 @@ export default function App() {
           <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: "calc(env(safe-area-inset-top, 0px) + 12px) 24px calc(env(safe-area-inset-bottom, 0px) + 24px) 24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", paddingTop: "4px" }}>
               <button onClick={() => setIsMobilePlayerOpen(false)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><ChevronDown size={32} /></button>
-              <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
-                {showMixer ? "Stem Mixer" : showQueue ? "Current Queue" : showLyrics ? "Lyrics" : "Now Playing"}
-              </span>
-              <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); }} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><MoreVertical size={32} /></button>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "14px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px", color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>
+                  {showMixer ? "Stem Mixer" : showQueue ? "Current Queue" : showLyrics ? "Lyrics" : "Now Playing"}
+                </span>
+                {jamRoomId && (
+                  <button
+                    onClick={() => setShowJamModal(true)}
+                    className="hover-effect"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: "2px 8px",
+                      borderRadius: "12px",
+                      background: "rgba(34, 197, 94, 0.25)",
+                      border: "1px solid rgba(34, 197, 94, 0.5)",
+                      color: "#4ade80",
+                      fontSize: "10px",
+                      fontWeight: "800",
+                      cursor: "pointer"
+                    }}
+                  >
+                    <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#4ade80" }} />
+                    Jam
+                  </button>
+                )}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                {currentTrack && (
+                  <button onClick={(e) => handleShareSong(currentTrack, e)} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect" title="Share song"><Share2 size={24} /></button>
+                )}
+                <button onClick={() => { openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); }} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", padding: "4px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><MoreVertical size={32} /></button>
+              </div>
             </div>
 
             <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "center", marginBottom: "32px", width: "100%" }}>
@@ -9096,6 +9845,22 @@ export default function App() {
               >
                 <Heart size={18} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === currentTrack.id) ? COLORS.spotifyGreen : "none"} />
               </button>
+              <button
+                title="Share song"
+                onClick={(e) => handleShareSong(currentTrack, e)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "rgba(255,255,255,0.7)",
+                  cursor: "pointer",
+                  padding: "6px",
+                  display: "flex",
+                  alignItems: "center"
+                }}
+                className="hover-effect"
+              >
+                <Share2 size={18} />
+              </button>
             </div>
 
             {/* Center: Playback Controls & Scrubber */}
@@ -9181,6 +9946,29 @@ export default function App() {
 
             {/* Right: Volume & Minimize */}
             <div style={{ display: "flex", alignItems: "center", gap: "14px", justifyContent: "flex-end", position: "relative", zIndex: 1 }}>
+              {jamRoomId && (
+                <button
+                  onClick={() => setShowJamModal(true)}
+                  className="hover-effect"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "4px 10px",
+                    borderRadius: "20px",
+                    background: "rgba(34, 197, 94, 0.2)",
+                    border: "1px solid rgba(34, 197, 94, 0.5)",
+                    color: "#4ade80",
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    cursor: "pointer"
+                  }}
+                  title="Active Jam Session"
+                >
+                  <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#4ade80", display: "inline-block", boxShadow: "0 0 6px #4ade80" }} />
+                  <span>Jam ({jamListenersCount})</span>
+                </button>
+              )}
               {/* Volume controls */}
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <button
