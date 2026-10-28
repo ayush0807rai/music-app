@@ -8219,11 +8219,38 @@ export default function App() {
 
       {/* TOP HEADER */}
       <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", zIndex: 10 }}>
-        <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px" }}>Euphony</h1>
-        <div style={{ display: "flex", gap: isDesktop ? "12px" : "8px", alignItems: "center" }}>
-          <button className="hover-effect" onClick={() => fetchAllData(true)} disabled={isRefreshing} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold", opacity: isRefreshing ? 0.7 : 1 }}>
-            <RefreshCw size={16} className={isRefreshing ? "spin-animate" : ""} />{isDesktop && (isRefreshing ? " Refreshing..." : " Refresh")}
-          </button>
+        <button
+          onClick={() => fetchAllData(true)}
+          disabled={isRefreshing}
+          className="hover-effect"
+          style={{
+            background: "transparent",
+            border: "none",
+            padding: "4px 6px",
+            margin: "-4px -6px",
+            borderRadius: "12px",
+            cursor: isRefreshing ? "default" : "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "7px",
+            color: COLORS.primary,
+            userSelect: "none"
+          }}
+          title={isRefreshing ? "Refreshing Euphony..." : "Click Euphony to refresh"}
+        >
+          <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px", lineHeight: 1 }}>
+            Euphony
+          </h1>
+          <RefreshCw
+            size={isDesktop ? 16 : 14}
+            className={isRefreshing ? "spin-animate" : ""}
+            style={{
+              opacity: isRefreshing ? 1 : 0.65,
+              transition: "transform 0.3s ease, opacity 0.2s ease"
+            }}
+          />
+        </button>
+        <div style={{ display: "flex", gap: isDesktop ? "12px" : "6px", alignItems: "center" }}>
           <button className="hover-effect" onClick={toggleDarkMode} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             {isDesktop && (isDarkMode ? " Light" : " Dark")}
