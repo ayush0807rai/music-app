@@ -1366,11 +1366,7 @@ export default function App() {
   const currentTrackRef = useRef(currentTrack);
   const lastJamDriftSyncRef = useRef(0);
 
-  useEffect(() => {
-    isJamHostRef.current = isJamHost;
-    jamRoomIdRef.current = jamRoomId;
-    currentTrackRef.current = currentTrack;
-  }, [isJamHost, jamRoomId, currentTrack]);
+  const localClientIdRef = useRef(`client_${Math.random().toString(36).substring(2, 9)}`);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
   const [showMixer, setShowMixer] = useState(false);
@@ -1379,6 +1375,63 @@ export default function App() {
   const [stemVolumes, setStemVolumes] = useState({ vocals: 1, drums: 1, bass: 1, other: 1 });
   const [activeStems, setActiveStems] = useState({});
   const [stemsBroken, setStemsBroken] = useState(false);
+
+  const userQueueRef = useRef(userQueue);
+  const crossfadeEnabledRef = useRef(crossfadeEnabled);
+  const crossfadeDurationRef = useRef(crossfadeDuration);
+  const sleepTimerTargetRef = useRef(sleepTimerTarget);
+  const stemVolumesRef = useRef(stemVolumes);
+  const playModeRef = useRef(playMode);
+
+  useEffect(() => {
+    isJamHostRef.current = isJamHost;
+    jamRoomIdRef.current = jamRoomId;
+    currentTrackRef.current = currentTrack;
+    userQueueRef.current = userQueue;
+    crossfadeEnabledRef.current = crossfadeEnabled;
+    crossfadeDurationRef.current = crossfadeDuration;
+    sleepTimerTargetRef.current = sleepTimerTarget;
+    stemVolumesRef.current = stemVolumes;
+    playModeRef.current = playMode;
+  }, [isJamHost, jamRoomId, currentTrack, userQueue, crossfadeEnabled, crossfadeDuration, sleepTimerTarget, stemVolumes, playMode]);
+
+  const broadcastJamSync = useCallback((payload) => {
+    if (!jamChannelRef.current || !jamRoomIdRef.current || isProcessingRemoteJamEventRef.current) return;
+    jamChannelRef.current.send({
+      type: 'broadcast',
+      event: 'jam_sync',
+      payload: {
+        ...payload,
+        senderName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Jam member",
+        senderId: session?.user?.id || localClientIdRef.current,
+        timestamp: Date.now()
+      }
+    });
+  }, [session?.user]);
+
+  const lastStemBroadcastRef = useRef(0);
+  const stemBroadcastTimerRef = useRef(null);
+
+  const broadcastStemVolumes = useCallback((newVols) => {
+    if (!jamChannelRef.current || !jamRoomIdRef.current || isProcessingRemoteJamEventRef.current) return;
+    const now = Date.now();
+    const send = () => {
+      if (!jamChannelRef.current || !jamRoomIdRef.current) return;
+      broadcastJamSync({
+        type: 'stem_mixer_update',
+        stemVolumes: newVols
+      });
+      lastStemBroadcastRef.current = Date.now();
+    };
+
+    if (now - lastStemBroadcastRef.current > 120) {
+      if (stemBroadcastTimerRef.current) clearTimeout(stemBroadcastTimerRef.current);
+      send();
+    } else {
+      if (stemBroadcastTimerRef.current) clearTimeout(stemBroadcastTimerRef.current);
+      stemBroadcastTimerRef.current = setTimeout(send, 120);
+    }
+  }, [broadcastJamSync]);
 
   useEffect(() => {
     const handleGlobalRelease = () => {
@@ -2407,10 +2460,22 @@ export default function App() {
   }, [sleepTimerTarget]);
 
   const handleSetSleepTimer = (mins) => {
-    if (mins === 0) { setSleepTimerTarget(null); triggerToast("Sleep timer turned off"); }
-    else { setSleepTimerTarget(Date.now() + mins * 60000); triggerToast(`Sleep timer set for ${mins} minutes`); }
+    let target = null;
+    if (mins === 0) {
+      setSleepTimerTarget(null);
+      triggerToast("Sleep timer turned off");
+    } else {
+      target = Date.now() + mins * 60000;
+      setSleepTimerTarget(target);
+      triggerToast(`Sleep timer set for ${mins} minutes`);
+    }
     openedFromTrackOptionsRef.current = false;
     setShowSleepTimerModal(false);
+    broadcastJamSync({
+      type: 'sleep_timer_update',
+      sleepTimerTarget: target,
+      minutes: mins
+    });
   };
 
   useEffect(() => {
@@ -3407,20 +3472,12 @@ export default function App() {
       if (bassRef.current)   bassRef.current.currentTime   = seekTime;
       if (otherRef.current)  otherRef.current.currentTime  = seekTime;
     }
-    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
-      jamChannelRef.current.send({
-        type: 'broadcast',
-        event: 'jam_sync',
-        payload: {
-          type: 'seek',
-          currentTime: seekTime,
-          song: currentTrack,
-          isPlaying: isPlayingRef.current,
-          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
-          timestamp: Date.now()
-        }
-      });
-    }
+    broadcastJamSync({
+      type: 'seek',
+      currentTime: seekTime,
+      song: currentTrack,
+      isPlaying: isPlayingRef.current
+    });
   };
 
   const handleLyricClick = (time, e) => {
@@ -3434,20 +3491,12 @@ export default function App() {
       updateProgressVisuals();
       if (!isPlaying) setIsPlaying(true); 
     }
-    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
-      jamChannelRef.current.send({
-        type: 'broadcast',
-        event: 'jam_sync',
-        payload: {
-          type: 'seek',
-          currentTime: time,
-          song: currentTrack,
-          isPlaying: true,
-          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
-          timestamp: Date.now()
-        }
-      });
-    }
+    broadcastJamSync({
+      type: 'seek',
+      currentTime: time,
+      song: currentTrack,
+      isPlaying: true
+    });
   };
 
   useEffect(() => {
@@ -3582,11 +3631,42 @@ export default function App() {
     const newQueueId = (typeof crypto !== 'undefined' && crypto && typeof crypto.randomUUID === 'function')
       ? crypto.randomUUID()
       : (Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 9));
-    setUserQueue(prev => [...prev, { ...enriched, queue_id: newQueueId }]);
+    const newTrack = { ...enriched, queue_id: newQueueId };
+    setUserQueue(prev => {
+      const nextQueue = [...prev, newTrack];
+      broadcastJamSync({
+        type: 'queue_update',
+        userQueue: nextQueue,
+        action: 'add',
+        songTitle: song.title
+      });
+      return nextQueue;
+    });
     triggerToast(`Added "${song.title || 'Song'}" to Queue`);
-  }, [playlist, triggerToast]);
-  const removeFromQueue = (index, e) => { if (e) e.stopPropagation(); setUserQueue(prev => prev.filter((_, i) => i !== index)); };
-  const clearQueue = (e) => { if (e) e.stopPropagation(); setUserQueue([]); };
+  }, [playlist, triggerToast, broadcastJamSync]);
+
+  const removeFromQueue = (index, e) => {
+    if (e) e.stopPropagation();
+    setUserQueue(prev => {
+      const nextQueue = prev.filter((_, i) => i !== index);
+      broadcastJamSync({
+        type: 'queue_update',
+        userQueue: nextQueue,
+        action: 'remove'
+      });
+      return nextQueue;
+    });
+  };
+
+  const clearQueue = (e) => {
+    if (e) e.stopPropagation();
+    setUserQueue([]);
+    broadcastJamSync({
+      type: 'queue_update',
+      userQueue: [],
+      action: 'clear'
+    });
+  };
   
   const reorderQueue = (fromIdx, toIdx) => {
     if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return;
@@ -3594,6 +3674,11 @@ export default function App() {
       const next = [...prev];
       const [removed] = next.splice(fromIdx, 1);
       next.splice(toIdx, 0, removed);
+      broadcastJamSync({
+        type: 'queue_update',
+        userQueue: next,
+        action: 'reorder'
+      });
       return next;
     });
   };
@@ -3605,8 +3690,13 @@ export default function App() {
       setUserQueue((items) => {
         const oldIndex = items.findIndex(item => item.queue_id === active.id);
         const newIndex = items.findIndex(item => item.queue_id === over.id);
-        
-        return arrayMove(items, oldIndex, newIndex);
+        const nextQueue = arrayMove(items, oldIndex, newIndex);
+        broadcastJamSync({
+          type: 'queue_update',
+          userQueue: nextQueue,
+          action: 'reorder'
+        });
+        return nextQueue;
       });
     }
   };
@@ -3679,7 +3769,8 @@ export default function App() {
     const full = playlist.find(s => s.id === rawSong?.id);
     const song = (full?.lyrics && !rawSong?.lyrics) ? { ...rawSong, lyrics: full.lyrics } : rawSong;
     const outgoingSong = currentTrack;
-    setUserQueue(prev => prev.filter((_, i) => i !== index));
+    const nextQueue = userQueue.filter((_, i) => i !== index);
+    setUserQueue(nextQueue);
     setQueueCurrentTrack(song);
     setIsPlaying(true);
     if (crossfadeEnabled && isPlaying) {
@@ -3777,21 +3868,14 @@ export default function App() {
     updateProgressVisuals();
     audioEl.play().catch(e => console.log(e));
 
-    // Live Jam Host Track Change Broadcast
-    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
-      jamChannelRef.current.send({
-        type: 'broadcast',
-        event: 'jam_sync',
-        payload: {
-          type: 'track_change',
-          song: track,
-          isPlaying: true,
-          currentTime: 0,
-          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
-          timestamp: Date.now()
-        }
-      });
-    }
+    // Live Jam Track Change Broadcast
+    broadcastJamSync({
+      type: 'track_change',
+      song: track,
+      isPlaying: true,
+      currentTime: 0,
+      userQueue: userQueueRef.current || []
+    });
 
     // If objUrl was fallback cdnUrl, check CacheStorage in background to store in memory for future replays
     if (objUrl === cdnUrl && typeof window !== "undefined" && 'caches' in window) {
@@ -4306,26 +4390,23 @@ export default function App() {
       }
     }
 
-    // Live Jam Host Play/Pause Broadcast
-    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
-      jamChannelRef.current.send({
-        type: 'broadcast',
-        event: 'jam_sync',
-        payload: {
-          type: 'play_pause',
-          song: currentTrack,
-          isPlaying: !isPlaying,
-          currentTime: audioRef.current?.currentTime || 0,
-          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
-          timestamp: Date.now()
-        }
-      });
-    }
+    // Live Jam Play/Pause Broadcast
+    broadcastJamSync({
+      type: 'play_pause',
+      song: currentTrack,
+      isPlaying: !isPlaying,
+      currentTime: audioRef.current?.currentTime || 0
+    });
   };
 
   const cyclePlayMode = () => {
     const idx = PLAY_MODES.indexOf(playMode);
-    setPlayMode(PLAY_MODES[(idx + 1) % PLAY_MODES.length]);
+    const newMode = PLAY_MODES[(idx + 1) % PLAY_MODES.length];
+    setPlayMode(newMode);
+    broadcastJamSync({
+      type: 'play_mode_update',
+      playMode: newMode
+    });
   };
 
   const performCrossfadeTransition = useCallback((incomingTrack, transitionSecs = crossfadeDuration, explicitOutgoingTrack = null) => {
@@ -4546,24 +4627,17 @@ export default function App() {
       }
     }, 3500);
 
-    // Live Jam Host Track Change Broadcast on Crossfade
-    if (jamChannelRef.current && isJamHostRef.current && !isProcessingRemoteJamEventRef.current) {
-      jamChannelRef.current.send({
-        type: 'broadcast',
-        event: 'jam_sync',
-        payload: {
-          type: 'track_change',
-          song: incomingTrack,
-          isPlaying: true,
-          currentTime: 0,
-          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
-          timestamp: Date.now()
-        }
-      });
-    }
+    // Live Jam Track Change Broadcast on Crossfade
+    broadcastJamSync({
+      type: 'track_change',
+      song: incomingTrack,
+      isPlaying: true,
+      currentTime: 0,
+      userQueue: userQueueRef.current || []
+    });
 
     return true;
-  }, [stopCrossfade, crossfadeDuration, currentTrack, playTrackWithMetadata]);
+  }, [stopCrossfade, crossfadeDuration, currentTrack, playTrackWithMetadata, broadcastJamSync]);
 
   const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
@@ -4573,7 +4647,8 @@ export default function App() {
       const full = playlist.find(s => s.id === rawNextSong?.id);
       const nextSong = (full?.lyrics && !rawNextSong?.lyrics) ? { ...rawNextSong, lyrics: full.lyrics } : rawNextSong;
       const outgoingSong = currentTrack;
-      setUserQueue(prev => prev.slice(1));
+      const nextQueue = userQueue.slice(1);
+      setUserQueue(nextQueue);
       setQueueCurrentTrack(nextSong);
       setIsPlaying(true);
       if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
@@ -4673,6 +4748,12 @@ export default function App() {
     if (audioRef.current && audioRef.current.currentTime > 3 && timeSinceLastPrev > 2500) { 
       audioRef.current.currentTime = 0; 
       resetPlaybackTime();
+      broadcastJamSync({
+        type: 'seek',
+        currentTime: 0,
+        song: currentTrack,
+        isPlaying: isPlayingRef.current
+      });
       return; 
     }
     
@@ -5145,6 +5226,7 @@ export default function App() {
   }, [triggerToast]);
 
   const startJamSession = useCallback(() => {
+    primeAudioDecks();
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     setIsJamHost(true);
     setJamRoomId(code);
@@ -5154,9 +5236,10 @@ export default function App() {
     } catch (e) {}
     setShowJamModal(true);
     triggerToast(`Live Jam created! Room Code: ${code}`);
-  }, [triggerToast]);
+  }, [triggerToast, primeAudioDecks]);
 
   const joinJamSession = useCallback((codeToJoin) => {
+    primeAudioDecks();
     const raw = codeToJoin !== undefined ? codeToJoin : jamJoinCodeInput;
     const clean = (raw || "").trim().toUpperCase();
     if (!clean || clean.length < 3) {
@@ -5171,7 +5254,7 @@ export default function App() {
       sessionStorage.setItem('euphony_is_jam_host', 'false');
     } catch (e) {}
     triggerToast(`Joined Jam Room: ${clean}`);
-  }, [jamJoinCodeInput, triggerToast]);
+  }, [jamJoinCodeInput, triggerToast, primeAudioDecks]);
 
   const leaveJamSession = useCallback(() => {
     if (jamChannelRef.current) {
@@ -5303,14 +5386,15 @@ export default function App() {
       })
       .on('broadcast', { event: 'jam_sync' }, ({ payload }) => {
         if (!payload) return;
-        if (isJamHostRef.current) return;
+        const myId = session?.user?.id || localClientIdRef.current;
+        if (payload.senderId && payload.senderId === myId) return;
 
         isProcessingRemoteJamEventRef.current = true;
-        if (payload.hostName) setJamHostName(payload.hostName);
+        if (payload.senderName) setJamHostName(payload.senderName);
 
         const currentActiveAudio = audioRef.current || (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current);
 
-        if (payload.type === 'track_change' && payload.song) {
+        if ((payload.type === 'track_change' || payload.type === 'full_state_sync') && payload.song) {
           const songId = payload.song.id;
           const targetSong = (playlist || []).find(s => s.id === songId) || payload.song;
           setPlaylist(prev => {
@@ -5318,11 +5402,46 @@ export default function App() {
             return [targetSong, ...prev];
           });
           setQueueCurrentTrack(targetSong);
-          localStorage.setItem("euphony_queue_current_track", JSON.stringify(targetSong));
+          try { localStorage.setItem("euphony_queue_current_track", JSON.stringify(targetSong)); } catch (e) {}
+
+          if (Array.isArray(payload.userQueue)) {
+            setUserQueue(payload.userQueue);
+            try { localStorage.setItem("euphony_user_queue", JSON.stringify(payload.userQueue)); } catch (e) {}
+          }
+          if (typeof payload.crossfadeEnabled === 'boolean') {
+            setCrossfadeEnabled(payload.crossfadeEnabled);
+            try { localStorage.setItem("euphony_crossfade_enabled", String(payload.crossfadeEnabled)); } catch (e) {}
+            if (!payload.crossfadeEnabled && isCrossfadingRef.current) {
+              stopCrossfade(false);
+            }
+          }
+          if (typeof payload.crossfadeDuration === 'number') {
+            setCrossfadeDuration(payload.crossfadeDuration);
+            try { localStorage.setItem("euphony_crossfade_duration", String(payload.crossfadeDuration)); } catch (e) {}
+          }
+          if (payload.sleepTimerTarget !== undefined) {
+            setSleepTimerTarget(payload.sleepTimerTarget);
+          }
+          if (payload.stemVolumes && typeof payload.stemVolumes === 'object') {
+            setStemVolumes(payload.stemVolumes);
+          }
+          if (payload.playMode) {
+            setPlayMode(payload.playMode);
+          }
+
           if (currentActiveAudio) {
             playTrackWithMetadata(targetSong, currentActiveAudio, blobCacheRef.current);
             if (typeof payload.currentTime === 'number' && payload.currentTime > 0) {
-              try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
+              const targetTime = payload.currentTime;
+              if (currentActiveAudio.readyState >= 1) {
+                try { currentActiveAudio.currentTime = targetTime; } catch (e) {}
+              } else {
+                const onMeta = () => {
+                  try { currentActiveAudio.currentTime = targetTime; } catch (e) {}
+                  currentActiveAudio.removeEventListener('loadedmetadata', onMeta);
+                };
+                currentActiveAudio.addEventListener('loadedmetadata', onMeta);
+              }
             }
             if (payload.isPlaying === false) {
               currentActiveAudio.pause();
@@ -5334,6 +5453,10 @@ export default function App() {
                 isPlayingRef.current = true;
               }).catch(() => {});
             }
+          }
+
+          if (payload.type === 'track_change' && payload.senderName) {
+            triggerToast(`${payload.senderName} started "${targetSong.title}"`);
           }
         } else if (payload.type === 'play_pause') {
           if (currentActiveAudio) {
@@ -5349,10 +5472,15 @@ export default function App() {
             }
             if (typeof payload.currentTime === 'number') {
               const diff = Math.abs((currentActiveAudio.currentTime || 0) - payload.currentTime);
-              if (diff > 2.0) {
+              if (diff > 1.8) {
                 try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
+                setCurrentTime(payload.currentTime);
+                updateProgressVisuals();
               }
             }
+          }
+          if (payload.senderName) {
+            triggerToast(`${payload.senderName} ${payload.isPlaying ? 'resumed' : 'paused'} playback`);
           }
         } else if (payload.type === 'seek') {
           if (currentActiveAudio && typeof payload.currentTime === 'number') {
@@ -5363,30 +5491,76 @@ export default function App() {
         } else if (payload.type === 'drift_sync') {
           if (currentActiveAudio && typeof payload.currentTime === 'number') {
             const diff = Math.abs((currentActiveAudio.currentTime || 0) - payload.currentTime);
-            if (diff > 2.5) {
+            if (diff > 2.2) {
               try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
               setCurrentTime(payload.currentTime);
               updateProgressVisuals();
             }
           }
+        } else if (payload.type === 'queue_update') {
+          if (Array.isArray(payload.userQueue)) {
+            setUserQueue(payload.userQueue);
+            try { localStorage.setItem("euphony_user_queue", JSON.stringify(payload.userQueue)); } catch (e) {}
+            if (payload.action === 'add' && payload.songTitle) {
+              triggerToast(`${payload.senderName || 'Jam member'} added "${payload.songTitle}" to Queue`);
+            } else if (payload.action === 'clear') {
+              triggerToast(`${payload.senderName || 'Jam member'} cleared the Queue`);
+            }
+          }
+        } else if (payload.type === 'crossfade_update') {
+          if (typeof payload.crossfadeEnabled === 'boolean') {
+            setCrossfadeEnabled(payload.crossfadeEnabled);
+            try { localStorage.setItem("euphony_crossfade_enabled", String(payload.crossfadeEnabled)); } catch (e) {}
+            if (!payload.crossfadeEnabled && isCrossfadingRef.current) {
+              stopCrossfade(false);
+            }
+          }
+          if (typeof payload.crossfadeDuration === 'number') {
+            setCrossfadeDuration(payload.crossfadeDuration);
+            try { localStorage.setItem("euphony_crossfade_duration", String(payload.crossfadeDuration)); } catch (e) {}
+          }
+          triggerToast(`${payload.senderName || 'Jam member'} ${payload.crossfadeEnabled ? `set Crossfade to ${payload.crossfadeDuration}s` : 'turned off Crossfade'}`);
+        } else if (payload.type === 'sleep_timer_update') {
+          setSleepTimerTarget(payload.sleepTimerTarget || null);
+          if (payload.sleepTimerTarget) {
+            triggerToast(`${payload.senderName || 'Jam member'} set sleep timer for ${payload.minutes} mins`);
+          } else {
+            triggerToast(`${payload.senderName || 'Jam member'} turned off sleep timer`);
+          }
+        } else if (payload.type === 'stem_mixer_update') {
+          if (payload.stemVolumes && typeof payload.stemVolumes === 'object') {
+            setStemVolumes(payload.stemVolumes);
+          }
+        } else if (payload.type === 'play_mode_update') {
+          if (payload.playMode) {
+            setPlayMode(payload.playMode);
+            triggerToast(`${payload.senderName || 'Jam member'} set mode to ${payload.playMode}`);
+          }
         }
 
         setTimeout(() => {
           isProcessingRemoteJamEventRef.current = false;
-        }, 150);
+        }, 200);
       })
       .on('broadcast', { event: 'jam_request_state' }, () => {
-        if (isJamHostRef.current && currentTrackRef.current) {
+        if (currentTrackRef.current) {
           const currentActiveAudio = audioRef.current || (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current);
           channel.send({
             type: 'broadcast',
             event: 'jam_sync',
             payload: {
-              type: 'track_change',
+              type: 'full_state_sync',
               song: currentTrackRef.current,
               isPlaying: isPlayingRef.current,
               currentTime: currentActiveAudio?.currentTime || 0,
-              hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+              userQueue: userQueueRef.current || [],
+              crossfadeEnabled: crossfadeEnabledRef.current || false,
+              crossfadeDuration: crossfadeDurationRef.current || 5,
+              sleepTimerTarget: sleepTimerTargetRef.current || null,
+              stemVolumes: stemVolumesRef.current || { vocals: 1, drums: 1, bass: 1, other: 1 },
+              playMode: playModeRef.current || 'playlist-order',
+              senderName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Jam member",
+              senderId: session?.user?.id || localClientIdRef.current,
               timestamp: Date.now()
             }
           });
@@ -5401,13 +5575,11 @@ export default function App() {
             joinedAt: Date.now()
           });
 
-          if (!isJamHostRef.current) {
-            channel.send({
-              type: 'broadcast',
-              event: 'jam_request_state',
-              payload: { requester: userName }
-            });
-          }
+          channel.send({
+            type: 'broadcast',
+            event: 'jam_request_state',
+            payload: { requester: userName }
+          });
         }
       });
 
@@ -5415,7 +5587,7 @@ export default function App() {
       supabase.removeChannel(channel);
       jamChannelRef.current = null;
     };
-  }, [jamRoomId, session?.user?.id, session?.user, playlist, playTrackWithMetadata, updateProgressVisuals, triggerToast]);
+  }, [jamRoomId, session?.user?.id, session?.user, playlist, playTrackWithMetadata, updateProgressVisuals, triggerToast, stopCrossfade]);
 
   const formatTime = (secs) => {
     if (!secs || isNaN(secs)) return "0:00";
@@ -5790,7 +5962,14 @@ export default function App() {
                       }}
                     />
                     <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
-                      onChange={(e) => setStemVolumes({ ...stemVolumes, [stemType]: parseFloat(e.target.value) })}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setStemVolumes(prev => {
+                          const nextVols = { ...prev, [stemType]: val };
+                          broadcastStemVolumes(nextVols);
+                          return nextVols;
+                        });
+                      }}
                       onPointerDown={(e) => {
                         try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
                         setActiveStems(prev => ({ ...prev, [stemType]: true }));
@@ -7517,6 +7696,11 @@ export default function App() {
                   stopCrossfade(false);
                 }
                 triggerToast(tempCrossfadeEnabled ? `Crossfade enabled (${tempCrossfadeDuration}s)` : "Crossfade disabled");
+                broadcastJamSync({
+                  type: 'crossfade_update',
+                  crossfadeEnabled: tempCrossfadeEnabled,
+                  crossfadeDuration: tempCrossfadeDuration
+                });
                 setShowCrossfadeModal(false);
               }}
               className="hover-effect"
@@ -7602,7 +7786,7 @@ export default function App() {
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "16px", padding: "16px", textAlign: "center" }}>
                   <div style={{ fontSize: "11px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px", color: "#4ade80", marginBottom: "6px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                     <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 8px #4ade80" }} />
-                    {isJamHost ? "You are the Host (DJ)" : `Listening to ${jamHostName || "Host"}`}
+                    {isJamHost ? "Host • Shared Jam Session" : (jamHostName ? `Jam Session with ${jamHostName}` : "Shared Jam Session")}
                   </div>
                   <div style={{ fontSize: "32px", fontWeight: "900", letterSpacing: "4px", color: songTheme.textColor, margin: "8px 0" }}>
                     {jamRoomId}
@@ -7611,6 +7795,9 @@ export default function App() {
                     <Users size={16} />
                     <span>{jamListenersCount} {jamListenersCount === 1 ? "listener" : "listeners"} connected</span>
                   </div>
+                  <p style={{ margin: "10px 0 0 0", fontSize: "11px", color: songTheme.textMuted, lineHeight: "1.4" }}>
+                    Everyone in this Jam can play, queue, skip, and adjust controls together in real time.
+                  </p>
                 </div>
 
                 {/* Share / Copy buttons */}
