@@ -1068,8 +1068,11 @@ export default function App() {
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
   const [isPlaying, setIsPlaying] = useState(false);
-  // Unlock both decks on any user interaction so background timer transitions are never blocked by browser autoplay
+  const decksPrimedRef = useRef(false);
+  // Unlock both decks on first user interaction so background timer transitions are never blocked by browser autoplay
   const primeAudioDecks = useCallback(() => {
+    if (decksPrimedRef.current) return;
+    decksPrimedRef.current = true;
     [deckARef.current, deckBRef.current].forEach(deck => {
       if (deck && (!deck.src || deck.src === window.location.href)) {
         deck.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
@@ -1470,6 +1473,7 @@ export default function App() {
   const blobCacheRef = useRef(new Map());
   const preloadAbortRef = useRef(null);
   const nextTrackPreloadAttemptedRef = useRef(null);
+  const prewarmedTrackIdRef = useRef(null);
   const stallRecoveryTimerRef = useRef(null);
 
   const vocalsRef = useRef(null);
@@ -3071,50 +3075,53 @@ export default function App() {
             if (time >= prewarmPoint && time < fadePoint) {
               const upcoming = getNextTwoUpcomingTracks();
               const nextSong = (userQueue && userQueue.length > 0) ? userQueue[0] : upcoming[0];
-              if (nextSong?.url) {
-                const nextCdn = getCdnUrl(nextSong.url);
-                const nextObjUrl = blobCacheRef.current?.get(nextCdn) || nextCdn;
-                const inactiveAudio = activeDeckRef.current === 'A' ? deckBRef.current : deckARef.current;
-                if (inactiveAudio && inactiveAudio.src !== nextObjUrl && !inactiveAudio.src.includes(nextCdn)) {
-                  inactiveAudio.preload = "auto";
-                  inactiveAudio.src = nextObjUrl;
-                  inactiveAudio.volume = 0.001;
-                  try { inactiveAudio.load(); } catch (e) {}
-                }
-                if (nextSong.poster_url) {
-                  try {
-                    const pImg = new Image();
-                    pImg.crossOrigin = "anonymous";
-                    pImg.onload = () => {
-                      try {
-                        const canvas = document.createElement("canvas");
-                        canvas.width = 24; canvas.height = 24;
-                        const ctx = canvas.getContext("2d", { willReadFrequently: true });
-                        ctx.drawImage(pImg, 0, 0, 24, 24);
-                        const imgData = ctx.getImageData(0, 0, 24, 24).data;
-                        let bestR = 24, bestG = 40, bestB = 68;
-                        let maxScore = -1, totalR = 0, totalG = 0, totalB = 0, count = 0;
-                        for (let i = 0; i < imgData.length; i += 4) {
-                          const r = imgData[i], g = imgData[i+1], b = imgData[i+2], a = imgData[i+3];
-                          if (a < 128) continue;
-                          totalR += r; totalG += g; totalB += b; count++;
-                          const max = Math.max(r, g, b), min = Math.min(r, g, b);
-                          const delta = max - min, lightness = (max + min) / 2;
-                          if (lightness > 18 && lightness < 240) {
-                            const saturation = delta / (255 - Math.abs(2 * lightness - 255) || 1);
-                            const score = saturation * 2.5 + (1 - Math.abs(lightness - 120) / 120);
-                            if (score > maxScore) { maxScore = score; bestR = r; bestG = g; bestB = b; }
+              const nextSongKey = nextSong ? (nextSong.id || nextSong.url) : null;
+              if (nextSong && nextSongKey && prewarmedTrackIdRef.current !== nextSongKey) {
+                prewarmedTrackIdRef.current = nextSongKey;
+                if (nextSong.url) {
+                  const nextCdn = getCdnUrl(nextSong.url);
+                  const nextObjUrl = blobCacheRef.current?.get(nextCdn) || nextCdn;
+                  const inactiveAudio = activeDeckRef.current === 'A' ? deckBRef.current : deckARef.current;
+                  if (inactiveAudio && inactiveAudio.src !== nextObjUrl && !inactiveAudio.src.includes(nextCdn)) {
+                    inactiveAudio.preload = "auto";
+                    inactiveAudio.src = nextObjUrl;
+                    inactiveAudio.volume = 0.001;
+                  }
+                  if (nextSong.poster_url && !localStorage.getItem(`euphony_color_${nextSong.id || nextSong.title}`)) {
+                    try {
+                      const pImg = new Image();
+                      pImg.crossOrigin = "anonymous";
+                      pImg.onload = () => {
+                        try {
+                          const canvas = document.createElement("canvas");
+                          canvas.width = 24; canvas.height = 24;
+                          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+                          ctx.drawImage(pImg, 0, 0, 24, 24);
+                          const imgData = ctx.getImageData(0, 0, 24, 24).data;
+                          let bestR = 24, bestG = 40, bestB = 68;
+                          let maxScore = -1, totalR = 0, totalG = 0, totalB = 0, count = 0;
+                          for (let i = 0; i < imgData.length; i += 4) {
+                            const r = imgData[i], g = imgData[i+1], b = imgData[i+2], a = imgData[i+3];
+                            if (a < 128) continue;
+                            totalR += r; totalG += g; totalB += b; count++;
+                            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+                            const delta = max - min, lightness = (max + min) / 2;
+                            if (lightness > 18 && lightness < 240) {
+                              const saturation = delta / (255 - Math.abs(2 * lightness - 255) || 1);
+                              const score = saturation * 2.5 + (1 - Math.abs(lightness - 120) / 120);
+                              if (score > maxScore) { maxScore = score; bestR = r; bestG = g; bestB = b; }
+                            }
                           }
-                        }
-                        if (maxScore < 0.25 && count > 0) {
-                          bestR = Math.round(totalR / count); bestG = Math.round(totalG / count); bestB = Math.round(totalB / count);
-                        }
-                        const preRgb = { r: bestR, g: bestG, b: bestB };
-                        localStorage.setItem(`euphony_color_${nextSong.id || nextSong.title}`, JSON.stringify(preRgb));
-                      } catch (e) {}
-                    };
-                    pImg.src = nextSong.poster_url;
-                  } catch (e) {}
+                          if (maxScore < 0.25 && count > 0) {
+                            bestR = Math.round(totalR / count); bestG = Math.round(totalG / count); bestB = Math.round(totalB / count);
+                          }
+                          const preRgb = { r: bestR, g: bestG, b: bestB };
+                          localStorage.setItem(`euphony_color_${nextSong.id || nextSong.title}`, JSON.stringify(preRgb));
+                        } catch (e) {}
+                      };
+                      pImg.src = nextSong.poster_url;
+                    } catch (e) {}
+                  }
                 }
               }
             }
@@ -3568,6 +3575,7 @@ export default function App() {
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
     crossfadeTriggeredRef.current = false;
+    prewarmedTrackIdRef.current = null;
     if (audioRef.current) {
       try { audioRef.current.currentTime = 0; } catch (e) {}
     }
@@ -3624,6 +3632,7 @@ export default function App() {
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
     crossfadeTriggeredRef.current = false;
+    prewarmedTrackIdRef.current = null;
 
     const initialDur = (isFinite(audioEl.duration) && audioEl.duration > 0)
       ? audioEl.duration
@@ -4111,8 +4120,7 @@ export default function App() {
   };
 
   const handlePlayPause = (e) => {
-    if (e) e.stopPropagation();
-    primeAudioDecks();
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
     if (!audioRef.current) return;
     if (playbackQueue.length === 0 && playlist.length > 0) {
        handlePlaySong(0, playlist, "Global Library");
@@ -4127,23 +4135,23 @@ export default function App() {
       }
       isPlayingRef.current = true;
       setIsPlaying(true);
-      if (audioRef.current.src && audioRef.current.src !== window.location.href) {
-        if (audioRef.current.readyState === 0) audioRef.current.load();
-        audioRef.current.play().catch(err => console.log(err));
-      } else {
-        audioRef.current.src = getCdnUrl(currentTrack.url);
-        audioRef.current.load();
-        audioRef.current.play().catch(e=>e);
+      const currentAudio = audioRef.current;
+      if (currentAudio) {
+        if (!currentAudio.src || currentAudio.src === window.location.href) {
+          currentAudio.src = getCdnUrl(currentTrack.url);
+        }
+        currentAudio.play().catch(err => console.log(err));
+      }
+      if (shouldLoadStems && !stemsBroken) {
+        vocalsRef.current?.play().catch(e => e);
+        drumsRef.current?.play().catch(e => e);
+        bassRef.current?.play().catch(e => e);
+        otherRef.current?.play().catch(e => e);
       }
     } else {
       if (stallRecoveryTimerRef.current) {
         clearTimeout(stallRecoveryTimerRef.current);
         stallRecoveryTimerRef.current = null;
-      }
-      isPlayingRef.current = false;
-      setIsPlaying(false);
-      if (isCrossfadingRef.current) {
-        stopCrossfade(false);
       }
       deckARef.current?.pause();
       deckBRef.current?.pause();
@@ -4152,6 +4160,13 @@ export default function App() {
       bassRef.current?.pause();
       otherRef.current?.pause();
       silentAudioRef.current?.pause();
+
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+
+      if (isCrossfadingRef.current) {
+        stopCrossfade(false);
+      }
     }
   };
 
@@ -4239,6 +4254,7 @@ export default function App() {
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
     crossfadeTriggeredRef.current = false;
+    prewarmedTrackIdRef.current = null;
 
     // Immediately synchronize duration state with the incoming deck
     const incomingDur = (isFinite(nextAudio.duration) && nextAudio.duration > 0)
@@ -8236,7 +8252,7 @@ export default function App() {
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                     <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)" }}>
+                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)", touchAction: "manipulation" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
                     <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
@@ -8291,7 +8307,7 @@ export default function App() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
               <button onClick={e => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect"><SkipBack size={22} fill="currentColor" /></button>
-              <button onClick={e => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect">
+              <button onClick={e => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", touchAction: "manipulation" }} className="hover-effect">
                 {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
               </button>
               <button onClick={e => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect"><SkipForward size={22} fill="currentColor" /></button>
@@ -8400,7 +8416,7 @@ export default function App() {
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
                 <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
-                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease" }} className="hover-effect">
+                <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease", touchAction: "manipulation" }} className="hover-effect">
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
                 </button>
                 <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
@@ -9106,7 +9122,8 @@ export default function App() {
                     backgroundColor: "#FFFFFF",
                     color: "#1A2B4C",
                     cursor: "pointer",
-                    boxShadow: "0 6px 16px rgba(0,0,0,0.3)"
+                    boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
+                    touchAction: "manipulation"
                   }}
                   title={isPlaying ? "Pause" : "Play"}
                 >
