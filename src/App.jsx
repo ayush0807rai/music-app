@@ -6286,6 +6286,7 @@ export default function App() {
         .upload-input { width: 100%; padding: 14px; color: ${COLORS.textMain}; margin-bottom: 16px; outline: none; font-family: inherit; font-size: 14px; }
         .upload-input::placeholder { color: ${COLORS.textMuted}; }
         .upload-input:focus { border-color: ${COLORS.primary}; }
+        .jam-code-input::placeholder { color: ${isDarkMode ? "rgba(255, 255, 255, 0.45)" : "rgba(26, 43, 76, 0.45)"}; }
         .custom-scrollbar::-webkit-scrollbar { display: none; }
         .custom-scrollbar { 
           -ms-overflow-style: none; 
@@ -7575,7 +7576,7 @@ export default function App() {
           >
             <button
               onClick={() => setShowJamModal(false)}
-              style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: "#FFFFFF", cursor: "pointer" }}
+              style={{ position: "absolute", top: "16px", right: "16px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }}
               className="hover-effect"
             >
               <X size={24} />
@@ -7586,7 +7587,7 @@ export default function App() {
                 <Radio size={20} color="#4ade80" />
               </div>
               <div>
-                <h2 style={{ margin: 0, fontSize: "19px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.3px" }}>
+                <h2 style={{ margin: 0, fontSize: "19px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>
                   Live Jam Session
                 </h2>
                 <p style={{ margin: 0, fontSize: "12px", color: songTheme.textMuted }}>
@@ -7603,7 +7604,7 @@ export default function App() {
                     <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 8px #4ade80" }} />
                     {isJamHost ? "You are the Host (DJ)" : `Listening to ${jamHostName || "Host"}`}
                   </div>
-                  <div style={{ fontSize: "32px", fontWeight: "900", letterSpacing: "4px", color: "#FFFFFF", margin: "8px 0" }}>
+                  <div style={{ fontSize: "32px", fontWeight: "900", letterSpacing: "4px", color: songTheme.textColor, margin: "8px 0" }}>
                     {jamRoomId}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "13px", color: songTheme.textMuted }}>
@@ -7724,13 +7725,14 @@ export default function App() {
                     onKeyDown={e => { if (e.key === 'Enter') joinJamSession(); }}
                     placeholder="Enter 6-char Code"
                     maxLength={10}
+                    className="jam-code-input"
                     style={{
                       flex: 1,
                       padding: "12px 14px",
                       borderRadius: "12px",
                       background: songTheme.rowBg,
                       border: songTheme.rowBorder,
-                      color: "#FFFFFF",
+                      color: isDarkMode ? "#FFFFFF" : "#1A2B4C",
                       fontSize: "14px",
                       fontWeight: "700",
                       letterSpacing: "1px",
@@ -7745,9 +7747,9 @@ export default function App() {
                     style={{
                       padding: "12px 18px",
                       borderRadius: "12px",
-                      background: jamJoinCodeInput.trim() ? COLORS.primary : "rgba(255,255,255,0.1)",
+                      background: jamJoinCodeInput.trim() ? COLORS.primary : (isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(26,43,76,0.08)"),
                       border: "none",
-                      color: jamJoinCodeInput.trim() ? COLORS.bgPanel : "rgba(255,255,255,0.4)",
+                      color: jamJoinCodeInput.trim() ? COLORS.bgPanel : (isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(26,43,76,0.4)"),
                       fontWeight: "800",
                       fontSize: "13px",
                       cursor: jamJoinCodeInput.trim() ? "pointer" : "default"
