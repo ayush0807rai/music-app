@@ -1427,7 +1427,7 @@ export default function App() {
   const lastStemBroadcastRef = useRef(0);
   const stemBroadcastTimerRef = useRef(null);
 
-  const broadcastStemVolumes = useCallback((newVols) => {
+  const broadcastStemVolumes = useCallback((newVols, immediate = false) => {
     if (!jamChannelRef.current || !jamRoomIdRef.current) return;
     const now = Date.now();
     const send = () => {
@@ -1439,12 +1439,12 @@ export default function App() {
       lastStemBroadcastRef.current = Date.now();
     };
 
-    if (now - lastStemBroadcastRef.current > 100) {
+    if (immediate || now - lastStemBroadcastRef.current > 80) {
       if (stemBroadcastTimerRef.current) clearTimeout(stemBroadcastTimerRef.current);
       send();
     } else {
       if (stemBroadcastTimerRef.current) clearTimeout(stemBroadcastTimerRef.current);
-      stemBroadcastTimerRef.current = setTimeout(send, 100);
+      stemBroadcastTimerRef.current = setTimeout(send, 80);
     }
   }, [broadcastJamSync]);
 
@@ -3223,7 +3223,7 @@ export default function App() {
 
   const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
   const isMixerActive = Boolean(currentTrack?.stem_vocals && !stemsBroken && areStemsModified);
-  const shouldLoadStems = Boolean((showMixer || (isDesktopFullscreen && fullscreenView === "mixer") || isMixerActive) && currentTrack?.stem_vocals);
+  const shouldLoadStems = Boolean((showMixer || (isDesktopFullscreen && fullscreenView === "mixer") || isMixerActive || jamRoomId) && currentTrack?.stem_vocals);
 
   useEffect(() => {
     const setVol = (ref, targetVol, targetMuted) => {
@@ -5975,13 +5975,28 @@ export default function App() {
           if (payload.stemVolumes && typeof payload.stemVolumes === 'object') {
             stemVolumesRef.current = payload.stemVolumes;
             setStemVolumes(payload.stemVolumes);
+            const areModified = (payload.stemVolumes.vocals ?? 1) < 1 || 
+                                (payload.stemVolumes.drums ?? 1) < 1 || 
+                                (payload.stemVolumes.bass ?? 1) < 1 || 
+                                (payload.stemVolumes.other ?? 1) < 1;
+            const newIsMixerActive = Boolean(payload.song?.stem_vocals && areModified);
+            isMixerActiveRef.current = newIsMixerActive;
             const baseVol = isMutedRef.current ? 0 : volumeRef.current;
+
+            if (currentActiveAudio && !isCrossfadingRef.current) {
+              const deckTargetVol = newIsMixerActive || isMutedRef.current ? 0 : baseVol;
+              const deckTargetMuted = newIsMixerActive || Boolean(isMutedRef.current);
+              if (Math.abs(currentActiveAudio.volume - deckTargetVol) > 0.01) currentActiveAudio.volume = deckTargetVol;
+              if (currentActiveAudio.muted !== deckTargetMuted) currentActiveAudio.muted = deckTargetMuted;
+            }
+
             const updateStemEl = (ref, volVal) => {
               const el = ref.current;
               if (!el) return;
-              const targetVol = Math.max(0, Math.min(1, (volVal ?? 1) * baseVol));
-              el.volume = targetVol;
-              el.muted = targetVol === 0;
+              const targetVol = newIsMixerActive ? Math.max(0, Math.min(1, (volVal ?? 1) * baseVol)) : 0;
+              const targetMuted = !newIsMixerActive || Boolean(isMutedRef.current) || (volVal ?? 1) === 0;
+              if (Math.abs(el.volume - targetVol) > 0.01) el.volume = targetVol;
+              if (el.muted !== targetMuted) el.muted = targetMuted;
             };
             updateStemEl(vocalsRef, payload.stemVolumes.vocals);
             updateStemEl(drumsRef, payload.stemVolumes.drums);
@@ -6034,6 +6049,10 @@ export default function App() {
                   currentActiveAudio.currentTime = liveTarget;
                   setCurrentTime(liveTarget);
                   updateProgressVisualsRef.current?.();
+                  if (vocalsRef.current && vocalsRef.current.readyState >= 1) try { vocalsRef.current.currentTime = liveTarget; } catch (e) {}
+                  if (drumsRef.current  && drumsRef.current.readyState >= 1)  try { drumsRef.current.currentTime  = liveTarget; } catch (e) {}
+                  if (bassRef.current   && bassRef.current.readyState >= 1)   try { bassRef.current.currentTime   = liveTarget; } catch (e) {}
+                  if (otherRef.current  && otherRef.current.readyState >= 1)  try { otherRef.current.currentTime  = liveTarget; } catch (e) {}
                 }
               } catch (e) {}
               currentActiveAudio.removeEventListener('loadedmetadata', restoreTime);
@@ -6178,7 +6197,7 @@ export default function App() {
                 currentActiveAudio.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
               }
 
-              if (payload.isPlaying && isMixerActiveRef.current) {
+              if (payload.isPlaying && (isMixerActiveRef.current || jamRoomIdRef.current) && currentTrackRef.current?.stem_vocals) {
                 [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
                   if (ref.current && ref.current.src && ref.current.paused) {
                     ref.current.play().catch(() => {});
@@ -6203,7 +6222,7 @@ export default function App() {
                 [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
                   if (ref.current && ref.current.src && !ref.current.seeking) {
                     try { ref.current.currentTime = expectedTime; } catch (e) {}
-                    if (payload.isPlaying && isMixerActiveRef.current && ref.current.paused) {
+                    if (payload.isPlaying && (isMixerActiveRef.current || jamRoomIdRef.current) && ref.current.paused) {
                       ref.current.play().catch(() => {});
                     }
                   }
@@ -6285,27 +6304,50 @@ export default function App() {
           if (payload.stemVolumes && typeof payload.stemVolumes === 'object') {
             stemVolumesRef.current = payload.stemVolumes;
             setStemVolumes(payload.stemVolumes);
+
+            const areModified = (payload.stemVolumes.vocals ?? 1) < 1 || 
+                                (payload.stemVolumes.drums ?? 1) < 1 || 
+                                (payload.stemVolumes.bass ?? 1) < 1 || 
+                                (payload.stemVolumes.other ?? 1) < 1;
+            const newIsMixerActive = Boolean(currentTrackRef.current?.stem_vocals && areModified);
+            isMixerActiveRef.current = newIsMixerActive;
+
             const baseVol = isMutedRef.current ? 0 : volumeRef.current;
+
+            // Immediately mute or unmute active deck
+            if (currentActiveAudio && !isCrossfadingRef.current) {
+              const deckTargetVol = newIsMixerActive || isMutedRef.current ? 0 : baseVol;
+              const deckTargetMuted = newIsMixerActive || Boolean(isMutedRef.current);
+              if (Math.abs(currentActiveAudio.volume - deckTargetVol) > 0.01) currentActiveAudio.volume = deckTargetVol;
+              if (currentActiveAudio.muted !== deckTargetMuted) currentActiveAudio.muted = deckTargetMuted;
+            }
+
+            // Immediately update stem volumes and mute states
             const updateStemEl = (ref, volVal) => {
               const el = ref.current;
               if (!el) return;
-              const targetVol = Math.max(0, Math.min(1, (volVal ?? 1) * baseVol));
-              el.volume = targetVol;
-              el.muted = targetVol === 0;
+              const targetVol = newIsMixerActive ? Math.max(0, Math.min(1, (volVal ?? 1) * baseVol)) : 0;
+              const targetMuted = !newIsMixerActive || Boolean(isMutedRef.current) || (volVal ?? 1) === 0;
+              if (Math.abs(el.volume - targetVol) > 0.01) el.volume = targetVol;
+              if (el.muted !== targetMuted) el.muted = targetMuted;
             };
+
             updateStemEl(vocalsRef, payload.stemVolumes.vocals);
             updateStemEl(drumsRef, payload.stemVolumes.drums);
             updateStemEl(bassRef, payload.stemVolumes.bass);
             updateStemEl(otherRef, payload.stemVolumes.other);
-            if (isPlayingRef.current) {
-              const t = currentActiveAudio?.currentTime || 0;
+
+            // Ensure stems are playing if audio is playing in Jam
+            if (isPlayingRef.current && currentActiveAudio) {
+              const t = currentActiveAudio.currentTime || 0;
               [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-                if (ref.current) {
-                  if (Math.abs((ref.current.currentTime || 0) - t) > 0.15) {
-                    try { ref.current.currentTime = t; } catch (e) {}
+                const el = ref.current;
+                if (el && el.src) {
+                  if (el.readyState >= 2 && Math.abs((el.currentTime || 0) - t) > 0.5) {
+                    try { el.currentTime = t; } catch (e) {}
                   }
-                  if (ref.current.paused && ref.current.src) {
-                    ref.current.play().catch(e => e);
+                  if (el.paused) {
+                    el.play().catch(e => e);
                   }
                 }
               });
@@ -6818,6 +6860,7 @@ export default function App() {
                           delete next[stemType];
                           return next;
                         });
+                        broadcastStemVolumes(stemVolumesRef.current, true);
                       }}
                       onPointerCancel={() => {
                         setActiveStems(prev => {
@@ -6830,12 +6873,15 @@ export default function App() {
                       onTouchStart={() => {
                         setActiveStems(prev => ({ ...prev, [stemType]: true }));
                       }}
-                      onTouchEnd={() => setActiveStems(prev => {
-                        if (!prev[stemType]) return prev;
-                        const next = { ...prev };
-                        delete next[stemType];
-                        return next;
-                      })}
+                      onTouchEnd={() => {
+                        setActiveStems(prev => {
+                          if (!prev[stemType]) return prev;
+                          const next = { ...prev };
+                          delete next[stemType];
+                          return next;
+                        });
+                        broadcastStemVolumes(stemVolumesRef.current, true);
+                      }}
                       onTouchCancel={() => setActiveStems(prev => {
                         if (!prev[stemType]) return prev;
                         const next = { ...prev };
