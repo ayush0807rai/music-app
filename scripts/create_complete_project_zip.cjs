@@ -18,7 +18,7 @@ if (fs.existsSync(OUTPUT_ZIP)) {
 }
 
 // Find all top-level items excluding node_modules, dist, .git, and .zip
-const excludeItems = new Set(['node_modules', 'dist', '.git', 'euphony_website_complete_backup.zip']);
+const excludeItems = new Set(['node_modules', 'dist', '.git', 'cpsimhz1_complete_vault', 'euphony_website_complete_backup.zip']);
 const itemsToInclude = fs.readdirSync(rootDir).filter(item => !excludeItems.has(item) && !item.endsWith('.zip'));
 
 console.log(`📁 Archiving ${itemsToInclude.length} files & folders...`);

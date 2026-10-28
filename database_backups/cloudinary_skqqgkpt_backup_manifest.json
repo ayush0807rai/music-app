@@ -1,6 +1,6 @@
 {
   "cloud_name": "skqqgkpt",
-  "backup_timestamp": "2026-10-28T10:52:24.938Z",
+  "backup_timestamp": "2026-10-28T23:32:38.201Z",
   "total_files": 11,
   "files": [
     {
@@ -20,50 +20,50 @@
     {
       "filename": "euphony_website_complete_backup.zip",
       "public_id": "euphony_backups/euphony_website_complete_backup.zip",
-      "bytes": 1669547,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184733/euphony_backups/euphony_website_complete_backup.zip",
+      "bytes": 1959288,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793230351/euphony_backups/euphony_website_complete_backup.zip",
       "uploaded_at": "2026-10-27T10:33:48Z"
     },
     {
       "filename": "complete_database_master.json",
       "public_id": "euphony_backups/database/complete_database_master.json",
-      "bytes": 788668,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184737/euphony_backups/database/complete_database_master.json",
+      "bytes": 797015,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793230352/euphony_backups/database/complete_database_master.json",
       "uploaded_at": "2026-10-27T10:33:52Z"
     },
     {
       "filename": "songs.json",
       "public_id": "euphony_backups/database/songs.json",
-      "bytes": 680303,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793097234/euphony_backups/database/songs.json",
+      "bytes": 684321,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793230353/euphony_backups/database/songs.json",
       "uploaded_at": "2026-10-27T10:33:54Z"
     },
     {
       "filename": "artists.json",
       "public_id": "euphony_backups/database/artists.json",
-      "bytes": 30034,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793097235/euphony_backups/database/artists.json",
+      "bytes": 30364,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793230353/euphony_backups/database/artists.json",
       "uploaded_at": "2026-10-27T10:33:55Z"
     },
     {
       "filename": "playlists.json",
       "public_id": "euphony_backups/database/playlists.json",
-      "bytes": 43935,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184741/euphony_backups/database/playlists.json",
+      "bytes": 46923,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793230354/euphony_backups/database/playlists.json",
       "uploaded_at": "2026-10-27T10:33:55Z"
     },
     {
       "filename": "playlist_songs.json",
       "public_id": "euphony_backups/database/playlist_songs.json",
-      "bytes": 16435,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793097236/euphony_backups/database/playlist_songs.json",
+      "bytes": 17190,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793230355/euphony_backups/database/playlist_songs.json",
       "uploaded_at": "2026-10-27T10:33:56Z"
     },
     {
       "filename": "restore_complete_database.sql",
       "public_id": "euphony_backups/database/restore_complete_database.sql",
-      "bytes": 770962,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184743/euphony_backups/database/restore_complete_database.sql",
+      "bytes": 779322,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793230356/euphony_backups/database/restore_complete_database.sql",
       "uploaded_at": "2026-10-27T10:33:58Z"
     },
     {
