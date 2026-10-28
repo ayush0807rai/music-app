@@ -3560,7 +3560,9 @@ export default function App() {
             }
 
             // Crossfade auto-trigger when reaching crossfade trigger point:
-            if (fadePoint > 10 && time >= fadePoint) {
+            // In Live Jam, only the leader auto-triggers crossfade to prevent peer track divergence
+            const isJamFollower = Boolean(jamRoomIdRef.current && !isJamLeaderRef.current);
+            if (!isJamFollower && fadePoint > 10 && time >= fadePoint) {
               crossfadeTriggeredRef.current = true;
               handleNext(null, true);
             }
@@ -4681,7 +4683,7 @@ export default function App() {
     });
   };
 
-  const performCrossfadeTransition = useCallback((incomingTrack, transitionSecs = crossfadeDuration, explicitOutgoingTrack = null) => {
+  const performCrossfadeTransition = useCallback((incomingTrack, transitionSecs = crossfadeDuration, explicitOutgoingTrack = null, isRemoteJam = false, initialSeekOffset = 0) => {
     const currentAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     const nextAudio = activeDeckRef.current === 'A' ? deckBRef.current : deckARef.current;
     const nextDeckId = activeDeckRef.current === 'A' ? 'B' : 'A';
@@ -4694,6 +4696,10 @@ export default function App() {
     }
 
     const outgoing = explicitOutgoingTrack || currentTrack;
+    nextAudio._trackId = incomingTrack.id;
+    if (outgoing?.id) {
+      currentAudio._trackId = outgoing.id;
+    }
 
     // Preload incoming track image for instant render so crossfade never flashes white/empty
     if (incomingTrack?.poster_url) {
@@ -4740,7 +4746,21 @@ export default function App() {
       nextAudio.preload = "auto";
       nextAudio.src = objUrl;
     }
-    try { nextAudio.currentTime = 0; } catch (e) {}
+    const initialTime = Math.max(0, initialSeekOffset || 0);
+    try { nextAudio.currentTime = initialTime; } catch (e) {}
+    if (initialTime > 0) {
+      const applyInitialTime = () => {
+        try { nextAudio.currentTime = initialTime; } catch (e) {}
+        nextAudio.removeEventListener('loadedmetadata', applyInitialTime);
+        nextAudio.removeEventListener('canplay', applyInitialTime);
+      };
+      if (nextAudio.readyState >= 1) {
+        applyInitialTime();
+      } else {
+        nextAudio.addEventListener('loadedmetadata', applyInitialTime, { once: true });
+        nextAudio.addEventListener('canplay', applyInitialTime, { once: true });
+      }
+    }
     // Inaudible initial volume (0.001) ensures mobile audio focus engine keeps audio stream active in background
     nextAudio.volume = 0.001;
 
@@ -4756,9 +4776,9 @@ export default function App() {
 
     // 2. Switch active deck to the incoming deck for UI, scrubber & lyric tracking
     activeDeckRef.current = nextDeckId;
-    setCurrentTime(0);
-    localStorage.setItem("euphony_current_time", 0);
-    lastSavedTimeRef.current = 0;
+    setCurrentTime(initialTime);
+    localStorage.setItem("euphony_current_time", initialTime);
+    lastSavedTimeRef.current = initialTime;
     crossfadeTriggeredRef.current = false;
     prewarmedTrackIdRef.current = null;
 
@@ -4845,7 +4865,7 @@ export default function App() {
     const startSimultaneousBlend = () => {
       if (blendStarted || !isCrossfadingRef.current || fallbackTriggered || crossfadeTransitionIdRef.current !== transitionId) return;
       blendStarted = true;
-      startTime = Date.now();
+      startTime = Date.now() - (initialTime * 1000);
 
       // Trigger first tick
       tick();
@@ -4916,19 +4936,21 @@ export default function App() {
       }
     }, 3500);
 
-    // Live Jam Track Change Broadcast on Crossfade
-    isJamLeaderRef.current = true;
-    broadcastJamSync({
-      type: 'track_change',
-      song: incomingTrack,
-      isCrossfade: true,
-      crossfadeDuration: transitionSecs,
-      isPlaying: true,
-      startTime: Date.now(),
-      currentTime: 0,
-      leaderClientId: localClientIdRef.current,
-      userQueue: userQueueRef.current || []
-    });
+    if (!isRemoteJam) {
+      // Live Jam Track Change Broadcast on Crossfade
+      isJamLeaderRef.current = true;
+      broadcastJamSync({
+        type: 'track_change',
+        song: incomingTrack,
+        isCrossfade: true,
+        crossfadeDuration: transitionSecs,
+        isPlaying: true,
+        startTime: Date.now(),
+        currentTime: 0,
+        leaderClientId: localClientIdRef.current,
+        userQueue: userQueueRef.current || []
+      });
+    }
 
     return true;
   }, [stopCrossfade, crossfadeDuration, currentTrack, playTrackWithMetadata, broadcastJamSync]);
@@ -5091,6 +5113,10 @@ export default function App() {
   };
 
   const handleTrackEnded = () => {
+    if (jamRoomIdRef.current && !isJamLeaderRef.current) {
+      // In Live Jam, only the leader initiates track advance; followers wait for leader broadcast
+      return;
+    }
     if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
       recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
       pendingListenDurationRef.current = 0;
@@ -5789,10 +5815,16 @@ export default function App() {
         const currentActiveAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
 
         if ((payload.type === 'track_change' || payload.type === 'full_state_sync') && payload.song) {
-          stopCrossfadeRef.current?.(false);
           const songId = payload.song.id;
           const currentPlaylist = playlistRef.current || [];
           const targetSong = currentPlaylist.find(s => s.id === songId) || payload.song;
+          const previousTrack = currentTrackRef.current;
+
+          // Only stop existing crossfade if incoming change is NOT a crossfade transition
+          if (!payload.isCrossfade && isCrossfadingRef.current) {
+            stopCrossfadeRef.current?.(false);
+          }
+
           setPlaylist(prev => {
             if (prev.find(s => s.id === targetSong.id)) return prev;
             return [targetSong, ...prev];
@@ -5837,21 +5869,45 @@ export default function App() {
             setPlayMode(payload.playMode);
           }
 
-          // In Live Jam: only natural auto-crossfades blend; manual skips cut directly and immediately with 0 delay
+          // In Live Jam: crossfade smoothly if leader initiated a crossfade and follower has active playing track
           let crossfadeHandled = false;
-          if (payload.isCrossfade && currentTrackRef.current && isPlayingRef.current && performCrossfadeTransitionRef.current) {
-            crossfadeHandled = performCrossfadeTransitionRef.current(targetSong, payload.crossfadeDuration || crossfadeDurationRef.current || 5, currentTrackRef.current);
+          if (payload.isCrossfade && performCrossfadeTransitionRef.current) {
+            const currentAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+            if (currentAudio && !currentAudio.paused && currentAudio.src && currentAudio.currentTime > 0.5) {
+              const elapsedTransit = payload.startTime ? Math.max(0, (Date.now() - payload.startTime) / 1000) : 0;
+              const fadeDuration = payload.crossfadeDuration || crossfadeDurationRef.current || 5;
+              if (elapsedTransit < fadeDuration - 0.5) {
+                crossfadeHandled = performCrossfadeTransitionRef.current(
+                  targetSong,
+                  fadeDuration,
+                  previousTrack,
+                  true, // isRemoteJam = true (no broadcast loop, preserve follower state)
+                  elapsedTransit
+                );
+              }
+            }
           }
 
           if (!crossfadeHandled && currentActiveAudio) {
+            if (isCrossfadingRef.current) {
+              stopCrossfadeRef.current?.(false);
+            }
             playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current, true);
 
-            const targetTime = Math.max(0, payload.currentTime || 0);
+            const calculateLiveTargetTime = () => {
+              const transitOrElapsed = payload.startTime 
+                ? (Date.now() - payload.startTime) / 1000 
+                : (payload.timestamp ? (Date.now() - payload.timestamp) / 1000 : 0);
+              const clampedElapsed = Math.max(0, Math.min(60, transitOrElapsed));
+              return Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? clampedElapsed : 0));
+            };
+
             const restoreTime = () => {
               try {
-                if (targetTime > 0) {
-                  currentActiveAudio.currentTime = targetTime;
-                  setCurrentTime(targetTime);
+                const liveTarget = calculateLiveTargetTime();
+                if (liveTarget > 0.05) {
+                  currentActiveAudio.currentTime = liveTarget;
+                  setCurrentTime(liveTarget);
                   updateProgressVisualsRef.current?.();
                 }
               } catch (e) {}
@@ -5862,7 +5918,7 @@ export default function App() {
               }
             };
             restoreInitialTimeHandlerRef.current = restoreTime;
-            if (currentActiveAudio.readyState >= 1) {
+            if (currentActiveAudio.readyState >= 2) {
               restoreTime();
             } else {
               currentActiveAudio.addEventListener('loadedmetadata', restoreTime, { once: true });
@@ -5921,7 +5977,13 @@ export default function App() {
         } else if (payload.type === 'drift_sync') {
           if (!isJamLeaderRef.current) {
             // 1. Fail-Safe Song Identity Lock: If follower is playing a different song than the leader, snap immediately!
-            if (payload.song && currentTrackRef.current && String(payload.song.id) !== String(currentTrackRef.current.id)) {
+            const songMatches = payload.song && currentTrackRef.current && String(payload.song.id) === String(currentTrackRef.current.id);
+            const isTransitioningToLeaderSong = isCrossfadingRef.current && payload.song && (
+              String(crossfadeIncomingAudioRef.current?._trackId) === String(payload.song.id) ||
+              String(currentTrackRef.current?.id) === String(payload.song.id)
+            );
+
+            if (payload.song && currentTrackRef.current && !songMatches && !isTransitioningToLeaderSong) {
               const songId = payload.song.id;
               const currentPlaylist = playlistRef.current || [];
               const targetSong = currentPlaylist.find(s => String(s.id) === String(songId)) || payload.song;
@@ -5932,27 +5994,30 @@ export default function App() {
 
               if (currentActiveAudio) {
                 playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current, true);
-                const snapTime = payload.currentTime || 0;
-                if (snapTime > 0) {
-                  const restoreTime = () => {
-                    try {
-                      currentActiveAudio.currentTime = snapTime;
-                      setCurrentTime(snapTime);
+                const transitDelay = payload.timestamp ? Math.max(0, Math.min(2.0, (Date.now() - payload.timestamp) / 1000)) : 0.05;
+                const snapTime = Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? transitDelay : 0));
+                const restoreTime = () => {
+                  try {
+                    const dynamicTransit = payload.timestamp ? Math.max(0, Math.min(10.0, (Date.now() - payload.timestamp) / 1000)) : 0.05;
+                    const liveSnapTime = Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? dynamicTransit : 0));
+                    if (liveSnapTime > 0.05) {
+                      currentActiveAudio.currentTime = liveSnapTime;
+                      setCurrentTime(liveSnapTime);
                       updateProgressVisualsRef.current?.();
-                    } catch (e) {}
-                    currentActiveAudio.removeEventListener('loadedmetadata', restoreTime);
-                    currentActiveAudio.removeEventListener('canplay', restoreTime);
-                    if (restoreInitialTimeHandlerRef.current === restoreTime) {
-                      restoreInitialTimeHandlerRef.current = null;
                     }
-                  };
-                  restoreInitialTimeHandlerRef.current = restoreTime;
-                  if (currentActiveAudio.readyState >= 1) {
-                    restoreTime();
-                  } else {
-                    currentActiveAudio.addEventListener('loadedmetadata', restoreTime, { once: true });
-                    currentActiveAudio.addEventListener('canplay', restoreTime, { once: true });
+                  } catch (e) {}
+                  currentActiveAudio.removeEventListener('loadedmetadata', restoreTime);
+                  currentActiveAudio.removeEventListener('canplay', restoreTime);
+                  if (restoreInitialTimeHandlerRef.current === restoreTime) {
+                    restoreInitialTimeHandlerRef.current = null;
                   }
+                };
+                restoreInitialTimeHandlerRef.current = restoreTime;
+                if (currentActiveAudio.readyState >= 2) {
+                  restoreTime();
+                } else {
+                  currentActiveAudio.addEventListener('loadedmetadata', restoreTime, { once: true });
+                  currentActiveAudio.addEventListener('canplay', restoreTime, { once: true });
                 }
                 if (payload.isPlaying === false) {
                   pauseAllAudioDecksRef.current?.();
@@ -5963,9 +6028,10 @@ export default function App() {
               return;
             }
 
-            // 2. Playback position alignment with seamless rate steering
+            // 2. Playback position alignment with multi-tiered rate steering & hard seek fallback
             if (currentActiveAudio && typeof payload.currentTime === 'number') {
-              const expectedTime = payload.currentTime + (payload.isPlaying ? 0.04 : 0);
+              const transitDelay = payload.timestamp ? Math.max(0, Math.min(2.0, (Date.now() - payload.timestamp) / 1000)) : 0.05;
+              const expectedTime = payload.currentTime + (payload.isPlaying ? transitDelay : 0);
               const currentPos = currentActiveAudio.currentTime || 0;
               const diff = expectedTime - currentPos;
               const absDiff = Math.abs(diff);
@@ -5978,7 +6044,7 @@ export default function App() {
 
               // Ensure follower active audio volume is restored and audible
               const baseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
-              if (Math.abs(currentActiveAudio.volume - baseVol) > 0.05) {
+              if (Math.abs(currentActiveAudio.volume - baseVol) > 0.05 && !isCrossfadingRef.current) {
                 currentActiveAudio.volume = baseVol;
               }
               if (currentActiveAudio.muted !== Boolean(isMutedRef.current || isMixerActiveRef.current)) {
@@ -5986,9 +6052,14 @@ export default function App() {
               }
 
               const now = Date.now();
-              // Only perform a hard seek if the drift is large (> 2.5s), the audio is not already seeking,
-              // and at least 3 seconds have passed since the last hard seek to prevent endless buffering loops
-              if (absDiff > 2.5 && !currentActiveAudio.seeking && (now - lastJamHardSeekRef.current > 3000)) {
+              // Don't steer or hard seek during an active crossfade blend unless drift is catastrophic (> 3s)
+              if (isCrossfadingRef.current && absDiff < 3.0) {
+                return;
+              }
+
+              // Multi-tiered synchronization strategy:
+              // Tier 1: Severe drift (> 1.5s): hard seek with 2.5s cooldown to prevent repeated seeks
+              if (absDiff > 1.5 && !currentActiveAudio.seeking && (now - lastJamHardSeekRef.current > 2500)) {
                 lastJamHardSeekRef.current = now;
                 try { currentActiveAudio.currentTime = expectedTime; } catch (e) {}
                 setCurrentTime(expectedTime);
@@ -5999,14 +6070,41 @@ export default function App() {
                     try { ref.current.currentTime = expectedTime; } catch (e) {}
                   }
                 });
-              } else if (absDiff > 0.6 && payload.isPlaying) {
-                // Moderate drift (0.6s to 2.5s): aggressive rate-steering (8%) catches up in ~6s with ZERO audio interruptions
-                currentActiveAudio.playbackRate = diff > 0 ? 1.08 : 0.92;
-              } else if (absDiff > 0.05 && payload.isPlaying) {
-                // Minor drift (0.05s to 0.6s): gentle rate-steering (3%) maintains imperceptible pitch-perfect sync
-                currentActiveAudio.playbackRate = diff > 0 ? 1.03 : 0.97;
+              } else if (absDiff > 0.4 && payload.isPlaying) {
+                // Tier 2: Noticeable drift (0.4s to 1.5s): aggressive rate-steering (15%) catches up in ~2-3s with 0 stutter
+                const targetRate = diff > 0 ? 1.15 : 0.85;
+                currentActiveAudio.playbackRate = targetRate;
+                [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                  if (ref.current && ref.current.src) {
+                    try { ref.current.playbackRate = targetRate; } catch (e) {}
+                  }
+                });
+              } else if (absDiff > 0.12 && payload.isPlaying) {
+                // Tier 3: Moderate drift (0.12s to 0.4s): standard rate-steering (7%)
+                const targetRate = diff > 0 ? 1.07 : 0.93;
+                currentActiveAudio.playbackRate = targetRate;
+                [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                  if (ref.current && ref.current.src) {
+                    try { ref.current.playbackRate = targetRate; } catch (e) {}
+                  }
+                });
+              } else if (absDiff > 0.03 && payload.isPlaying) {
+                // Tier 4: Micro drift (0.03s to 0.12s): subtle rate-steering (2.5%) for pitch-perfect lock
+                const targetRate = diff > 0 ? 1.025 : 0.975;
+                currentActiveAudio.playbackRate = targetRate;
+                [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                  if (ref.current && ref.current.src) {
+                    try { ref.current.playbackRate = targetRate; } catch (e) {}
+                  }
+                });
               } else {
+                // In sync (< 30ms): normal 1.0x playback rate
                 currentActiveAudio.playbackRate = 1.0;
+                [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                  if (ref.current && ref.current.src) {
+                    try { ref.current.playbackRate = 1.0; } catch (e) {}
+                  }
+                });
               }
             }
           }
@@ -7139,7 +7237,7 @@ export default function App() {
             }
           }
           if (activeDeckRef.current === 'A') {
-            if (!restoreInitialTimeHandlerRef.current) {
+            if (!restoreInitialTimeHandlerRef.current && (!jamRoomIdRef.current || isJamLeaderRef.current)) {
               if (e.target.currentTime !== 0 && !isCrossfadingRef.current) {
                 try { e.target.currentTime = 0; } catch (err) {}
               }
@@ -7167,6 +7265,9 @@ export default function App() {
             } else {
               try { deckARef.current?.pause(); if (deckARef.current) deckARef.current.src = ""; } catch (err) {}
             }
+            return;
+          }
+          if (jamRoomIdRef.current && !isJamLeaderRef.current) {
             return;
           }
           handleTrackEnded();
@@ -7254,7 +7355,7 @@ export default function App() {
             }
           }
           if (activeDeckRef.current === 'B') {
-            if (!restoreInitialTimeHandlerRef.current) {
+            if (!restoreInitialTimeHandlerRef.current && (!jamRoomIdRef.current || isJamLeaderRef.current)) {
               if (e.target.currentTime !== 0 && !isCrossfadingRef.current) {
                 try { e.target.currentTime = 0; } catch (err) {}
               }
@@ -7282,6 +7383,9 @@ export default function App() {
             } else {
               try { deckBRef.current?.pause(); if (deckBRef.current) deckBRef.current.src = ""; } catch (err) {}
             }
+            return;
+          }
+          if (jamRoomIdRef.current && !isJamLeaderRef.current) {
             return;
           }
           handleTrackEnded();
