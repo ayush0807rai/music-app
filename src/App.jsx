@@ -8532,32 +8532,6 @@ export default function App() {
           <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <FolderPlus size={16} color={COLORS.bgPanel} />{isDesktop && " New Playlist"}
           </button>
-          {session?.user?.email && (
-            <div
-              title={`Logged in as ${session.user.email}`}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: isDesktop ? "8px 14px" : "6px 10px",
-                borderRadius: "20px",
-                background: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(26, 43, 76, 0.06)",
-                border: `1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(26, 43, 76, 0.15)"}`,
-                fontSize: isDesktop ? "13px" : "11px",
-                fontWeight: "600",
-                color: COLORS.primary,
-                maxWidth: isDesktop ? "220px" : "110px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap"
-              }}
-            >
-              <User size={isDesktop ? 14 : 12} style={{ flexShrink: 0 }} />
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {session.user.email.split('@')[0]}
-              </span>
-            </div>
-          )}
           <button className="hover-effect" onClick={handleLogout} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
             {isDesktop ? "Log Out" : <LogOut size={16} />}
           </button>
