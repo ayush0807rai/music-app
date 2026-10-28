@@ -1,34 +1,34 @@
 {
   "cloud_name": "skqqgkpt",
-  "backup_timestamp": "2026-10-27T21:02:58.843Z",
+  "backup_timestamp": "2026-10-28T10:52:24.938Z",
   "total_files": 11,
   "files": [
     {
       "filename": "euphony_database_backup.zip",
       "public_id": "euphony_backups/euphony_database_backup.zip",
-      "bytes": 955272,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793134969/euphony_backups/euphony_database_backup.zip",
+      "bytes": 955347,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184720/euphony_backups/euphony_database_backup.zip",
       "uploaded_at": "2026-10-27T10:33:34Z"
     },
     {
       "filename": "euphony_code_backup.zip",
       "public_id": "euphony_backups/euphony_code_backup.zip",
-      "bytes": 714090,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793134970/euphony_backups/euphony_code_backup.zip",
+      "bytes": 714222,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184725/euphony_backups/euphony_code_backup.zip",
       "uploaded_at": "2026-10-27T10:33:39Z"
     },
     {
       "filename": "euphony_website_complete_backup.zip",
       "public_id": "euphony_backups/euphony_website_complete_backup.zip",
-      "bytes": 1669340,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793134971/euphony_backups/euphony_website_complete_backup.zip",
+      "bytes": 1669547,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184733/euphony_backups/euphony_website_complete_backup.zip",
       "uploaded_at": "2026-10-27T10:33:48Z"
     },
     {
       "filename": "complete_database_master.json",
       "public_id": "euphony_backups/database/complete_database_master.json",
-      "bytes": 788544,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793134972/euphony_backups/database/complete_database_master.json",
+      "bytes": 788668,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184737/euphony_backups/database/complete_database_master.json",
       "uploaded_at": "2026-10-27T10:33:52Z"
     },
     {
@@ -48,8 +48,8 @@
     {
       "filename": "playlists.json",
       "public_id": "euphony_backups/database/playlists.json",
-      "bytes": 43811,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793134975/euphony_backups/database/playlists.json",
+      "bytes": 43935,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184741/euphony_backups/database/playlists.json",
       "uploaded_at": "2026-10-27T10:33:55Z"
     },
     {
@@ -62,8 +62,8 @@
     {
       "filename": "restore_complete_database.sql",
       "public_id": "euphony_backups/database/restore_complete_database.sql",
-      "bytes": 770842,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793134976/euphony_backups/database/restore_complete_database.sql",
+      "bytes": 770962,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793184743/euphony_backups/database/restore_complete_database.sql",
       "uploaded_at": "2026-10-27T10:33:58Z"
     },
     {
