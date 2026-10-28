@@ -96,25 +96,27 @@ export const MOOD_KEYWORDS = {
 
 const CUSTOM_MOODS_KEY = "euphony_custom_song_moods";
 
-export function getCustomMoodOverrides() {
+export function getCustomMoodOverrides(userId = null) {
   try {
-    const raw = localStorage.getItem(CUSTOM_MOODS_KEY);
+    const key = userId ? `${CUSTOM_MOODS_KEY}_${userId}` : CUSTOM_MOODS_KEY;
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : {};
   } catch (e) {
     return {};
   }
 }
 
-export function setCustomSongMood(songId, mood) {
-  if (!songId) return getCustomMoodOverrides();
+export function setCustomSongMood(songId, mood, userId = null) {
+  if (!songId) return getCustomMoodOverrides(userId);
   try {
-    const current = getCustomMoodOverrides();
+    const current = getCustomMoodOverrides(userId);
     if (mood && typeof mood === 'string' && mood.trim()) {
       current[songId] = mood.trim();
     } else {
       delete current[songId];
     }
-    localStorage.setItem(CUSTOM_MOODS_KEY, JSON.stringify(current));
+    const key = userId ? `${CUSTOM_MOODS_KEY}_${userId}` : CUSTOM_MOODS_KEY;
+    localStorage.setItem(key, JSON.stringify(current));
     return current;
   } catch (e) {
     return {};

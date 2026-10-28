@@ -35,17 +35,29 @@ export function getActiveUserId() {
 }
 
 function getUserKey(baseKey, userId = activeUserId) {
-  return userId ? `${baseKey}_${userId}` : baseKey;
+  return userId ? `${baseKey}_${userId}` : null;
 }
+
+export function purgeLegacyGlobalStats() {
+  try {
+    localStorage.removeItem(RECENTLY_PLAYED_KEY);
+    localStorage.removeItem(PLAY_COUNTS_KEY);
+    localStorage.removeItem(LISTEN_SECONDS_KEY);
+    localStorage.removeItem(CUSTOM_MOODS_KEY);
+  } catch (e) {}
+}
+
+// Purge un-scoped keys on script initialization so other accounts on the same device don't read stale data
+purgeLegacyGlobalStats();
 
 export function getRecentlyPlayedIds(userId = activeUserId) {
   try {
-    if (userId) {
-      const userRaw = localStorage.getItem(getUserKey(RECENTLY_PLAYED_KEY, userId));
-      if (userRaw) return JSON.parse(userRaw);
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      const userRaw = localStorage.getItem(getUserKey(RECENTLY_PLAYED_KEY, targetId));
+      return userRaw ? JSON.parse(userRaw) : [];
     }
-    const legacyRaw = localStorage.getItem(RECENTLY_PLAYED_KEY);
-    return legacyRaw ? JSON.parse(legacyRaw) : [];
+    return [];
   } catch (e) {
     return [];
   }
@@ -53,12 +65,12 @@ export function getRecentlyPlayedIds(userId = activeUserId) {
 
 export function getPlayCounts(userId = activeUserId) {
   try {
-    if (userId) {
-      const userRaw = localStorage.getItem(getUserKey(PLAY_COUNTS_KEY, userId));
-      if (userRaw) return JSON.parse(userRaw);
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      const userRaw = localStorage.getItem(getUserKey(PLAY_COUNTS_KEY, targetId));
+      return userRaw ? JSON.parse(userRaw) : {};
     }
-    const legacyRaw = localStorage.getItem(PLAY_COUNTS_KEY);
-    return legacyRaw ? JSON.parse(legacyRaw) : {};
+    return {};
   } catch (e) {
     return {};
   }
@@ -66,12 +78,12 @@ export function getPlayCounts(userId = activeUserId) {
 
 export function getListenSeconds(userId = activeUserId) {
   try {
-    if (userId) {
-      const userRaw = localStorage.getItem(getUserKey(LISTEN_SECONDS_KEY, userId));
-      if (userRaw) return JSON.parse(userRaw);
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      const userRaw = localStorage.getItem(getUserKey(LISTEN_SECONDS_KEY, targetId));
+      return userRaw ? JSON.parse(userRaw) : {};
     }
-    const legacyRaw = localStorage.getItem(LISTEN_SECONDS_KEY);
-    return legacyRaw ? JSON.parse(legacyRaw) : {};
+    return {};
   } catch (e) {
     return {};
   }
@@ -79,38 +91,32 @@ export function getListenSeconds(userId = activeUserId) {
 
 export function getCustomMoods(userId = activeUserId) {
   try {
-    if (userId) {
-      const userRaw = localStorage.getItem(getUserKey(CUSTOM_MOODS_KEY, userId));
-      if (userRaw) return JSON.parse(userRaw);
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      const userRaw = localStorage.getItem(getUserKey(CUSTOM_MOODS_KEY, targetId));
+      return userRaw ? JSON.parse(userRaw) : {};
     }
-    const legacyRaw = localStorage.getItem(CUSTOM_MOODS_KEY);
-    return legacyRaw ? JSON.parse(legacyRaw) : {};
+    return {};
   } catch (e) {
     return {};
   }
 }
 
 export function saveLocalStats({ playCounts, listenSeconds, recentlyPlayedIds, customMoods }, userId = activeUserId) {
+  const targetId = userId || activeUserId;
+  if (!targetId) return; // Strictly isolate to authenticated accounts; do not write global un-scoped stats
   try {
     if (playCounts !== undefined) {
-      const str = JSON.stringify(playCounts);
-      if (userId) localStorage.setItem(getUserKey(PLAY_COUNTS_KEY, userId), str);
-      localStorage.setItem(PLAY_COUNTS_KEY, str);
+      localStorage.setItem(getUserKey(PLAY_COUNTS_KEY, targetId), JSON.stringify(playCounts));
     }
     if (listenSeconds !== undefined) {
-      const str = JSON.stringify(listenSeconds);
-      if (userId) localStorage.setItem(getUserKey(LISTEN_SECONDS_KEY, userId), str);
-      localStorage.setItem(LISTEN_SECONDS_KEY, str);
+      localStorage.setItem(getUserKey(LISTEN_SECONDS_KEY, targetId), JSON.stringify(listenSeconds));
     }
     if (recentlyPlayedIds !== undefined) {
-      const str = JSON.stringify(recentlyPlayedIds);
-      if (userId) localStorage.setItem(getUserKey(RECENTLY_PLAYED_KEY, userId), str);
-      localStorage.setItem(RECENTLY_PLAYED_KEY, str);
+      localStorage.setItem(getUserKey(RECENTLY_PLAYED_KEY, targetId), JSON.stringify(recentlyPlayedIds));
     }
     if (customMoods !== undefined) {
-      const str = JSON.stringify(customMoods);
-      if (userId) localStorage.setItem(getUserKey(CUSTOM_MOODS_KEY, userId), str);
-      localStorage.setItem(CUSTOM_MOODS_KEY, str);
+      localStorage.setItem(getUserKey(CUSTOM_MOODS_KEY, targetId), JSON.stringify(customMoods));
     }
   } catch (e) {
     console.warn("Failed saving local stats:", e);
@@ -343,8 +349,11 @@ export async function syncAccountStats(user) {
 
       return merged;
     } else {
-      // First time this account connects: upload local stats to cloud!
-      flushCloudSync(targetId);
+      // First time this account connects on this device
+      const hasLocalData = Object.keys(localCounts).length > 0 || Object.keys(localSeconds).length > 0 || (localRecent && localRecent.length > 0);
+      if (hasLocalData) {
+        flushCloudSync(targetId);
+      }
       return { playCounts: localCounts, listenSeconds: localSeconds, recentlyPlayedIds: localRecent, customMoods: localMoods };
     }
   } catch (err) {

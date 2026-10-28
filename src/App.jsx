@@ -35,6 +35,7 @@ import {
   recordSongPlay,
   recordQualifiedPlay,
   getPlayCounts,
+  getCustomMoods,
   clearListeningHistory,
   computeListeningStats,
   recordListeningDuration,
@@ -1366,7 +1367,7 @@ export default function App() {
   const currentTrackRef = useRef(currentTrack);
   const lastJamDriftSyncRef = useRef(0);
 
-  const localClientIdRef = useRef(`client_${Math.random().toString(36).substring(2, 9)}`);
+  const localClientIdRef = useRef(`client_${Math.random().toString(36).substring(2, 9)}_${Date.now().toString(36)}`);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
 
   const [showMixer, setShowMixer] = useState(false);
@@ -1404,6 +1405,7 @@ export default function App() {
         ...payload,
         senderName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Jam member",
         senderId: session?.user?.id || localClientIdRef.current,
+        senderClientId: localClientIdRef.current,
         timestamp: Date.now()
       }
     });
@@ -1737,6 +1739,50 @@ export default function App() {
     }
     setShowStatsModal(true);
   }, [showStatsModal, handleCloseStatsModal, currentTrack?.id, session?.user]);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      if (audioRef.current) audioRef.current.pause();
+      if (deckARef.current) deckARef.current.pause();
+      if (deckBRef.current) deckBRef.current.pause();
+      setIsPlaying(false);
+      isPlayingRef.current = false;
+
+      if (jamChannelRef.current) {
+        try { supabase.removeChannel(jamChannelRef.current); } catch (e) {}
+        jamChannelRef.current = null;
+      }
+
+      try { sessionStorage.clear(); } catch (e) {}
+      [
+        "euphony_current_time",
+        "euphony_playlist_id",
+        "euphony_user_queue",
+        "euphony_queue_current_track",
+        "euphony_playback_history",
+        "euphony_playback_queue",
+        "euphony_playback_index",
+        "euphony_playback_source",
+        "euphony_active_jam_id",
+        "euphony_is_jam_host"
+      ].forEach(k => {
+        try { localStorage.removeItem(k); } catch (e) {}
+      });
+
+      setActiveUser(null);
+      setRecentlyPlayedIds([]);
+      setPlayCounts({});
+      setCustomMoodOverrides({});
+      setJamRoomId(null);
+      setIsJamHost(false);
+
+      await supabase.auth.signOut();
+      window.location.href = window.location.origin;
+    } catch (err) {
+      console.error("Logout error:", err);
+      window.location.href = window.location.origin;
+    }
+  }, []);
 
   // Ensure playbackQueue is always hydrated with songs from the library if empty, trapped, or missing lyrics
   useEffect(() => {
@@ -2683,7 +2729,11 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setIsSessionLoaded(true); }).catch((e) => { console.error("Session error:", e); setIsSessionLoaded(true); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
+        setActiveUser(null);
         setSession(null);
+        setRecentlyPlayedIds([]);
+        setPlayCounts({});
+        setCustomMoodOverrides({});
       } else if (event === 'PASSWORD_RECOVERY') {
         setSession(session);
         setShowPasswordResetModal(true);
@@ -2907,9 +2957,20 @@ export default function App() {
   useEffect(() => {
     if (!session?.user?.id) {
       setActiveUser(null);
+      setRecentlyPlayedIds([]);
+      setPlayCounts({});
+      setCustomMoodOverrides({});
       return;
     }
     setActiveUser(session.user);
+
+    // Immediately isolate and populate local stats for this specific user
+    const localCounts = getPlayCounts(session.user.id);
+    const localRecent = getRecentlyPlayedIds(session.user.id);
+    const localMoods = getCustomMoods(session.user.id);
+    setPlayCounts(localCounts);
+    setRecentlyPlayedIds(localRecent);
+    setCustomMoodOverrides(localMoods);
 
     // Initial account sync: merges stats from all devices linked to this account
     syncAccountStats(session.user).then((merged) => {
@@ -3186,6 +3247,7 @@ export default function App() {
                 song: currentTrack,
                 isPlaying: true,
                 hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+                senderClientId: localClientIdRef.current,
                 timestamp: now
               }
             });
@@ -5354,7 +5416,7 @@ export default function App() {
     const channel = supabase.channel(channelName, {
       config: {
         broadcast: { self: false },
-        presence: { key: session?.user?.id || `guest_${Math.random().toString(36).substring(2, 7)}` }
+        presence: { key: localClientIdRef.current }
       }
     });
 
@@ -5371,6 +5433,7 @@ export default function App() {
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
         newPresences.forEach(p => {
+          if (p.clientId && p.clientId === localClientIdRef.current) return;
           const myName = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0];
           if (p.name && p.name !== myName) {
             triggerToast(`${p.name} joined the Jam!`);
@@ -5379,6 +5442,7 @@ export default function App() {
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
         leftPresences.forEach(p => {
+          if (p.clientId && p.clientId === localClientIdRef.current) return;
           if (p.name) {
             triggerToast(`${p.name} left the Jam`);
           }
@@ -5386,8 +5450,7 @@ export default function App() {
       })
       .on('broadcast', { event: 'jam_sync' }, ({ payload }) => {
         if (!payload) return;
-        const myId = session?.user?.id || localClientIdRef.current;
-        if (payload.senderId && payload.senderId === myId) return;
+        if (payload.senderClientId && payload.senderClientId === localClientIdRef.current) return;
 
         isProcessingRemoteJamEventRef.current = true;
         if (payload.senderName) setJamHostName(payload.senderName);
@@ -5561,6 +5624,7 @@ export default function App() {
               playMode: playModeRef.current || 'playlist-order',
               senderName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Jam member",
               senderId: session?.user?.id || localClientIdRef.current,
+              senderClientId: localClientIdRef.current,
               timestamp: Date.now()
             }
           });
@@ -5570,6 +5634,8 @@ export default function App() {
         if (status === 'SUBSCRIBED') {
           const userName = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Guest";
           channel.track({
+            clientId: localClientIdRef.current,
+            userId: session?.user?.id || null,
             name: userName,
             isHost: isJamHostRef.current,
             joinedAt: Date.now()
@@ -7252,7 +7318,7 @@ export default function App() {
                 </div>
                 <div>
                   <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Listening Stats</h2>
-                  <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Synced with your account</span>
+                  <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Synced for {session?.user?.email || "your account"}</span>
                 </div>
               </div>
 
@@ -7327,7 +7393,7 @@ export default function App() {
                   </div>
                   <div>
                     <h2 style={{ margin: 0, fontSize: "19px", fontWeight: "800", color: songTheme.textColor }}>Listening Stats</h2>
-                    <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Synced with your account</span>
+                    <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Synced for {session?.user?.email || "your account"}</span>
                   </div>
                 </div>
                 <button
@@ -8466,7 +8532,33 @@ export default function App() {
           <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             <FolderPlus size={16} color={COLORS.bgPanel} />{isDesktop && " New Playlist"}
           </button>
-          <button className="hover-effect" onClick={() => { localStorage.removeItem("euphony_current_time"); localStorage.removeItem("euphony_playlist_id"); localStorage.removeItem("euphony_user_queue"); localStorage.removeItem("euphony_queue_current_track"); localStorage.removeItem("euphony_playback_history"); localStorage.removeItem("euphony_playback_queue"); localStorage.removeItem("euphony_playback_index"); localStorage.removeItem("euphony_playback_source"); supabase.auth.signOut(); }} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+          {session?.user?.email && (
+            <div
+              title={`Logged in as ${session.user.email}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: isDesktop ? "8px 14px" : "6px 10px",
+                borderRadius: "20px",
+                background: isDarkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(26, 43, 76, 0.06)",
+                border: `1px solid ${isDarkMode ? "rgba(255, 255, 255, 0.15)" : "rgba(26, 43, 76, 0.15)"}`,
+                fontSize: isDesktop ? "13px" : "11px",
+                fontWeight: "600",
+                color: COLORS.primary,
+                maxWidth: isDesktop ? "220px" : "110px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap"
+              }}
+            >
+              <User size={isDesktop ? 14 : 12} style={{ flexShrink: 0 }} />
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {session.user.email.split('@')[0]}
+              </span>
+            </div>
+          )}
+          <button className="hover-effect" onClick={handleLogout} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
             {isDesktop ? "Log Out" : <LogOut size={16} />}
           </button>
         </div>
