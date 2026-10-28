@@ -3223,7 +3223,7 @@ export default function App() {
 
   const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
   const isMixerActive = Boolean(currentTrack?.stem_vocals && !stemsBroken && areStemsModified);
-  const shouldLoadStems = Boolean((showMixer || (isDesktopFullscreen && fullscreenView === "mixer") || isMixerActive) && currentTrack?.stem_vocals);
+  const shouldLoadStems = Boolean(currentTrack?.stem_vocals && !stemsBroken);
 
   useEffect(() => {
     const setVol = (ref, targetVol, targetMuted) => {
@@ -3345,17 +3345,24 @@ export default function App() {
       silentAudioRef.current.volume = 0.001;
       silentAudioRef.current.play().catch(e => e);
     }
+    // Synchronously start/unlock stems during active user interaction
+    if (currentTrackRef.current?.stem_vocals && !stemsBroken) {
+      const curT = activeEl.currentTime || 0;
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        const el = ref.current;
+        if (el && el.src) {
+          if (el.readyState >= 2 && Math.abs((el.currentTime || 0) - curT) > 0.3) {
+            try { el.currentTime = curT; } catch (_) {}
+          }
+          el.play().catch(e => e);
+        }
+      });
+    }
     const p = activeEl.play();
     if (p && typeof p.then === 'function') {
       p.then(() => {
         setIsPlaying(true);
         isPlayingRef.current = true;
-        if (shouldLoadStems && !stemsBroken) {
-          vocalsRef.current?.play().catch(e => e);
-          drumsRef.current?.play().catch(e => e);
-          bassRef.current?.play().catch(e => e);
-          otherRef.current?.play().catch(e => e);
-        }
       }).catch((err) => {
         if (err?.name === 'AbortError') return;
         triggerToastRef.current?.("Tap screen to resume Jam audio 🎵");
@@ -3371,7 +3378,7 @@ export default function App() {
         window.addEventListener('pointerdown', handleUnlock);
       });
     }
-  }, [shouldLoadStems, stemsBroken, primeAudioDecks]);
+  }, [stemsBroken, primeAudioDecks]);
 
   const resumeActiveAudioDecksRef = useRef(resumeActiveAudioDecks);
   resumeActiveAudioDecksRef.current = resumeActiveAudioDecks;
@@ -3384,7 +3391,7 @@ export default function App() {
         if (!el || !el.src) return;
         const syncAndPlay = () => {
           try {
-            if (Math.abs(el.currentTime - t) > 0.3) el.currentTime = t;
+            if (el.readyState >= 2 && Math.abs(el.currentTime - t) > 0.3) el.currentTime = t;
           } catch (e) {}
           if (isPlaying) {
             el.play().catch(() => {});
@@ -4218,6 +4225,17 @@ export default function App() {
     audioEl.play().catch(e => {
       if (e?.name !== 'AbortError') console.log("play notice:", e);
     });
+
+    // Synchronously start/unlock stems during active user interaction
+    if (track?.stem_vocals && !stemsBroken) {
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        const el = ref.current;
+        if (el) {
+          try { el.currentTime = 0; } catch (_) {}
+          el.play().catch(() => {});
+        }
+      });
+    }
 
     // Live Jam Track Change Broadcast
     if (!skipJamBroadcast) {
@@ -5306,7 +5324,7 @@ export default function App() {
         [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
           const el = ref.current;
           if (el) {
-            if (Math.abs((el.currentTime || 0) - curTime) > 0.3) {
+            if (el.readyState >= 2 && Math.abs((el.currentTime || 0) - curTime) > 0.3) {
               try { el.currentTime = curTime; } catch (err) {}
             }
             if (isPlayingRef.current && el.paused && el.src) {
@@ -6786,7 +6804,7 @@ export default function App() {
       [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
         const el = ref.current;
         if (el && el.src) {
-          if (Math.abs((el.currentTime || 0) - curTime) > 0.3) {
+          if (el.readyState >= 2 && Math.abs((el.currentTime || 0) - curTime) > 0.3) {
             try { el.currentTime = curTime; } catch (err) {}
           }
           if (isPlayingRef.current && el.paused) {
@@ -6841,7 +6859,6 @@ export default function App() {
                         const nextVols = { ...stemVolumes, [stemType]: val };
                         setStemVolumes(nextVols);
                         broadcastStemVolumes(nextVols);
-                        ensureStemsPlaying();
                       }}
                       onPointerDown={(e) => {
                         try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
