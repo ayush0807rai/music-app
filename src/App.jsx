@@ -1364,6 +1364,7 @@ export default function App() {
   const [jamHostName, setJamHostName] = useState("");
   const [jamJoinCodeInput, setJamJoinCodeInput] = useState("");
   const jamChannelRef = useRef(null);
+  const pendingBroadcastsRef = useRef([]);
   const isProcessingRemoteJamEventRef = useRef(false);
   const hasAutoPlayedSharedSongRef = useRef(false);
   const isJamHostRef = useRef(isJamHost);
@@ -1408,17 +1409,29 @@ export default function App() {
   const broadcastJamSync = useCallback((payload) => {
     const channel = jamChannelRef.current;
     if (!channel || isProcessingRemoteJamEventRef.current) return;
-    channel.send({
-      type: 'broadcast',
-      event: 'jam_sync',
-      payload: {
-        ...payload,
-        senderName: sessionRef.current?.user?.user_metadata?.full_name || sessionRef.current?.user?.email?.split('@')[0] || "Jam member",
-        senderId: sessionRef.current?.user?.id || localClientIdRef.current,
-        senderClientId: localClientIdRef.current,
-        timestamp: Date.now()
-      }
-    });
+
+    const fullPayload = {
+      ...payload,
+      senderName: sessionRef.current?.user?.user_metadata?.full_name || sessionRef.current?.user?.email?.split('@')[0] || "Jam member",
+      senderId: sessionRef.current?.user?.id || localClientIdRef.current,
+      senderClientId: localClientIdRef.current,
+      timestamp: Date.now()
+    };
+
+    if (channel.state !== 'joined') {
+      pendingBroadcastsRef.current.push(fullPayload);
+      return;
+    }
+
+    try {
+      channel.send({
+        type: 'broadcast',
+        event: 'jam_sync',
+        payload: fullPayload
+      });
+    } catch (e) {
+      console.warn("Jam broadcast error:", e);
+    }
   }, []);
 
   const lastStemBroadcastRef = useRef(0);
@@ -2484,8 +2497,8 @@ export default function App() {
         album: currentTrack.album || 'Euphony',
         artwork: [{ src: currentTrack.poster_url || 'https://via.placeholder.com/512.png', sizes: '512x512', type: 'image/png' }]
       });
-      navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
-      navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
+      navigator.mediaSession.setActionHandler('play', () => handlePlayPauseRef.current?.());
+      navigator.mediaSession.setActionHandler('pause', () => handlePlayPauseRef.current?.());
       navigator.mediaSession.setActionHandler('seekto', (details) => {
         if (details.fastSeek && 'fastSeek' in audioRef.current) {
           audioRef.current.fastSeek(details.seekTime);
@@ -2512,14 +2525,19 @@ export default function App() {
     if (!sleepTimerTarget) return;
     const interval = setInterval(() => {
       if (Date.now() >= sleepTimerTarget) {
-        audioRef.current?.pause();
-        setIsPlaying(false);
+        pauseAllAudioDecksRef.current?.();
         setSleepTimerTarget(null);
         triggerToast("Sleep timer ended. Playback paused.");
+        broadcastJamSync({
+          type: 'play_pause',
+          song: currentTrack,
+          isPlaying: false,
+          currentTime: audioRef.current?.currentTime || 0
+        });
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [sleepTimerTarget]);
+  }, [sleepTimerTarget, currentTrack, broadcastJamSync, triggerToast]);
 
   const handleSetSleepTimer = (mins) => {
     let target = null;
@@ -3204,6 +3222,66 @@ export default function App() {
     crossfadeIncomingAudioRef.current = null;
   }, [audioRef]);
 
+  const stopCrossfadeRef = useRef(stopCrossfade);
+  stopCrossfadeRef.current = stopCrossfade;
+
+  const handlePlayPauseRef = useRef(null);
+
+  const pauseAllAudioDecks = useCallback(() => {
+    if (stallRecoveryTimerRef.current) {
+      clearTimeout(stallRecoveryTimerRef.current);
+      stallRecoveryTimerRef.current = null;
+    }
+    deckARef.current?.pause();
+    deckBRef.current?.pause();
+    vocalsRef.current?.pause();
+    drumsRef.current?.pause();
+    bassRef.current?.pause();
+    otherRef.current?.pause();
+    silentAudioRef.current?.pause();
+    if (isCrossfadingRef.current) {
+      stopCrossfadeRef.current?.(false);
+    }
+    setIsPlaying(false);
+    isPlayingRef.current = false;
+  }, []);
+
+  const pauseAllAudioDecksRef = useRef(pauseAllAudioDecks);
+  pauseAllAudioDecksRef.current = pauseAllAudioDecks;
+
+  const resumeActiveAudioDecks = useCallback(() => {
+    const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+    if (!activeEl) return;
+    setIsPlaying(true);
+    isPlayingRef.current = true;
+    silentAudioRef.current?.play().catch(e => e);
+    const p = activeEl.play();
+    if (p && typeof p.then === 'function') {
+      p.then(() => {
+        setIsPlaying(true);
+        isPlayingRef.current = true;
+        if (shouldLoadStems && !stemsBroken) {
+          vocalsRef.current?.play().catch(e => e);
+          drumsRef.current?.play().catch(e => e);
+          bassRef.current?.play().catch(e => e);
+          otherRef.current?.play().catch(e => e);
+        }
+      }).catch(() => {
+        triggerToastRef.current?.("Tap screen to resume Jam audio 🎵");
+        const handleUnlock = () => {
+          resumeActiveAudioDecks();
+          window.removeEventListener('click', handleUnlock);
+          window.removeEventListener('touchend', handleUnlock);
+        };
+        window.addEventListener('click', handleUnlock);
+        window.addEventListener('touchend', handleUnlock);
+      });
+    }
+  }, [shouldLoadStems, stemsBroken]);
+
+  const resumeActiveAudioDecksRef = useRef(resumeActiveAudioDecks);
+  resumeActiveAudioDecksRef.current = resumeActiveAudioDecks;
+
   useEffect(() => {
     if (shouldLoadStems && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime;
@@ -3245,20 +3323,11 @@ export default function App() {
           otherRef.current?.play().catch(e => e);
         }
       } else {
-        if (stallRecoveryTimerRef.current) {
-          clearTimeout(stallRecoveryTimerRef.current);
-          stallRecoveryTimerRef.current = null;
-        }
-        audioRef.current?.pause();
-        vocalsRef.current?.pause();
-        drumsRef.current?.pause();
-        bassRef.current?.pause();
-        otherRef.current?.pause();
-        silentAudioRef.current?.pause();
+        pauseAllAudioDecks();
       }
     };
     syncPlayState();
-  }, [isPlaying, stemsBroken, currentTrack, shouldLoadStems]);
+  }, [isPlaying, stemsBroken, currentTrack, shouldLoadStems, pauseAllAudioDecks]);
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
@@ -3302,19 +3371,20 @@ export default function App() {
           lastListenTickRef.current = now;
         }
 
-        // Live Jam periodic drift synchronization (Host pings listeners every ~3.5s)
-        if (jamChannelRef.current && isJamHostRef.current && isPlaying && !isProcessingRemoteJamEventRef.current) {
-          if (now - lastJamDriftSyncRef.current > 3500) {
+        // Live Jam periodic drift synchronization (Active player keeps peers locked in sync every ~3s)
+        if (jamChannelRef.current && isPlaying && !isProcessingRemoteJamEventRef.current) {
+          if (now - lastJamDriftSyncRef.current > 3000) {
             lastJamDriftSyncRef.current = now;
+            const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
             jamChannelRef.current.send({
               type: 'broadcast',
               event: 'jam_sync',
               payload: {
                 type: 'drift_sync',
-                currentTime: time,
+                currentTime: activeEl?.currentTime || time,
                 song: currentTrack,
                 isPlaying: true,
-                hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+                hostName: sessionRef.current?.user?.user_metadata?.full_name || sessionRef.current?.user?.email?.split('@')[0] || "Jam member",
                 senderClientId: localClientIdRef.current,
                 timestamp: now
               }
@@ -3762,35 +3832,39 @@ export default function App() {
       ? crypto.randomUUID()
       : (Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 9));
     const newTrack = { ...enriched, queue_id: newQueueId };
-    setUserQueue(prev => {
-      const nextQueue = [...prev, newTrack];
-      broadcastJamSync({
-        type: 'queue_update',
-        userQueue: nextQueue,
-        action: 'add',
-        songTitle: song.title
-      });
-      return nextQueue;
+    const currentQ = userQueueRef.current || [];
+    const nextQueue = [...currentQ, newTrack];
+    userQueueRef.current = nextQueue;
+    setUserQueue(nextQueue);
+    try { localStorage.setItem("euphony_user_queue", JSON.stringify(nextQueue)); } catch (err) {}
+    broadcastJamSync({
+      type: 'queue_update',
+      userQueue: nextQueue,
+      action: 'add',
+      songTitle: song.title
     });
     triggerToast(`Added "${song.title || 'Song'}" to Queue`);
   }, [playlist, triggerToast, broadcastJamSync]);
 
   const removeFromQueue = (index, e) => {
     if (e) e.stopPropagation();
-    setUserQueue(prev => {
-      const nextQueue = prev.filter((_, i) => i !== index);
-      broadcastJamSync({
-        type: 'queue_update',
-        userQueue: nextQueue,
-        action: 'remove'
-      });
-      return nextQueue;
+    const currentQ = userQueueRef.current || [];
+    const nextQueue = currentQ.filter((_, i) => i !== index);
+    userQueueRef.current = nextQueue;
+    setUserQueue(nextQueue);
+    try { localStorage.setItem("euphony_user_queue", JSON.stringify(nextQueue)); } catch (err) {}
+    broadcastJamSync({
+      type: 'queue_update',
+      userQueue: nextQueue,
+      action: 'remove'
     });
   };
 
   const clearQueue = (e) => {
     if (e) e.stopPropagation();
+    userQueueRef.current = [];
     setUserQueue([]);
+    try { localStorage.setItem("euphony_user_queue", JSON.stringify([])); } catch (err) {}
     broadcastJamSync({
       type: 'queue_update',
       userQueue: [],
@@ -3800,34 +3874,37 @@ export default function App() {
   
   const reorderQueue = (fromIdx, toIdx) => {
     if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0) return;
-    setUserQueue(prev => {
-      const next = [...prev];
-      const [removed] = next.splice(fromIdx, 1);
-      next.splice(toIdx, 0, removed);
-      broadcastJamSync({
-        type: 'queue_update',
-        userQueue: next,
-        action: 'reorder'
-      });
-      return next;
+    const currentQ = userQueueRef.current || [];
+    const next = [...currentQ];
+    const [removed] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, removed);
+    userQueueRef.current = next;
+    setUserQueue(next);
+    try { localStorage.setItem("euphony_user_queue", JSON.stringify(next)); } catch (err) {}
+    broadcastJamSync({
+      type: 'queue_update',
+      userQueue: next,
+      action: 'reorder'
     });
   };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    
     if (over && active.id !== over.id) {
-      setUserQueue((items) => {
-        const oldIndex = items.findIndex(item => item.queue_id === active.id);
-        const newIndex = items.findIndex(item => item.queue_id === over.id);
+      const items = userQueueRef.current || [];
+      const oldIndex = items.findIndex(item => item.queue_id === active.id);
+      const newIndex = items.findIndex(item => item.queue_id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
         const nextQueue = arrayMove(items, oldIndex, newIndex);
+        userQueueRef.current = nextQueue;
+        setUserQueue(nextQueue);
+        try { localStorage.setItem("euphony_user_queue", JSON.stringify(nextQueue)); } catch (err) {}
         broadcastJamSync({
           type: 'queue_update',
           userQueue: nextQueue,
           action: 'reorder'
         });
-        return nextQueue;
-      });
+      }
     }
   };
 
@@ -3895,12 +3972,16 @@ export default function App() {
   const playFromQueue = (index, e) => {
     if (e) e.stopPropagation();
     primeAudioDecks();
-    const rawSong = userQueue[index];
+    const currentQ = userQueueRef.current || userQueue;
+    const rawSong = currentQ[index];
+    if (!rawSong) return;
     const full = playlist.find(s => s.id === rawSong?.id);
     const song = (full?.lyrics && !rawSong?.lyrics) ? { ...rawSong, lyrics: full.lyrics } : rawSong;
     const outgoingSong = currentTrack;
-    const nextQueue = userQueue.filter((_, i) => i !== index);
+    const nextQueue = currentQ.filter((_, i) => i !== index);
+    userQueueRef.current = nextQueue;
     setUserQueue(nextQueue);
+    try { localStorage.setItem("euphony_user_queue", JSON.stringify(nextQueue)); } catch (err) {}
     setQueueCurrentTrack(song);
     setIsPlaying(true);
     if (crossfadeEnabled && isPlaying) {
@@ -4479,55 +4560,23 @@ export default function App() {
     }
     if (!currentTrack) return;
     
-    if (!isPlaying) {
-      if (stallRecoveryTimerRef.current) {
-        clearTimeout(stallRecoveryTimerRef.current);
-        stallRecoveryTimerRef.current = null;
-      }
-      isPlayingRef.current = true;
-      setIsPlaying(true);
-      const currentAudio = audioRef.current;
-      if (currentAudio) {
-        if (!currentAudio.src || currentAudio.src === window.location.href) {
-          currentAudio.src = getCdnUrl(currentTrack.url);
-        }
-        currentAudio.play().catch(err => console.log(err));
-      }
-      if (shouldLoadStems && !stemsBroken) {
-        vocalsRef.current?.play().catch(e => e);
-        drumsRef.current?.play().catch(e => e);
-        bassRef.current?.play().catch(e => e);
-        otherRef.current?.play().catch(e => e);
-      }
+    const nextPlaying = !isPlaying;
+    if (nextPlaying) {
+      resumeActiveAudioDecks();
     } else {
-      if (stallRecoveryTimerRef.current) {
-        clearTimeout(stallRecoveryTimerRef.current);
-        stallRecoveryTimerRef.current = null;
-      }
-      deckARef.current?.pause();
-      deckBRef.current?.pause();
-      vocalsRef.current?.pause();
-      drumsRef.current?.pause();
-      bassRef.current?.pause();
-      otherRef.current?.pause();
-      silentAudioRef.current?.pause();
-
-      isPlayingRef.current = false;
-      setIsPlaying(false);
-
-      if (isCrossfadingRef.current) {
-        stopCrossfade(false);
-      }
+      pauseAllAudioDecks();
     }
 
     // Live Jam Play/Pause Broadcast
+    const currentAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     broadcastJamSync({
       type: 'play_pause',
       song: currentTrack,
-      isPlaying: !isPlaying,
-      currentTime: audioRef.current?.currentTime || 0
+      isPlaying: nextPlaying,
+      currentTime: currentAudio?.currentTime || 0
     });
   };
+  handlePlayPauseRef.current = handlePlayPause;
 
   const cyclePlayMode = () => {
     const idx = PLAY_MODES.indexOf(playMode);
@@ -4772,13 +4821,16 @@ export default function App() {
   const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
     
-    if (userQueue.length > 0) {
-      const rawNextSong = userQueue[0];
+    const currentQ = userQueueRef.current || userQueue;
+    if (currentQ.length > 0) {
+      const rawNextSong = currentQ[0];
       const full = playlist.find(s => s.id === rawNextSong?.id);
       const nextSong = (full?.lyrics && !rawNextSong?.lyrics) ? { ...rawNextSong, lyrics: full.lyrics } : rawNextSong;
       const outgoingSong = currentTrack;
-      const nextQueue = userQueue.slice(1);
+      const nextQueue = currentQ.slice(1);
+      userQueueRef.current = nextQueue;
       setUserQueue(nextQueue);
+      try { localStorage.setItem("euphony_user_queue", JSON.stringify(nextQueue)); } catch (err) {}
       setQueueCurrentTrack(nextSong);
       setIsPlaying(true);
       if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
@@ -4940,11 +4992,15 @@ export default function App() {
       return;
     }
     
-    if (userQueue.length > 0) {
-      const rawNextSong = userQueue[0];
+    const currentQ = userQueueRef.current || userQueue;
+    if (currentQ.length > 0) {
+      const rawNextSong = currentQ[0];
       const full = playlist.find(s => s.id === rawNextSong?.id);
       const nextSong = (full?.lyrics && !rawNextSong?.lyrics) ? { ...rawNextSong, lyrics: full.lyrics } : rawNextSong;
-      setUserQueue(prev => prev.slice(1));
+      const nextQueue = currentQ.slice(1);
+      userQueueRef.current = nextQueue;
+      setUserQueue(nextQueue);
+      try { localStorage.setItem("euphony_user_queue", JSON.stringify(nextQueue)); } catch (err) {}
       setQueueCurrentTrack(nextSong);
       resetPlaybackTime();
       setIsPlaying(true);
@@ -5150,6 +5206,12 @@ export default function App() {
           setCurrentTime(target);
           updateProgressVisuals();
           triggerToast("+5s");
+          broadcastJamSync({
+            type: 'seek',
+            currentTime: target,
+            song: currentTrack,
+            isPlaying: isPlayingRef.current
+          });
         }
         return;
       }
@@ -5172,6 +5234,12 @@ export default function App() {
           setCurrentTime(target);
           updateProgressVisuals();
           triggerToast("-5s");
+          broadcastJamSync({
+            type: 'seek',
+            currentTime: target,
+            song: currentTrack,
+            isPlaying: isPlayingRef.current
+          });
         }
         return;
       }
@@ -5392,6 +5460,7 @@ export default function App() {
 
   const leaveJamSession = useCallback(() => {
     if (jamChannelRef.current) {
+      try { jamChannelRef.current.untrack(); } catch (e) {}
       supabase.removeChannel(jamChannelRef.current);
       jamChannelRef.current = null;
     }
@@ -5482,9 +5551,6 @@ export default function App() {
   const updateProgressVisualsRef = useRef(updateProgressVisuals);
   updateProgressVisualsRef.current = updateProgressVisuals;
 
-  const stopCrossfadeRef = useRef(stopCrossfade);
-  stopCrossfadeRef.current = stopCrossfade;
-
   const triggerToastRef = useRef(triggerToast);
   triggerToastRef.current = triggerToast;
 
@@ -5511,29 +5577,71 @@ export default function App() {
 
     jamChannelRef.current = channel;
 
+    const knownJamMembers = new Map(); // clientId -> { name, leaveTimer }
+    let initialPresenceSync = false;
+    let listenerCountDebounceTimer = null;
+
     channel
       .on('presence', { event: 'sync' }, () => {
         const presenceState = channel.presenceState();
-        let totalCount = 0;
-        Object.keys(presenceState).forEach(key => {
-          totalCount += presenceState[key].length;
-        });
-        setJamListenersCount(Math.max(1, totalCount));
-      })
-      .on('presence', { event: 'join' }, ({ newPresences }) => {
-        newPresences.forEach(p => {
-          if (p.clientId && p.clientId === localClientIdRef.current) return;
-          const myName = sessionRef.current?.user?.user_metadata?.full_name || sessionRef.current?.user?.email?.split('@')[0];
-          if (p.name && p.name !== myName) {
-            triggerToastRef.current?.(`${p.name} joined the Jam!`);
+        const activeClientIds = new Set(Object.keys(presenceState));
+
+        // 1. Check for newly joined members or members returning from transient disconnect
+        activeClientIds.forEach(cId => {
+          if (cId === localClientIdRef.current) return;
+          const memberList = presenceState[cId] || [];
+          const memberInfo = memberList[0] || {};
+          const memberName = memberInfo.name || "A friend";
+
+          if (knownJamMembers.has(cId)) {
+            const entry = knownJamMembers.get(cId);
+            if (entry.leaveTimer) {
+              // Re-appeared before grace period expired! Cancel departure.
+              clearTimeout(entry.leaveTimer);
+              entry.leaveTimer = null;
+            }
+          } else {
+            // Genuinely new member
+            knownJamMembers.set(cId, { name: memberName, leaveTimer: null });
+            if (initialPresenceSync) {
+              triggerToastRef.current?.(`${memberName} joined the Jam!`);
+            }
           }
         });
-      })
-      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        leftPresences.forEach(p => {
-          if (p.clientId && p.clientId === localClientIdRef.current) return;
-          if (p.name) {
-            triggerToastRef.current?.(`${p.name} left the Jam`);
+
+        // 2. Check for members missing from presenceState (with 5s grace period)
+        knownJamMembers.forEach((entry, cId) => {
+          if (!activeClientIds.has(cId)) {
+            if (!entry.leaveTimer) {
+              entry.leaveTimer = setTimeout(() => {
+                knownJamMembers.delete(cId);
+                triggerToastRef.current?.(`${entry.name} left the Jam`);
+                setJamListenersCount(Math.max(1, knownJamMembers.size + 1));
+              }, 5000);
+            }
+          }
+        });
+
+        initialPresenceSync = true;
+
+        // 3. Smooth listener count to eliminate 1 <-> 2 flickering
+        const calculatedCount = Math.max(1, activeClientIds.size);
+        setJamListenersCount(prevCount => {
+          if (calculatedCount >= prevCount) {
+            if (listenerCountDebounceTimer) {
+              clearTimeout(listenerCountDebounceTimer);
+              listenerCountDebounceTimer = null;
+            }
+            return calculatedCount;
+          } else {
+            if (!listenerCountDebounceTimer) {
+              listenerCountDebounceTimer = setTimeout(() => {
+                listenerCountDebounceTimer = null;
+                const freshState = channel.presenceState();
+                setJamListenersCount(Math.max(1, Object.keys(freshState).length));
+              }, 2000);
+            }
+            return prevCount;
           }
         });
       })
@@ -5544,7 +5652,7 @@ export default function App() {
         isProcessingRemoteJamEventRef.current = true;
         if (payload.senderName) setJamHostName(payload.senderName);
 
-        const currentActiveAudio = audioRef.current || (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current);
+        const currentActiveAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
 
         if ((payload.type === 'track_change' || payload.type === 'full_state_sync') && payload.song) {
           const songId = payload.song.id;
@@ -5555,28 +5663,40 @@ export default function App() {
             return [targetSong, ...prev];
           });
           setQueueCurrentTrack(targetSong);
+          currentTrackRef.current = targetSong;
           try { localStorage.setItem("euphony_queue_current_track", JSON.stringify(targetSong)); } catch (e) {}
 
           if (Array.isArray(payload.userQueue)) {
+            userQueueRef.current = payload.userQueue;
             setUserQueue(payload.userQueue);
             try { localStorage.setItem("euphony_user_queue", JSON.stringify(payload.userQueue)); } catch (e) {}
           }
           if (typeof payload.crossfadeEnabled === 'boolean') {
+            crossfadeEnabledRef.current = payload.crossfadeEnabled;
             setCrossfadeEnabled(payload.crossfadeEnabled);
+            setTempCrossfadeEnabled(payload.crossfadeEnabled);
             try { localStorage.setItem("euphony_crossfade_enabled", String(payload.crossfadeEnabled)); } catch (e) {}
             if (!payload.crossfadeEnabled && isCrossfadingRef.current) {
               stopCrossfadeRef.current?.(false);
             }
           }
           if (typeof payload.crossfadeDuration === 'number') {
+            crossfadeDurationRef.current = payload.crossfadeDuration;
             setCrossfadeDuration(payload.crossfadeDuration);
+            setTempCrossfadeDuration(payload.crossfadeDuration);
             try { localStorage.setItem("euphony_crossfade_duration", String(payload.crossfadeDuration)); } catch (e) {}
           }
           if (payload.sleepTimerTarget !== undefined) {
             setSleepTimerTarget(payload.sleepTimerTarget);
           }
           if (payload.stemVolumes && typeof payload.stemVolumes === 'object') {
+            stemVolumesRef.current = payload.stemVolumes;
             setStemVolumes(payload.stemVolumes);
+            const baseVol = isMutedRef.current ? 0 : volumeRef.current;
+            if (vocalsRef.current) vocalsRef.current.volume = Math.max(0, Math.min(1, (payload.stemVolumes.vocals ?? 1) * baseVol));
+            if (drumsRef.current)  drumsRef.current.volume  = Math.max(0, Math.min(1, (payload.stemVolumes.drums ?? 1) * baseVol));
+            if (bassRef.current)   bassRef.current.volume   = Math.max(0, Math.min(1, (payload.stemVolumes.bass ?? 1) * baseVol));
+            if (otherRef.current)  otherRef.current.volume  = Math.max(0, Math.min(1, (payload.stemVolumes.other ?? 1) * baseVol));
           }
           if (payload.playMode) {
             setPlayMode(payload.playMode);
@@ -5586,34 +5706,28 @@ export default function App() {
             playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current);
             if (typeof payload.currentTime === 'number' && payload.currentTime > 0) {
               const targetTime = payload.currentTime;
+              const restoreTime = () => {
+                try {
+                  currentActiveAudio.currentTime = targetTime;
+                  setCurrentTime(targetTime);
+                  updateProgressVisualsRef.current?.();
+                } catch (e) {}
+                currentActiveAudio.removeEventListener('loadedmetadata', restoreTime);
+                if (restoreInitialTimeHandlerRef.current === restoreTime) {
+                  restoreInitialTimeHandlerRef.current = null;
+                }
+              };
+              restoreInitialTimeHandlerRef.current = restoreTime;
               if (currentActiveAudio.readyState >= 1) {
-                try { currentActiveAudio.currentTime = targetTime; } catch (e) {}
+                restoreTime();
               } else {
-                const onMeta = () => {
-                  try { currentActiveAudio.currentTime = targetTime; } catch (e) {}
-                  currentActiveAudio.removeEventListener('loadedmetadata', onMeta);
-                };
-                currentActiveAudio.addEventListener('loadedmetadata', onMeta);
+                currentActiveAudio.addEventListener('loadedmetadata', restoreTime);
               }
             }
             if (payload.isPlaying === false) {
-              currentActiveAudio.pause();
-              setIsPlaying(false);
-              isPlayingRef.current = false;
+              pauseAllAudioDecksRef.current?.();
             } else {
-              currentActiveAudio.play().then(() => {
-                setIsPlaying(true);
-                isPlayingRef.current = true;
-              }).catch(() => {
-                triggerToastRef.current?.("Tap screen to sync Jam audio 🎵");
-                const handleUnlock = () => {
-                  currentActiveAudio.play().catch(() => {});
-                  window.removeEventListener('click', handleUnlock);
-                  window.removeEventListener('touchend', handleUnlock);
-                };
-                window.addEventListener('click', handleUnlock);
-                window.addEventListener('touchend', handleUnlock);
-              });
+              resumeActiveAudioDecksRef.current?.();
             }
           }
 
@@ -5621,33 +5735,22 @@ export default function App() {
             triggerToastRef.current?.(`${payload.senderName} started "${targetSong.title}"`);
           }
         } else if (payload.type === 'play_pause') {
-          if (currentActiveAudio) {
-            if (payload.isPlaying) {
-              currentActiveAudio.play().then(() => {
-                setIsPlaying(true);
-                isPlayingRef.current = true;
-              }).catch(() => {
-                triggerToastRef.current?.("Tap screen to resume Jam audio 🎵");
-                const handleUnlock = () => {
-                  currentActiveAudio.play().catch(() => {});
-                  window.removeEventListener('click', handleUnlock);
-                  window.removeEventListener('touchend', handleUnlock);
-                };
-                window.addEventListener('click', handleUnlock);
-                window.addEventListener('touchend', handleUnlock);
-              });
-            } else {
-              currentActiveAudio.pause();
-              setIsPlaying(false);
-              isPlayingRef.current = false;
-            }
-            if (typeof payload.currentTime === 'number') {
-              const diff = Math.abs((currentActiveAudio.currentTime || 0) - payload.currentTime);
-              if (diff > 1.8) {
-                try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
-                setCurrentTime(payload.currentTime);
-                updateProgressVisualsRef.current?.();
-              }
+          if (payload.isPlaying) {
+            resumeActiveAudioDecksRef.current?.();
+          } else {
+            pauseAllAudioDecksRef.current?.();
+          }
+
+          if (currentActiveAudio && typeof payload.currentTime === 'number') {
+            const diff = Math.abs((currentActiveAudio.currentTime || 0) - payload.currentTime);
+            if (diff > 1.2) {
+              try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
+              setCurrentTime(payload.currentTime);
+              updateProgressVisualsRef.current?.();
+              if (vocalsRef.current) try { vocalsRef.current.currentTime = payload.currentTime; } catch (e) {}
+              if (drumsRef.current)  try { drumsRef.current.currentTime  = payload.currentTime; } catch (e) {}
+              if (bassRef.current)   try { bassRef.current.currentTime   = payload.currentTime; } catch (e) {}
+              if (otherRef.current)  try { otherRef.current.currentTime  = payload.currentTime; } catch (e) {}
             }
           }
           if (payload.senderName) {
@@ -5655,21 +5758,39 @@ export default function App() {
           }
         } else if (payload.type === 'seek') {
           if (currentActiveAudio && typeof payload.currentTime === 'number') {
+            if (isCrossfadingRef.current) {
+              stopCrossfadeRef.current?.(false);
+            }
             try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
             setCurrentTime(payload.currentTime);
             updateProgressVisualsRef.current?.();
+            if (vocalsRef.current) try { vocalsRef.current.currentTime = payload.currentTime; } catch (e) {}
+            if (drumsRef.current)  try { drumsRef.current.currentTime  = payload.currentTime; } catch (e) {}
+            if (bassRef.current)   try { bassRef.current.currentTime   = payload.currentTime; } catch (e) {}
+            if (otherRef.current)  try { otherRef.current.currentTime  = payload.currentTime; } catch (e) {}
+            if (payload.isPlaying) {
+              resumeActiveAudioDecksRef.current?.();
+            }
           }
         } else if (payload.type === 'drift_sync') {
           if (currentActiveAudio && typeof payload.currentTime === 'number') {
-            const diff = Math.abs((currentActiveAudio.currentTime || 0) - payload.currentTime);
-            if (diff > 2.2) {
-              try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
-              setCurrentTime(payload.currentTime);
+            const elapsedNetworkMs = Math.max(0, Math.min(2000, Date.now() - (payload.timestamp || Date.now())));
+            const latencySec = elapsedNetworkMs / 1000;
+            const expectedTime = payload.currentTime + (payload.isPlaying ? latencySec : 0);
+            const diff = Math.abs((currentActiveAudio.currentTime || 0) - expectedTime);
+            if (diff > 1.2 && isFinite(expectedTime) && expectedTime >= 0) {
+              try { currentActiveAudio.currentTime = expectedTime; } catch (e) {}
+              setCurrentTime(expectedTime);
               updateProgressVisualsRef.current?.();
+              if (vocalsRef.current) try { vocalsRef.current.currentTime = expectedTime; } catch (e) {}
+              if (drumsRef.current)  try { drumsRef.current.currentTime  = expectedTime; } catch (e) {}
+              if (bassRef.current)   try { bassRef.current.currentTime   = expectedTime; } catch (e) {}
+              if (otherRef.current)  try { otherRef.current.currentTime  = expectedTime; } catch (e) {}
             }
           }
         } else if (payload.type === 'queue_update') {
           if (Array.isArray(payload.userQueue)) {
+            userQueueRef.current = payload.userQueue;
             setUserQueue(payload.userQueue);
             try { localStorage.setItem("euphony_user_queue", JSON.stringify(payload.userQueue)); } catch (e) {}
             if (payload.action === 'add' && payload.songTitle) {
@@ -5680,14 +5801,18 @@ export default function App() {
           }
         } else if (payload.type === 'crossfade_update') {
           if (typeof payload.crossfadeEnabled === 'boolean') {
+            crossfadeEnabledRef.current = payload.crossfadeEnabled;
             setCrossfadeEnabled(payload.crossfadeEnabled);
+            setTempCrossfadeEnabled(payload.crossfadeEnabled);
             try { localStorage.setItem("euphony_crossfade_enabled", String(payload.crossfadeEnabled)); } catch (e) {}
             if (!payload.crossfadeEnabled && isCrossfadingRef.current) {
               stopCrossfadeRef.current?.(false);
             }
           }
           if (typeof payload.crossfadeDuration === 'number') {
+            crossfadeDurationRef.current = payload.crossfadeDuration;
             setCrossfadeDuration(payload.crossfadeDuration);
+            setTempCrossfadeDuration(payload.crossfadeDuration);
             try { localStorage.setItem("euphony_crossfade_duration", String(payload.crossfadeDuration)); } catch (e) {}
           }
           triggerToastRef.current?.(`${payload.senderName || 'Jam member'} ${payload.crossfadeEnabled ? `set Crossfade to ${payload.crossfadeDuration}s` : 'turned off Crossfade'}`);
@@ -5700,7 +5825,26 @@ export default function App() {
           }
         } else if (payload.type === 'stem_mixer_update') {
           if (payload.stemVolumes && typeof payload.stemVolumes === 'object') {
+            stemVolumesRef.current = payload.stemVolumes;
             setStemVolumes(payload.stemVolumes);
+            const baseVol = isMutedRef.current ? 0 : volumeRef.current;
+            if (vocalsRef.current) vocalsRef.current.volume = Math.max(0, Math.min(1, (payload.stemVolumes.vocals ?? 1) * baseVol));
+            if (drumsRef.current)  drumsRef.current.volume  = Math.max(0, Math.min(1, (payload.stemVolumes.drums ?? 1) * baseVol));
+            if (bassRef.current)   bassRef.current.volume   = Math.max(0, Math.min(1, (payload.stemVolumes.bass ?? 1) * baseVol));
+            if (otherRef.current)  otherRef.current.volume  = Math.max(0, Math.min(1, (payload.stemVolumes.other ?? 1) * baseVol));
+            if (isPlayingRef.current) {
+              const t = currentActiveAudio?.currentTime || 0;
+              [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                if (ref.current && ref.current.src) {
+                  if (Math.abs(ref.current.currentTime - t) > 0.3) {
+                    try { ref.current.currentTime = t; } catch (e) {}
+                  }
+                  if (ref.current.paused) {
+                    ref.current.play().catch(e => e);
+                  }
+                }
+              });
+            }
           }
         } else if (payload.type === 'play_mode_update') {
           if (payload.playMode) {
@@ -5715,7 +5859,7 @@ export default function App() {
       })
       .on('broadcast', { event: 'jam_request_state' }, () => {
         if (currentTrackRef.current) {
-          const currentActiveAudio = audioRef.current || (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current);
+          const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
           channel.send({
             type: 'broadcast',
             event: 'jam_sync',
@@ -5723,7 +5867,7 @@ export default function App() {
               type: 'full_state_sync',
               song: currentTrackRef.current,
               isPlaying: isPlayingRef.current,
-              currentTime: currentActiveAudio?.currentTime || 0,
+              currentTime: activeEl?.currentTime || 0,
               userQueue: userQueueRef.current || [],
               crossfadeEnabled: crossfadeEnabledRef.current || false,
               crossfadeDuration: crossfadeDurationRef.current || 5,
@@ -5749,6 +5893,16 @@ export default function App() {
             joinedAt: Date.now()
           });
 
+          // Flush any broadcast messages that were queued before subscription was confirmed
+          while (pendingBroadcastsRef.current.length > 0) {
+            const p = pendingBroadcastsRef.current.shift();
+            channel.send({
+              type: 'broadcast',
+              event: 'jam_sync',
+              payload: p
+            });
+          }
+
           channel.send({
             type: 'broadcast',
             event: 'jam_request_state',
@@ -5758,6 +5912,10 @@ export default function App() {
       });
 
     return () => {
+      if (listenerCountDebounceTimer) clearTimeout(listenerCountDebounceTimer);
+      knownJamMembers.forEach(entry => {
+        if (entry.leaveTimer) clearTimeout(entry.leaveTimer);
+      });
       supabase.removeChannel(channel);
       jamChannelRef.current = null;
     };
