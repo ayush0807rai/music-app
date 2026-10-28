@@ -1347,6 +1347,7 @@ export default function App() {
   const jamRoomIdRef = useRef(jamRoomId);
   const currentTrackRef = useRef(currentTrack);
   const lastJamDriftSyncRef = useRef(0);
+  const lastJamHardSeekRef = useRef(0);
 
   const localClientIdRef = useRef(`client_${Math.random().toString(36).substring(2, 9)}_${Date.now().toString(36)}`);
   const [sleepTimerTarget, setSleepTimerTarget] = useState(null);
@@ -1367,7 +1368,11 @@ export default function App() {
 
   useEffect(() => {
     isJamHostRef.current = isJamHost;
-    if (isJamHost) isJamLeaderRef.current = true;
+    if (isJamHost && !jamRoomIdRef.current) isJamLeaderRef.current = true;
+  }, [isJamHost]);
+
+  useEffect(() => {
+    isJamHostRef.current = isJamHost;
     jamRoomIdRef.current = jamRoomId;
     currentTrackRef.current = currentTrack;
     userQueueRef.current = userQueue;
@@ -1586,30 +1591,43 @@ export default function App() {
       } catch (e) {}
     }
 
-    // 3. Dual-Deck & Stems Hardware Unlock (primes all audio nodes in browser pipeline)
+    // 3. Dual-Deck & Stems Hardware Unlock:
+    // Only prime inactive audio nodes once so we never tamper with active volume or hardware pipelines
+    if (decksPrimedRef.current) return;
+    decksPrimedRef.current = true;
+
     [deckARef.current, deckBRef.current, vocalsRef.current, drumsRef.current, bassRef.current, otherRef.current].forEach(deck => {
       if (deck) {
+        const isCurrentActive = (deck === audioRef.current && isPlayingRef.current);
+        if (isCurrentActive) {
+          // Never mute or prime the currently playing audio element!
+          const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+          deck.volume = targetVol;
+          deck.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
+          return;
+        }
         if (!deck.src || deck.src === window.location.href) {
           deck.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-        }
-        deck.volume = 0.001;
-        const p = deck.play();
-        if (p && typeof p.then === 'function') {
-          p.then(() => {
-            // Keep primed
-          }).catch(() => {});
+          deck.volume = 0.001;
+          const p = deck.play();
+          if (p && typeof p.then === 'function') {
+            p.then(() => {
+              deck.pause();
+              deck.currentTime = 0;
+            }).catch(() => {});
+          }
         }
       }
     });
-  }, []);
+  }, [audioRef]);
 
   useEffect(() => {
     const handleGesture = () => {
       primeAudioDecks();
     };
-    window.addEventListener('touchstart', handleGesture, { passive: true });
-    window.addEventListener('pointerdown', handleGesture, { passive: true });
-    window.addEventListener('click', handleGesture, { passive: true });
+    window.addEventListener('touchstart', handleGesture, { passive: true, once: true });
+    window.addEventListener('pointerdown', handleGesture, { passive: true, once: true });
+    window.addEventListener('click', handleGesture, { passive: true, once: true });
     return () => {
       window.removeEventListener('touchstart', handleGesture);
       window.removeEventListener('pointerdown', handleGesture);
@@ -3300,6 +3318,9 @@ export default function App() {
     if (!activeEl) return;
     setIsPlaying(true);
     isPlayingRef.current = true;
+    const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    activeEl.volume = targetVol;
+    activeEl.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
     if (silentAudioRef.current) {
       silentAudioRef.current.volume = 0.001;
       silentAudioRef.current.play().catch(e => e);
@@ -3315,7 +3336,8 @@ export default function App() {
           bassRef.current?.play().catch(e => e);
           otherRef.current?.play().catch(e => e);
         }
-      }).catch(() => {
+      }).catch((err) => {
+        if (err?.name === 'AbortError') return;
         triggerToastRef.current?.("Tap screen to resume Jam audio 🎵");
         const handleUnlock = () => {
           primeAudioDecks();
@@ -3481,9 +3503,9 @@ export default function App() {
           const fadePoint = totalDur - crossfadeDuration;
           const prewarmPoint = Math.max(0, fadePoint - 7);
 
-          if (totalDur && isFinite(totalDur) && totalDur > (crossfadeDuration * 1.8)) {
+          if (totalDur && isFinite(totalDur) && totalDur > (crossfadeDuration * 1.8) && totalDur > 20) {
             // Pre-warm the inactive deck 7 seconds before crossfade trigger point so network buffer is ready
-            if (time >= prewarmPoint && time < fadePoint) {
+            if (fadePoint > 10 && time >= prewarmPoint && time < fadePoint) {
               const upcoming = getNextTwoUpcomingTracks();
               const nextSong = (userQueue && userQueue.length > 0) ? userQueue[0] : upcoming[0];
               const nextSongKey = nextSong ? (nextSong.id || nextSong.url) : null;
@@ -3538,7 +3560,7 @@ export default function App() {
             }
 
             // Crossfade auto-trigger when reaching crossfade trigger point:
-            if (time >= fadePoint) {
+            if (fadePoint > 10 && time >= fadePoint) {
               crossfadeTriggeredRef.current = true;
               handleNext(null, true);
             }
@@ -4133,8 +4155,14 @@ export default function App() {
     if (bassRef.current && bassRef.current.src) try { bassRef.current.currentTime = 0; } catch (e) {}
     if (otherRef.current && otherRef.current.src) try { otherRef.current.currentTime = 0; } catch (e) {}
     
+    const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    audioEl.volume = targetVol;
+    audioEl.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
+
     updateProgressVisuals();
-    audioEl.play().catch(e => console.log(e));
+    audioEl.play().catch(e => {
+      if (e?.name !== 'AbortError') console.log("play notice:", e);
+    });
 
     // Live Jam Track Change Broadcast
     if (!skipJamBroadcast) {
@@ -5893,10 +5921,10 @@ export default function App() {
         } else if (payload.type === 'drift_sync') {
           if (!isJamLeaderRef.current) {
             // 1. Fail-Safe Song Identity Lock: If follower is playing a different song than the leader, snap immediately!
-            if (payload.song && currentTrackRef.current && payload.song.id !== currentTrackRef.current.id) {
+            if (payload.song && currentTrackRef.current && String(payload.song.id) !== String(currentTrackRef.current.id)) {
               const songId = payload.song.id;
               const currentPlaylist = playlistRef.current || [];
-              const targetSong = currentPlaylist.find(s => s.id === songId) || payload.song;
+              const targetSong = currentPlaylist.find(s => String(s.id) === String(songId)) || payload.song;
               stopCrossfadeRef.current?.(false);
               setQueueCurrentTrack(targetSong);
               currentTrackRef.current = targetSong;
@@ -5948,22 +5976,35 @@ export default function App() {
                 pauseAllAudioDecksRef.current?.();
               }
 
-              if (absDiff > 0.8) {
+              // Ensure follower active audio volume is restored and audible
+              const baseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+              if (Math.abs(currentActiveAudio.volume - baseVol) > 0.05) {
+                currentActiveAudio.volume = baseVol;
+              }
+              if (currentActiveAudio.muted !== Boolean(isMutedRef.current || isMixerActiveRef.current)) {
+                currentActiveAudio.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
+              }
+
+              const now = Date.now();
+              // Only perform a hard seek if the drift is large (> 2.5s), the audio is not already seeking,
+              // and at least 3 seconds have passed since the last hard seek to prevent endless buffering loops
+              if (absDiff > 2.5 && !currentActiveAudio.seeking && (now - lastJamHardSeekRef.current > 3000)) {
+                lastJamHardSeekRef.current = now;
                 try { currentActiveAudio.currentTime = expectedTime; } catch (e) {}
                 setCurrentTime(expectedTime);
                 updateProgressVisualsRef.current?.();
                 currentActiveAudio.playbackRate = 1.0;
                 [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-                  if (ref.current && ref.current.src) {
+                  if (ref.current && ref.current.src && !ref.current.seeking) {
                     try { ref.current.currentTime = expectedTime; } catch (e) {}
                   }
                 });
-              } else if (absDiff > 0.04 && payload.isPlaying) {
-                if (diff > 0) {
-                  currentActiveAudio.playbackRate = 1.05;
-                } else {
-                  currentActiveAudio.playbackRate = 0.95;
-                }
+              } else if (absDiff > 0.6 && payload.isPlaying) {
+                // Moderate drift (0.6s to 2.5s): aggressive rate-steering (8%) catches up in ~6s with ZERO audio interruptions
+                currentActiveAudio.playbackRate = diff > 0 ? 1.08 : 0.92;
+              } else if (absDiff > 0.05 && payload.isPlaying) {
+                // Minor drift (0.05s to 0.6s): gentle rate-steering (3%) maintains imperceptible pitch-perfect sync
+                currentActiveAudio.playbackRate = diff > 0 ? 1.03 : 0.97;
               } else {
                 currentActiveAudio.playbackRate = 1.0;
               }
