@@ -664,6 +664,10 @@ export default function App() {
     } catch (e) { return []; }
   });
   const [playbackIndex, setPlaybackIndex] = useState(() => parseInt(localStorage.getItem("euphony_playback_index")) || 0);
+  const playbackIndexRef = useRef(playbackIndex);
+  useEffect(() => {
+    playbackIndexRef.current = playbackIndex;
+  }, [playbackIndex]);
   const [playbackSourceName, setPlaybackSourceName] = useState(() => localStorage.getItem("euphony_playback_source") || "Global Library");
   const [dominantRgb, setDominantRgb] = useState(() => {
     try {
@@ -1269,6 +1273,8 @@ export default function App() {
   }, [showCrossfadeModal, crossfadeEnabled, crossfadeDuration]);
   const isCrossfadingRef = useRef(false);
   const crossfadeTriggeredRef = useRef(false);
+  const crossfadeFallbackTimerRef = useRef(null);
+  const crossfadeTransitionIdRef = useRef(0);
   const crossfadeAnimFrameRef = useRef(null);
   const crossfadeIntervalRef = useRef(null);
   const crossfadeWorkerRef = useRef(null);
@@ -3201,6 +3207,11 @@ export default function App() {
   isMixerActiveRef.current = isMixerActive;
 
   const stopCrossfade = useCallback((finalize = false) => {
+    crossfadeTransitionIdRef.current++;
+    if (crossfadeFallbackTimerRef.current) {
+      clearTimeout(crossfadeFallbackTimerRef.current);
+      crossfadeFallbackTimerRef.current = null;
+    }
     if (crossfadeWorkerRef.current) {
       try {
         crossfadeWorkerRef.current.onmessage = null;
@@ -4030,7 +4041,7 @@ export default function App() {
     try { localStorage.setItem("euphony_user_queue", JSON.stringify(nextQueue)); } catch (err) {}
     setQueueCurrentTrack(song);
     setIsPlaying(true);
-    if (crossfadeEnabled && isPlaying) {
+    if (crossfadeEnabled && isPlaying && !jamRoomIdRef.current) {
       if (performCrossfadeTransition(song, crossfadeDuration, outgoingSong)) {
         return;
       }
@@ -4221,12 +4232,13 @@ export default function App() {
     const track = queueWithIds[actualIndex] || clickedTrack;
     setPlaybackHistory(prev => [...prev, playbackIndex]);
     setPlaybackQueue(queueWithIds);
+    playbackIndexRef.current = actualIndex;
     setPlaybackIndex(actualIndex);
     setPlaybackSourceName(resolvedSource || "Global Library");
     const outgoingSong = currentTrack;
     setQueueCurrentTrack(null);
     setIsPlaying(true);
-    if (crossfadeEnabled && isPlaying) {
+    if (crossfadeEnabled && isPlaying && !jamRoomIdRef.current) {
       if (performCrossfadeTransition(track, crossfadeDuration, outgoingSong)) {
         return;
       }
@@ -4789,9 +4801,11 @@ export default function App() {
 
     crossfadeProgressUpdaterRef.current = tick;
 
+    const transitionId = ++crossfadeTransitionIdRef.current;
+
     let fallbackTriggered = false;
     const triggerFallbackToCurrentAudio = () => {
-      if (fallbackTriggered) return;
+      if (fallbackTriggered || crossfadeTransitionIdRef.current !== transitionId || !isCrossfadingRef.current) return;
       fallbackTriggered = true;
       console.warn("Dual-deck playback unavailable; falling back to active audio element");
       stopCrossfade(false);
@@ -4801,7 +4815,7 @@ export default function App() {
 
     let blendStarted = false;
     const startSimultaneousBlend = () => {
-      if (blendStarted || !isCrossfadingRef.current || fallbackTriggered) return;
+      if (blendStarted || !isCrossfadingRef.current || fallbackTriggered || crossfadeTransitionIdRef.current !== transitionId) return;
       blendStarted = true;
       startTime = Date.now();
 
@@ -4823,9 +4837,9 @@ export default function App() {
 
       // Layer 3: Foreground requestAnimationFrame loop (60fps)
       const rafLoop = () => {
-        if (!isCrossfadingRef.current) return;
+        if (!isCrossfadingRef.current || crossfadeTransitionIdRef.current !== transitionId) return;
         tick();
-        if (isCrossfadingRef.current) {
+        if (isCrossfadingRef.current && crossfadeTransitionIdRef.current === transitionId) {
           crossfadeAnimFrameRef.current = requestAnimationFrame(rafLoop);
         }
       };
@@ -4835,22 +4849,37 @@ export default function App() {
     // Keep outgoing audio at full volume until incoming audio is confirmed playing
     currentAudio.volume = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
 
-    nextAudio.addEventListener('playing', startSimultaneousBlend, { once: true });
+    const onPlaying = () => {
+      if (crossfadeTransitionIdRef.current !== transitionId || !isCrossfadingRef.current) return;
+      startSimultaneousBlend();
+    };
+    nextAudio.addEventListener('playing', onPlaying, { once: true });
+
     const playPromise = nextAudio.play();
     if (playPromise !== undefined) {
       playPromise.then(() => {
+        if (crossfadeTransitionIdRef.current !== transitionId || !isCrossfadingRef.current) return;
         startSimultaneousBlend();
       }).catch((err) => {
+        if (crossfadeTransitionIdRef.current !== transitionId || !isCrossfadingRef.current) return;
+        if (err.name === 'AbortError') return; // Cancelled by newer track load - DO NOT FALLBACK
         console.warn("Crossfade play retry notice:", err.message);
-        nextAudio.play().then(startSimultaneousBlend).catch(() => {
+        nextAudio.play().then(() => {
+          if (crossfadeTransitionIdRef.current !== transitionId || !isCrossfadingRef.current) return;
+          startSimultaneousBlend();
+        }).catch(() => {
+          if (crossfadeTransitionIdRef.current !== transitionId || !isCrossfadingRef.current) return;
           triggerFallbackToCurrentAudio();
         });
       });
     }
 
     // Safety fallback: if hardware doesn't start playing within 3500ms, fallback so playback never permanently stalls
-    setTimeout(() => {
-      if (!blendStarted && isCrossfadingRef.current) {
+    if (crossfadeFallbackTimerRef.current) clearTimeout(crossfadeFallbackTimerRef.current);
+    crossfadeFallbackTimerRef.current = setTimeout(() => {
+      crossfadeFallbackTimerRef.current = null;
+      if (crossfadeTransitionIdRef.current !== transitionId || !isCrossfadingRef.current) return;
+      if (!blendStarted) {
         if (nextAudio.paused) {
           triggerFallbackToCurrentAudio();
         } else {
@@ -4881,6 +4910,7 @@ export default function App() {
 
   const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
+    stopCrossfade(false);
     
     const currentQ = userQueueRef.current || userQueue;
     if (currentQ.length > 0) {
@@ -4894,7 +4924,7 @@ export default function App() {
       try { localStorage.setItem("euphony_user_queue", JSON.stringify(nextQueue)); } catch (err) {}
       setQueueCurrentTrack(nextSong);
       setIsPlaying(true);
-      if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
+      if (crossfadeEnabled && (isAutoCrossfade || (!jamRoomIdRef.current && isPlaying))) {
         const fadeSecs = crossfadeDuration;
         if (performCrossfadeTransition(nextSong, fadeSecs, outgoingSong)) return;
       }
@@ -4912,33 +4942,37 @@ export default function App() {
 
     if (!activeQueue || activeQueue.length === 0) return;
 
-    setPlaybackHistory(prev => [...prev, playbackIndex]);
+    const curIdx = (typeof playbackIndexRef.current === 'number' && playbackIndexRef.current >= 0)
+      ? playbackIndexRef.current
+      : playbackIndex;
+
+    setPlaybackHistory(prev => [...prev, curIdx]);
 
     let nextIdx = -1;
 
-    if (playbackIndex < 0) {
+    if (curIdx < 0) {
       if (playMode === 'shuffle' && upcomingSourceList.length > 0) {
         nextIdx = upcomingSourceList[0].originalIndex;
       } else {
         nextIdx = 0;
       }
     } else if (playMode === 'shuffle') {
-      const validUpcoming = upcomingSourceList.find(item => item.originalIndex !== playbackIndex);
+      const validUpcoming = upcomingSourceList.find(item => item.originalIndex !== curIdx);
       if (validUpcoming) {
         nextIdx = validUpcoming.originalIndex;
       } else if (activeQueue.length > 1) {
         do {
           nextIdx = Math.floor(Math.random() * activeQueue.length);
-        } while (nextIdx === playbackIndex);
+        } while (nextIdx === curIdx);
       } else {
         nextIdx = 0;
       }
     } else {
-      const validUpcoming = upcomingSourceList.find(item => item.originalIndex !== playbackIndex);
-      if (validUpcoming && validUpcoming.originalIndex !== ((playbackIndex + 1) % activeQueue.length)) {
+      const validUpcoming = upcomingSourceList.find(item => item.originalIndex !== curIdx);
+      if (validUpcoming && validUpcoming.originalIndex !== ((curIdx + 1) % activeQueue.length)) {
         nextIdx = validUpcoming.originalIndex;
       } else if (activeQueue.length > 1) {
-        nextIdx = (playbackIndex + 1) % activeQueue.length;
+        nextIdx = (curIdx + 1) % activeQueue.length;
       } else {
         nextIdx = 0;
       }
@@ -4959,9 +4993,10 @@ export default function App() {
 
     const outgoingSong = currentTrack;
     setQueueCurrentTrack(null);
+    playbackIndexRef.current = nextIdx;
     setPlaybackIndex(nextIdx);
     setIsPlaying(true);
-    if (crossfadeEnabled && (isAutoCrossfade || isPlaying)) {
+    if (crossfadeEnabled && (isAutoCrossfade || (!jamRoomIdRef.current && isPlaying))) {
       const fadeSecs = crossfadeDuration;
       if (performCrossfadeTransition(nextTrack, fadeSecs, outgoingSong)) return;
     }
@@ -5000,7 +5035,10 @@ export default function App() {
       return; 
     }
     
-    let prevIdx = playbackIndex - 1;
+    const curIdx = (typeof playbackIndexRef.current === 'number' && playbackIndexRef.current >= 0)
+      ? playbackIndexRef.current
+      : playbackIndex;
+    let prevIdx = curIdx - 1;
     if (playMode === 'shuffle' && playbackHistory.length > 0) {
       prevIdx = playbackHistory[playbackHistory.length - 1];
       setPlaybackHistory(prev => prev.slice(0, -1));
@@ -5013,6 +5051,7 @@ export default function App() {
     }
 
     setQueueCurrentTrack(null);
+    playbackIndexRef.current = prevIdx;
     setPlaybackIndex(prevIdx);
     resetPlaybackTime();
     setIsPlaying(true);
@@ -5722,6 +5761,7 @@ export default function App() {
         const currentActiveAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
 
         if ((payload.type === 'track_change' || payload.type === 'full_state_sync') && payload.song) {
+          stopCrossfadeRef.current?.(false);
           const songId = payload.song.id;
           const currentPlaylist = playlistRef.current || [];
           const targetSong = currentPlaylist.find(s => s.id === songId) || payload.song;
@@ -5769,7 +5809,7 @@ export default function App() {
             setPlayMode(payload.playMode);
           }
 
-          // Check if crossfade transition is requested and possible
+          // In Live Jam: only natural auto-crossfades blend; manual skips cut directly and immediately with 0 delay
           let crossfadeHandled = false;
           if (payload.isCrossfade && currentTrackRef.current && isPlayingRef.current && performCrossfadeTransitionRef.current) {
             crossfadeHandled = performCrossfadeTransitionRef.current(targetSong, payload.crossfadeDuration || crossfadeDurationRef.current || 5, currentTrackRef.current);
@@ -5851,36 +5891,82 @@ export default function App() {
             }
           }
         } else if (payload.type === 'drift_sync') {
-          if (currentActiveAudio && typeof payload.currentTime === 'number' && !isJamLeaderRef.current) {
-            const expectedTime = payload.currentTime + (payload.isPlaying ? 0.04 : 0);
-            const currentPos = currentActiveAudio.currentTime || 0;
-            const diff = expectedTime - currentPos;
-            const absDiff = Math.abs(diff);
+          if (!isJamLeaderRef.current) {
+            // 1. Fail-Safe Song Identity Lock: If follower is playing a different song than the leader, snap immediately!
+            if (payload.song && currentTrackRef.current && payload.song.id !== currentTrackRef.current.id) {
+              const songId = payload.song.id;
+              const currentPlaylist = playlistRef.current || [];
+              const targetSong = currentPlaylist.find(s => s.id === songId) || payload.song;
+              stopCrossfadeRef.current?.(false);
+              setQueueCurrentTrack(targetSong);
+              currentTrackRef.current = targetSong;
+              try { localStorage.setItem("euphony_queue_current_track", JSON.stringify(targetSong)); } catch (e) {}
 
-            if (payload.isPlaying && currentActiveAudio.paused) {
-              resumeActiveAudioDecksRef.current?.();
-            } else if (!payload.isPlaying && !currentActiveAudio.paused) {
-              pauseAllAudioDecksRef.current?.();
+              if (currentActiveAudio) {
+                playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current, true);
+                const snapTime = payload.currentTime || 0;
+                if (snapTime > 0) {
+                  const restoreTime = () => {
+                    try {
+                      currentActiveAudio.currentTime = snapTime;
+                      setCurrentTime(snapTime);
+                      updateProgressVisualsRef.current?.();
+                    } catch (e) {}
+                    currentActiveAudio.removeEventListener('loadedmetadata', restoreTime);
+                    currentActiveAudio.removeEventListener('canplay', restoreTime);
+                    if (restoreInitialTimeHandlerRef.current === restoreTime) {
+                      restoreInitialTimeHandlerRef.current = null;
+                    }
+                  };
+                  restoreInitialTimeHandlerRef.current = restoreTime;
+                  if (currentActiveAudio.readyState >= 1) {
+                    restoreTime();
+                  } else {
+                    currentActiveAudio.addEventListener('loadedmetadata', restoreTime, { once: true });
+                    currentActiveAudio.addEventListener('canplay', restoreTime, { once: true });
+                  }
+                }
+                if (payload.isPlaying === false) {
+                  pauseAllAudioDecksRef.current?.();
+                } else {
+                  resumeActiveAudioDecksRef.current?.();
+                }
+              }
+              return;
             }
 
-            if (absDiff > 0.8) {
-              try { currentActiveAudio.currentTime = expectedTime; } catch (e) {}
-              setCurrentTime(expectedTime);
-              updateProgressVisualsRef.current?.();
-              currentActiveAudio.playbackRate = 1.0;
-              [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-                if (ref.current && ref.current.src) {
-                  try { ref.current.currentTime = expectedTime; } catch (e) {}
-                }
-              });
-            } else if (absDiff > 0.04 && payload.isPlaying) {
-              if (diff > 0) {
-                currentActiveAudio.playbackRate = 1.05;
-              } else {
-                currentActiveAudio.playbackRate = 0.95;
+            // 2. Playback position alignment with seamless rate steering
+            if (currentActiveAudio && typeof payload.currentTime === 'number') {
+              const expectedTime = payload.currentTime + (payload.isPlaying ? 0.04 : 0);
+              const currentPos = currentActiveAudio.currentTime || 0;
+              const diff = expectedTime - currentPos;
+              const absDiff = Math.abs(diff);
+
+              if (payload.isPlaying && currentActiveAudio.paused) {
+                resumeActiveAudioDecksRef.current?.();
+              } else if (!payload.isPlaying && !currentActiveAudio.paused) {
+                pauseAllAudioDecksRef.current?.();
               }
-            } else {
-              currentActiveAudio.playbackRate = 1.0;
+
+              if (absDiff > 0.8) {
+                try { currentActiveAudio.currentTime = expectedTime; } catch (e) {}
+                setCurrentTime(expectedTime);
+                updateProgressVisualsRef.current?.();
+                currentActiveAudio.playbackRate = 1.0;
+                [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                  if (ref.current && ref.current.src) {
+                    try { ref.current.currentTime = expectedTime; } catch (e) {}
+                  }
+                });
+              } else if (absDiff > 0.04 && payload.isPlaying) {
+                if (diff > 0) {
+                  currentActiveAudio.playbackRate = 1.05;
+                } else {
+                  currentActiveAudio.playbackRate = 0.95;
+                }
+              } else {
+                currentActiveAudio.playbackRate = 1.0;
+              }
             }
           }
         } else if (payload.type === 'queue_update') {
