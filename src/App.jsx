@@ -1071,37 +1071,6 @@ export default function App() {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const decksPrimedRef = useRef(false);
-  // Unlock both decks on first user interaction so background timer transitions are never blocked by browser autoplay
-  const primeAudioDecks = useCallback(() => {
-    [audioRef.current, deckARef.current, deckBRef.current].forEach(deck => {
-      if (deck) {
-        if (!deck.src || deck.src === window.location.href) {
-          deck.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-        }
-        deck.volume = 0.001;
-        const p = deck.play();
-        if (p && typeof p.then === 'function') {
-          p.then(() => {
-            deck.pause();
-            deck.currentTime = 0;
-            deck.volume = 1.0;
-          }).catch(() => {});
-        }
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    const handleFirstGesture = () => {
-      primeAudioDecks();
-    };
-    window.addEventListener('touchstart', handleFirstGesture, { passive: true, once: true });
-    window.addEventListener('click', handleFirstGesture, { passive: true, once: true });
-    return () => {
-      window.removeEventListener('touchstart', handleFirstGesture);
-      window.removeEventListener('click', handleFirstGesture);
-    };
-  }, [primeAudioDecks]);
 
   const isPlayingRef = useRef(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -1368,6 +1337,7 @@ export default function App() {
   const isProcessingRemoteJamEventRef = useRef(false);
   const hasAutoPlayedSharedSongRef = useRef(false);
   const isJamHostRef = useRef(isJamHost);
+  const isJamLeaderRef = useRef(isJamHost);
   const jamRoomIdRef = useRef(jamRoomId);
   const currentTrackRef = useRef(currentTrack);
   const lastJamDriftSyncRef = useRef(0);
@@ -1391,6 +1361,7 @@ export default function App() {
 
   useEffect(() => {
     isJamHostRef.current = isJamHost;
+    if (isJamHost) isJamLeaderRef.current = true;
     jamRoomIdRef.current = jamRoomId;
     currentTrackRef.current = currentTrack;
     userQueueRef.current = userQueue;
@@ -1408,10 +1379,11 @@ export default function App() {
 
   const broadcastJamSync = useCallback((payload) => {
     const channel = jamChannelRef.current;
-    if (!channel || isProcessingRemoteJamEventRef.current) return;
+    if (!channel) return;
 
     const fullPayload = {
       ...payload,
+      leaderClientId: payload.leaderClientId || (isJamLeaderRef.current ? localClientIdRef.current : undefined),
       senderName: sessionRef.current?.user?.user_metadata?.full_name || sessionRef.current?.user?.email?.split('@')[0] || "Jam member",
       senderId: sessionRef.current?.user?.id || localClientIdRef.current,
       senderClientId: localClientIdRef.current,
@@ -1438,7 +1410,7 @@ export default function App() {
   const stemBroadcastTimerRef = useRef(null);
 
   const broadcastStemVolumes = useCallback((newVols) => {
-    if (!jamChannelRef.current || !jamRoomIdRef.current || isProcessingRemoteJamEventRef.current) return;
+    if (!jamChannelRef.current || !jamRoomIdRef.current) return;
     const now = Date.now();
     const send = () => {
       if (!jamChannelRef.current || !jamRoomIdRef.current) return;
@@ -1449,12 +1421,12 @@ export default function App() {
       lastStemBroadcastRef.current = Date.now();
     };
 
-    if (now - lastStemBroadcastRef.current > 120) {
+    if (now - lastStemBroadcastRef.current > 100) {
       if (stemBroadcastTimerRef.current) clearTimeout(stemBroadcastTimerRef.current);
       send();
     } else {
       if (stemBroadcastTimerRef.current) clearTimeout(stemBroadcastTimerRef.current);
-      stemBroadcastTimerRef.current = setTimeout(send, 120);
+      stemBroadcastTimerRef.current = setTimeout(send, 100);
     }
   }, [broadcastJamSync]);
 
@@ -1552,6 +1524,10 @@ export default function App() {
   const deckARef = useRef(null);
   const deckBRef = useRef(null);
   const activeDeckRef = useRef('A');
+  const vocalsRef = useRef(null);
+  const drumsRef = useRef(null);
+  const bassRef = useRef(null);
+  const otherRef = useRef(null);
 
   // Synchronous proxies: ALWAYS point to the active and background decks with zero delay
   const audioRef = useMemo(() => ({
@@ -1574,16 +1550,72 @@ export default function App() {
     }
   }), []);
 
+  // Unlock both decks, stems & background silent audio loop on user interaction so background transitions & remote Jam events are never blocked by browser autoplay
+  const primeAudioDecks = useCallback(() => {
+    // 1. Web Audio API Context Unlock (for mobile browsers)
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        if (!window.__euphonyAudioCtx) {
+          window.__euphonyAudioCtx = new AudioCtx();
+        }
+        if (window.__euphonyAudioCtx.state === 'suspended') {
+          window.__euphonyAudioCtx.resume().catch(() => {});
+        }
+        const osc = window.__euphonyAudioCtx.createOscillator();
+        const gain = window.__euphonyAudioCtx.createGain();
+        gain.gain.value = 0.0001;
+        osc.connect(gain);
+        gain.connect(window.__euphonyAudioCtx.destination);
+        osc.start(0);
+        osc.stop(window.__euphonyAudioCtx.currentTime + 0.05);
+      }
+    } catch (e) {}
+
+    // 2. Continuous Background Silent Audio loop (tells mobile OS the tab is an active media player)
+    if (silentAudioRef.current) {
+      try {
+        silentAudioRef.current.volume = 0.001;
+        silentAudioRef.current.play().catch(() => {});
+      } catch (e) {}
+    }
+
+    // 3. Dual-Deck & Stems Hardware Unlock (primes all audio nodes in browser pipeline)
+    [deckARef.current, deckBRef.current, vocalsRef.current, drumsRef.current, bassRef.current, otherRef.current].forEach(deck => {
+      if (deck) {
+        if (!deck.src || deck.src === window.location.href) {
+          deck.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+        }
+        deck.volume = 0.001;
+        const p = deck.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => {
+            // Keep primed
+          }).catch(() => {});
+        }
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleGesture = () => {
+      primeAudioDecks();
+    };
+    window.addEventListener('touchstart', handleGesture, { passive: true });
+    window.addEventListener('pointerdown', handleGesture, { passive: true });
+    window.addEventListener('click', handleGesture, { passive: true });
+    return () => {
+      window.removeEventListener('touchstart', handleGesture);
+      window.removeEventListener('pointerdown', handleGesture);
+      window.removeEventListener('click', handleGesture);
+    };
+  }, [primeAudioDecks]);
+
   const blobCacheRef = useRef(new Map());
   const preloadAbortRef = useRef(null);
   const nextTrackPreloadAttemptedRef = useRef(null);
   const prewarmedTrackIdRef = useRef(null);
   const stallRecoveryTimerRef = useRef(null);
-
-  const vocalsRef = useRef(null);
-  const drumsRef = useRef(null);
-  const bassRef = useRef(null);
-  const otherRef = useRef(null);
   const isFirstRender = useRef(true);
 
   // Pre-hydrate in-memory Blob Cache from persistent CacheStorage on app launch
@@ -3238,7 +3270,10 @@ export default function App() {
     drumsRef.current?.pause();
     bassRef.current?.pause();
     otherRef.current?.pause();
-    silentAudioRef.current?.pause();
+    // Keep silent audio loop playing while in a Jam to keep mobile audio session & WebSockets active
+    if (!jamRoomIdRef.current) {
+      silentAudioRef.current?.pause();
+    }
     if (isCrossfadingRef.current) {
       stopCrossfadeRef.current?.(false);
     }
@@ -3254,7 +3289,10 @@ export default function App() {
     if (!activeEl) return;
     setIsPlaying(true);
     isPlayingRef.current = true;
-    silentAudioRef.current?.play().catch(e => e);
+    if (silentAudioRef.current) {
+      silentAudioRef.current.volume = 0.001;
+      silentAudioRef.current.play().catch(e => e);
+    }
     const p = activeEl.play();
     if (p && typeof p.then === 'function') {
       p.then(() => {
@@ -3269,15 +3307,18 @@ export default function App() {
       }).catch(() => {
         triggerToastRef.current?.("Tap screen to resume Jam audio 🎵");
         const handleUnlock = () => {
+          primeAudioDecks();
           resumeActiveAudioDecks();
           window.removeEventListener('click', handleUnlock);
           window.removeEventListener('touchend', handleUnlock);
+          window.removeEventListener('pointerdown', handleUnlock);
         };
         window.addEventListener('click', handleUnlock);
         window.addEventListener('touchend', handleUnlock);
+        window.addEventListener('pointerdown', handleUnlock);
       });
     }
-  }, [shouldLoadStems, stemsBroken]);
+  }, [shouldLoadStems, stemsBroken, primeAudioDecks]);
 
   const resumeActiveAudioDecksRef = useRef(resumeActiveAudioDecks);
   resumeActiveAudioDecksRef.current = resumeActiveAudioDecks;
@@ -3371,9 +3412,9 @@ export default function App() {
           lastListenTickRef.current = now;
         }
 
-        // Live Jam periodic drift synchronization (Active player keeps peers locked in sync every ~3s)
-        if (jamChannelRef.current && isPlaying && !isProcessingRemoteJamEventRef.current) {
-          if (now - lastJamDriftSyncRef.current > 3000) {
+        // Live Jam periodic drift synchronization (Active leader keeps peers locked in sync every ~1s)
+        if (jamChannelRef.current && isPlaying && isJamLeaderRef.current) {
+          if (now - lastJamDriftSyncRef.current > 1000) {
             lastJamDriftSyncRef.current = now;
             const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
             jamChannelRef.current.send({
@@ -3384,6 +3425,7 @@ export default function App() {
                 currentTime: activeEl?.currentTime || time,
                 song: currentTrack,
                 isPlaying: true,
+                leaderClientId: localClientIdRef.current,
                 hostName: sessionRef.current?.user?.user_metadata?.full_name || sessionRef.current?.user?.email?.split('@')[0] || "Jam member",
                 senderClientId: localClientIdRef.current,
                 timestamp: now
@@ -3672,11 +3714,13 @@ export default function App() {
       if (bassRef.current)   bassRef.current.currentTime   = seekTime;
       if (otherRef.current)  otherRef.current.currentTime  = seekTime;
     }
+    isJamLeaderRef.current = true;
     broadcastJamSync({
       type: 'seek',
       currentTime: seekTime,
       song: currentTrack,
-      isPlaying: isPlayingRef.current
+      isPlaying: isPlayingRef.current,
+      leaderClientId: localClientIdRef.current
     });
   };
 
@@ -3691,11 +3735,13 @@ export default function App() {
       updateProgressVisuals();
       if (!isPlaying) setIsPlaying(true); 
     }
+    isJamLeaderRef.current = true;
     broadcastJamSync({
       type: 'seek',
       currentTime: time,
       song: currentTrack,
-      isPlaying: true
+      isPlaying: true,
+      leaderClientId: localClientIdRef.current
     });
   };
 
@@ -4009,7 +4055,7 @@ export default function App() {
     updateProgressVisuals();
   };
 
-  const playTrackWithMetadata = (track, audioEl, cacheMap) => {
+  const playTrackWithMetadata = (track, audioEl, cacheMap, skipJamBroadcast = false) => {
     if (!audioEl || !track) return;
     if (track?.poster_url) {
       try {
@@ -4080,13 +4126,18 @@ export default function App() {
     audioEl.play().catch(e => console.log(e));
 
     // Live Jam Track Change Broadcast
-    broadcastJamSync({
-      type: 'track_change',
-      song: track,
-      isPlaying: true,
-      currentTime: 0,
-      userQueue: userQueueRef.current || []
-    });
+    if (!skipJamBroadcast) {
+      isJamLeaderRef.current = true;
+      broadcastJamSync({
+        type: 'track_change',
+        song: track,
+        isPlaying: true,
+        startTime: Date.now(),
+        currentTime: 0,
+        leaderClientId: localClientIdRef.current,
+        userQueue: userQueueRef.current || []
+      });
+    }
 
     // If objUrl was fallback cdnUrl, check CacheStorage in background to store in memory for future replays
     if (objUrl === cdnUrl && typeof window !== "undefined" && 'caches' in window) {
@@ -4568,12 +4619,14 @@ export default function App() {
     }
 
     // Live Jam Play/Pause Broadcast
+    isJamLeaderRef.current = true;
     const currentAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     broadcastJamSync({
       type: 'play_pause',
       song: currentTrack,
       isPlaying: nextPlaying,
-      currentTime: currentAudio?.currentTime || 0
+      currentTime: currentAudio?.currentTime || 0,
+      leaderClientId: localClientIdRef.current
     });
   };
   handlePlayPauseRef.current = handlePlayPause;
@@ -4807,16 +4860,24 @@ export default function App() {
     }, 3500);
 
     // Live Jam Track Change Broadcast on Crossfade
+    isJamLeaderRef.current = true;
     broadcastJamSync({
       type: 'track_change',
       song: incomingTrack,
+      isCrossfade: true,
+      crossfadeDuration: transitionSecs,
       isPlaying: true,
+      startTime: Date.now(),
       currentTime: 0,
+      leaderClientId: localClientIdRef.current,
       userQueue: userQueueRef.current || []
     });
 
     return true;
   }, [stopCrossfade, crossfadeDuration, currentTrack, playTrackWithMetadata, broadcastJamSync]);
+
+  const performCrossfadeTransitionRef = useRef(performCrossfadeTransition);
+  performCrossfadeTransitionRef.current = performCrossfadeTransition;
 
   const handleNext = (e, isAutoCrossfade = false) => {
     if (e) e.stopPropagation();
@@ -5428,6 +5489,7 @@ export default function App() {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     setIsJamHost(true);
     isJamHostRef.current = true;
+    isJamLeaderRef.current = true;
     setJamRoomId(code);
     jamRoomIdRef.current = code;
     try {
@@ -5448,6 +5510,7 @@ export default function App() {
     }
     setIsJamHost(false);
     isJamHostRef.current = false;
+    isJamLeaderRef.current = false;
     setJamRoomId(clean);
     jamRoomIdRef.current = clean;
     setJamJoinCodeInput("");
@@ -5459,6 +5522,7 @@ export default function App() {
   }, [jamJoinCodeInput, triggerToast, primeAudioDecks]);
 
   const leaveJamSession = useCallback(() => {
+    silentAudioRef.current?.pause();
     if (jamChannelRef.current) {
       try { jamChannelRef.current.untrack(); } catch (e) {}
       supabase.removeChannel(jamChannelRef.current);
@@ -5468,6 +5532,7 @@ export default function App() {
     jamRoomIdRef.current = null;
     setIsJamHost(false);
     isJamHostRef.current = false;
+    isJamLeaderRef.current = false;
     setJamListenersCount(1);
     setJamHostName("");
     try {
@@ -5649,7 +5714,9 @@ export default function App() {
         if (!payload) return;
         if (payload.senderClientId && payload.senderClientId === localClientIdRef.current) return;
 
-        isProcessingRemoteJamEventRef.current = true;
+        if (payload.leaderClientId) {
+          isJamLeaderRef.current = (payload.leaderClientId === localClientIdRef.current);
+        }
         if (payload.senderName) setJamHostName(payload.senderName);
 
         const currentActiveAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
@@ -5702,28 +5769,38 @@ export default function App() {
             setPlayMode(payload.playMode);
           }
 
-          if (currentActiveAudio) {
-            playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current);
-            if (typeof payload.currentTime === 'number' && payload.currentTime > 0) {
-              const targetTime = payload.currentTime;
-              const restoreTime = () => {
-                try {
+          // Check if crossfade transition is requested and possible
+          let crossfadeHandled = false;
+          if (payload.isCrossfade && currentTrackRef.current && isPlayingRef.current && performCrossfadeTransitionRef.current) {
+            crossfadeHandled = performCrossfadeTransitionRef.current(targetSong, payload.crossfadeDuration || crossfadeDurationRef.current || 5, currentTrackRef.current);
+          }
+
+          if (!crossfadeHandled && currentActiveAudio) {
+            playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current, true);
+
+            const targetTime = Math.max(0, payload.currentTime || 0);
+            const restoreTime = () => {
+              try {
+                if (targetTime > 0) {
                   currentActiveAudio.currentTime = targetTime;
                   setCurrentTime(targetTime);
                   updateProgressVisualsRef.current?.();
-                } catch (e) {}
-                currentActiveAudio.removeEventListener('loadedmetadata', restoreTime);
-                if (restoreInitialTimeHandlerRef.current === restoreTime) {
-                  restoreInitialTimeHandlerRef.current = null;
                 }
-              };
-              restoreInitialTimeHandlerRef.current = restoreTime;
-              if (currentActiveAudio.readyState >= 1) {
-                restoreTime();
-              } else {
-                currentActiveAudio.addEventListener('loadedmetadata', restoreTime);
+              } catch (e) {}
+              currentActiveAudio.removeEventListener('loadedmetadata', restoreTime);
+              currentActiveAudio.removeEventListener('canplay', restoreTime);
+              if (restoreInitialTimeHandlerRef.current === restoreTime) {
+                restoreInitialTimeHandlerRef.current = null;
               }
+            };
+            restoreInitialTimeHandlerRef.current = restoreTime;
+            if (currentActiveAudio.readyState >= 1) {
+              restoreTime();
+            } else {
+              currentActiveAudio.addEventListener('loadedmetadata', restoreTime, { once: true });
+              currentActiveAudio.addEventListener('canplay', restoreTime, { once: true });
             }
+
             if (payload.isPlaying === false) {
               pauseAllAudioDecksRef.current?.();
             } else {
@@ -5743,7 +5820,7 @@ export default function App() {
 
           if (currentActiveAudio && typeof payload.currentTime === 'number') {
             const diff = Math.abs((currentActiveAudio.currentTime || 0) - payload.currentTime);
-            if (diff > 1.2) {
+            if (diff > 0.2) {
               try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
               setCurrentTime(payload.currentTime);
               updateProgressVisualsRef.current?.();
@@ -5764,6 +5841,7 @@ export default function App() {
             try { currentActiveAudio.currentTime = payload.currentTime; } catch (e) {}
             setCurrentTime(payload.currentTime);
             updateProgressVisualsRef.current?.();
+            currentActiveAudio.playbackRate = 1.0;
             if (vocalsRef.current) try { vocalsRef.current.currentTime = payload.currentTime; } catch (e) {}
             if (drumsRef.current)  try { drumsRef.current.currentTime  = payload.currentTime; } catch (e) {}
             if (bassRef.current)   try { bassRef.current.currentTime   = payload.currentTime; } catch (e) {}
@@ -5773,19 +5851,36 @@ export default function App() {
             }
           }
         } else if (payload.type === 'drift_sync') {
-          if (currentActiveAudio && typeof payload.currentTime === 'number') {
-            const elapsedNetworkMs = Math.max(0, Math.min(2000, Date.now() - (payload.timestamp || Date.now())));
-            const latencySec = elapsedNetworkMs / 1000;
-            const expectedTime = payload.currentTime + (payload.isPlaying ? latencySec : 0);
-            const diff = Math.abs((currentActiveAudio.currentTime || 0) - expectedTime);
-            if (diff > 1.2 && isFinite(expectedTime) && expectedTime >= 0) {
+          if (currentActiveAudio && typeof payload.currentTime === 'number' && !isJamLeaderRef.current) {
+            const expectedTime = payload.currentTime + (payload.isPlaying ? 0.04 : 0);
+            const currentPos = currentActiveAudio.currentTime || 0;
+            const diff = expectedTime - currentPos;
+            const absDiff = Math.abs(diff);
+
+            if (payload.isPlaying && currentActiveAudio.paused) {
+              resumeActiveAudioDecksRef.current?.();
+            } else if (!payload.isPlaying && !currentActiveAudio.paused) {
+              pauseAllAudioDecksRef.current?.();
+            }
+
+            if (absDiff > 0.8) {
               try { currentActiveAudio.currentTime = expectedTime; } catch (e) {}
               setCurrentTime(expectedTime);
               updateProgressVisualsRef.current?.();
-              if (vocalsRef.current) try { vocalsRef.current.currentTime = expectedTime; } catch (e) {}
-              if (drumsRef.current)  try { drumsRef.current.currentTime  = expectedTime; } catch (e) {}
-              if (bassRef.current)   try { bassRef.current.currentTime   = expectedTime; } catch (e) {}
-              if (otherRef.current)  try { otherRef.current.currentTime  = expectedTime; } catch (e) {}
+              currentActiveAudio.playbackRate = 1.0;
+              [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                if (ref.current && ref.current.src) {
+                  try { ref.current.currentTime = expectedTime; } catch (e) {}
+                }
+              });
+            } else if (absDiff > 0.04 && payload.isPlaying) {
+              if (diff > 0) {
+                currentActiveAudio.playbackRate = 1.05;
+              } else {
+                currentActiveAudio.playbackRate = 0.95;
+              }
+            } else {
+              currentActiveAudio.playbackRate = 1.0;
             }
           }
         } else if (payload.type === 'queue_update') {
@@ -5835,11 +5930,11 @@ export default function App() {
             if (isPlayingRef.current) {
               const t = currentActiveAudio?.currentTime || 0;
               [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-                if (ref.current && ref.current.src) {
-                  if (Math.abs(ref.current.currentTime - t) > 0.3) {
+                if (ref.current) {
+                  if (Math.abs((ref.current.currentTime || 0) - t) > 0.15) {
                     try { ref.current.currentTime = t; } catch (e) {}
                   }
-                  if (ref.current.paused) {
+                  if (ref.current.paused && ref.current.src) {
                     ref.current.play().catch(e => e);
                   }
                 }
@@ -5858,7 +5953,7 @@ export default function App() {
         }, 200);
       })
       .on('broadcast', { event: 'jam_request_state' }, () => {
-        if (currentTrackRef.current) {
+        if (currentTrackRef.current && (isJamHostRef.current || isJamLeaderRef.current)) {
           const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
           channel.send({
             type: 'broadcast',
@@ -6296,11 +6391,9 @@ export default function App() {
                     <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
-                        setStemVolumes(prev => {
-                          const nextVols = { ...prev, [stemType]: val };
-                          broadcastStemVolumes(nextVols);
-                          return nextVols;
-                        });
+                        const nextVols = { ...stemVolumes, [stemType]: val };
+                        setStemVolumes(nextVols);
+                        broadcastStemVolumes(nextVols);
                       }}
                       onPointerDown={(e) => {
                         try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
@@ -8020,6 +8113,8 @@ export default function App() {
               onClick={() => {
                 setCrossfadeEnabled(tempCrossfadeEnabled);
                 setCrossfadeDuration(tempCrossfadeDuration);
+                crossfadeEnabledRef.current = tempCrossfadeEnabled;
+                crossfadeDurationRef.current = tempCrossfadeDuration;
                 try {
                   localStorage.setItem("euphony_crossfade_enabled", String(tempCrossfadeEnabled));
                   localStorage.setItem("euphony_crossfade_duration", String(tempCrossfadeDuration));
