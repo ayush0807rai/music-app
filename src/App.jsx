@@ -1626,6 +1626,21 @@ export default function App() {
         }
       }
     });
+
+    // 4. Stems Hardware Unlock: Prime stem audio elements so mobile browser permits background playback
+    [vocalsRef.current, drumsRef.current, bassRef.current, otherRef.current].forEach(stem => {
+      if (stem && (!stem.src || stem.src === window.location.href)) {
+        stem.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+        stem.volume = 0.001;
+        const p = stem.play();
+        if (p && typeof p.then === 'function') {
+          p.then(() => {
+            stem.pause();
+            stem.currentTime = 0;
+          }).catch(() => {});
+        }
+      }
+    });
   }, [audioRef]);
 
   useEffect(() => {
@@ -3231,6 +3246,9 @@ export default function App() {
       const el = ref.current;
       if (Math.abs(el.volume - targetVol) > 0.01) el.volume = targetVol;
       if (el.muted !== targetMuted) el.muted = targetMuted;
+      if (targetVol > 0 && !targetMuted && isPlayingRef.current && el.paused && el.src) {
+        el.play().catch(e => e);
+      }
     };
 
     setVol(audioRef, isMixerActive ? 0 : (isMuted ? 0 : volume), isMixerActive || isMuted);
@@ -3379,10 +3397,10 @@ export default function App() {
   useEffect(() => {
     if (shouldLoadStems && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime || 0;
-      if (vocalsRef.current) vocalsRef.current.currentTime = t;
-      if (drumsRef.current)  drumsRef.current.currentTime  = t;
-      if (bassRef.current)   bassRef.current.currentTime   = t;
-      if (otherRef.current)  otherRef.current.currentTime  = t;
+      if (vocalsRef.current && vocalsRef.current.readyState >= 1) try { vocalsRef.current.currentTime = t; } catch (_) {}
+      if (drumsRef.current  && drumsRef.current.readyState >= 1)  try { drumsRef.current.currentTime  = t; } catch (_) {}
+      if (bassRef.current   && bassRef.current.readyState >= 1)   try { bassRef.current.currentTime   = t; } catch (_) {}
+      if (otherRef.current  && otherRef.current.readyState >= 1)  try { otherRef.current.currentTime  = t; } catch (_) {}
       if (isPlaying) {
         vocalsRef.current?.play().catch(e => e);
         drumsRef.current?.play().catch(e => e);
@@ -3390,7 +3408,7 @@ export default function App() {
         otherRef.current?.play().catch(e => e);
       }
     }
-  }, [shouldLoadStems, isPlaying, stemsBroken]);
+  }, [shouldLoadStems, isPlaying, stemsBroken, isMixerActive, showMixer, currentTrack?.id]);
 
   
   const prefetchedSignatureRef = useRef("");
@@ -5722,6 +5740,8 @@ export default function App() {
           if (immediateOthers.length > 0) {
             finalize(true);
           }
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          finalize(false);
         }
       });
 
@@ -6002,6 +6022,21 @@ export default function App() {
             updateStemEl(drumsRef, payload.stemVolumes.drums);
             updateStemEl(bassRef, payload.stemVolumes.bass);
             updateStemEl(otherRef, payload.stemVolumes.other);
+
+            if (isPlayingRef.current && currentActiveAudio) {
+              const t = currentActiveAudio.currentTime || 0;
+              [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                const el = ref.current;
+                if (el && el.src) {
+                  if (el.readyState >= 1 && Math.abs((el.currentTime || 0) - t) > 0.5) {
+                    try { el.currentTime = t; } catch (e) {}
+                  }
+                  if (el.paused) {
+                    el.play().catch(e => e);
+                  }
+                }
+              });
+            }
           }
           if (payload.playMode) {
             setPlayMode(payload.playMode);
@@ -6343,7 +6378,7 @@ export default function App() {
               [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
                 const el = ref.current;
                 if (el && el.src) {
-                  if (el.readyState >= 2 && Math.abs((el.currentTime || 0) - t) > 0.5) {
+                  if (el.readyState >= 1 && Math.abs((el.currentTime || 0) - t) > 0.5) {
                     try { el.currentTime = t; } catch (e) {}
                   }
                   if (el.paused) {
@@ -6847,6 +6882,14 @@ export default function App() {
                         const nextVols = { ...stemVolumes, [stemType]: val };
                         setStemVolumes(nextVols);
                         broadcastStemVolumes(nextVols);
+                        if (isPlayingRef.current) {
+                          [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+                            const el = ref.current;
+                            if (el && el.paused && el.src) {
+                              el.play().catch(e => e);
+                            }
+                          });
+                        }
                       }}
                       onPointerDown={(e) => {
                         try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
@@ -7695,10 +7738,10 @@ export default function App() {
         }}
         className="loop-audio-fix"
       />
-      <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
-      <audio ref={drumsRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
-      <audio ref={bassRef}   src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
-      <audio ref={otherRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
+      <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" onCanPlay={(e) => { if (isPlayingRef.current && shouldLoadStems && !stemsBroken) { const cur = audioRef.current?.currentTime || 0; if (Math.abs(e.currentTarget.currentTime - cur) > 0.3) { try { e.currentTarget.currentTime = cur; } catch (_) {} } e.currentTarget.play().catch(() => {}); } }} />
+      <audio ref={drumsRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" onCanPlay={(e) => { if (isPlayingRef.current && shouldLoadStems && !stemsBroken) { const cur = audioRef.current?.currentTime || 0; if (Math.abs(e.currentTarget.currentTime - cur) > 0.3) { try { e.currentTarget.currentTime = cur; } catch (_) {} } e.currentTarget.play().catch(() => {}); } }} />
+      <audio ref={bassRef}   src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" onCanPlay={(e) => { if (isPlayingRef.current && shouldLoadStems && !stemsBroken) { const cur = audioRef.current?.currentTime || 0; if (Math.abs(e.currentTarget.currentTime - cur) > 0.3) { try { e.currentTarget.currentTime = cur; } catch (_) {} } e.currentTarget.play().catch(() => {}); } }} />
+      <audio ref={otherRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" onCanPlay={(e) => { if (isPlayingRef.current && shouldLoadStems && !stemsBroken) { const cur = audioRef.current?.currentTime || 0; if (Math.abs(e.currentTarget.currentTime - cur) > 0.3) { try { e.currentTarget.currentTime = cur; } catch (_) {} } e.currentTarget.play().catch(() => {}); } }} />
 
       {/* TOASTS */}
       {renderQueueToast && (() => {
@@ -8844,12 +8887,20 @@ export default function App() {
                 {jamJoinError && (
                   <div style={{
                     color: "#f87171",
+                    background: "rgba(239, 68, 68, 0.12)",
+                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    borderRadius: "10px",
+                    padding: "9px 12px",
                     fontSize: "12px",
                     fontWeight: "700",
-                    marginTop: "8px",
-                    textAlign: "center"
+                    marginTop: "10px",
+                    textAlign: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px"
                   }}>
-                    {jamJoinError}
+                    <span>⚠️</span> {jamJoinError}
                   </div>
                 )}
               </div>
