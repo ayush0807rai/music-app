@@ -1358,6 +1358,9 @@ export default function App() {
   const [stemVolumes, setStemVolumes] = useState({ vocals: 1, drums: 1, bass: 1, other: 1 });
   const [activeStems, setActiveStems] = useState({});
   const [stemsBroken, setStemsBroken] = useState(false);
+  const [stemsReady, setStemsReady] = useState(false);
+  const stemsReadyRef = useRef(false);
+  stemsReadyRef.current = stemsReady;
 
   const userQueueRef = useRef(userQueue);
   const crossfadeEnabledRef = useRef(crossfadeEnabled);
@@ -1416,6 +1419,11 @@ export default function App() {
       console.warn("Jam broadcast error:", e);
     }
   }, []);
+
+  const jamClockOffsetRef = useRef(0);
+  const jamNetworkLatencyRef = useRef(0.04);
+  const lastRealtimeKeepAliveRef = useRef(0);
+  const lastJamPingRef = useRef(0);
 
   const lastStemBroadcastRef = useRef(0);
   const stemBroadcastTimerRef = useRef(null);
@@ -1601,9 +1609,10 @@ export default function App() {
         const isCurrentActive = (deck === audioRef.current && isPlayingRef.current);
         if (isCurrentActive) {
           // Never mute or prime the currently playing audio element!
-          const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+          const isMixerSilencingMain = isMixerActiveRef.current && stemsReadyRef.current;
+          const targetVol = (isMutedRef.current || isMixerSilencingMain) ? 0 : volumeRef.current;
           deck.volume = targetVol;
-          deck.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
+          deck.muted = Boolean(isMutedRef.current || isMixerSilencingMain);
           return;
         }
         if (!deck.src || deck.src === window.location.href) {
@@ -3135,6 +3144,18 @@ export default function App() {
     // Sync on tab focus or visibility changes (mobile app switches, screen unlocks)
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
+        if (jamRoomIdRef.current) {
+          if (supabase?.realtime && !supabase.realtime.isConnected()) {
+            try { supabase.realtime.connect(); } catch (e) {}
+          }
+          if (jamChannelRef.current) {
+            jamChannelRef.current.send({
+              type: 'broadcast',
+              event: 'jam_request_state',
+              payload: { requester: sessionRef.current?.user?.email || "Jam Member" }
+            });
+          }
+        }
         syncAccountStats(session.user).then((merged) => {
           if (merged) {
             if (merged.playCounts) setPlayCounts(merged.playCounts);
@@ -3189,6 +3210,7 @@ export default function App() {
 
   useEffect(() => {
     setStemsBroken(false);
+    setStemsReady(false);
     setShowLyrics(false);
     setActiveLyricIndex(-1);
     setActiveWordIndex(-1);
@@ -3202,23 +3224,64 @@ export default function App() {
     }
   }, [effectiveTrackLyrics, parsedLyrics.length]);
 
+  const setupWebAudioStem = useCallback((audioEl) => {
+    if (!audioEl) return null;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      if (!window.__euphonyAudioCtx) {
+        window.__euphonyAudioCtx = new AudioCtx();
+      }
+      const ctx = window.__euphonyAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      if (!audioEl._webaudioSource) {
+        audioEl._webaudioSource = ctx.createMediaElementSource(audioEl);
+        audioEl._gainNode = ctx.createGain();
+        audioEl._webaudioSource.connect(audioEl._gainNode);
+        audioEl._gainNode.connect(ctx.destination);
+      }
+      return audioEl._gainNode;
+    } catch (e) {
+      return null;
+    }
+  }, []);
+
   const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
-  const isMixerActive = currentTrack?.stem_vocals && !stemsBroken && areStemsModified;
+  const isMixerActive = Boolean(currentTrack?.stem_vocals && !stemsBroken && areStemsModified);
   const shouldLoadStems = Boolean((showMixer || (isDesktopFullscreen && fullscreenView === "mixer") || isMixerActive) && currentTrack?.stem_vocals);
+  const stemsAreReady = Boolean(isMixerActive && (stemsReady || [vocalsRef, drumsRef, bassRef, otherRef].some(r => r.current && r.current.src && r.current.readyState >= 2)));
+  const shouldMuteMainForStems = Boolean(isMixerActive && stemsAreReady);
 
   useEffect(() => {
     const setVol = (ref, targetVol, targetMuted) => {
       if (!ref.current || isCrossfadingRef.current) return;
-      if (Math.abs(ref.current.volume - targetVol) > 0.01) ref.current.volume = targetVol;
-      if (ref.current.muted !== targetMuted) ref.current.muted = targetMuted;
+      const el = ref.current;
+      const isStem = (ref === vocalsRef || ref === drumsRef || ref === bassRef || ref === otherRef);
+      const gainNode = isStem ? setupWebAudioStem(el) : null;
+      if (gainNode) {
+        const effectiveGain = targetMuted ? 0 : targetVol;
+        try {
+          gainNode.gain.setValueAtTime(effectiveGain, window.__euphonyAudioCtx.currentTime);
+        } catch (e) {
+          gainNode.gain.value = effectiveGain;
+        }
+        el.muted = false;
+        el.volume = 1.0;
+      } else {
+        if (Math.abs(el.volume - targetVol) > 0.01) el.volume = targetVol;
+        if (el.muted !== targetMuted) el.muted = targetMuted;
+      }
     };
 
-    setVol(audioRef, isMixerActive ? 0 : (isMuted ? 0 : volume), isMixerActive || isMuted);
+    // Safeguard: Only mute main mix if stems are active AND have loaded audio data ready to play
+    setVol(audioRef, shouldMuteMainForStems ? 0 : (isMuted ? 0 : volume), shouldMuteMainForStems || isMuted);
     setVol(vocalsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.vocals === 0);
     setVol(drumsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.drums === 0);
     setVol(bassRef, isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.bass === 0);
     setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.other === 0);
-  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken, isMixerActive]);
+  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken, isMixerActive, shouldMuteMainForStems, setupWebAudioStem]);
 
   volumeRef.current = volume;
   isMutedRef.current = isMuted;
@@ -3254,7 +3317,8 @@ export default function App() {
     setOutgoingDominantRgb(null);
     setArtTransitionDuration(0);
 
-    const baseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    const isMixerSilencingMain = isMixerActiveRef.current && stemsReadyRef.current;
+    const baseVol = (isMutedRef.current || isMixerSilencingMain) ? 0 : volumeRef.current;
     const outgoing = crossfadeOutgoingAudioRef.current;
     const incoming = crossfadeIncomingAudioRef.current || audioRef.current;
 
@@ -3277,7 +3341,7 @@ export default function App() {
       crossfadeOutgoingAudioRef.current = null;
     }
 
-    if (incoming && !isMixerActiveRef.current && !isMutedRef.current) {
+    if (incoming && !isMixerSilencingMain && !isMutedRef.current) {
       incoming.volume = baseVol;
     }
     crossfadeIncomingAudioRef.current = null;
@@ -3318,9 +3382,10 @@ export default function App() {
     if (!activeEl) return;
     setIsPlaying(true);
     isPlayingRef.current = true;
-    const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    const isMixerSilencingMain = isMixerActiveRef.current && stemsReadyRef.current;
+    const targetVol = (isMutedRef.current || isMixerSilencingMain) ? 0 : volumeRef.current;
     activeEl.volume = targetVol;
-    activeEl.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
+    activeEl.muted = Boolean(isMutedRef.current || isMixerSilencingMain);
     if (silentAudioRef.current) {
       silentAudioRef.current.volume = 0.001;
       silentAudioRef.current.play().catch(e => e);
@@ -3358,19 +3423,28 @@ export default function App() {
 
   useEffect(() => {
     if (shouldLoadStems && audioRef.current && !stemsBroken) {
-      const t = audioRef.current.currentTime;
-      if (vocalsRef.current) vocalsRef.current.currentTime = t;
-      if (drumsRef.current)  drumsRef.current.currentTime  = t;
-      if (bassRef.current)   bassRef.current.currentTime   = t;
-      if (otherRef.current)  otherRef.current.currentTime  = t;
-      if (isPlaying) {
-        vocalsRef.current?.play().catch(e => e);
-        drumsRef.current?.play().catch(e => e);
-        bassRef.current?.play().catch(e => e);
-        otherRef.current?.play().catch(e => e);
-      }
+      const t = audioRef.current.currentTime || 0;
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        const el = ref.current;
+        if (!el || !el.src) return;
+        setupWebAudioStem(el);
+        const syncAndPlay = () => {
+          try {
+            if (Math.abs(el.currentTime - t) > 0.3) el.currentTime = t;
+          } catch (e) {}
+          if (isPlaying) {
+            el.play().catch(() => {});
+          }
+        };
+        if (el.readyState >= 2) {
+          syncAndPlay();
+        } else {
+          el.addEventListener('loadedmetadata', syncAndPlay, { once: true });
+          el.addEventListener('canplay', syncAndPlay, { once: true });
+        }
+      });
     }
-  }, [shouldLoadStems, isPlaying, stemsBroken]);
+  }, [shouldLoadStems, isPlaying, stemsBroken, setupWebAudioStem]);
 
   
   const prefetchedSignatureRef = useRef("");
@@ -3456,12 +3530,37 @@ export default function App() {
               payload: {
                 type: 'drift_sync',
                 currentTime: activeEl?.currentTime || time,
-                song: currentTrack,
+                song: currentTrackRef.current || currentTrack,
                 isPlaying: true,
                 leaderClientId: localClientIdRef.current,
                 hostName: sessionRef.current?.user?.user_metadata?.full_name || sessionRef.current?.user?.email?.split('@')[0] || "Jam member",
                 senderClientId: localClientIdRef.current,
                 timestamp: now
+              }
+            });
+          }
+        }
+
+        // Live Jam Screen-Off Socket Guardian & Peer-to-Peer NTP Ping
+        if (jamRoomIdRef.current && supabase?.realtime) {
+          if (now - lastRealtimeKeepAliveRef.current > 8000) {
+            lastRealtimeKeepAliveRef.current = now;
+            if (!supabase.realtime.isConnected()) {
+              try { supabase.realtime.connect(); } catch (e) {}
+            } else {
+              try { supabase.realtime.sendHeartbeat(); } catch (e) {}
+            }
+          }
+
+          if (!isJamLeaderRef.current && jamChannelRef.current && now - lastJamPingRef.current > 5000) {
+            lastJamPingRef.current = now;
+            jamChannelRef.current.send({
+              type: 'broadcast',
+              event: 'jam_sync',
+              payload: {
+                type: 'jam_ping',
+                clientTime: now,
+                senderClientId: localClientIdRef.current
               }
             });
           }
@@ -4157,9 +4256,10 @@ export default function App() {
     if (bassRef.current && bassRef.current.src) try { bassRef.current.currentTime = 0; } catch (e) {}
     if (otherRef.current && otherRef.current.src) try { otherRef.current.currentTime = 0; } catch (e) {}
     
-    const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    const isMixerSilencingMain = isMixerActiveRef.current && stemsReadyRef.current;
+    const targetVol = (isMutedRef.current || isMixerSilencingMain) ? 0 : volumeRef.current;
     audioEl.volume = targetVol;
-    audioEl.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
+    audioEl.muted = Boolean(isMutedRef.current || isMixerSilencingMain);
 
     updateProgressVisuals();
     audioEl.play().catch(e => {
@@ -4814,7 +4914,8 @@ export default function App() {
       const elapsed = now - startTime;
       const p = Math.min(1, elapsed / durationMs);
 
-      const currentBaseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+      const isMixerSilencingMain = isMixerActiveRef.current && stemsReadyRef.current;
+      const currentBaseVol = (isMutedRef.current || isMixerSilencingMain) ? 0 : volumeRef.current;
       
       // Equal-Power Perceptual Curve (Constant 0 dB Power)
       // Math.sqrt(p) and Math.sqrt(1 - p) guarantees that total acoustic energy
@@ -4829,12 +4930,12 @@ export default function App() {
       if (currentAudio) {
         currentAudio.volume = Math.max(0, Math.min(1, outVol));
       }
-      if (nextAudio && !isMixerActiveRef.current && !isMutedRef.current) {
+      if (nextAudio && !isMixerSilencingMain && !isMutedRef.current) {
         nextAudio.volume = Math.max(0, Math.min(1, inVol));
       }
 
       // Smoothly blend stem components if stem mixer is active
-      if (isMixerActiveRef.current && !isMutedRef.current) {
+      if (isMixerSilencingMain && !isMutedRef.current) {
         const stemBase = volumeRef.current;
         if (vocalsRef.current) vocalsRef.current.volume = Math.max(0, Math.min(1, stemVolumes.vocals * stemBase * outFactor));
         if (drumsRef.current)  drumsRef.current.volume  = Math.max(0, Math.min(1, stemVolumes.drums * stemBase * outFactor));
@@ -4895,7 +4996,8 @@ export default function App() {
     };
 
     // Keep outgoing audio at full volume until incoming audio is confirmed playing
-    currentAudio.volume = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    const isMixerSilencingMain = isMixerActiveRef.current && stemsReadyRef.current;
+    currentAudio.volume = (isMutedRef.current || isMixerSilencingMain) ? 0 : volumeRef.current;
 
     const onPlaying = () => {
       if (crossfadeTransitionIdRef.current !== transitionId || !isCrossfadingRef.current) return;
@@ -5228,13 +5330,13 @@ export default function App() {
   useEffect(() => {
     if (silentAudioRef.current) {
       try { silentAudioRef.current.volume = 0.001; } catch (e) {}
-      if (isPlaying) {
+      if (isPlaying || jamRoomId) {
         silentAudioRef.current.play().catch(() => {});
       } else {
         silentAudioRef.current.pause();
       }
     }
-  }, [isPlaying]);
+  }, [isPlaying, jamRoomId]);
 
   const toggleMute = () => {
     if (isMuted) { setIsMuted(false); setVolume(previousVolume || 0.5); }
@@ -5245,7 +5347,28 @@ export default function App() {
     if (e) e.stopPropagation();
     const willShow = !showMixer;
     setShowMixer(willShow);
-    if (willShow) { setShowLyrics(false); setShowQueue(false); }
+    if (willShow) {
+      setShowLyrics(false);
+      setShowQueue(false);
+      if (currentTrack?.stem_vocals) {
+        if (window.__euphonyAudioCtx && window.__euphonyAudioCtx.state === 'suspended') {
+          window.__euphonyAudioCtx.resume().catch(() => {});
+        }
+        const curTime = audioRef.current?.currentTime || 0;
+        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+          const el = ref.current;
+          if (el) {
+            setupWebAudioStem(el);
+            if (Math.abs((el.currentTime || 0) - curTime) > 0.3) {
+              try { el.currentTime = curTime; } catch (err) {}
+            }
+            if (isPlayingRef.current && el.paused && el.src) {
+              el.play().catch(() => {});
+            }
+          }
+        });
+      }
+    }
   };
 
   useEffect(() => {
@@ -5408,7 +5531,8 @@ export default function App() {
         setVolume(prev => {
           const next = Math.min(1, Math.round((prev + 0.05) * 100) / 100);
           volumeRef.current = next;
-          if (audioRef.current && !isMixerActiveRef.current) {
+          const isMixerSilencingMain = isMixerActiveRef.current && stemsReadyRef.current;
+          if (audioRef.current && !isMixerSilencingMain) {
             audioRef.current.volume = next;
             audioRef.current.muted = false;
           }
@@ -5423,11 +5547,12 @@ export default function App() {
         setVolume(prev => {
           const next = Math.max(0, Math.round((prev - 0.05) * 100) / 100);
           volumeRef.current = next;
+          const isMixerSilencingMain = isMixerActiveRef.current && stemsReadyRef.current;
           if (next === 0) {
             isMutedRef.current = true;
             setIsMuted(true);
             if (audioRef.current) audioRef.current.muted = true;
-          } else if (audioRef.current && !isMixerActiveRef.current) {
+          } else if (audioRef.current && !isMixerSilencingMain) {
             audioRef.current.volume = next;
           }
           triggerToast(`Volume: ${Math.round(next * 100)}%`);
@@ -5860,10 +5985,28 @@ export default function App() {
             stemVolumesRef.current = payload.stemVolumes;
             setStemVolumes(payload.stemVolumes);
             const baseVol = isMutedRef.current ? 0 : volumeRef.current;
-            if (vocalsRef.current) vocalsRef.current.volume = Math.max(0, Math.min(1, (payload.stemVolumes.vocals ?? 1) * baseVol));
-            if (drumsRef.current)  drumsRef.current.volume  = Math.max(0, Math.min(1, (payload.stemVolumes.drums ?? 1) * baseVol));
-            if (bassRef.current)   bassRef.current.volume   = Math.max(0, Math.min(1, (payload.stemVolumes.bass ?? 1) * baseVol));
-            if (otherRef.current)  otherRef.current.volume  = Math.max(0, Math.min(1, (payload.stemVolumes.other ?? 1) * baseVol));
+            const updateStemEl = (ref, volVal) => {
+              const el = ref.current;
+              if (!el) return;
+              const gainNode = setupWebAudioStem(el);
+              const targetVol = Math.max(0, Math.min(1, (volVal ?? 1) * baseVol));
+              if (gainNode) {
+                try {
+                  gainNode.gain.setValueAtTime(targetVol, window.__euphonyAudioCtx.currentTime);
+                } catch (e) {
+                  gainNode.gain.value = targetVol;
+                }
+                el.muted = false;
+                el.volume = 1.0;
+              } else {
+                el.volume = targetVol;
+                el.muted = targetVol === 0;
+              }
+            };
+            updateStemEl(vocalsRef, payload.stemVolumes.vocals);
+            updateStemEl(drumsRef, payload.stemVolumes.drums);
+            updateStemEl(bassRef, payload.stemVolumes.bass);
+            updateStemEl(otherRef, payload.stemVolumes.other);
           }
           if (payload.playMode) {
             setPlayMode(payload.playMode);
@@ -5874,7 +6017,8 @@ export default function App() {
           if (payload.isCrossfade && performCrossfadeTransitionRef.current) {
             const currentAudio = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
             if (currentAudio && !currentAudio.paused && currentAudio.src && currentAudio.currentTime > 0.5) {
-              const elapsedTransit = payload.startTime ? Math.max(0, (Date.now() - payload.startTime) / 1000) : 0;
+              const leaderNow = Date.now() + jamClockOffsetRef.current;
+              const elapsedTransit = payload.startTime ? Math.max(0, (leaderNow - payload.startTime) / 1000) : (jamNetworkLatencyRef.current || 0.04);
               const fadeDuration = payload.crossfadeDuration || crossfadeDurationRef.current || 5;
               if (elapsedTransit < fadeDuration - 0.5) {
                 crossfadeHandled = performCrossfadeTransitionRef.current(
@@ -5895,9 +6039,10 @@ export default function App() {
             playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current, true);
 
             const calculateLiveTargetTime = () => {
+              const leaderNow = Date.now() + jamClockOffsetRef.current;
               const transitOrElapsed = payload.startTime 
-                ? (Date.now() - payload.startTime) / 1000 
-                : (payload.timestamp ? (Date.now() - payload.timestamp) / 1000 : 0);
+                ? (leaderNow - payload.startTime) / 1000 
+                : (payload.timestamp ? (leaderNow - payload.timestamp) / 1000 : (jamNetworkLatencyRef.current || 0.04));
               const clampedElapsed = Math.max(0, Math.min(60, transitOrElapsed));
               return Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? clampedElapsed : 0));
             };
@@ -5994,11 +6139,12 @@ export default function App() {
 
               if (currentActiveAudio) {
                 playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current, true);
-                const transitDelay = payload.timestamp ? Math.max(0, Math.min(2.0, (Date.now() - payload.timestamp) / 1000)) : 0.05;
+                const leaderNow = Date.now() + jamClockOffsetRef.current;
+                const transitDelay = payload.timestamp ? Math.max(0, Math.min(2.0, (leaderNow - payload.timestamp) / 1000)) : (jamNetworkLatencyRef.current || 0.04);
                 const snapTime = Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? transitDelay : 0));
                 const restoreTime = () => {
                   try {
-                    const dynamicTransit = payload.timestamp ? Math.max(0, Math.min(10.0, (Date.now() - payload.timestamp) / 1000)) : 0.05;
+                    const dynamicTransit = payload.timestamp ? Math.max(0, Math.min(10.0, (Date.now() + jamClockOffsetRef.current - payload.timestamp) / 1000)) : (jamNetworkLatencyRef.current || 0.04);
                     const liveSnapTime = Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? dynamicTransit : 0));
                     if (liveSnapTime > 0.05) {
                       currentActiveAudio.currentTime = liveSnapTime;
@@ -6030,7 +6176,8 @@ export default function App() {
 
             // 2. Playback position alignment with multi-tiered rate steering & hard seek fallback
             if (currentActiveAudio && typeof payload.currentTime === 'number') {
-              const transitDelay = payload.timestamp ? Math.max(0, Math.min(2.0, (Date.now() - payload.timestamp) / 1000)) : 0.05;
+              const leaderNow = Date.now() + jamClockOffsetRef.current;
+              const transitDelay = payload.timestamp ? Math.max(0, Math.min(2.0, (leaderNow - payload.timestamp) / 1000)) : (jamNetworkLatencyRef.current || 0.04);
               const expectedTime = payload.currentTime + (payload.isPlaying ? transitDelay : 0);
               const currentPos = currentActiveAudio.currentTime || 0;
               const diff = expectedTime - currentPos;
@@ -6043,12 +6190,13 @@ export default function App() {
               }
 
               // Ensure follower active audio volume is restored and audible
-              const baseVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+              const shouldMuteMain = isMixerActiveRef.current && stemsReadyRef.current;
+              const baseVol = (isMutedRef.current || shouldMuteMain) ? 0 : volumeRef.current;
               if (Math.abs(currentActiveAudio.volume - baseVol) > 0.05 && !isCrossfadingRef.current) {
                 currentActiveAudio.volume = baseVol;
               }
-              if (currentActiveAudio.muted !== Boolean(isMutedRef.current || isMixerActiveRef.current)) {
-                currentActiveAudio.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
+              if (currentActiveAudio.muted !== Boolean(isMutedRef.current || shouldMuteMain)) {
+                currentActiveAudio.muted = Boolean(isMutedRef.current || shouldMuteMain);
               }
 
               const now = Date.now();
@@ -6148,10 +6296,28 @@ export default function App() {
             stemVolumesRef.current = payload.stemVolumes;
             setStemVolumes(payload.stemVolumes);
             const baseVol = isMutedRef.current ? 0 : volumeRef.current;
-            if (vocalsRef.current) vocalsRef.current.volume = Math.max(0, Math.min(1, (payload.stemVolumes.vocals ?? 1) * baseVol));
-            if (drumsRef.current)  drumsRef.current.volume  = Math.max(0, Math.min(1, (payload.stemVolumes.drums ?? 1) * baseVol));
-            if (bassRef.current)   bassRef.current.volume   = Math.max(0, Math.min(1, (payload.stemVolumes.bass ?? 1) * baseVol));
-            if (otherRef.current)  otherRef.current.volume  = Math.max(0, Math.min(1, (payload.stemVolumes.other ?? 1) * baseVol));
+            const updateStemEl = (ref, volVal) => {
+              const el = ref.current;
+              if (!el) return;
+              const gainNode = setupWebAudioStem(el);
+              const targetVol = Math.max(0, Math.min(1, (volVal ?? 1) * baseVol));
+              if (gainNode) {
+                try {
+                  gainNode.gain.setValueAtTime(targetVol, window.__euphonyAudioCtx.currentTime);
+                } catch (e) {
+                  gainNode.gain.value = targetVol;
+                }
+                el.muted = false;
+                el.volume = 1.0;
+              } else {
+                el.volume = targetVol;
+                el.muted = targetVol === 0;
+              }
+            };
+            updateStemEl(vocalsRef, payload.stemVolumes.vocals);
+            updateStemEl(drumsRef, payload.stemVolumes.drums);
+            updateStemEl(bassRef, payload.stemVolumes.bass);
+            updateStemEl(otherRef, payload.stemVolumes.other);
             if (isPlayingRef.current) {
               const t = currentActiveAudio?.currentTime || 0;
               [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
@@ -6164,6 +6330,33 @@ export default function App() {
                   }
                 }
               });
+            }
+          }
+        } else if (payload.type === 'jam_ping') {
+          if (isJamLeaderRef.current && jamChannelRef.current) {
+            jamChannelRef.current.send({
+              type: 'broadcast',
+              event: 'jam_sync',
+              payload: {
+                type: 'jam_pong',
+                targetClientId: payload.senderClientId,
+                clientTime: payload.clientTime,
+                leaderTime: Date.now(),
+                senderClientId: localClientIdRef.current
+              }
+            });
+          }
+        } else if (payload.type === 'jam_pong') {
+          if (payload.targetClientId === localClientIdRef.current && typeof payload.clientTime === 'number' && typeof payload.leaderTime === 'number') {
+            const now = Date.now();
+            const rtt = Math.max(0, (now - payload.clientTime) / 1000);
+            jamNetworkLatencyRef.current = Math.min(1.0, Math.max(0.01, rtt / 2));
+            const estimatedLeaderNow = payload.leaderTime + (rtt * 1000) / 2;
+            const newOffset = estimatedLeaderNow - now;
+            if (jamClockOffsetRef.current === 0) {
+              jamClockOffsetRef.current = newOffset;
+            } else {
+              jamClockOffsetRef.current = Math.round(jamClockOffsetRef.current * 0.7 + newOffset * 0.3);
             }
           }
         } else if (payload.type === 'play_mode_update') {
@@ -6180,6 +6373,7 @@ export default function App() {
       .on('broadcast', { event: 'jam_request_state' }, () => {
         if (currentTrackRef.current && (isJamHostRef.current || isJamLeaderRef.current)) {
           const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+          const curPos = activeEl?.currentTime || 0;
           channel.send({
             type: 'broadcast',
             event: 'jam_sync',
@@ -6187,7 +6381,8 @@ export default function App() {
               type: 'full_state_sync',
               song: currentTrackRef.current,
               isPlaying: isPlayingRef.current,
-              currentTime: activeEl?.currentTime || 0,
+              currentTime: curPos,
+              startTime: Date.now() - (curPos * 1000),
               userQueue: userQueueRef.current || [],
               crossfadeEnabled: crossfadeEnabledRef.current || false,
               crossfadeDuration: crossfadeDurationRef.current || 5,
@@ -6228,6 +6423,18 @@ export default function App() {
             event: 'jam_request_state',
             payload: { requester: userName }
           });
+
+          if (!isJamLeaderRef.current) {
+            channel.send({
+              type: 'broadcast',
+              event: 'jam_sync',
+              payload: {
+                type: 'jam_ping',
+                clientTime: Date.now(),
+                senderClientId: localClientIdRef.current
+              }
+            });
+          }
         }
       });
 
@@ -6573,6 +6780,24 @@ export default function App() {
 
   const renderMixerBlock = (isMobile, customHeight, customBg) => {
     const sliderHeight = customHeight || (isMobile ? 140 : 160);
+    const unlockAndEnsureStems = () => {
+      if (window.__euphonyAudioCtx && window.__euphonyAudioCtx.state === 'suspended') {
+        window.__euphonyAudioCtx.resume().catch(() => {});
+      }
+      const curTime = audioRef.current?.currentTime || 0;
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        const el = ref.current;
+        if (el && el.src) {
+          setupWebAudioStem(el);
+          if (Math.abs((el.currentTime || 0) - curTime) > 0.3) {
+            try { el.currentTime = curTime; } catch (err) {}
+          }
+          if (isPlayingRef.current && el.paused) {
+            el.play().then(() => setStemsReady(true)).catch(() => {});
+          }
+        }
+      });
+    };
     return (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "20px 18px", background: customBg !== undefined ? customBg : (isDarkMode ? "rgba(10, 15, 26, 0.75)" : "rgba(250, 250, 247, 0.85)"), backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: customBg !== undefined ? "0" : "12px", textAlign: "center", color: isDarkMode ? "#FFFFFF" : COLORS.primary, display: "flex", flexDirection: "column" }}>
       {!currentTrack?.stem_vocals ? (
@@ -6619,10 +6844,12 @@ export default function App() {
                         const nextVols = { ...stemVolumes, [stemType]: val };
                         setStemVolumes(nextVols);
                         broadcastStemVolumes(nextVols);
+                        unlockAndEnsureStems();
                       }}
                       onPointerDown={(e) => {
                         try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
                         setActiveStems(prev => ({ ...prev, [stemType]: true }));
+                        unlockAndEnsureStems();
                       }}
                       onPointerUp={(e) => {
                         try { e.currentTarget.releasePointerCapture?.(e.pointerId); } catch (_) {}
@@ -6641,7 +6868,10 @@ export default function App() {
                           return next;
                         });
                       }}
-                      onTouchStart={() => setActiveStems(prev => ({ ...prev, [stemType]: true }))}
+                      onTouchStart={() => {
+                        setActiveStems(prev => ({ ...prev, [stemType]: true }));
+                        unlockAndEnsureStems();
+                      }}
                       onTouchEnd={() => setActiveStems(prev => {
                         if (!prev[stemType]) return prev;
                         const next = { ...prev };
@@ -7224,7 +7454,7 @@ export default function App() {
       `}</style>
 
       {/* ── AUDIO ELEMENTS (APPLE-STYLE DUAL DECK ENGINE) ── */}
-      <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay style={{ display: 'none' }} />
+      <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay onTimeUpdate={() => handleTimeUpdateRef.current?.()} style={{ display: 'none' }} />
       {/* DECK A */}
       <audio
         ref={deckARef}
@@ -7309,7 +7539,7 @@ export default function App() {
         }}
         preload="auto"
         playsInline
-        muted={isMixerActive || isMuted}
+        muted={shouldMuteMainForStems || isMuted}
         loop={playMode === 'repeat-one'}
         onError={async () => {
           if (activeDeckRef.current !== 'A' || !currentTrack?.url) return;
@@ -7427,7 +7657,7 @@ export default function App() {
         }}
         preload="auto"
         playsInline
-        muted={isMixerActive || isMuted}
+        muted={shouldMuteMainForStems || isMuted}
         loop={playMode === 'repeat-one'}
         onError={async () => {
           if (activeDeckRef.current !== 'B' || !currentTrack?.url) return;
@@ -7461,10 +7691,10 @@ export default function App() {
         }}
         className="loop-audio-fix"
       />
-      <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
-      <audio ref={drumsRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
-      <audio ref={bassRef}   src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
-      <audio ref={otherRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
+      <audio ref={vocalsRef} crossOrigin="anonymous" src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onCanPlay={() => setStemsReady(true)} onError={() => { console.warn("Vocals stem error"); setStemsBroken(true); }} className="loop-audio-fix" />
+      <audio ref={drumsRef}  crossOrigin="anonymous" src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onCanPlay={() => setStemsReady(true)} onError={() => { console.warn("Drums stem error"); setStemsBroken(true); }} className="loop-audio-fix" />
+      <audio ref={bassRef}   crossOrigin="anonymous" src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onCanPlay={() => setStemsReady(true)} onError={() => { console.warn("Bass stem error"); setStemsBroken(true); }} className="loop-audio-fix" />
+      <audio ref={otherRef}  crossOrigin="anonymous" src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onCanPlay={() => setStemsReady(true)} onError={() => { console.warn("Other stem error"); setStemsBroken(true); }} className="loop-audio-fix" />
 
       {/* TOASTS */}
       {renderQueueToast && (() => {
