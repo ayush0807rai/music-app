@@ -3120,7 +3120,7 @@ export default function App() {
                 currentTime: time,
                 song: currentTrack,
                 isPlaying: true,
-                hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+                hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
                 timestamp: now
               }
             });
@@ -3416,7 +3416,7 @@ export default function App() {
           currentTime: seekTime,
           song: currentTrack,
           isPlaying: isPlayingRef.current,
-          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
           timestamp: Date.now()
         }
       });
@@ -3443,7 +3443,7 @@ export default function App() {
           currentTime: time,
           song: currentTrack,
           isPlaying: true,
-          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
           timestamp: Date.now()
         }
       });
@@ -3787,7 +3787,7 @@ export default function App() {
           song: track,
           isPlaying: true,
           currentTime: 0,
-          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
           timestamp: Date.now()
         }
       });
@@ -4316,7 +4316,7 @@ export default function App() {
           song: currentTrack,
           isPlaying: !isPlaying,
           currentTime: audioRef.current?.currentTime || 0,
-          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
           timestamp: Date.now()
         }
       });
@@ -4556,7 +4556,7 @@ export default function App() {
           song: incomingTrack,
           isPlaying: true,
           currentTime: 0,
-          hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+          hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
           timestamp: Date.now()
         }
       });
@@ -5288,7 +5288,7 @@ export default function App() {
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
         newPresences.forEach(p => {
-          const myName = activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0];
+          const myName = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0];
           if (p.name && p.name !== myName) {
             triggerToast(`${p.name} joined the Jam!`);
           }
@@ -5386,7 +5386,7 @@ export default function App() {
               song: currentTrackRef.current,
               isPlaying: isPlayingRef.current,
               currentTime: currentActiveAudio?.currentTime || 0,
-              hostName: activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
+              hostName: session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Host",
               timestamp: Date.now()
             }
           });
@@ -5394,7 +5394,7 @@ export default function App() {
       })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          const userName = activeUser?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Guest";
+          const userName = session?.user?.user_metadata?.full_name || session?.user?.email?.split('@')[0] || "Guest";
           channel.track({
             name: userName,
             isHost: isJamHostRef.current,
@@ -5415,7 +5415,7 @@ export default function App() {
       supabase.removeChannel(channel);
       jamChannelRef.current = null;
     };
-  }, [jamRoomId, session?.user?.id, activeUser, playlist, playTrackWithMetadata, updateProgressVisuals, triggerToast]);
+  }, [jamRoomId, session?.user?.id, session?.user, playlist, playTrackWithMetadata, updateProgressVisuals, triggerToast]);
 
   const formatTime = (secs) => {
     if (!secs || isNaN(secs)) return "0:00";
