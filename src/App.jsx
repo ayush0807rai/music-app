@@ -1598,12 +1598,12 @@ export default function App() {
       } catch (e) {}
     }
 
-    // 3. Dual-Deck & Stems Hardware Unlock:
+    // 3. Dual-Deck Hardware Unlock:
     // Only prime inactive audio nodes once so we never tamper with active volume or hardware pipelines
     if (decksPrimedRef.current) return;
     decksPrimedRef.current = true;
 
-    [deckARef.current, deckBRef.current, vocalsRef.current, drumsRef.current, bassRef.current, otherRef.current].forEach(deck => {
+    [deckARef.current, deckBRef.current].forEach(deck => {
       if (deck) {
         const isCurrentActive = (deck === audioRef.current && isPlayingRef.current);
         if (isCurrentActive) {
@@ -3223,7 +3223,7 @@ export default function App() {
 
   const areStemsModified = stemVolumes.vocals < 1 || stemVolumes.drums < 1 || stemVolumes.bass < 1 || stemVolumes.other < 1;
   const isMixerActive = Boolean(currentTrack?.stem_vocals && !stemsBroken && areStemsModified);
-  const shouldLoadStems = Boolean(currentTrack?.stem_vocals && !stemsBroken);
+  const shouldLoadStems = Boolean((showMixer || (isDesktopFullscreen && fullscreenView === "mixer") || isMixerActive) && currentTrack?.stem_vocals);
 
   useEffect(() => {
     const setVol = (ref, targetVol, targetMuted) => {
@@ -3345,24 +3345,17 @@ export default function App() {
       silentAudioRef.current.volume = 0.001;
       silentAudioRef.current.play().catch(e => e);
     }
-    // Synchronously start/unlock stems during active user interaction
-    if (currentTrackRef.current?.stem_vocals && !stemsBroken) {
-      const curT = activeEl.currentTime || 0;
-      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-        const el = ref.current;
-        if (el && el.src) {
-          if (el.readyState >= 2 && Math.abs((el.currentTime || 0) - curT) > 0.3) {
-            try { el.currentTime = curT; } catch (_) {}
-          }
-          el.play().catch(e => e);
-        }
-      });
-    }
     const p = activeEl.play();
     if (p && typeof p.then === 'function') {
       p.then(() => {
         setIsPlaying(true);
         isPlayingRef.current = true;
+        if (shouldLoadStems && !stemsBroken) {
+          vocalsRef.current?.play().catch(e => e);
+          drumsRef.current?.play().catch(e => e);
+          bassRef.current?.play().catch(e => e);
+          otherRef.current?.play().catch(e => e);
+        }
       }).catch((err) => {
         if (err?.name === 'AbortError') return;
         triggerToastRef.current?.("Tap screen to resume Jam audio 🎵");
@@ -3378,7 +3371,7 @@ export default function App() {
         window.addEventListener('pointerdown', handleUnlock);
       });
     }
-  }, [stemsBroken, primeAudioDecks]);
+  }, [shouldLoadStems, stemsBroken, primeAudioDecks]);
 
   const resumeActiveAudioDecksRef = useRef(resumeActiveAudioDecks);
   resumeActiveAudioDecksRef.current = resumeActiveAudioDecks;
@@ -3386,24 +3379,16 @@ export default function App() {
   useEffect(() => {
     if (shouldLoadStems && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime || 0;
-      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-        const el = ref.current;
-        if (!el || !el.src) return;
-        const syncAndPlay = () => {
-          try {
-            if (el.readyState >= 2 && Math.abs(el.currentTime - t) > 0.3) el.currentTime = t;
-          } catch (e) {}
-          if (isPlaying) {
-            el.play().catch(() => {});
-          }
-        };
-        if (el.readyState >= 2) {
-          syncAndPlay();
-        } else {
-          el.addEventListener('loadedmetadata', syncAndPlay, { once: true });
-          el.addEventListener('canplay', syncAndPlay, { once: true });
-        }
-      });
+      if (vocalsRef.current) vocalsRef.current.currentTime = t;
+      if (drumsRef.current)  drumsRef.current.currentTime  = t;
+      if (bassRef.current)   bassRef.current.currentTime   = t;
+      if (otherRef.current)  otherRef.current.currentTime  = t;
+      if (isPlaying) {
+        vocalsRef.current?.play().catch(e => e);
+        drumsRef.current?.play().catch(e => e);
+        bassRef.current?.play().catch(e => e);
+        otherRef.current?.play().catch(e => e);
+      }
     }
   }, [shouldLoadStems, isPlaying, stemsBroken]);
 
@@ -4225,17 +4210,6 @@ export default function App() {
     audioEl.play().catch(e => {
       if (e?.name !== 'AbortError') console.log("play notice:", e);
     });
-
-    // Synchronously start/unlock stems during active user interaction
-    if (track?.stem_vocals && !stemsBroken) {
-      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-        const el = ref.current;
-        if (el) {
-          try { el.currentTime = 0; } catch (_) {}
-          el.play().catch(() => {});
-        }
-      });
-    }
 
     // Live Jam Track Change Broadcast
     if (!skipJamBroadcast) {
@@ -5319,20 +5293,6 @@ export default function App() {
     if (willShow) {
       setShowLyrics(false);
       setShowQueue(false);
-      if (currentTrack?.stem_vocals) {
-        const curTime = audioRef.current?.currentTime || 0;
-        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-          const el = ref.current;
-          if (el) {
-            if (el.readyState >= 2 && Math.abs((el.currentTime || 0) - curTime) > 0.3) {
-              try { el.currentTime = curTime; } catch (err) {}
-            }
-            if (isPlayingRef.current && el.paused && el.src) {
-              el.play().catch(() => {});
-            }
-          }
-        });
-      }
     }
   };
 
@@ -6799,20 +6759,6 @@ export default function App() {
 
   const renderMixerBlock = (isMobile, customHeight, customBg) => {
     const sliderHeight = customHeight || (isMobile ? 140 : 160);
-    const ensureStemsPlaying = () => {
-      const curTime = audioRef.current?.currentTime || 0;
-      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-        const el = ref.current;
-        if (el && el.src) {
-          if (el.readyState >= 2 && Math.abs((el.currentTime || 0) - curTime) > 0.3) {
-            try { el.currentTime = curTime; } catch (err) {}
-          }
-          if (isPlayingRef.current && el.paused) {
-            el.play().catch(() => {});
-          }
-        }
-      });
-    };
     return (
     <div className="custom-scrollbar" style={{ width: "100%", height: "100%", padding: isMobile ? "16px" : "20px 18px", background: customBg !== undefined ? customBg : (isDarkMode ? "rgba(10, 15, 26, 0.75)" : "rgba(250, 250, 247, 0.85)"), backdropFilter: customBg !== undefined ? "none" : "blur(20px)", borderRadius: customBg !== undefined ? "0" : "12px", textAlign: "center", color: isDarkMode ? "#FFFFFF" : COLORS.primary, display: "flex", flexDirection: "column" }}>
       {!currentTrack?.stem_vocals ? (
@@ -6863,7 +6809,6 @@ export default function App() {
                       onPointerDown={(e) => {
                         try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
                         setActiveStems(prev => ({ ...prev, [stemType]: true }));
-                        ensureStemsPlaying();
                       }}
                       onPointerUp={(e) => {
                         try { e.currentTarget.releasePointerCapture?.(e.pointerId); } catch (_) {}
@@ -6884,7 +6829,6 @@ export default function App() {
                       }}
                       onTouchStart={() => {
                         setActiveStems(prev => ({ ...prev, [stemType]: true }));
-                        ensureStemsPlaying();
                       }}
                       onTouchEnd={() => setActiveStems(prev => {
                         if (!prev[stemType]) return prev;
@@ -7705,10 +7649,10 @@ export default function App() {
         }}
         className="loop-audio-fix"
       />
-      <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onCanPlay={(e) => { if (isPlayingRef.current && e.target.paused) e.target.play().catch(() => {}); }} onError={(e) => console.warn("Vocals stem error:", e)} className="loop-audio-fix" />
-      <audio ref={drumsRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onCanPlay={(e) => { if (isPlayingRef.current && e.target.paused) e.target.play().catch(() => {}); }} onError={(e) => console.warn("Drums stem error:", e)} className="loop-audio-fix" />
-      <audio ref={bassRef}   src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onCanPlay={(e) => { if (isPlayingRef.current && e.target.paused) e.target.play().catch(() => {}); }} onError={(e) => console.warn("Bass stem error:", e)} className="loop-audio-fix" />
-      <audio ref={otherRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onCanPlay={(e) => { if (isPlayingRef.current && e.target.paused) e.target.play().catch(() => {}); }} onError={(e) => console.warn("Other stem error:", e)} className="loop-audio-fix" />
+      <audio ref={vocalsRef} src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.vocals === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
+      <audio ref={drumsRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.drums === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
+      <audio ref={bassRef}   src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass)   || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.bass === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
+      <audio ref={otherRef}  src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other)  || undefined) : undefined} preload={shouldLoadStems ? "auto" : "none"} playsInline muted={!isMixerActive || isMuted || stemVolumes.other === 0} loop={playMode === 'repeat-one'} onError={() => {}} className="loop-audio-fix" />
 
       {/* TOASTS */}
       {renderQueueToast && (() => {
