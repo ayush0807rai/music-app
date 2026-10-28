@@ -44,6 +44,12 @@ export function purgeLegacyGlobalStats() {
     localStorage.removeItem(PLAY_COUNTS_KEY);
     localStorage.removeItem(LISTEN_SECONDS_KEY);
     localStorage.removeItem(CUSTOM_MOODS_KEY);
+    localStorage.removeItem("euphony_cached_playlists");
+    // Clear any corrupted local keys for raiayush8705 on this browser
+    localStorage.removeItem(`euphony_song_play_counts_8012a3fc-8aa6-402a-bbd1-2748e454fa21`);
+    localStorage.removeItem(`euphony_song_listen_seconds_8012a3fc-8aa6-402a-bbd1-2748e454fa21`);
+    localStorage.removeItem(`euphony_recently_played_ids_8012a3fc-8aa6-402a-bbd1-2748e454fa21`);
+    localStorage.removeItem(`euphony_custom_song_moods_8012a3fc-8aa6-402a-bbd1-2748e454fa21`);
   } catch (e) {}
 }
 
@@ -315,46 +321,28 @@ export async function syncAccountStats(user) {
     }
 
     if (remoteStats) {
-      // 3. Intelligently merge local and remote without double-counting
-      const mergedCounts = { ...(remoteStats.playCounts || {}) };
-      for (const [id, count] of Object.entries(localCounts)) {
-        mergedCounts[id] = Math.max(mergedCounts[id] || 0, count || 0);
-      }
-
-      const mergedSeconds = { ...(remoteStats.listenSeconds || {}) };
-      for (const [id, sec] of Object.entries(localSeconds)) {
-        mergedSeconds[id] = Math.max(mergedSeconds[id] || 0, sec || 0);
-      }
-
-      const mergedRecent = Array.from(new Set([...(localRecent || []), ...(remoteStats.recentlyPlayedIds || [])])).slice(0, 60);
-      const mergedMoods = { ...(remoteStats.customMoods || {}), ...(localMoods || {}) };
-
-      const merged = {
-        playCounts: mergedCounts,
-        listenSeconds: mergedSeconds,
-        recentlyPlayedIds: mergedRecent,
-        customMoods: mergedMoods
+      // Cloud database in Supabase is authoritative for this account.
+      // Update local device storage to exactly reflect the user's cloud account data.
+      const synced = {
+        playCounts: remoteStats.playCounts || {},
+        listenSeconds: remoteStats.listenSeconds || {},
+        recentlyPlayedIds: remoteStats.recentlyPlayedIds || [],
+        customMoods: remoteStats.customMoods || {}
       };
 
-      // Save locally
-      saveLocalStats(merged, targetId);
-
-      // Push merged stats back to cloud if local device had additional data
-      const hadLocalAdditions = Object.keys(localCounts).some(k => (localCounts[k] || 0) > (remoteStats.playCounts?.[k] || 0)) ||
-        Object.keys(localSeconds).some(k => (localSeconds[k] || 0) > (remoteStats.listenSeconds?.[k] || 0));
-
-      if (hadLocalAdditions) {
-        flushCloudSync(targetId);
-      }
-
-      return merged;
+      saveLocalStats(synced, targetId);
+      return synced;
     } else {
-      // First time this account connects on this device
-      const hasLocalData = Object.keys(localCounts).length > 0 || Object.keys(localSeconds).length > 0 || (localRecent && localRecent.length > 0);
-      if (hasLocalData) {
-        flushCloudSync(targetId);
-      }
-      return { playCounts: localCounts, listenSeconds: localSeconds, recentlyPlayedIds: localRecent, customMoods: localMoods };
+      // First time this account connects: start completely fresh (0 plays, 0 seconds)
+      const fresh = {
+        playCounts: {},
+        listenSeconds: {},
+        recentlyPlayedIds: [],
+        customMoods: {}
+      };
+      saveLocalStats(fresh, targetId);
+      await flushCloudSync(targetId);
+      return fresh;
     }
   } catch (err) {
     console.warn("Account stats sync failed:", err);

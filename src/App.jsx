@@ -1764,7 +1764,9 @@ export default function App() {
         "euphony_playback_index",
         "euphony_playback_source",
         "euphony_active_jam_id",
-        "euphony_is_jam_host"
+        "euphony_is_jam_host",
+        "euphony_cached_playlists",
+        "euphony_active_user_id"
       ].forEach(k => {
         try { localStorage.removeItem(k); } catch (e) {}
       });
@@ -1773,6 +1775,10 @@ export default function App() {
       setRecentlyPlayedIds([]);
       setPlayCounts({});
       setCustomMoodOverrides({});
+      setUserPlaylists([]);
+      setViewedPlaylistId(null);
+      setUserQueue([]);
+      setQueueCurrentTrack(null);
       setJamRoomId(null);
       setIsJamHost(false);
 
@@ -2726,14 +2732,66 @@ export default function App() {
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
     window.addEventListener("resize", handleResize);
-    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setIsSessionLoaded(true); }).catch((e) => { console.error("Session error:", e); setIsSessionLoaded(true); });
+
+    const checkUserSwitch = (newSession) => {
+      const newUserId = newSession?.user?.id || null;
+      let lastUserId = null;
+      try { lastUserId = localStorage.getItem("euphony_active_user_id"); } catch (e) {}
+
+      if (newUserId && lastUserId && newUserId !== lastUserId) {
+        try {
+          localStorage.removeItem("euphony_cached_playlists");
+          localStorage.removeItem("euphony_playlist_id");
+          localStorage.removeItem("euphony_user_queue");
+          localStorage.removeItem("euphony_queue_current_track");
+          localStorage.removeItem("euphony_playback_history");
+          localStorage.removeItem("euphony_playback_queue");
+          localStorage.removeItem("euphony_playback_index");
+          localStorage.removeItem("euphony_playback_source");
+          localStorage.removeItem("euphony_current_time");
+          localStorage.removeItem(`euphony_recently_played_ids_${newUserId}`);
+          localStorage.removeItem(`euphony_song_play_counts_${newUserId}`);
+          localStorage.removeItem(`euphony_song_listen_seconds_${newUserId}`);
+          localStorage.removeItem(`euphony_custom_song_moods_${newUserId}`);
+        } catch (e) {}
+
+        setUserPlaylists([]);
+        setViewedPlaylistId(null);
+        setUserQueue([]);
+        setQueueCurrentTrack(null);
+        setRecentlyPlayedIds([]);
+        setPlayCounts({});
+        setCustomMoodOverrides({});
+      }
+
+      if (newUserId) {
+        try { localStorage.setItem("euphony_active_user_id", newUserId); } catch (e) {}
+      } else {
+        try { localStorage.removeItem("euphony_active_user_id"); } catch (e) {}
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      checkUserSwitch(session);
+      setSession(session);
+      setIsSessionLoaded(true);
+    }).catch((e) => {
+      console.error("Session error:", e);
+      setIsSessionLoaded(true);
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      checkUserSwitch(session);
       if (event === 'SIGNED_OUT') {
         setActiveUser(null);
         setSession(null);
         setRecentlyPlayedIds([]);
         setPlayCounts({});
         setCustomMoodOverrides({});
+        setUserPlaylists([]);
+        setViewedPlaylistId(null);
+        setUserQueue([]);
+        setQueueCurrentTrack(null);
       } else if (event === 'PASSWORD_RECOVERY') {
         setSession(session);
         setShowPasswordResetModal(true);
@@ -3004,8 +3062,8 @@ export default function App() {
         if (pendingListenDurationRef.current > 0.1 && currentTrack?.id) {
           recordListeningDuration(currentTrack.id, pendingListenDurationRef.current, session.user.id);
           pendingListenDurationRef.current = 0;
+          flushCloudSync(session.user.id);
         }
-        flushCloudSync(session.user.id);
       }
     };
 
