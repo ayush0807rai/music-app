@@ -7846,9 +7846,6 @@ export default function App() {
                 <div onClick={() => { openedFromTrackOptionsRef.current = false; setSelectedAlbum(targetTrackForOptions.album || targetTrackForOptions.artist); setSearchQuery(''); setViewedPlaylistId(null); setIsMobilePlayerOpen(false); setIsDesktopFullscreen(false); setShowTrackOptionsModal(false); setTrackForOptions(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                   <Disc size={18} /> Go to album
                 </div>
-                <div onClick={(e) => { openedFromTrackOptionsRef.current = false; handleShareSong(targetTrackForOptions, e); setShowTrackOptionsModal(false); setTrackForOptions(null); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
-                  <Share2 size={18} /> Share song
-                </div>
                 {currentTrack?.id === targetTrackForOptions.id && (
                   <div onClick={() => { openedFromTrackOptionsRef.current = true; setShowSleepTimerModal(true); setShowTrackOptionsModal(false); }} className="glass-row hover-effect" style={{ width: "100%", padding: "12px 14px", color: songTheme.textColor, fontWeight: "bold", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "12px", background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px" }}>
                     <Clock size={18} /> Sleep timer
@@ -8232,23 +8229,16 @@ export default function App() {
             cursor: isRefreshing ? "default" : "pointer",
             display: "inline-flex",
             alignItems: "center",
-            gap: "7px",
             color: COLORS.primary,
-            userSelect: "none"
+            userSelect: "none",
+            opacity: isRefreshing ? 0.6 : 1,
+            transition: "opacity 0.2s ease"
           }}
           title={isRefreshing ? "Refreshing Euphony..." : "Click Euphony to refresh"}
         >
           <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px", lineHeight: 1 }}>
             Euphony
           </h1>
-          <RefreshCw
-            size={isDesktop ? 16 : 14}
-            className={isRefreshing ? "spin-animate" : ""}
-            style={{
-              opacity: isRefreshing ? 1 : 0.65,
-              transition: "transform 0.3s ease, opacity 0.2s ease"
-            }}
-          />
         </button>
         <div style={{ display: "flex", gap: isDesktop ? "12px" : "6px", alignItems: "center" }}>
           <button className="hover-effect" onClick={toggleDarkMode} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
@@ -8575,7 +8565,6 @@ export default function App() {
                               <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "2px", flexShrink: 0 }}>
                                 <button type="button" title="Add to Queue" onPointerDown={e => e.stopPropagation()} onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
                                 <button type="button" title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onPointerDown={e => e.stopPropagation()} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} style={{ pointerEvents: "none" }} /></button>
-                                <button type="button" title="Share Song" onPointerDown={e => e.stopPropagation()} onClick={e => handleShareSong(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Share2 size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
                                 {!activePlaylistObj?.isSmart && (
                                   <button type="button" title="Remove from playlist" onPointerDown={e => e.stopPropagation()} onClick={e => handleRemoveSongFromPlaylist(viewedPlaylistId, track.id, e)} style={{ background: "transparent", border: "none", color: COLORS.textMuted, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Trash2 size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
                                 )}
@@ -8859,9 +8848,6 @@ export default function App() {
                             <button type="button" title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onPointerDown={e => e.stopPropagation()} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
                               <Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} style={{ pointerEvents: "none" }} />
                             </button>
-                            <button type="button" title="Share Song" onPointerDown={e => e.stopPropagation()} onClick={(e) => handleShareSong(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
-                              <Share2 size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} />
-                            </button>
                             {userPlaylists.length > 0 && (
                               <button type="button" title="Add to Playlist" onPointerDown={e => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setSongForPlaylistModal(track); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
                                 <FolderPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} />
@@ -8928,30 +8914,55 @@ export default function App() {
                 <span style={{ fontSize: "13px", fontWeight: "700", color: "#FFFFFF", letterSpacing: "0.5px", textShadow: "0 1px 4px rgba(0,0,0,0.7)", textTransform: "uppercase" }}>
                   Now Playing
                 </span>
-                <button
-                  onClick={() => {
-                    setIsDesktopFullscreen(true);
-                    setFullscreenView(showMixer ? "mixer" : showLyrics ? "lyrics" : "art");
-                  }}
-                  title="Full screen"
-                  style={{
-                    background: "rgba(255, 255, 255, 0.12)",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                    color: "#FFFFFF",
-                    width: "30px",
-                    height: "30px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    backdropFilter: "blur(4px)",
-                    transition: "all 0.2s ease"
-                  }}
-                  className="hover-effect"
-                >
-                  <Maximize2 size={15} />
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  {currentTrack && (
+                    <button
+                      onClick={(e) => handleShareSong(currentTrack, e)}
+                      title="Share song"
+                      style={{
+                        background: "rgba(255, 255, 255, 0.12)",
+                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                        color: "#FFFFFF",
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        backdropFilter: "blur(4px)",
+                        transition: "all 0.2s ease"
+                      }}
+                      className="hover-effect"
+                    >
+                      <Share2 size={15} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setIsDesktopFullscreen(true);
+                      setFullscreenView(showMixer ? "mixer" : showLyrics ? "lyrics" : "art");
+                    }}
+                    title="Full screen"
+                    style={{
+                      background: "rgba(255, 255, 255, 0.12)",
+                      border: "1px solid rgba(255, 255, 255, 0.2)",
+                      color: "#FFFFFF",
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      backdropFilter: "blur(4px)",
+                      transition: "all 0.2s ease"
+                    }}
+                    className="hover-effect"
+                  >
+                    <Maximize2 size={15} />
+                  </button>
+                </div>
               </div>
 
               {/* ARTWORK / DYNAMIC PLAYER VIEW */}
@@ -9351,6 +9362,30 @@ export default function App() {
 
             {/* Right: Actions & Exit Fullscreen */}
             <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end", minWidth: "220px" }}>
+              {currentTrack && (
+                <button
+                  onClick={(e) => handleShareSong(currentTrack, e)}
+                  title="Share song"
+                  style={{
+                    background: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(255, 255, 255, 0.75)",
+                    border: isDarkMode ? "none" : "1px solid rgba(26, 43, 76, 0.12)",
+                    color: isDarkMode ? "#FFFFFF" : "#1A2B4C",
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    backdropFilter: "blur(6px)",
+                    boxShadow: isDarkMode ? "none" : "0 2px 8px rgba(26, 43, 76, 0.06)",
+                    transition: "all 0.2s"
+                  }}
+                  className="hover-effect"
+                >
+                  <Share2 size={16} />
+                </button>
+              )}
               <button
                 onClick={(e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); }}
                 title="Options"
