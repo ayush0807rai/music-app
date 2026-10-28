@@ -2644,46 +2644,6 @@ export default function App() {
     } catch (e) {}
   }, []);
 
-  // Handle shared song link playback after session and playlist are loaded
-  useEffect(() => {
-    if (!session || !playlist || playlist.length === 0 || hasAutoPlayedSharedSongRef.current) return;
-    
-    let pendingSongId = null;
-    try {
-      const params = new URLSearchParams(window.location.search);
-      pendingSongId = params.get('song') || sessionStorage.getItem('euphony_pending_song_id');
-    } catch (e) {}
-
-    if (pendingSongId) {
-      hasAutoPlayedSharedSongRef.current = true;
-      try { sessionStorage.removeItem('euphony_pending_song_id'); } catch (e) {}
-      
-      const songIdx = playlist.findIndex(s => s.id === pendingSongId);
-      if (songIdx !== -1) {
-        handlePlaySong(songIdx, playlist, "Shared Song");
-        triggerToast(`Playing shared song: "${playlist[songIdx].title}"`);
-        try {
-          const url = new URL(window.location.href);
-          url.searchParams.delete('song');
-          window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + window.location.hash);
-        } catch (e) {}
-      } else {
-        supabase.from('songs').select('*').eq('id', pendingSongId).single().then(({ data: song, error }) => {
-          if (!error && song) {
-            setPlaylist(prev => [song, ...prev.filter(s => s.id !== song.id)]);
-            handlePlaySong(0, [song, ...playlist], "Shared Song");
-            triggerToast(`Playing shared song: "${song.title}"`);
-            try {
-              const url = new URL(window.location.href);
-              url.searchParams.delete('song');
-              window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + window.location.hash);
-            } catch (e) {}
-          }
-        }).catch(() => {});
-      }
-    }
-  }, [session, playlist, handlePlaySong, triggerToast]);
-
   // Handle shared jam room auto-join after session is loaded
   useEffect(() => {
     if (!session) return;
@@ -5256,6 +5216,46 @@ export default function App() {
       });
     }
   }, [jamRoomId, triggerToast]);
+
+  // Handle shared song link playback after session and playlist are loaded
+  useEffect(() => {
+    if (!session || !playlist || playlist.length === 0 || hasAutoPlayedSharedSongRef.current) return;
+    
+    let pendingSongId = null;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      pendingSongId = params.get('song') || sessionStorage.getItem('euphony_pending_song_id');
+    } catch (e) {}
+
+    if (pendingSongId) {
+      hasAutoPlayedSharedSongRef.current = true;
+      try { sessionStorage.removeItem('euphony_pending_song_id'); } catch (e) {}
+      
+      const songIdx = playlist.findIndex(s => s.id === pendingSongId);
+      if (songIdx !== -1) {
+        handlePlaySong(songIdx, playlist, "Shared Song");
+        triggerToast(`Playing shared song: "${playlist[songIdx].title}"`);
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('song');
+          window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + window.location.hash);
+        } catch (e) {}
+      } else {
+        supabase.from('songs').select('*').eq('id', pendingSongId).single().then(({ data: song, error }) => {
+          if (!error && song) {
+            setPlaylist(prev => [song, ...prev.filter(s => s.id !== song.id)]);
+            handlePlaySong(0, [song, ...playlist], "Shared Song");
+            triggerToast(`Playing shared song: "${song.title}"`);
+            try {
+              const url = new URL(window.location.href);
+              url.searchParams.delete('song');
+              window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : '') + window.location.hash);
+            } catch (e) {}
+          }
+        }).catch(() => {});
+      }
+    }
+  }, [session, playlist, handlePlaySong, triggerToast]);
 
   // Live Jam Realtime Channel Effect (Supabase Broadcast & Presence)
   useEffect(() => {
