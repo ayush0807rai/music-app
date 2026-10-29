@@ -1078,6 +1078,8 @@ export default function App() {
 
   const isPlayingRef = useRef(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const currentTimeRef = useRef(0);
+  currentTimeRef.current = currentTime;
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
@@ -1421,6 +1423,8 @@ export default function App() {
 
   const jamClockOffsetRef = useRef(0);
   const jamNetworkLatencyRef = useRef(0.04);
+  const jamHadPeersRef = useRef(false);
+  const leaveJamSessionRef = useRef(null);
   const lastRealtimeKeepAliveRef = useRef(0);
   const lastJamPingRef = useRef(0);
 
@@ -3226,6 +3230,54 @@ export default function App() {
   const isMixerActive = Boolean(currentTrack?.stem_vocals && !stemsBroken && areStemsModified && !jamRoomId);
   const shouldLoadStems = Boolean((showMixer || (isDesktopFullscreen && fullscreenView === "mixer") || isMixerActive) && currentTrack?.stem_vocals && !jamRoomId);
 
+  const prevMixerActiveRef = useRef(false);
+  useEffect(() => {
+    const wasActive = prevMixerActiveRef.current;
+    prevMixerActiveRef.current = isMixerActive;
+
+    if (!wasActive && isMixerActive) {
+      // Smooth handoff: Master Deck -> Stems
+      const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+      const curTime = activeEl?.currentTime || 0;
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        const el = ref.current;
+        if (el) {
+          try { el.currentTime = curTime; } catch (e) {}
+        }
+      });
+      if (activeEl) {
+        activeEl.volume = 0;
+        activeEl.muted = true;
+        activeEl.pause();
+      }
+      if (isPlayingRef.current) {
+        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+          ref.current?.play().catch(e => e);
+        });
+      }
+    } else if (wasActive && !isMixerActive) {
+      // Smooth handoff: Stems -> Master Deck
+      const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0)
+        || [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && isFinite(r.current.currentTime) && r.current.currentTime > 0);
+      const stemTime = stemCandidate?.current?.currentTime;
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        ref.current?.pause();
+      });
+      const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+      if (activeEl) {
+        if (typeof stemTime === 'number' && isFinite(stemTime)) {
+          try { activeEl.currentTime = stemTime; } catch (e) {}
+        }
+        const baseVol = isMutedRef.current ? 0 : volumeRef.current;
+        activeEl.volume = baseVol;
+        activeEl.muted = Boolean(isMutedRef.current);
+        if (isPlayingRef.current) {
+          activeEl.play().catch(e => e);
+        }
+      }
+    }
+  }, [isMixerActive]);
+
   useEffect(() => {
     const setVol = (ref, targetVol, targetMuted) => {
       if (!ref.current || isCrossfadingRef.current) return;
@@ -3234,10 +3286,10 @@ export default function App() {
     };
 
     setVol(audioRef, isMixerActive ? 0 : (isMuted ? 0 : volume), isMixerActive || isMuted);
-    setVol(vocalsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0, !isMixerActive || isMuted);
-    setVol(drumsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0, !isMixerActive || isMuted);
-    setVol(bassRef, isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0, !isMixerActive || isMuted);
-    setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted);
+    setVol(vocalsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.vocals === 0);
+    setVol(drumsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.drums === 0);
+    setVol(bassRef, isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.bass === 0);
+    setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.other === 0);
 
     if (isMixerActive && isPlayingRef.current) {
       [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
@@ -3350,67 +3402,42 @@ export default function App() {
     if (!activeEl) return;
     setIsPlaying(true);
     isPlayingRef.current = true;
-    const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
-    activeEl.volume = targetVol;
-    activeEl.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
     if (silentAudioRef.current) {
       silentAudioRef.current.volume = 0.001;
       silentAudioRef.current.play().catch(e => e);
     }
-    if (shouldLoadStems && !stemsBroken) {
+    if (isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
       vocalsRef.current?.play().catch(e => e);
       drumsRef.current?.play().catch(e => e);
       bassRef.current?.play().catch(e => e);
       otherRef.current?.play().catch(e => e);
+    } else {
+      const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+      activeEl.volume = targetVol;
+      activeEl.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
+      const p = activeEl.play();
+      if (p && typeof p.then === 'function') {
+        p.catch((err) => {
+          if (err?.name === 'AbortError') return;
+          triggerToastRef.current?.("Tap screen to resume audio 🎵");
+          const handleUnlock = () => {
+            primeAudioDecks();
+            resumeActiveAudioDecks();
+            window.removeEventListener('click', handleUnlock);
+            window.removeEventListener('touchend', handleUnlock);
+            window.removeEventListener('pointerdown', handleUnlock);
+          };
+          window.addEventListener('click', handleUnlock);
+          window.addEventListener('touchend', handleUnlock);
+          window.addEventListener('pointerdown', handleUnlock);
+        });
+      }
     }
-    const p = activeEl.play();
-    if (p && typeof p.then === 'function') {
-      p.then(() => {
-        setIsPlaying(true);
-        isPlayingRef.current = true;
-        if (shouldLoadStems && !stemsBroken) {
-          vocalsRef.current?.play().catch(e => e);
-          drumsRef.current?.play().catch(e => e);
-          bassRef.current?.play().catch(e => e);
-          otherRef.current?.play().catch(e => e);
-        }
-      }).catch((err) => {
-        if (err?.name === 'AbortError') return;
-        triggerToastRef.current?.("Tap screen to resume Jam audio 🎵");
-        const handleUnlock = () => {
-          primeAudioDecks();
-          resumeActiveAudioDecks();
-          window.removeEventListener('click', handleUnlock);
-          window.removeEventListener('touchend', handleUnlock);
-          window.removeEventListener('pointerdown', handleUnlock);
-        };
-        window.addEventListener('click', handleUnlock);
-        window.addEventListener('touchend', handleUnlock);
-        window.addEventListener('pointerdown', handleUnlock);
-      });
-    }
-  }, [shouldLoadStems, stemsBroken, primeAudioDecks]);
+  }, [stemsBroken, primeAudioDecks]);
 
   const resumeActiveAudioDecksRef = useRef(resumeActiveAudioDecks);
   resumeActiveAudioDecksRef.current = resumeActiveAudioDecks;
 
-  useEffect(() => {
-    if (shouldLoadStems && audioRef.current && !stemsBroken) {
-      const t = audioRef.current.currentTime;
-      if (vocalsRef.current) vocalsRef.current.currentTime = t;
-      if (drumsRef.current)  drumsRef.current.currentTime  = t;
-      if (bassRef.current)   bassRef.current.currentTime   = t;
-      if (otherRef.current)  otherRef.current.currentTime  = t;
-      if (isPlaying) {
-        vocalsRef.current?.play().catch(e => e);
-        drumsRef.current?.play().catch(e => e);
-        bassRef.current?.play().catch(e => e);
-        otherRef.current?.play().catch(e => e);
-      }
-    }
-  }, [shouldLoadStems, isPlaying, stemsBroken]);
-
-  
   const prefetchedSignatureRef = useRef("");
   
   useEffect(() => {
@@ -3425,21 +3452,22 @@ export default function App() {
         navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
       }
       if (isPlaying && currentTrack) {
-        if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
-          audioRef.current.play().catch(e => e);
-        }
-        if (shouldLoadStems && !stemsBroken) {
+        if (isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
           vocalsRef.current?.play().catch(e => e);
           drumsRef.current?.play().catch(e => e);
           bassRef.current?.play().catch(e => e);
           otherRef.current?.play().catch(e => e);
+        } else {
+          if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
+            audioRef.current.play().catch(e => e);
+          }
         }
       } else {
         pauseAllAudioDecks();
       }
     };
     syncPlayState();
-  }, [isPlaying, stemsBroken, currentTrack, shouldLoadStems, pauseAllAudioDecks]);
+  }, [isPlaying, stemsBroken, currentTrack, pauseAllAudioDecks]);
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
@@ -3463,7 +3491,8 @@ export default function App() {
         
         let time = audioRef.current.currentTime;
         if (isMixerActiveRef.current) {
-          const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0);
+          const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && r.current.volume > 0 && isFinite(r.current.currentTime) && r.current.currentTime > 0)
+            || [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0);
           if (stemCandidate?.current) {
             time = stemCandidate.current.currentTime;
             if (audioRef.current && isFinite(audioRef.current.currentTime) && Math.abs(audioRef.current.currentTime - time) > 1.0) {
@@ -3472,10 +3501,12 @@ export default function App() {
           }
         }
 
-        setCurrentTime(time);
+        const currentInt = Math.floor(time);
+        if (currentInt !== Math.floor(currentTimeRef.current || 0)) {
+          setCurrentTime(currentInt);
+        }
         updateProgressVisuals(); // Force DOM update for sliders even if requestAnimationFrame died in the background
         
-        const currentInt = Math.floor(time);
         if (currentInt % 2 === 0 && currentInt !== lastSavedTimeRef.current) {
           localStorage.setItem("euphony_current_time", time);
           lastSavedTimeRef.current = currentInt;
@@ -3668,14 +3699,22 @@ export default function App() {
           }
         }
 
-      if (currentTrack?.stem_vocals && !stemsBroken) {
-        const syncStem = (ref) => {
+      if (isMixerActiveRef.current && currentTrack?.stem_vocals && !stemsBroken) {
+        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
           const el = ref.current;
-          if (el && el.readyState >= 2 && !el.paused && Math.abs(el.currentTime - time) > 1.5) {
-            try { el.currentTime = time; } catch (_) {}
+          if (el && !el.paused && isFinite(el.currentTime)) {
+            const diff = el.currentTime - time;
+            const absDiff = Math.abs(diff);
+            if (absDiff > 2.0 && !el.seeking) {
+              try { el.currentTime = time; } catch (_) {}
+              el.playbackRate = 1.0;
+            } else if (absDiff > 0.25) {
+              el.playbackRate = diff > 0 ? 0.95 : 1.05;
+            } else if (el.playbackRate !== 1.0) {
+              el.playbackRate = 1.0;
+            }
           }
-        };
-        syncStem(vocalsRef); syncStem(drumsRef); syncStem(bassRef); syncStem(otherRef);
+        });
       }
 
       if (parsedLyrics.length > 0) {
@@ -3726,7 +3765,7 @@ export default function App() {
                 const safeBlob = blob.type && blob.type.includes('audio') ? blob : new Blob([blob], { type: 'audio/mpeg' });
                 const bUrl = URL.createObjectURL(safeBlob);
                 blobCacheRef.current.set(cdnUrl, bUrl);
-                if (audioRef.current && (!audioRef.current.src || audioRef.current.src === cdnUrl || audioRef.current.error || !navigator.onLine)) {
+                if (audioRef.current && (!audioRef.current.src || audioRef.current.error || !navigator.onLine)) {
                   const cur = audioRef.current.currentTime || 0;
                   audioRef.current.src = bUrl;
                   try { audioRef.current.currentTime = cur; } catch (e) {}
@@ -3771,18 +3810,21 @@ export default function App() {
     if (pendingAutoPlayRef.current) {
       pendingAutoPlayRef.current = false;
     }
-    if (isPlayingRef.current && isPlaying && audioRef.current && audioRef.current.paused) {
-      audioRef.current.play().catch(e => console.log("canplay-play err:", e));
-    }
-    if (isPlayingRef.current && isPlaying && currentTrack?.stem_vocals && !stemsBroken) {
-      vocalsRef.current?.play().catch(e => e);
-      drumsRef.current?.play().catch(e => e);
-      bassRef.current?.play().catch(e => e);
-      otherRef.current?.play().catch(e => e);
+    if (isPlayingRef.current && isPlaying) {
+      if (isMixerActiveRef.current && !jamRoomIdRef.current && currentTrack?.stem_vocals && !stemsBroken) {
+        vocalsRef.current?.play().catch(e => e);
+        drumsRef.current?.play().catch(e => e);
+        bassRef.current?.play().catch(e => e);
+        otherRef.current?.play().catch(e => e);
+      } else if (audioRef.current && audioRef.current.paused) {
+        audioRef.current.play().catch(e => console.log("canplay-play err:", e));
+      }
     }
   };
 
   const handleStalledOrWaiting = () => {
+    // In mixer mode, stem playback is the primary source; do not allow deck A/B buffer stalls to interrupt stems
+    if (isMixerActiveRef.current) return;
     // If user clicked pause or playback is stopped, NEVER attempt to recover or auto-play!
     if (!isPlayingRef.current || !isPlaying || !audioRef.current || audioRef.current.ended) {
       if (stallRecoveryTimerRef.current) {
@@ -3794,9 +3836,6 @@ export default function App() {
     if (preloadAbortRef.current) {
       preloadAbortRef.current.abort();
       preloadAbortRef.current = null;
-    }
-    if (shouldLoadStems && !stemsBroken) {
-      vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
     }
     // Auto-recover from background network stalls on mobile (Android Doze / iOS background) ONLY while user wants playback
     if (stallRecoveryTimerRef.current) clearTimeout(stallRecoveryTimerRef.current);
@@ -4237,8 +4276,7 @@ export default function App() {
       audioEl.currentTime = 0;
     } catch (e) {}
     
-    const isJamActive = Boolean(jamRoomIdRef.current);
-    if ((shouldLoadStems || isJamActive) && track?.stem_vocals && !stemsBroken) {
+    if (isMixerActiveRef.current && !jamRoomIdRef.current && track?.stem_vocals && !stemsBroken) {
       const vUrl = getCdnUrl(track.stem_vocals);
       const dUrl = getCdnUrl(track.stem_drums);
       const bUrl = getCdnUrl(track.stem_bass);
@@ -4256,10 +4294,12 @@ export default function App() {
         }
       });
     } else {
-      if (vocalsRef.current && vocalsRef.current.src) try { vocalsRef.current.currentTime = 0; } catch (e) {}
-      if (drumsRef.current && drumsRef.current.src) try { drumsRef.current.currentTime = 0; } catch (e) {}
-      if (bassRef.current && bassRef.current.src) try { bassRef.current.currentTime = 0; } catch (e) {}
-      if (otherRef.current && otherRef.current.src) try { otherRef.current.currentTime = 0; } catch (e) {}
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        const el = ref.current;
+        if (el) {
+          try { el.pause(); el.currentTime = 0; } catch (e) {}
+        }
+      });
     }
     
     const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
@@ -4267,9 +4307,11 @@ export default function App() {
     audioEl.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
 
     updateProgressVisuals();
-    audioEl.play().catch(e => {
-      if (e?.name !== 'AbortError') console.log("play notice:", e);
-    });
+    if (!isMixerActiveRef.current) {
+      audioEl.play().catch(e => {
+        if (e?.name !== 'AbortError') console.log("play notice:", e);
+      });
+    }
 
     // Live Jam Track Change Broadcast
     if (!skipJamBroadcast) {
@@ -5346,7 +5388,7 @@ export default function App() {
     if (isFinite(masterTime) && masterTime > 0) {
       try { el.currentTime = masterTime; } catch (_) {}
     }
-    if (isPlayingRef.current && el.paused) {
+    if (isPlayingRef.current && isMixerActiveRef.current && !jamRoomIdRef.current && el.paused) {
       el.play().catch(() => {});
     }
   }, []);
@@ -5716,6 +5758,7 @@ export default function App() {
 
   const startJamSession = useCallback(() => {
     primeAudioDecks();
+    jamHadPeersRef.current = false;
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     setShowMixer(false);
     setFullscreenView(prev => (prev === "mixer" ? "art" : prev));
@@ -5735,6 +5778,7 @@ export default function App() {
 
   const joinJamSession = useCallback((codeToJoin) => {
     primeAudioDecks();
+    jamHadPeersRef.current = false;
     const raw = codeToJoin !== undefined ? codeToJoin : jamJoinCodeInput;
     const clean = (raw || "").trim().toUpperCase();
     if (!clean || clean.length < 3) {
@@ -5830,10 +5874,22 @@ export default function App() {
   const leaveJamSession = useCallback(() => {
     silentAudioRef.current?.pause();
     if (jamChannelRef.current) {
+      try {
+        jamChannelRef.current.send({
+          type: 'broadcast',
+          event: 'jam_sync',
+          payload: {
+            type: 'member_leave',
+            senderClientId: localClientIdRef.current,
+            senderName: sessionRef.current?.user?.user_metadata?.full_name || sessionRef.current?.user?.email?.split('@')[0] || "Jam member"
+          }
+        });
+      } catch (e) {}
       try { jamChannelRef.current.untrack(); } catch (e) {}
       supabase.removeChannel(jamChannelRef.current);
       jamChannelRef.current = null;
     }
+    jamHadPeersRef.current = false;
     setJamRoomId(null);
     jamRoomIdRef.current = null;
     setIsJamHost(false);
@@ -5848,6 +5904,8 @@ export default function App() {
     setShowJamModal(false);
     triggerToast("Left Jam Session");
   }, [triggerToast]);
+
+  leaveJamSessionRef.current = leaveJamSession;
 
   const shareJamRoom = useCallback((e) => {
     if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
@@ -5974,21 +6032,33 @@ export default function App() {
           } else {
             // Genuinely new member
             knownJamMembers.set(cId, { name: memberName, leaveTimer: null });
+            jamHadPeersRef.current = true;
             if (initialPresenceSync) {
               triggerToastRef.current?.(`${memberName} joined the Jam!`);
             }
           }
         });
 
-        // 2. Check for members missing from presenceState (with 5s grace period)
+        if (activeClientIds.size >= 2 || knownJamMembers.size >= 1) {
+          jamHadPeersRef.current = true;
+        }
+
+        // 2. Check for members missing from presenceState (with 4s grace period)
         knownJamMembers.forEach((entry, cId) => {
           if (!activeClientIds.has(cId)) {
             if (!entry.leaveTimer) {
               entry.leaveTimer = setTimeout(() => {
                 knownJamMembers.delete(cId);
                 triggerToastRef.current?.(`${entry.name} left the Jam`);
-                setJamListenersCount(Math.max(1, knownJamMembers.size + 1));
-              }, 5000);
+                const remaining = Math.max(1, knownJamMembers.size + 1);
+                setJamListenersCount(remaining);
+                if (jamHadPeersRef.current && knownJamMembers.size === 0) {
+                  triggerToastRef.current?.("Everyone left the Jam session. Jam closed. 🚪");
+                  setTimeout(() => {
+                    leaveJamSessionRef.current?.();
+                  }, 500);
+                }
+              }, 4000);
             }
           }
         });
@@ -6101,12 +6171,8 @@ export default function App() {
             playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current, true);
 
             const calculateLiveTargetTime = () => {
-              const leaderNow = Date.now() + jamClockOffsetRef.current;
-              const transitOrElapsed = payload.startTime 
-                ? (leaderNow - payload.startTime) / 1000 
-                : (payload.timestamp ? (leaderNow - payload.timestamp) / 1000 : (jamNetworkLatencyRef.current || 0.04));
-              const clampedElapsed = Math.max(0, Math.min(60, transitOrElapsed));
-              return Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? clampedElapsed : 0));
+              const transitDelay = jamNetworkLatencyRef.current || 0.04;
+              return Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? transitDelay : 0));
             };
 
             const restoreTime = () => {
@@ -6205,13 +6271,11 @@ export default function App() {
 
               if (currentActiveAudio) {
                 playTrackWithMetadataRef.current?.(targetSong, currentActiveAudio, blobCacheRef.current, true);
-                const leaderNow = Date.now() + jamClockOffsetRef.current;
-                const transitDelay = payload.timestamp ? Math.max(0, Math.min(2.0, (leaderNow - payload.timestamp) / 1000)) : (jamNetworkLatencyRef.current || 0.04);
+                const transitDelay = jamNetworkLatencyRef.current || 0.04;
                 const snapTime = Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? transitDelay : 0));
                 const restoreTime = () => {
                   try {
-                    const dynamicTransit = payload.timestamp ? Math.max(0, Math.min(10.0, (Date.now() + jamClockOffsetRef.current - payload.timestamp) / 1000)) : (jamNetworkLatencyRef.current || 0.04);
-                    const liveSnapTime = Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? dynamicTransit : 0));
+                    const liveSnapTime = Math.max(0, (payload.currentTime || 0) + (payload.isPlaying ? transitDelay : 0));
                     if (liveSnapTime > 0.05) {
                       currentActiveAudio.currentTime = liveSnapTime;
                       setCurrentTime(liveSnapTime);
@@ -6242,12 +6306,9 @@ export default function App() {
 
             // 2. Playback position alignment with multi-tiered rate steering & hard seek fallback
             if (currentActiveAudio && typeof payload.currentTime === 'number') {
-              const leaderNow = Date.now() + jamClockOffsetRef.current;
-              const transitDelay = payload.timestamp ? Math.max(0, Math.min(2.0, (leaderNow - payload.timestamp) / 1000)) : (jamNetworkLatencyRef.current || 0.04);
+              const transitDelay = jamNetworkLatencyRef.current || 0.04;
               const expectedTime = payload.currentTime + (payload.isPlaying ? transitDelay : 0);
-              const currentPos = (isMixerActiveRef.current && currentTrackRef.current?.stem_vocals)
-                ? getStemMasterTime()
-                : (currentActiveAudio.currentTime || 0);
+              const currentPos = currentActiveAudio.currentTime || 0;
               const diff = expectedTime - currentPos;
               const absDiff = Math.abs(diff);
 
@@ -6370,6 +6431,21 @@ export default function App() {
             triggerToastRef.current?.(`${payload.senderName || 'Jam member'} turned off sleep timer`);
           }
 
+        } else if (payload.type === 'member_leave') {
+          if (knownJamMembers.has(payload.senderClientId)) {
+            const entry = knownJamMembers.get(payload.senderClientId);
+            if (entry.leaveTimer) clearTimeout(entry.leaveTimer);
+            knownJamMembers.delete(payload.senderClientId);
+            triggerToastRef.current?.(`${payload.senderName || entry.name} left the Jam`);
+            const remaining = Math.max(1, knownJamMembers.size + 1);
+            setJamListenersCount(remaining);
+            if (jamHadPeersRef.current && knownJamMembers.size === 0) {
+              triggerToastRef.current?.("Everyone left the Jam session. Jam closed. 🚪");
+              setTimeout(() => {
+                leaveJamSessionRef.current?.();
+              }, 500);
+            }
+          }
         } else if (payload.type === 'jam_ping') {
           if (isJamLeaderRef.current && jamChannelRef.current) {
             jamChannelRef.current.send({
@@ -6388,7 +6464,7 @@ export default function App() {
           if (payload.targetClientId === localClientIdRef.current && typeof payload.clientTime === 'number' && typeof payload.leaderTime === 'number') {
             const now = Date.now();
             const rtt = Math.max(0, (now - payload.clientTime) / 1000);
-            jamNetworkLatencyRef.current = Math.min(1.0, Math.max(0.01, rtt / 2));
+            jamNetworkLatencyRef.current = Math.min(0.2, Math.max(0.01, rtt / 2));
             const estimatedLeaderNow = payload.leaderTime + (rtt * 1000) / 2;
             const newOffset = estimatedLeaderNow - now;
             if (jamClockOffsetRef.current === 0) {
@@ -7490,7 +7566,7 @@ export default function App() {
       `}</style>
 
       {/* ── AUDIO ELEMENTS (APPLE-STYLE DUAL DECK ENGINE) ── */}
-      <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay onTimeUpdate={() => handleTimeUpdateRef.current?.()} style={{ display: 'none' }} />
+      <audio ref={silentAudioRef} src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" loop playsInline autoPlay style={{ display: 'none' }} />
       {/* DECK A */}
       <audio
         ref={deckARef}
@@ -7521,7 +7597,6 @@ export default function App() {
           if (activeEl && isFinite(activeEl.duration) && activeEl.duration > 0) {
             setDuration(prev => (Math.abs(prev - activeEl.duration) > 0.8 ? activeEl.duration : prev));
           }
-          setCurrentTime(activeEl?.currentTime || 0);
           handleTimeUpdateRef.current && handleTimeUpdateRef.current();
         }}
         onEnded={() => {
@@ -7544,7 +7619,7 @@ export default function App() {
         onPlaying={() => {
           if (activeDeckRef.current !== 'A') return;
           lastListenTickRef.current = Date.now();
-          if (isPlaying && shouldLoadStems && !stemsBroken) {
+          if (isPlaying && isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
           }
         }}
@@ -7639,7 +7714,6 @@ export default function App() {
           if (activeEl && isFinite(activeEl.duration) && activeEl.duration > 0) {
             setDuration(prev => (Math.abs(prev - activeEl.duration) > 0.8 ? activeEl.duration : prev));
           }
-          setCurrentTime(activeEl?.currentTime || 0);
           handleTimeUpdateRef.current && handleTimeUpdateRef.current();
         }}
         onEnded={() => {
@@ -7662,7 +7736,7 @@ export default function App() {
         onPlaying={() => {
           if (activeDeckRef.current !== 'B') return;
           lastListenTickRef.current = Date.now();
-          if (isPlaying && shouldLoadStems && !stemsBroken) {
+          if (isPlaying && isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
             vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
           }
         }}
@@ -7732,7 +7806,7 @@ export default function App() {
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined}
         preload={shouldLoadStems ? "auto" : "none"}
         playsInline
-        muted={!isMixerActive || isMuted}
+        muted={!isMixerActive || isMuted || stemVolumes.vocals === 0}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
@@ -7744,7 +7818,7 @@ export default function App() {
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums) || undefined) : undefined}
         preload={shouldLoadStems ? "auto" : "none"}
         playsInline
-        muted={!isMixerActive || isMuted}
+        muted={!isMixerActive || isMuted || stemVolumes.drums === 0}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
@@ -7756,7 +7830,7 @@ export default function App() {
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass) || undefined) : undefined}
         preload={shouldLoadStems ? "auto" : "none"}
         playsInline
-        muted={!isMixerActive || isMuted}
+        muted={!isMixerActive || isMuted || stemVolumes.bass === 0}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
@@ -7768,7 +7842,7 @@ export default function App() {
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other) || undefined) : undefined}
         preload={shouldLoadStems ? "auto" : "none"}
         playsInline
-        muted={!isMixerActive || isMuted}
+        muted={!isMixerActive || isMuted || stemVolumes.other === 0}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
