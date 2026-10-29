@@ -1528,6 +1528,10 @@ export default function App() {
   const drumsRef = useRef(null);
   const bassRef = useRef(null);
   const otherRef = useRef(null);
+  const stemBufferingRef = useRef(false);
+  const lastStemHardSeekRef = useRef({});
+  const lastStemTimeRef = useRef(0);
+  const stemBufferFallbackTimerRef = useRef(null);
 
   // Synchronous proxies: ALWAYS point to the active and background decks with zero delay
   const audioRef = useMemo(() => ({
@@ -2169,7 +2173,7 @@ export default function App() {
 
   const updateProgressVisuals = () => {
     if (!audioRef.current) return;
-    const time = audioRef.current.currentTime || 0;
+    const time = isMixerActiveRef.current ? (lastStemTimeRef.current || audioRef.current.currentTime || 0) : (audioRef.current.currentTime || 0);
     const audioDur = audioRef.current.duration;
     const effectiveDur = (isFinite(audioDur) && audioDur > 0)
       ? audioDur
@@ -2202,8 +2206,8 @@ export default function App() {
   useEffect(() => {
     const loop = () => {
       updateProgressVisuals();
-      if (parsedLyrics.length > 0 && audioRef.current && !audioRef.current.paused) {
-        const time = audioRef.current.currentTime;
+      if (parsedLyrics.length > 0 && ((isMixerActiveRef.current && isPlaying) || (audioRef.current && !audioRef.current.paused))) {
+        const time = isMixerActiveRef.current ? (lastStemTimeRef.current || 0) : (audioRef.current?.currentTime || 0);
         let activeIndex = -1;
         for (let i = 0; i < parsedLyrics.length; i++) {
           if (time >= parsedLyrics[i].time) activeIndex = i;
@@ -2546,6 +2550,9 @@ export default function App() {
       navigator.mediaSession.setActionHandler('pause', () => handlePlayPauseRef.current?.());
       navigator.mediaSession.setActionHandler('seekto', (details) => {
         const target = details.seekTime;
+        lastStemTimeRef.current = target;
+        lastStemHardSeekRef.current = {};
+        stemBufferingRef.current = false;
         if (details.fastSeek && 'fastSeek' in audioRef.current) {
           audioRef.current.fastSeek(target);
         } else if (audioRef.current) {
@@ -2559,8 +2566,11 @@ export default function App() {
       });
       navigator.mediaSession.setActionHandler('seekforward', (details) => {
         if (audioRef.current) {
-          const cur = isMixerActiveRef.current ? (drumsRef.current?.currentTime || audioRef.current.currentTime) : audioRef.current.currentTime;
+          const cur = isMixerActiveRef.current ? (lastStemTimeRef.current || drumsRef.current?.currentTime || audioRef.current.currentTime) : audioRef.current.currentTime;
           const target = Math.min(cur + (details.seekOffset || 10), audioRef.current.duration || 0);
+          lastStemTimeRef.current = target;
+          lastStemHardSeekRef.current = {};
+          stemBufferingRef.current = false;
           audioRef.current.currentTime = target;
           [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
             if (ref.current) try { ref.current.currentTime = target; } catch (_) {}
@@ -2571,8 +2581,11 @@ export default function App() {
       });
       navigator.mediaSession.setActionHandler('seekbackward', (details) => {
         if (audioRef.current) {
-          const cur = isMixerActiveRef.current ? (drumsRef.current?.currentTime || audioRef.current.currentTime) : audioRef.current.currentTime;
+          const cur = isMixerActiveRef.current ? (lastStemTimeRef.current || drumsRef.current?.currentTime || audioRef.current.currentTime) : audioRef.current.currentTime;
           const target = Math.max(cur - (details.seekOffset || 10), 0);
+          lastStemTimeRef.current = target;
+          lastStemHardSeekRef.current = {};
+          stemBufferingRef.current = false;
           audioRef.current.currentTime = target;
           [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
             if (ref.current) try { ref.current.currentTime = target; } catch (_) {}
@@ -3239,21 +3252,29 @@ export default function App() {
       // Smooth handoff: Master Deck -> Stems
       const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
       const curTime = activeEl?.currentTime || 0;
-      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+      lastStemTimeRef.current = curTime;
+      lastStemHardSeekRef.current = {};
+      stemBufferingRef.current = false;
+      [
+        { type: 'vocals', ref: vocalsRef },
+        { type: 'drums', ref: drumsRef },
+        { type: 'bass', ref: bassRef },
+        { type: 'other', ref: otherRef }
+      ].forEach(({ type, ref }) => {
         const el = ref.current;
         if (el) {
           try { el.currentTime = curTime; } catch (e) {}
+          if (stemVolumes[type] > 0 && isPlayingRef.current) {
+            el.play().catch(e => e);
+          } else {
+            try { el.pause(); } catch (_) {}
+          }
         }
       });
       if (activeEl) {
         activeEl.volume = 0;
         activeEl.muted = true;
         activeEl.pause();
-      }
-      if (isPlayingRef.current) {
-        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-          ref.current?.play().catch(e => e);
-        });
       }
     } else if (wasActive && !isMixerActive) {
       // Smooth handoff: Stems -> Master Deck
@@ -3292,10 +3313,19 @@ export default function App() {
     setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.other === 0);
 
     if (isMixerActive && isPlayingRef.current) {
-      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+      [
+        { type: 'vocals', ref: vocalsRef },
+        { type: 'drums', ref: drumsRef },
+        { type: 'bass', ref: bassRef },
+        { type: 'other', ref: otherRef }
+      ].forEach(({ type, ref }) => {
         const el = ref.current;
-        if (el && el.src && el.paused) {
-          el.play().catch(e => e);
+        if (el && el.src) {
+          if (stemVolumes[type] > 0) {
+            if (el.paused) el.play().catch(e => e);
+          } else {
+            if (!el.paused) try { el.pause(); } catch (_) {}
+          }
         }
       });
     }
@@ -3397,6 +3427,14 @@ export default function App() {
   const pauseAllAudioDecksRef = useRef(pauseAllAudioDecks);
   pauseAllAudioDecksRef.current = pauseAllAudioDecks;
 
+  const playAudibleStems = useCallback(() => {
+    if (!isMixerActiveRef.current || jamRoomIdRef.current || stemsBroken) return;
+    if ((stemVolumesRef.current.vocals || 0) > 0) vocalsRef.current?.play().catch(e => e);
+    if ((stemVolumesRef.current.drums || 0) > 0)  drumsRef.current?.play().catch(e => e);
+    if ((stemVolumesRef.current.bass || 0) > 0)   bassRef.current?.play().catch(e => e);
+    if ((stemVolumesRef.current.other || 0) > 0)  otherRef.current?.play().catch(e => e);
+  }, [stemsBroken]);
+
   const resumeActiveAudioDecks = useCallback(() => {
     const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     if (!activeEl) return;
@@ -3407,10 +3445,7 @@ export default function App() {
       silentAudioRef.current.play().catch(e => e);
     }
     if (isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
-      vocalsRef.current?.play().catch(e => e);
-      drumsRef.current?.play().catch(e => e);
-      bassRef.current?.play().catch(e => e);
-      otherRef.current?.play().catch(e => e);
+      playAudibleStems();
     } else {
       const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
       activeEl.volume = targetVol;
@@ -3433,7 +3468,7 @@ export default function App() {
         });
       }
     }
-  }, [stemsBroken, primeAudioDecks]);
+  }, [stemsBroken, primeAudioDecks, playAudibleStems]);
 
   const resumeActiveAudioDecksRef = useRef(resumeActiveAudioDecks);
   resumeActiveAudioDecksRef.current = resumeActiveAudioDecks;
@@ -3453,10 +3488,7 @@ export default function App() {
       }
       if (isPlaying && currentTrack) {
         if (isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
-          vocalsRef.current?.play().catch(e => e);
-          drumsRef.current?.play().catch(e => e);
-          bassRef.current?.play().catch(e => e);
-          otherRef.current?.play().catch(e => e);
+          playAudibleStems();
         } else {
           if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
             audioRef.current.play().catch(e => e);
@@ -3471,6 +3503,7 @@ export default function App() {
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
+  const lastTimeUpdateCallRef = useRef(0);
 
   // Keep duration state strictly synchronized with current track and audio element
   useEffect(() => {
@@ -3488,17 +3521,32 @@ export default function App() {
   useEffect(() => {
     handleTimeUpdateRef.current = () => {
         if (!audioRef.current) return;
+        const callNow = performance.now();
+        if (callNow - lastTimeUpdateCallRef.current < 100) return;
+        lastTimeUpdateCallRef.current = callNow;
         
         let time = audioRef.current.currentTime;
         if (isMixerActiveRef.current) {
-          const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && r.current.volume > 0 && isFinite(r.current.currentTime) && r.current.currentTime > 0)
-            || [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0);
+          if (stemBufferingRef.current) return;
+          const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && (stemVolumesRef.current[r === vocalsRef ? 'vocals' : r === drumsRef ? 'drums' : r === bassRef ? 'bass' : 'other'] || 0) > 0 && isFinite(r.current.currentTime) && r.current.currentTime > 0)
+            || [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && isFinite(r.current.currentTime) && r.current.currentTime > 0);
           if (stemCandidate?.current) {
             time = stemCandidate.current.currentTime;
-            if (audioRef.current && isFinite(audioRef.current.currentTime) && Math.abs(audioRef.current.currentTime - time) > 1.0) {
-              try { audioRef.current.currentTime = time; } catch (e) {}
-            }
           }
+          if (isPlayingRef.current) {
+            if (time < lastStemTimeRef.current) {
+              time = lastStemTimeRef.current;
+            } else if (time > lastStemTimeRef.current + 2.0 && lastStemTimeRef.current > 0) {
+              time = lastStemTimeRef.current + 0.25;
+              lastStemTimeRef.current = time;
+            } else {
+              lastStemTimeRef.current = time;
+            }
+          } else {
+            lastStemTimeRef.current = time;
+          }
+        } else {
+          lastStemTimeRef.current = time;
         }
 
         const currentInt = Math.floor(time);
@@ -3601,7 +3649,7 @@ export default function App() {
             navigator.mediaSession.setPositionState({
               duration: audioRef.current.duration,
               playbackRate: audioRef.current.playbackRate,
-              position: audioRef.current.currentTime
+              position: Math.max(0, Math.min(audioRef.current.duration, time))
             });
           } catch(e) {}
         }
@@ -3699,18 +3747,30 @@ export default function App() {
           }
         }
 
-      if (isMixerActiveRef.current && currentTrack?.stem_vocals && !stemsBroken) {
-        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+      if (isMixerActiveRef.current && currentTrack?.stem_vocals && !stemsBroken && !stemBufferingRef.current) {
+        const now = Date.now();
+        [
+          { type: 'vocals', ref: vocalsRef },
+          { type: 'drums', ref: drumsRef },
+          { type: 'bass', ref: bassRef },
+          { type: 'other', ref: otherRef }
+        ].forEach(({ type, ref }) => {
           const el = ref.current;
-          if (el && !el.paused && isFinite(el.currentTime)) {
+          // Only sync AUDIBLE active stems! Muted stems are paused and never synced.
+          if (el && !el.paused && stemVolumesRef.current[type] > 0 && isFinite(el.currentTime)) {
             const diff = el.currentTime - time;
             const absDiff = Math.abs(diff);
-            if (absDiff > 2.0 && !el.seeking) {
+
+            // Cooldown for hard seek: at most once every 5 seconds to eliminate repeating/skipping loops
+            if (absDiff > 3.0 && !el.seeking && (now - (lastStemHardSeekRef.current[type] || 0) > 5000)) {
+              lastStemHardSeekRef.current[type] = now;
               try { el.currentTime = time; } catch (_) {}
               el.playbackRate = 1.0;
-            } else if (absDiff > 0.25) {
-              el.playbackRate = diff > 0 ? 0.95 : 1.05;
-            } else if (el.playbackRate !== 1.0) {
+            } else if (absDiff > 0.4) {
+              // Smooth rate steering for audible drift: 0.94x or 1.06x
+              el.playbackRate = diff > 0 ? 0.94 : 1.06;
+            } else if (absDiff <= 0.15 && el.playbackRate !== 1.0) {
+              // Deadband (within 150ms): perfectly in sync, run at native 1.0x rate (no DSP overhead)
               el.playbackRate = 1.0;
             }
           }
@@ -3812,10 +3872,7 @@ export default function App() {
     }
     if (isPlayingRef.current && isPlaying) {
       if (isMixerActiveRef.current && !jamRoomIdRef.current && currentTrack?.stem_vocals && !stemsBroken) {
-        vocalsRef.current?.play().catch(e => e);
-        drumsRef.current?.play().catch(e => e);
-        bassRef.current?.play().catch(e => e);
-        otherRef.current?.play().catch(e => e);
+        playAudibleStems();
       } else if (audioRef.current && audioRef.current.paused) {
         audioRef.current.play().catch(e => console.log("canplay-play err:", e));
       }
@@ -3861,6 +3918,9 @@ export default function App() {
       stopCrossfade(false);
     }
     if (audioRef.current) {
+      lastStemTimeRef.current = seekTime;
+      lastStemHardSeekRef.current = {};
+      stemBufferingRef.current = false;
       audioRef.current.currentTime = seekTime;
       setCurrentTime(seekTime);
       updateProgressVisuals();
@@ -3885,6 +3945,9 @@ export default function App() {
       stopCrossfade(false);
     }
     if (audioRef.current) { 
+      lastStemTimeRef.current = time;
+      lastStemHardSeekRef.current = {};
+      stemBufferingRef.current = false;
       audioRef.current.currentTime = time; 
       setCurrentTime(time); 
       updateProgressVisuals();
@@ -4202,6 +4265,9 @@ export default function App() {
     setCurrentTime(0);
     localStorage.setItem("euphony_current_time", 0);
     lastSavedTimeRef.current = 0;
+    lastStemTimeRef.current = 0;
+    lastStemHardSeekRef.current = {};
+    stemBufferingRef.current = false;
     crossfadeTriggeredRef.current = false;
     prewarmedTrackIdRef.current = null;
     if (audioRef.current) {
@@ -5285,10 +5351,14 @@ export default function App() {
       resetPlaybackTime();
       audioRef.current?.play().catch(() => {});
       if (currentTrack?.stem_vocals && !stemsBroken) {
-        vocalsRef.current?.play().catch(() => {});
-        drumsRef.current?.play().catch(() => {});
-        bassRef.current?.play().catch(() => {});
-        otherRef.current?.play().catch(() => {});
+        if (isMixerActiveRef.current) {
+          playAudibleStems();
+        } else {
+          vocalsRef.current?.play().catch(() => {});
+          drumsRef.current?.play().catch(() => {});
+          bassRef.current?.play().catch(() => {});
+          otherRef.current?.play().catch(() => {});
+        }
       }
       return;
     }
@@ -5384,12 +5454,75 @@ export default function App() {
   const handleStemLoadedMetadata = useCallback((e) => {
     const el = e.currentTarget;
     if (!el) return;
-    const masterTime = (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current)?.currentTime || 0;
-    if (isFinite(masterTime) && masterTime > 0) {
-      try { el.currentTime = masterTime; } catch (_) {}
+    let targetTime = 0;
+    if (isMixerActiveRef.current) {
+      targetTime = lastStemTimeRef.current || 0;
+      if (!targetTime) {
+        const otherStem = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && r.current !== el && isFinite(r.current.currentTime) && r.current.currentTime > 0);
+        if (otherStem?.current) targetTime = otherStem.current.currentTime;
+      }
+    } else {
+      targetTime = (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current)?.currentTime || 0;
     }
-    if (isPlayingRef.current && isMixerActiveRef.current && !jamRoomIdRef.current && el.paused) {
+    if (isFinite(targetTime) && targetTime > 0) {
+      try { el.currentTime = targetTime; } catch (_) {}
+    }
+    const stemType = el === vocalsRef.current ? 'vocals' : el === drumsRef.current ? 'drums' : el === bassRef.current ? 'bass' : 'other';
+    const isAudible = (stemVolumesRef.current[stemType] || 0) > 0;
+    if (isPlayingRef.current && isMixerActiveRef.current && !jamRoomIdRef.current && isAudible && el.paused) {
       el.play().catch(() => {});
+    }
+  }, []);
+
+  const handleStemWaiting = useCallback((stemType) => {
+    if (!isMixerActiveRef.current || !isPlayingRef.current) return;
+    if ((stemVolumesRef.current[stemType] || 0) === 0) return;
+    stemBufferingRef.current = true;
+    [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+      const el = ref.current;
+      if (el && !el.paused) {
+        try { el.pause(); } catch (_) {}
+      }
+    });
+    if (stemBufferFallbackTimerRef.current) clearTimeout(stemBufferFallbackTimerRef.current);
+    stemBufferFallbackTimerRef.current = setTimeout(() => {
+      if (stemBufferingRef.current && isPlayingRef.current && isMixerActiveRef.current) {
+        stemBufferingRef.current = false;
+        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+          if (ref.current && !ref.current.paused) return;
+          const type = ref === vocalsRef ? 'vocals' : ref === drumsRef ? 'drums' : ref === bassRef ? 'bass' : 'other';
+          if ((stemVolumesRef.current[type] || 0) > 0) {
+            ref.current?.play().catch(e => e);
+          }
+        });
+      }
+    }, 2500);
+  }, []);
+
+  const handleStemCanPlayOrPlaying = useCallback((stemType) => {
+    if (!isMixerActiveRef.current || !isPlayingRef.current) return;
+    if (!stemBufferingRef.current) return;
+    if (stemBufferFallbackTimerRef.current) {
+      clearTimeout(stemBufferFallbackTimerRef.current);
+      stemBufferFallbackTimerRef.current = null;
+    }
+    const audibleStems = [
+      { type: 'vocals', ref: vocalsRef },
+      { type: 'drums', ref: drumsRef },
+      { type: 'bass', ref: bassRef },
+      { type: 'other', ref: otherRef }
+    ].filter(s => (stemVolumesRef.current[s.type] || 0) > 0 && s.ref.current);
+
+    const allReady = audibleStems.every(s => s.ref.current.readyState >= 2);
+    if (allReady) {
+      stemBufferingRef.current = false;
+      const syncTime = lastStemTimeRef.current || audibleStems.find(s => isFinite(s.ref.current.currentTime) && s.ref.current.currentTime > 0)?.ref.current?.currentTime || 0;
+      audibleStems.forEach(s => {
+        if (Math.abs(s.ref.current.currentTime - syncTime) > 0.2) {
+          try { s.ref.current.currentTime = syncTime; } catch (_) {}
+        }
+        s.ref.current.play().catch(e => e);
+      });
     }
   }, []);
 
@@ -5522,9 +5655,12 @@ export default function App() {
           if (isCrossfadingRef.current) {
             stopCrossfade(false);
           }
-          const cur = audioRef.current.currentTime || 0;
+          const cur = isMixerActiveRef.current ? (lastStemTimeRef.current || audioRef.current.currentTime || 0) : (audioRef.current.currentTime || 0);
           const dur = duration || audioRef.current.duration || 0;
           const target = dur > 0 ? Math.min(dur, cur + 5) : cur + 5;
+          lastStemTimeRef.current = target;
+          lastStemHardSeekRef.current = {};
+          stemBufferingRef.current = false;
           audioRef.current.currentTime = target;
           if (currentTrack.stem_vocals && !stemsBroken) {
             if (vocalsRef.current) vocalsRef.current.currentTime = target;
@@ -5551,8 +5687,11 @@ export default function App() {
           if (isCrossfadingRef.current) {
             stopCrossfade(false);
           }
-          const cur = audioRef.current.currentTime || 0;
+          const cur = isMixerActiveRef.current ? (lastStemTimeRef.current || audioRef.current.currentTime || 0) : (audioRef.current.currentTime || 0);
           const target = Math.max(0, cur - 5);
+          lastStemTimeRef.current = target;
+          lastStemHardSeekRef.current = {};
+          stemBufferingRef.current = false;
           audioRef.current.currentTime = target;
           if (currentTrack.stem_vocals && !stemsBroken) {
             if (vocalsRef.current) vocalsRef.current.currentTime = target;
@@ -6954,11 +7093,21 @@ export default function App() {
                     <input type="range" min="0" max="1" step="0.01" value={stemVolumes[stemType]}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
+                        stemVolumesRef.current[stemType] = val;
                         const stemRefMap = { vocals: vocalsRef, drums: drumsRef, bass: bassRef, other: otherRef };
                         const targetRef = stemRefMap[stemType];
                         if (targetRef?.current) {
                           const baseVol = isMutedRef.current ? 0 : (volumeRef.current || 1);
                           targetRef.current.volume = Math.max(0, Math.min(1, val * baseVol));
+                          if (val === 0) {
+                            try { targetRef.current.pause(); } catch (_) {}
+                          } else if (targetRef.current.paused && isPlayingRef.current) {
+                            const syncTime = lastStemTimeRef.current || 0;
+                            if (syncTime > 0 && Math.abs(targetRef.current.currentTime - syncTime) > 0.3) {
+                              try { targetRef.current.currentTime = syncTime; } catch (_) {}
+                            }
+                            targetRef.current.play().catch(e => e);
+                          }
                         }
                         setStemVolumes(prev => ({ ...prev, [stemType]: val }));
                       }}
@@ -7620,7 +7769,7 @@ export default function App() {
           if (activeDeckRef.current !== 'A') return;
           lastListenTickRef.current = Date.now();
           if (isPlaying && isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
-            vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
+            playAudibleStems();
           }
         }}
         onSeeking={() => {
@@ -7737,7 +7886,7 @@ export default function App() {
           if (activeDeckRef.current !== 'B') return;
           lastListenTickRef.current = Date.now();
           if (isPlaying && isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
-            vocalsRef.current?.play().catch(e=>e); drumsRef.current?.play().catch(e=>e); bassRef.current?.play().catch(e=>e); otherRef.current?.play().catch(e=>e);
+            playAudibleStems();
           }
         }}
         onSeeking={() => {
@@ -7810,6 +7959,10 @@ export default function App() {
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
+        onWaiting={() => handleStemWaiting('vocals')}
+        onPlaying={() => handleStemCanPlayOrPlaying('vocals')}
+        onCanPlay={() => handleStemCanPlayOrPlaying('vocals')}
+        onTimeUpdate={() => { if (isMixerActiveRef.current) handleTimeUpdateRef.current && handleTimeUpdateRef.current(); }}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
@@ -7822,6 +7975,10 @@ export default function App() {
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
+        onWaiting={() => handleStemWaiting('drums')}
+        onPlaying={() => handleStemCanPlayOrPlaying('drums')}
+        onCanPlay={() => handleStemCanPlayOrPlaying('drums')}
+        onTimeUpdate={() => { if (isMixerActiveRef.current) handleTimeUpdateRef.current && handleTimeUpdateRef.current(); }}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
@@ -7834,6 +7991,10 @@ export default function App() {
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
+        onWaiting={() => handleStemWaiting('bass')}
+        onPlaying={() => handleStemCanPlayOrPlaying('bass')}
+        onCanPlay={() => handleStemCanPlayOrPlaying('bass')}
+        onTimeUpdate={() => { if (isMixerActiveRef.current) handleTimeUpdateRef.current && handleTimeUpdateRef.current(); }}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
@@ -7846,6 +8007,10 @@ export default function App() {
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
+        onWaiting={() => handleStemWaiting('other')}
+        onPlaying={() => handleStemCanPlayOrPlaying('other')}
+        onCanPlay={() => handleStemCanPlayOrPlaying('other')}
+        onTimeUpdate={() => { if (isMixerActiveRef.current) handleTimeUpdateRef.current && handleTimeUpdateRef.current(); }}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
