@@ -3264,10 +3264,8 @@ export default function App() {
         const el = ref.current;
         if (el) {
           try { el.currentTime = curTime; } catch (e) {}
-          if (stemVolumes[type] > 0 && isPlayingRef.current) {
+          if (isPlayingRef.current) {
             el.play().catch(e => e);
-          } else {
-            try { el.pause(); } catch (_) {}
           }
         }
       });
@@ -3321,11 +3319,7 @@ export default function App() {
       ].forEach(({ type, ref }) => {
         const el = ref.current;
         if (el && el.src) {
-          if (stemVolumes[type] > 0) {
-            if (el.paused) el.play().catch(e => e);
-          } else {
-            if (!el.paused) try { el.pause(); } catch (_) {}
-          }
+          if (el.paused) el.play().catch(e => e);
         }
       });
     }
@@ -3429,10 +3423,12 @@ export default function App() {
 
   const playAudibleStems = useCallback(() => {
     if (!isMixerActiveRef.current || jamRoomIdRef.current || stemsBroken) return;
-    if ((stemVolumesRef.current.vocals || 0) > 0) vocalsRef.current?.play().catch(e => e);
-    if ((stemVolumesRef.current.drums || 0) > 0)  drumsRef.current?.play().catch(e => e);
-    if ((stemVolumesRef.current.bass || 0) > 0)   bassRef.current?.play().catch(e => e);
-    if ((stemVolumesRef.current.other || 0) > 0)  otherRef.current?.play().catch(e => e);
+    [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+      const el = ref.current;
+      if (el && el.src && el.paused) {
+        el.play().catch(e => e);
+      }
+    });
   }, [stemsBroken]);
 
   const resumeActiveAudioDecks = useCallback(() => {
@@ -3482,24 +3478,32 @@ export default function App() {
 
   useEffect(() => {
     isPlayingRef.current = isPlaying;
-    const syncPlayState = async () => {
-      if ('mediaSession' in navigator) {
+    if ('mediaSession' in navigator) {
+      try {
         navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-      }
-      if (isPlaying && currentTrack) {
-        if (isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
-          playAudibleStems();
-        } else {
-          if (audioRef.current?.paused && audioRef.current.src && audioRef.current.src !== window.location.href) {
-            audioRef.current.play().catch(e => e);
-          }
-        }
+      } catch (_) {}
+    }
+    if (isPlaying && currentTrack) {
+      if (isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
+        playAudibleStems();
       } else {
-        pauseAllAudioDecks();
+        const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+        if (activeEl?.paused && activeEl.src && activeEl.src !== window.location.href) {
+          activeEl.play().catch(e => e);
+        }
       }
-    };
-    syncPlayState();
-  }, [isPlaying, stemsBroken, currentTrack, pauseAllAudioDecks]);
+    } else if (!isPlaying) {
+      const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+      if (activeEl && !activeEl.paused) {
+        try { activeEl.pause(); } catch (_) {}
+      }
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        if (ref.current && !ref.current.paused) {
+          try { ref.current.pause(); } catch (_) {}
+        }
+      });
+    }
+  }, [isPlaying, stemsBroken, currentTrack, playAudibleStems]);
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
@@ -3525,10 +3529,9 @@ export default function App() {
         if (callNow - lastTimeUpdateCallRef.current < 100) return;
         lastTimeUpdateCallRef.current = callNow;
         
-        let time = audioRef.current.currentTime;
+        let time = audioRef.current?.currentTime || 0;
         if (isMixerActiveRef.current) {
-          if (stemBufferingRef.current) return;
-          const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && (stemVolumesRef.current[r === vocalsRef ? 'vocals' : r === drumsRef ? 'drums' : r === bassRef ? 'bass' : 'other'] || 0) > 0 && isFinite(r.current.currentTime) && r.current.currentTime > 0)
+          const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0)
             || [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && isFinite(r.current.currentTime) && r.current.currentTime > 0);
           if (stemCandidate?.current) {
             time = stemCandidate.current.currentTime;
@@ -3536,9 +3539,6 @@ export default function App() {
           if (isPlayingRef.current) {
             if (time < lastStemTimeRef.current) {
               time = lastStemTimeRef.current;
-            } else if (time > lastStemTimeRef.current + 2.0 && lastStemTimeRef.current > 0) {
-              time = lastStemTimeRef.current + 0.25;
-              lastStemTimeRef.current = time;
             } else {
               lastStemTimeRef.current = time;
             }
@@ -3747,7 +3747,7 @@ export default function App() {
           }
         }
 
-      if (isMixerActiveRef.current && currentTrack?.stem_vocals && !stemsBroken && !stemBufferingRef.current) {
+      if (isMixerActiveRef.current && currentTrack?.stem_vocals && !stemsBroken) {
         const now = Date.now();
         [
           { type: 'vocals', ref: vocalsRef },
@@ -3756,21 +3756,20 @@ export default function App() {
           { type: 'other', ref: otherRef }
         ].forEach(({ type, ref }) => {
           const el = ref.current;
-          // Only sync AUDIBLE active stems! Muted stems are paused and never synced.
-          if (el && !el.paused && stemVolumesRef.current[type] > 0 && isFinite(el.currentTime)) {
+          if (el && !el.paused && isFinite(el.currentTime)) {
             const diff = el.currentTime - time;
             const absDiff = Math.abs(diff);
 
             // Cooldown for hard seek: at most once every 5 seconds to eliminate repeating/skipping loops
-            if (absDiff > 3.0 && !el.seeking && (now - (lastStemHardSeekRef.current[type] || 0) > 5000)) {
+            if (absDiff > 3.5 && !el.seeking && (now - (lastStemHardSeekRef.current[type] || 0) > 5000)) {
               lastStemHardSeekRef.current[type] = now;
               try { el.currentTime = time; } catch (_) {}
               el.playbackRate = 1.0;
-            } else if (absDiff > 0.4) {
-              // Smooth rate steering for audible drift: 0.94x or 1.06x
-              el.playbackRate = diff > 0 ? 0.94 : 1.06;
+            } else if (absDiff > 0.25) {
+              // Smooth rate steering: 0.96x or 1.04x
+              el.playbackRate = diff > 0 ? 0.96 : 1.04;
             } else if (absDiff <= 0.15 && el.playbackRate !== 1.0) {
-              // Deadband (within 150ms): perfectly in sync, run at native 1.0x rate (no DSP overhead)
+              // Deadband (within 150ms): perfectly in sync, run at native 1.0x rate
               el.playbackRate = 1.0;
             }
           }
@@ -4270,13 +4269,15 @@ export default function App() {
     stemBufferingRef.current = false;
     crossfadeTriggeredRef.current = false;
     prewarmedTrackIdRef.current = null;
-    if (audioRef.current) {
+    if (audioRef.current && audioRef.current.currentTime !== 0) {
       try { audioRef.current.currentTime = 0; } catch (e) {}
     }
-    if (vocalsRef.current && vocalsRef.current.src) try { vocalsRef.current.currentTime = 0; } catch (e) {}
-    if (drumsRef.current && drumsRef.current.src) try { drumsRef.current.currentTime = 0; } catch (e) {}
-    if (bassRef.current && bassRef.current.src) try { bassRef.current.currentTime = 0; } catch (e) {}
-    if (otherRef.current && otherRef.current.src) try { otherRef.current.currentTime = 0; } catch (e) {}
+    if (isMixerActiveRef.current) {
+      if (vocalsRef.current && vocalsRef.current.src && vocalsRef.current.currentTime !== 0) try { vocalsRef.current.currentTime = 0; } catch (e) {}
+      if (drumsRef.current && drumsRef.current.src && drumsRef.current.currentTime !== 0) try { drumsRef.current.currentTime = 0; } catch (e) {}
+      if (bassRef.current && bassRef.current.src && bassRef.current.currentTime !== 0) try { bassRef.current.currentTime = 0; } catch (e) {}
+      if (otherRef.current && otherRef.current.src && otherRef.current.currentTime !== 0) try { otherRef.current.currentTime = 0; } catch (e) {}
+    }
     updateProgressVisuals();
   };
 
@@ -4337,10 +4338,11 @@ export default function App() {
     
     if (audioEl.src !== objUrl) {
       audioEl.src = objUrl;
+    } else {
+      try {
+        audioEl.currentTime = 0;
+      } catch (e) {}
     }
-    try {
-      audioEl.currentTime = 0;
-    } catch (e) {}
     
     if (isMixerActiveRef.current && !jamRoomIdRef.current && track?.stem_vocals && !stemsBroken) {
       const vUrl = getCdnUrl(track.stem_vocals);
@@ -4355,15 +4357,14 @@ export default function App() {
       [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
         const el = ref.current;
         if (el) {
-          try { el.currentTime = 0; } catch (e) {}
           el.play().catch(e => e);
         }
       });
     } else {
       [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
         const el = ref.current;
-        if (el) {
-          try { el.pause(); el.currentTime = 0; } catch (e) {}
+        if (el && el.src && !el.paused) {
+          try { el.pause(); } catch (e) {}
         }
       });
     }
@@ -4867,10 +4868,19 @@ export default function App() {
     if (!currentTrack) return;
     
     const nextPlaying = !isPlaying;
+    setIsPlaying(nextPlaying);
+    isPlayingRef.current = nextPlaying;
+
     if (nextPlaying) {
       resumeActiveAudioDecks();
     } else {
       pauseAllAudioDecks();
+    }
+
+    if ('mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.playbackState = nextPlaying ? 'playing' : 'paused';
+      } catch (_) {}
     }
 
     // Live Jam Play/Pause Broadcast
@@ -5467,62 +5477,8 @@ export default function App() {
     if (isFinite(targetTime) && targetTime > 0) {
       try { el.currentTime = targetTime; } catch (_) {}
     }
-    const stemType = el === vocalsRef.current ? 'vocals' : el === drumsRef.current ? 'drums' : el === bassRef.current ? 'bass' : 'other';
-    const isAudible = (stemVolumesRef.current[stemType] || 0) > 0;
-    if (isPlayingRef.current && isMixerActiveRef.current && !jamRoomIdRef.current && isAudible && el.paused) {
+    if (isPlayingRef.current && isMixerActiveRef.current && !jamRoomIdRef.current && el.paused) {
       el.play().catch(() => {});
-    }
-  }, []);
-
-  const handleStemWaiting = useCallback((stemType) => {
-    if (!isMixerActiveRef.current || !isPlayingRef.current) return;
-    if ((stemVolumesRef.current[stemType] || 0) === 0) return;
-    stemBufferingRef.current = true;
-    [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-      const el = ref.current;
-      if (el && !el.paused) {
-        try { el.pause(); } catch (_) {}
-      }
-    });
-    if (stemBufferFallbackTimerRef.current) clearTimeout(stemBufferFallbackTimerRef.current);
-    stemBufferFallbackTimerRef.current = setTimeout(() => {
-      if (stemBufferingRef.current && isPlayingRef.current && isMixerActiveRef.current) {
-        stemBufferingRef.current = false;
-        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-          if (ref.current && !ref.current.paused) return;
-          const type = ref === vocalsRef ? 'vocals' : ref === drumsRef ? 'drums' : ref === bassRef ? 'bass' : 'other';
-          if ((stemVolumesRef.current[type] || 0) > 0) {
-            ref.current?.play().catch(e => e);
-          }
-        });
-      }
-    }, 2500);
-  }, []);
-
-  const handleStemCanPlayOrPlaying = useCallback((stemType) => {
-    if (!isMixerActiveRef.current || !isPlayingRef.current) return;
-    if (!stemBufferingRef.current) return;
-    if (stemBufferFallbackTimerRef.current) {
-      clearTimeout(stemBufferFallbackTimerRef.current);
-      stemBufferFallbackTimerRef.current = null;
-    }
-    const audibleStems = [
-      { type: 'vocals', ref: vocalsRef },
-      { type: 'drums', ref: drumsRef },
-      { type: 'bass', ref: bassRef },
-      { type: 'other', ref: otherRef }
-    ].filter(s => (stemVolumesRef.current[s.type] || 0) > 0 && s.ref.current);
-
-    const allReady = audibleStems.every(s => s.ref.current.readyState >= 2);
-    if (allReady) {
-      stemBufferingRef.current = false;
-      const syncTime = lastStemTimeRef.current || audibleStems.find(s => isFinite(s.ref.current.currentTime) && s.ref.current.currentTime > 0)?.ref.current?.currentTime || 0;
-      audibleStems.forEach(s => {
-        if (Math.abs(s.ref.current.currentTime - syncTime) > 0.2) {
-          try { s.ref.current.currentTime = syncTime; } catch (_) {}
-        }
-        s.ref.current.play().catch(e => e);
-      });
     }
   }, []);
 
@@ -7161,15 +7117,7 @@ export default function App() {
                         if (targetRef?.current) {
                           const baseVol = isMutedRef.current ? 0 : (volumeRef.current || 1);
                           targetRef.current.volume = Math.max(0, Math.min(1, val * baseVol));
-                          if (val === 0) {
-                            try { targetRef.current.pause(); } catch (_) {}
-                          } else if (targetRef.current.paused && isPlayingRef.current) {
-                            const syncTime = lastStemTimeRef.current || 0;
-                            if (syncTime > 0 && Math.abs(targetRef.current.currentTime - syncTime) > 0.3) {
-                              try { targetRef.current.currentTime = syncTime; } catch (_) {}
-                            }
-                            targetRef.current.play().catch(e => e);
-                          }
+                          targetRef.current.muted = (val === 0 || isMutedRef.current);
                         }
                         setStemVolumes(prev => ({ ...prev, [stemType]: val }));
                       }}
@@ -7659,6 +7607,10 @@ export default function App() {
           border-radius: 13px !important;
         }
 
+        button, [role="button"], input, select, textarea {
+          touch-action: manipulation;
+        }
+
         .stem-fader { -webkit-appearance: none; appearance: none; outline: none; cursor: pointer; }
         .stem-fader::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
         .stem-fader::-moz-range-thumb { width: 14px; height: 14px; border: none; border-radius: 50%; background: #FFFFFF; box-shadow: 0 0 10px 3px #FFFFFF; cursor: pointer; }
@@ -8015,64 +7967,48 @@ export default function App() {
       <audio
         ref={vocalsRef}
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined}
-        preload={shouldLoadStems ? "auto" : "none"}
+        preload={isMixerActive ? "auto" : "metadata"}
         playsInline
         muted={!isMixerActive || isMuted || stemVolumes.vocals === 0}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
-        onWaiting={() => handleStemWaiting('vocals')}
-        onPlaying={() => handleStemCanPlayOrPlaying('vocals')}
-        onCanPlay={() => handleStemCanPlayOrPlaying('vocals')}
-        onTimeUpdate={() => { if (isMixerActiveRef.current) handleTimeUpdateRef.current && handleTimeUpdateRef.current(); }}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
       <audio
         ref={drumsRef}
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums) || undefined) : undefined}
-        preload={shouldLoadStems ? "auto" : "none"}
+        preload={isMixerActive ? "auto" : "metadata"}
         playsInline
         muted={!isMixerActive || isMuted || stemVolumes.drums === 0}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
-        onWaiting={() => handleStemWaiting('drums')}
-        onPlaying={() => handleStemCanPlayOrPlaying('drums')}
-        onCanPlay={() => handleStemCanPlayOrPlaying('drums')}
-        onTimeUpdate={() => { if (isMixerActiveRef.current) handleTimeUpdateRef.current && handleTimeUpdateRef.current(); }}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
       <audio
         ref={bassRef}
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass) || undefined) : undefined}
-        preload={shouldLoadStems ? "auto" : "none"}
+        preload={isMixerActive ? "auto" : "metadata"}
         playsInline
         muted={!isMixerActive || isMuted || stemVolumes.bass === 0}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
-        onWaiting={() => handleStemWaiting('bass')}
-        onPlaying={() => handleStemCanPlayOrPlaying('bass')}
-        onCanPlay={() => handleStemCanPlayOrPlaying('bass')}
-        onTimeUpdate={() => { if (isMixerActiveRef.current) handleTimeUpdateRef.current && handleTimeUpdateRef.current(); }}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
       <audio
         ref={otherRef}
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other) || undefined) : undefined}
-        preload={shouldLoadStems ? "auto" : "none"}
+        preload={isMixerActive ? "auto" : "metadata"}
         playsInline
         muted={!isMixerActive || isMuted || stemVolumes.other === 0}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
         onEnded={handleStemEnded}
-        onWaiting={() => handleStemWaiting('other')}
-        onPlaying={() => handleStemCanPlayOrPlaying('other')}
-        onCanPlay={() => handleStemCanPlayOrPlaying('other')}
-        onTimeUpdate={() => { if (isMixerActiveRef.current) handleTimeUpdateRef.current && handleTimeUpdateRef.current(); }}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
@@ -9033,6 +8969,7 @@ export default function App() {
               borderRadius: "20px",
               width: "100%",
               maxWidth: "380px",
+              boxSizing: "border-box",
               position: "relative",
               maxHeight: "85vh",
               overflowY: "auto",
@@ -9187,7 +9124,7 @@ export default function App() {
                 </div>
 
                 {/* Join existing room by code */}
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ display: "flex", gap: "8px", width: "100%", boxSizing: "border-box" }}>
                   <input
                     type="text"
                     value={jamJoinCodeInput}
@@ -9202,6 +9139,8 @@ export default function App() {
                     className="jam-code-input"
                     style={{
                       flex: 1,
+                      minWidth: 0,
+                      boxSizing: "border-box",
                       padding: "12px 14px",
                       borderRadius: "12px",
                       background: songTheme.rowBg,
@@ -9219,7 +9158,10 @@ export default function App() {
                     disabled={!jamJoinCodeInput.trim() || isCheckingJamCode}
                     className="hover-effect"
                     style={{
-                      padding: "12px 18px",
+                      flexShrink: 0,
+                      whiteSpace: "nowrap",
+                      boxSizing: "border-box",
+                      padding: "12px 16px",
                       borderRadius: "12px",
                       background: jamJoinCodeInput.trim() && !isCheckingJamCode ? COLORS.primary : (isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(26,43,76,0.08)"),
                       border: "none",
@@ -10505,11 +10447,11 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
                   <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
+                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
                     <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)", touchAction: "manipulation" }}>
                       {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
-                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
+                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
                   </div>
                   <button
                     onClick={() => setShowCrossfadeModal(true)}
@@ -10560,11 +10502,11 @@ export default function App() {
               </div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
-              <button onClick={e => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect"><SkipBack size={22} fill="currentColor" /></button>
+              <button onClick={e => { e.stopPropagation(); handlePrev(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", touchAction: "manipulation" }} className="hover-effect"><SkipBack size={22} fill="currentColor" /></button>
               <button onClick={e => { e.stopPropagation(); handlePlayPause(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", touchAction: "manipulation" }} className="hover-effect">
                 {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" />}
               </button>
-              <button onClick={e => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex" }} className="hover-effect"><SkipForward size={22} fill="currentColor" /></button>
+              <button onClick={e => { e.stopPropagation(); handleNext(e); }} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: "4px", display: "flex", touchAction: "manipulation" }} className="hover-effect"><SkipForward size={22} fill="currentColor" /></button>
             </div>
           </div>
           <div style={{ width: "100%", height: "3px", background: "rgba(26,43,76,0.1)" }}>
@@ -10698,11 +10640,11 @@ export default function App() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
               <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "8px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
               <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
+                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipBack size={36} fill="currentColor" /></button>
                 <button onClick={handlePlayPause} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "72px", height: "72px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 12px 24px rgba(0,0,0,0.3)", transition: "transform 0.2s ease", touchAction: "manipulation" }} className="hover-effect">
                   {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" style={{ marginLeft: "4px" }} />}
                 </button>
-                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
+                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipForward size={36} fill="currentColor" /></button>
               </div>
               <button onClick={() => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } }} style={{ background: "transparent", border: "none", color: showQueue ? COLORS.spotifyGreen : "#FFFFFF", cursor: "pointer", padding: "8px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", position: "relative" }} className="hover-effect">
                 <ListMusic size={26} />
@@ -11432,7 +11374,7 @@ export default function App() {
                 <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer" }} className="hover-effect" title={`Mode: ${playMode}`}>
                   {renderModeIcon("#FFFFFF")}
                 </button>
-                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex" }} className="hover-effect" title="Previous">
+                <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", touchAction: "manipulation" }} className="hover-effect" title="Previous">
                   <SkipBack size={20} fill="currentColor" />
                 </button>
                 <button
@@ -11456,7 +11398,7 @@ export default function App() {
                 >
                   {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" style={{ marginLeft: "2px" }} />}
                 </button>
-                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex" }} className="hover-effect" title="Next">
+                <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", touchAction: "manipulation" }} className="hover-effect" title="Next">
                   <SkipForward size={20} fill="currentColor" />
                 </button>
                 <button
