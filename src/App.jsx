@@ -5498,10 +5498,25 @@ export default function App() {
     else { setPreviousVolume(volume); setIsMuted(true); setVolume(0); }
   };
 
+  const handleOpenCrossfadeModal = (e) => {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (areStemsModified) {
+      triggerToast("Crossfade is blocked while Stem Mixer changes are active");
+      return;
+    }
+    setTempCrossfadeEnabled(crossfadeEnabled);
+    setTempCrossfadeDuration(crossfadeDuration);
+    setShowCrossfadeModal(true);
+  };
+
   const toggleStemMixer = (e) => {
-    if (e) e.stopPropagation();
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
     if (jamRoomId) {
       triggerToast("Stem Mixer is disabled during Jam sessions");
+      return;
+    }
+    if (crossfadeEnabled) {
+      triggerToast("Stem Mixer is blocked while Crossfade is enabled");
       return;
     }
     const willShow = !showMixer;
@@ -5509,18 +5524,6 @@ export default function App() {
     if (willShow) {
       setShowLyrics(false);
       setShowQueue(false);
-      if (crossfadeEnabled) {
-        setCrossfadeEnabled(false);
-        crossfadeEnabledRef.current = false;
-        try { localStorage.setItem("euphony_crossfade_enabled", "false"); } catch (err) {}
-        if (isCrossfadingRef.current) stopCrossfade(false);
-        triggerToast("Crossfade disabled while Stem Mixer is active");
-        broadcastJamSync({
-          type: 'crossfade_update',
-          crossfadeEnabled: false,
-          crossfadeDuration
-        });
-      }
     }
   };
 
@@ -5751,23 +5754,12 @@ export default function App() {
           triggerToast("Stem Mixer is disabled during Jam sessions");
           return;
         }
+        if (crossfadeEnabled) {
+          triggerToast("Stem Mixer is blocked while Crossfade is enabled");
+          return;
+        }
         if (isDesktopFullscreen) {
-          setFullscreenView(prev => {
-            const next = prev === "mixer" ? "art" : "mixer";
-            if (next === "mixer" && crossfadeEnabled) {
-              setCrossfadeEnabled(false);
-              crossfadeEnabledRef.current = false;
-              try { localStorage.setItem("euphony_crossfade_enabled", "false"); } catch (err) {}
-              if (isCrossfadingRef.current) stopCrossfade(false);
-              triggerToast("Crossfade disabled while Stem Mixer is active");
-              broadcastJamSync({
-                type: 'crossfade_update',
-                crossfadeEnabled: false,
-                crossfadeDuration
-              });
-            }
-            return next;
-          });
+          setFullscreenView(prev => (prev === "mixer" ? "art" : "mixer"));
         } else {
           toggleStemMixer();
         }
@@ -5795,7 +5787,7 @@ export default function App() {
       // 11. C / c: Toggle Crossfade Settings
       if (e.key.toLowerCase() === "c") {
         e.preventDefault();
-        setShowCrossfadeModal(prev => !prev);
+        handleOpenCrossfadeModal();
         return;
       }
 
@@ -7039,30 +7031,13 @@ export default function App() {
             <SlidersHorizontal size={28} color="#ef4444" />
           </div>
           <h4 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "8px" }}>
-            Stem Mixer Unavailable with Crossfade
+            Stem Mixer Blocked with Crossfade
           </h4>
           <p style={{ fontSize: "13px", color: isDarkMode ? "rgba(255,255,255,0.7)" : COLORS.textMuted, maxWidth: "290px", lineHeight: "1.5", marginBottom: "18px" }}>
-            Stem mixing and Crossfade cannot be used together. Disable Crossfade to mix stems.
+            Stem Mixer is blocked while Crossfade is enabled. Turn off Crossfade in settings to use the Stem Mixer.
           </p>
-          <button
-            onClick={() => {
-              setCrossfadeEnabled(false);
-              crossfadeEnabledRef.current = false;
-              try { localStorage.setItem("euphony_crossfade_enabled", "false"); } catch (err) {}
-              if (isCrossfadingRef.current) stopCrossfade(false);
-              triggerToast("Crossfade disabled");
-              broadcastJamSync({
-                type: 'crossfade_update',
-                crossfadeEnabled: false,
-                crossfadeDuration
-              });
-            }}
-            style={{ background: COLORS.spotifyGreen, color: "#FFF", border: "none", padding: "9px 22px", borderRadius: "20px", fontSize: "13px", fontWeight: "700", cursor: "pointer", marginBottom: "8px" }}
-          >
-            Disable Crossfade
-          </button>
-          <button onClick={() => setShowMixer(false)} style={{ background: "transparent", color: isDarkMode ? "rgba(255,255,255,0.6)" : COLORS.textMuted, border: "none", fontSize: "12px", cursor: "pointer" }}>
-            Close
+          <button onClick={() => setShowMixer(false)} style={{ background: COLORS.spotifyGreen, color: "#FFF", border: "none", padding: "9px 22px", borderRadius: "20px", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
+            Got it
           </button>
         </div>
       );
@@ -8728,6 +8703,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => {
+                  if (!tempCrossfadeEnabled && areStemsModified) {
+                    triggerToast("Crossfade is blocked while Stem Mixer changes are active");
+                    return;
+                  }
                   setTempCrossfadeEnabled(prev => !prev);
                 }}
                 style={{
@@ -8759,9 +8738,9 @@ export default function App() {
               </button>
             </div>
 
-            {tempCrossfadeEnabled && (isMixerActive || showMixer) && (
+            {areStemsModified && (
               <div style={{ padding: "10px 14px", borderRadius: "12px", background: "rgba(239, 68, 68, 0.12)", border: "1px solid rgba(239, 68, 68, 0.25)", fontSize: "12px", color: isDarkMode ? "#fca5a5" : "#b91c1c", marginBottom: "16px", lineHeight: "1.4" }}>
-                Enabling Crossfade will automatically disable the Stem Mixer.
+                Crossfade is blocked while Stem Mixer changes are active.
               </div>
             )}
 
@@ -8895,7 +8874,10 @@ export default function App() {
             {/* Done Action Button */}
             <button
               onClick={() => {
-                const enabling = tempCrossfadeEnabled;
+                if (tempCrossfadeEnabled && areStemsModified) {
+                  triggerToast("Crossfade is blocked while Stem Mixer changes are active");
+                  return;
+                }
                 setCrossfadeEnabled(tempCrossfadeEnabled);
                 setCrossfadeDuration(tempCrossfadeDuration);
                 crossfadeEnabledRef.current = tempCrossfadeEnabled;
@@ -8907,14 +8889,7 @@ export default function App() {
                 if (!tempCrossfadeEnabled && isCrossfadingRef.current) {
                   stopCrossfade(false);
                 }
-                if (enabling && (isMixerActiveRef.current || showMixer)) {
-                  setShowMixer(false);
-                  setStemVolumes({ vocals: 1, drums: 1, bass: 1, other: 1 });
-                  stemVolumesRef.current = { vocals: 1, drums: 1, bass: 1, other: 1 };
-                  triggerToast(`Crossfade enabled (${tempCrossfadeDuration}s). Stem Mixer disabled`);
-                } else {
-                  triggerToast(tempCrossfadeEnabled ? `Crossfade enabled (${tempCrossfadeDuration}s)` : "Crossfade disabled");
-                }
+                triggerToast(tempCrossfadeEnabled ? `Crossfade enabled (${tempCrossfadeDuration}s)` : "Crossfade disabled");
                 broadcastJamSync({
                   type: 'crossfade_update',
                   crossfadeEnabled: tempCrossfadeEnabled,
@@ -9652,7 +9627,7 @@ export default function App() {
       )}
 
       {/* TOP HEADER */}
-      <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : (!isDesktop && jamRoomId ? "0 8px" : "0 12px"), zIndex: 10 }}>
+      <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", zIndex: 10 }}>
         <button
           onClick={() => fetchAllData(true)}
           disabled={isRefreshing}
@@ -9660,8 +9635,8 @@ export default function App() {
           style={{
             background: "transparent",
             border: "none",
-            padding: !isDesktop && jamRoomId ? "4px 2px" : "4px 6px",
-            margin: !isDesktop && jamRoomId ? "0 4px 0 0" : "-4px -6px",
+            padding: "4px 6px",
+            margin: "-4px -6px",
             borderRadius: "12px",
             cursor: isRefreshing ? "default" : "pointer",
             display: "inline-flex",
@@ -9674,13 +9649,13 @@ export default function App() {
           }}
           title={isRefreshing ? "Refreshing Euphony..." : "Click Euphony to refresh"}
         >
-          <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : (!isDesktop && jamRoomId ? "18px" : "20px"), color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px", lineHeight: 1 }}>
+          <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px", lineHeight: 1 }}>
             Euphony
           </h1>
         </button>
-        <div style={{ display: "flex", gap: isDesktop ? "12px" : (!isDesktop && jamRoomId ? "4px" : "6px"), alignItems: "center", flexShrink: 0 }}>
-          <button className="hover-effect" onClick={toggleDarkMode} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : (!isDesktop && jamRoomId ? "6px 7px" : "8px 12px"), color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
-            {isDarkMode ? <Sun size={!isDesktop && jamRoomId ? 15 : 16} /> : <Moon size={!isDesktop && jamRoomId ? 15 : 16} />}
+        <div style={{ display: "flex", gap: isDesktop ? "12px" : "6px", alignItems: "center", flexShrink: 0 }}>
+          <button className="hover-effect" onClick={toggleDarkMode} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             {isDesktop && (isDarkMode ? " Light" : " Dark")}
           </button>
           <button
@@ -9690,33 +9665,33 @@ export default function App() {
               background: jamRoomId ? "rgba(34, 197, 94, 0.2)" : "transparent",
               border: `1px solid ${jamRoomId ? "#22c55e" : COLORS.primary}`,
               borderRadius: "20px",
-              padding: isDesktop ? "8px 16px" : (!isDesktop && jamRoomId ? "6px 8px" : "8px 12px"),
+              padding: isDesktop ? "8px 16px" : "8px 12px",
               color: jamRoomId ? "#22c55e" : COLORS.primary,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: !isDesktop && jamRoomId ? "3px" : "6px",
-              fontSize: !isDesktop && jamRoomId ? "12px" : "13px",
+              gap: "6px",
+              fontSize: "13px",
               fontWeight: "bold"
             }}
             title={jamRoomId ? `Live Jam: ${jamRoomId} (${jamListenersCount})` : "Start or Join Live Jam"}
           >
-            <Radio size={!isDesktop && jamRoomId ? 14 : 16} />
-            {isDesktop ? (jamRoomId ? `Jam (${jamRoomId})` : "Live Jam") : (jamRoomId ? "Jam" : "")}
+            <Radio size={16} />
+            {isDesktop ? (jamRoomId ? `Jam (${jamRoomId})` : "Live Jam") : ""}
           </button>
           {isDesktop && (
             <button className="hover-effect" onClick={() => setShowShortcutsModal(true)} title="Keyboard Shortcuts (?)" style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: "8px 16px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
               <Keyboard size={16} color={COLORS.bgPanel} /> Shortcuts
             </button>
           )}
-          <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : (!isDesktop && jamRoomId ? "6px 7px" : "8px 12px"), color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
-            <Plus size={!isDesktop && jamRoomId ? 15 : 16} color={COLORS.bgPanel} />{isDesktop && " Add Globally"}
+          <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+            <Plus size={16} color={COLORS.bgPanel} />{isDesktop && " Add Globally"}
           </button>
-          <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : (!isDesktop && jamRoomId ? "6px 7px" : "8px 12px"), color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
-            <FolderPlus size={!isDesktop && jamRoomId ? 15 : 16} color={COLORS.bgPanel} />{isDesktop && " New Playlist"}
+          <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+            <FolderPlus size={16} color={COLORS.bgPanel} />{isDesktop && " New Playlist"}
           </button>
-          <button className="hover-effect" onClick={handleLogout} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : (!isDesktop && jamRoomId ? "6px 7px" : "8px 12px"), color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
-            {isDesktop ? "Log Out" : <LogOut size={!isDesktop && jamRoomId ? 15 : 16} />}
+          <button className="hover-effect" onClick={handleLogout} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+            {isDesktop ? "Log Out" : <LogOut size={16} />}
           </button>
         </div>
       </div>
@@ -10426,7 +10401,7 @@ export default function App() {
                   {[
                     { label: "Sleep Timer", active: !!sleepTimerTarget, icon: <Moon size={15} />, action: (e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowSleepTimerModal(true); } },
                     { label: "Options", active: false, icon: <MoreVertical size={15} />, action: (e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); } },
-                    { label: jamRoomId ? "Stem Mixer (Disabled in Jam)" : "Stem Mixer", active: showMixer, disabled: Boolean(jamRoomId), icon: <SlidersHorizontal size={15} />, action: toggleStemMixer },
+                    { label: jamRoomId ? "Stem Mixer (Disabled in Jam)" : (crossfadeEnabled ? "Stem Mixer (Blocked with Crossfade)" : "Stem Mixer"), active: showMixer, disabled: Boolean(jamRoomId || crossfadeEnabled), icon: <SlidersHorizontal size={15} />, action: toggleStemMixer },
                     { label: "Lyrics", active: showLyrics, icon: <Mic2 size={15} />, action: () => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } } },
                     { label: "Queue", active: showQueue, icon: <ListMusic size={15} />, action: () => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } } }
                   ].map(({ label, active, disabled, icon, action }) => (
@@ -10454,15 +10429,16 @@ export default function App() {
                     <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
                   </div>
                   <button
-                    onClick={() => setShowCrossfadeModal(true)}
-                    title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
+                    onClick={handleOpenCrossfadeModal}
+                    title={areStemsModified ? "Crossfade is blocked while Stem Mixer changes are active" : (crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)")}
                     style={{
                       background: crossfadeEnabled ? COLORS.spotifyGreen : "rgba(255, 255, 255, 0.16)",
                       border: crossfadeEnabled ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid rgba(255, 255, 255, 0.2)",
                       color: "#FFFFFF",
                       borderRadius: "20px",
                       padding: "5px 11px",
-                      cursor: "pointer",
+                      cursor: areStemsModified ? "not-allowed" : "pointer",
+                      opacity: areStemsModified ? 0.45 : 1,
                       display: "flex",
                       alignItems: "center",
                       gap: "5px",
@@ -10470,7 +10446,7 @@ export default function App() {
                       filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
                       transition: "all 0.2s ease"
                     }}
-                    className="hover-effect"
+                    className={areStemsModified ? "" : "hover-effect"}
                   >
                     <CrossfadeIcon size={16} color="#FFFFFF" />
                     {crossfadeEnabled && (
@@ -10601,24 +10577,41 @@ export default function App() {
                 })}
               </div>
               <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "12px" }}>
-                <button onClick={toggleStemMixer} title={jamRoomId ? "Stem Mixer is disabled during Jam sessions" : "Stem Mixer"} style={{ background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "20px", padding: "10px 14px", cursor: jamRoomId ? "not-allowed" : "pointer", opacity: jamRoomId ? 0.45 : 1, display: "flex", backdropFilter: "blur(4px)" }}><SlidersHorizontal size={17} /></button>
                 <button
-                  onClick={e => { e.stopPropagation(); setShowCrossfadeModal(true); }}
-                  title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
+                  onClick={toggleStemMixer}
+                  title={jamRoomId ? "Stem Mixer is disabled during Jam sessions" : (crossfadeEnabled ? "Stem Mixer is blocked while Crossfade is enabled" : "Stem Mixer")}
+                  style={{
+                    background: showMixer ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)",
+                    color: "#FFFFFF",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: "20px",
+                    padding: "10px 14px",
+                    cursor: (jamRoomId || crossfadeEnabled) ? "not-allowed" : "pointer",
+                    opacity: (jamRoomId || crossfadeEnabled) ? 0.45 : 1,
+                    display: "flex",
+                    backdropFilter: "blur(4px)"
+                  }}
+                >
+                  <SlidersHorizontal size={17} />
+                </button>
+                <button
+                  onClick={handleOpenCrossfadeModal}
+                  title={areStemsModified ? "Crossfade is blocked while Stem Mixer changes are active" : (crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)")}
                   style={{
                     background: crossfadeEnabled ? COLORS.spotifyGreen : "rgba(255,255,255,0.15)",
                     color: "#FFFFFF",
                     border: crossfadeEnabled ? `1px solid ${COLORS.spotifyGreen}` : "1px solid rgba(255,255,255,0.2)",
                     borderRadius: "20px",
                     padding: "10px 14px",
-                    cursor: "pointer",
+                    cursor: areStemsModified ? "not-allowed" : "pointer",
+                    opacity: areStemsModified ? 0.45 : 1,
                     display: "flex",
                     alignItems: "center",
                     gap: "5px",
                     backdropFilter: "blur(4px)",
                     transition: "all 0.2s ease"
                   }}
-                  className="hover-effect"
+                  className={areStemsModified ? "" : "hover-effect"}
                 >
                   <CrossfadeIcon size={17} color="#FFFFFF" />
                   {crossfadeEnabled && (
@@ -10782,20 +10775,12 @@ export default function App() {
                     return;
                   }
                   if (crossfadeEnabled) {
-                    setCrossfadeEnabled(false);
-                    crossfadeEnabledRef.current = false;
-                    try { localStorage.setItem("euphony_crossfade_enabled", "false"); } catch (err) {}
-                    if (isCrossfadingRef.current) stopCrossfade(false);
-                    triggerToast("Crossfade disabled while Stem Mixer is active");
-                    broadcastJamSync({
-                      type: 'crossfade_update',
-                      crossfadeEnabled: false,
-                      crossfadeDuration
-                    });
+                    triggerToast("Stem Mixer is blocked while Crossfade is enabled");
+                    return;
                   }
                   setFullscreenView("mixer");
                 }}
-                title={jamRoomId ? "Stem Mixer is disabled during Jam sessions" : "Mixer"}
+                title={jamRoomId ? "Stem Mixer is disabled during Jam sessions" : (crossfadeEnabled ? "Stem Mixer is blocked while Crossfade is enabled" : "Mixer")}
                 style={{
                   background: fullscreenView === "mixer" ? (isDarkMode ? "rgba(255, 255, 255, 0.22)" : "rgba(26, 43, 76, 0.12)") : "transparent",
                   color: fullscreenView === "mixer" ? (isDarkMode ? "#FFFFFF" : "#1A2B4C") : (isDarkMode ? "rgba(255, 255, 255, 0.65)" : "rgba(26, 43, 76, 0.65)"),
@@ -10804,14 +10789,14 @@ export default function App() {
                   padding: "8px 18px",
                   fontSize: "13px",
                   fontWeight: "700",
-                  cursor: jamRoomId ? "not-allowed" : "pointer",
-                  opacity: jamRoomId ? 0.45 : 1,
+                  cursor: (jamRoomId || crossfadeEnabled) ? "not-allowed" : "pointer",
+                  opacity: (jamRoomId || crossfadeEnabled) ? 0.45 : 1,
                   display: "flex",
                   alignItems: "center",
                   gap: "8px",
                   transition: "all 0.2s cubic-bezier(0.25, 1, 0.5, 1)"
                 }}
-                className={jamRoomId ? "" : "hover-effect"}
+                className={(jamRoomId || crossfadeEnabled) ? "" : "hover-effect"}
               >
                 <SlidersHorizontal size={15} />
                 <span>Mixer</span>
@@ -11402,15 +11387,16 @@ export default function App() {
                   <SkipForward size={20} fill="currentColor" />
                 </button>
                 <button
-                  onClick={() => setShowCrossfadeModal(true)}
-                  title={crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)"}
+                  onClick={handleOpenCrossfadeModal}
+                  title={areStemsModified ? "Crossfade is blocked while Stem Mixer changes are active" : (crossfadeEnabled ? `Crossfade: ${crossfadeDuration}s (Active)` : "Crossfade (Off)")}
                   style={{
                     background: crossfadeEnabled ? COLORS.spotifyGreen : "rgba(255, 255, 255, 0.12)",
                     border: crossfadeEnabled ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid rgba(255, 255, 255, 0.18)",
                     color: "#FFFFFF",
                     borderRadius: "16px",
                     padding: "4px 9px",
-                    cursor: "pointer",
+                    cursor: areStemsModified ? "not-allowed" : "pointer",
+                    opacity: areStemsModified ? 0.45 : 1,
                     display: "flex",
                     alignItems: "center",
                     gap: "5px",
@@ -11418,7 +11404,7 @@ export default function App() {
                     filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
                     transition: "all 0.2s ease"
                   }}
-                  className="hover-effect"
+                  className={areStemsModified ? "" : "hover-effect"}
                 >
                   <CrossfadeIcon size={16} color="#FFFFFF" />
                   {crossfadeEnabled && (
