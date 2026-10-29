@@ -3243,87 +3243,49 @@ export default function App() {
   const isMixerActive = Boolean(currentTrack?.stem_vocals && !stemsBroken && areStemsModified && !jamRoomId);
   const shouldLoadStems = Boolean((showMixer || (isDesktopFullscreen && fullscreenView === "mixer") || isMixerActive) && currentTrack?.stem_vocals && !jamRoomId);
 
-  const prevMixerActiveRef = useRef(false);
-  useEffect(() => {
-    const wasActive = prevMixerActiveRef.current;
-    prevMixerActiveRef.current = isMixerActive;
-
-    if (!wasActive && isMixerActive) {
-      // Smooth handoff: Master Deck -> Stems
-      const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
-      const curTime = activeEl?.currentTime || 0;
-      lastStemTimeRef.current = curTime;
-      lastStemHardSeekRef.current = {};
-      stemBufferingRef.current = false;
-      [
-        { type: 'vocals', ref: vocalsRef },
-        { type: 'drums', ref: drumsRef },
-        { type: 'bass', ref: bassRef },
-        { type: 'other', ref: otherRef }
-      ].forEach(({ type, ref }) => {
-        const el = ref.current;
-        if (el) {
-          try { el.currentTime = curTime; } catch (e) {}
-          if (isPlayingRef.current) {
-            el.play().catch(e => e);
-          }
+  const playAudibleStems = useCallback(() => {
+    if (jamRoomIdRef.current || stemsBroken) return;
+    const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+    const masterTime = activeEl?.currentTime || 0;
+    [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+      const el = ref.current;
+      if (el && el.src) {
+        if (isFinite(masterTime) && Math.abs(el.currentTime - masterTime) > 0.35 && !el.seeking) {
+          try { el.currentTime = masterTime; } catch (_) {}
         }
-      });
-      if (activeEl) {
-        activeEl.volume = 0;
-        activeEl.muted = true;
-        activeEl.pause();
-      }
-    } else if (wasActive && !isMixerActive) {
-      // Smooth handoff: Stems -> Master Deck
-      const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0)
-        || [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && isFinite(r.current.currentTime) && r.current.currentTime > 0);
-      const stemTime = stemCandidate?.current?.currentTime;
-      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-        ref.current?.pause();
-      });
-      const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
-      if (activeEl) {
-        if (typeof stemTime === 'number' && isFinite(stemTime)) {
-          try { activeEl.currentTime = stemTime; } catch (e) {}
-        }
-        const baseVol = isMutedRef.current ? 0 : volumeRef.current;
-        activeEl.volume = baseVol;
-        activeEl.muted = Boolean(isMutedRef.current);
-        if (isPlayingRef.current) {
-          activeEl.play().catch(e => e);
+        if (el.paused) {
+          el.play().catch(e => e);
         }
       }
-    }
-  }, [isMixerActive]);
+    });
+  }, [stemsBroken]);
 
+  // Volume Controller: seamless mixer gain control with zero audio pausing, zero seeking, and zero resampler jitter
   useEffect(() => {
-    const setVol = (ref, targetVol, targetMuted) => {
+    const setVol = (ref, targetVol) => {
       if (!ref.current || isCrossfadingRef.current) return;
-      if (Math.abs(ref.current.volume - targetVol) > 0.005) ref.current.volume = targetVol;
-      if (ref.current.muted !== targetMuted) ref.current.muted = targetMuted;
+      const clamped = Math.max(0, Math.min(1, targetVol));
+      if (Math.abs(ref.current.volume - clamped) > 0.005) {
+        ref.current.volume = clamped;
+      }
+      const shouldMute = Boolean(isMutedRef.current);
+      if (ref.current.muted !== shouldMute) {
+        ref.current.muted = shouldMute;
+      }
     };
 
-    setVol(audioRef, isMixerActive ? 0 : (isMuted ? 0 : volume), isMixerActive || isMuted);
-    setVol(vocalsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.vocals * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.vocals === 0);
-    setVol(drumsRef, isMixerActive ? (isMuted ? 0 : stemVolumes.drums * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.drums === 0);
-    setVol(bassRef, isMixerActive ? (isMuted ? 0 : stemVolumes.bass * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.bass === 0);
-    setVol(otherRef, isMixerActive ? (isMuted ? 0 : stemVolumes.other * (volume || 1)) : 0, !isMixerActive || isMuted || stemVolumes.other === 0);
+    const baseVol = isMuted ? 0 : (volume || 1);
+    // Master track plays at volume 0 while stems are modified so the hardware clock and background playback stay continuous
+    setVol(audioRef, isMixerActive ? 0 : baseVol);
+    setVol(vocalsRef, isMixerActive ? stemVolumes.vocals * baseVol : 0);
+    setVol(drumsRef, isMixerActive ? stemVolumes.drums * baseVol : 0);
+    setVol(bassRef, isMixerActive ? stemVolumes.bass * baseVol : 0);
+    setVol(otherRef, isMixerActive ? stemVolumes.other * baseVol : 0);
 
-    if (isMixerActive && isPlayingRef.current) {
-      [
-        { type: 'vocals', ref: vocalsRef },
-        { type: 'drums', ref: drumsRef },
-        { type: 'bass', ref: bassRef },
-        { type: 'other', ref: otherRef }
-      ].forEach(({ type, ref }) => {
-        const el = ref.current;
-        if (el && el.src) {
-          if (el.paused) el.play().catch(e => e);
-        }
-      });
+    if (shouldLoadStems && isPlayingRef.current && !jamRoomIdRef.current && !stemsBroken) {
+      playAudibleStems();
     }
-  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken, isMixerActive]);
+  }, [volume, isMuted, stemVolumes, currentTrack, stemsBroken, isMixerActive, shouldLoadStems, playAudibleStems]);
 
   volumeRef.current = volume;
   isMutedRef.current = isMuted;
@@ -3421,16 +3383,6 @@ export default function App() {
   const pauseAllAudioDecksRef = useRef(pauseAllAudioDecks);
   pauseAllAudioDecksRef.current = pauseAllAudioDecks;
 
-  const playAudibleStems = useCallback(() => {
-    if (!isMixerActiveRef.current || jamRoomIdRef.current || stemsBroken) return;
-    [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
-      const el = ref.current;
-      if (el && el.src && el.paused) {
-        el.play().catch(e => e);
-      }
-    });
-  }, [stemsBroken]);
-
   const resumeActiveAudioDecks = useCallback(() => {
     const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     if (!activeEl) return;
@@ -3440,31 +3392,30 @@ export default function App() {
       silentAudioRef.current.volume = 0.001;
       silentAudioRef.current.play().catch(e => e);
     }
-    if (isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
-      playAudibleStems();
-    } else {
-      const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
-      activeEl.volume = targetVol;
-      activeEl.muted = Boolean(isMutedRef.current || isMixerActiveRef.current);
-      const p = activeEl.play();
-      if (p && typeof p.then === 'function') {
-        p.catch((err) => {
-          if (err?.name === 'AbortError') return;
-          triggerToastRef.current?.("Tap screen to resume audio");
-          const handleUnlock = () => {
-            primeAudioDecks();
-            resumeActiveAudioDecks();
-            window.removeEventListener('click', handleUnlock);
-            window.removeEventListener('touchend', handleUnlock);
-            window.removeEventListener('pointerdown', handleUnlock);
-          };
-          window.addEventListener('click', handleUnlock);
-          window.addEventListener('touchend', handleUnlock);
-          window.addEventListener('pointerdown', handleUnlock);
-        });
-      }
+    const targetVol = (isMutedRef.current || isMixerActiveRef.current) ? 0 : volumeRef.current;
+    activeEl.volume = targetVol;
+    activeEl.muted = Boolean(isMutedRef.current);
+    const p = activeEl.play();
+    if (p && typeof p.then === 'function') {
+      p.catch((err) => {
+        if (err?.name === 'AbortError') return;
+        triggerToastRef.current?.("Tap screen to resume audio");
+        const handleUnlock = () => {
+          primeAudioDecks();
+          resumeActiveAudioDecks();
+          window.removeEventListener('click', handleUnlock);
+          window.removeEventListener('touchend', handleUnlock);
+          window.removeEventListener('pointerdown', handleUnlock);
+        };
+        window.addEventListener('click', handleUnlock);
+        window.addEventListener('touchend', handleUnlock);
+        window.addEventListener('pointerdown', handleUnlock);
+      });
     }
-  }, [stemsBroken, primeAudioDecks, playAudibleStems]);
+    if (shouldLoadStems && !jamRoomIdRef.current && !stemsBroken) {
+      playAudibleStems();
+    }
+  }, [stemsBroken, primeAudioDecks, playAudibleStems, shouldLoadStems]);
 
   const resumeActiveAudioDecksRef = useRef(resumeActiveAudioDecks);
   resumeActiveAudioDecksRef.current = resumeActiveAudioDecks;
@@ -3483,17 +3434,15 @@ export default function App() {
         navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
       } catch (_) {}
     }
+    const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     if (isPlaying && currentTrack) {
-      if (isMixerActiveRef.current && !jamRoomIdRef.current && !stemsBroken) {
+      if (activeEl?.paused && activeEl.src && activeEl.src !== window.location.href) {
+        activeEl.play().catch(e => e);
+      }
+      if (shouldLoadStems && !jamRoomIdRef.current && !stemsBroken) {
         playAudibleStems();
-      } else {
-        const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
-        if (activeEl?.paused && activeEl.src && activeEl.src !== window.location.href) {
-          activeEl.play().catch(e => e);
-        }
       }
     } else if (!isPlaying) {
-      const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
       if (activeEl && !activeEl.paused) {
         try { activeEl.pause(); } catch (_) {}
       }
@@ -3503,7 +3452,7 @@ export default function App() {
         }
       });
     }
-  }, [isPlaying, stemsBroken, currentTrack, playAudibleStems]);
+  }, [isPlaying, stemsBroken, currentTrack, playAudibleStems, shouldLoadStems]);
 
   const handleTimeUpdateRef = useRef();
   const lastSavedTimeRef = useRef(-1);
@@ -3529,25 +3478,8 @@ export default function App() {
         if (callNow - lastTimeUpdateCallRef.current < 100) return;
         lastTimeUpdateCallRef.current = callNow;
         
-        let time = audioRef.current?.currentTime || 0;
-        if (isMixerActiveRef.current) {
-          const stemCandidate = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0)
-            || [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && isFinite(r.current.currentTime) && r.current.currentTime > 0);
-          if (stemCandidate?.current) {
-            time = stemCandidate.current.currentTime;
-          }
-          if (isPlayingRef.current) {
-            if (time < lastStemTimeRef.current) {
-              time = lastStemTimeRef.current;
-            } else {
-              lastStemTimeRef.current = time;
-            }
-          } else {
-            lastStemTimeRef.current = time;
-          }
-        } else {
-          lastStemTimeRef.current = time;
-        }
+        const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+        let time = activeEl?.currentTime || 0;
 
         const currentInt = Math.floor(time);
         if (currentInt !== Math.floor(currentTimeRef.current || 0)) {
@@ -3747,31 +3679,15 @@ export default function App() {
           }
         }
 
-      if (isMixerActiveRef.current && currentTrack?.stem_vocals && !stemsBroken) {
-        const now = Date.now();
-        [
-          { type: 'vocals', ref: vocalsRef },
-          { type: 'drums', ref: drumsRef },
-          { type: 'bass', ref: bassRef },
-          { type: 'other', ref: otherRef }
-        ].forEach(({ type, ref }) => {
+      if (shouldLoadStems && !jamRoomIdRef.current && currentTrack?.stem_vocals && !stemsBroken) {
+        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
           const el = ref.current;
-          if (el && !el.paused && isFinite(el.currentTime)) {
-            const diff = el.currentTime - time;
-            const absDiff = Math.abs(diff);
-
-            // Cooldown for hard seek: at most once every 5 seconds to eliminate repeating/skipping loops
-            if (absDiff > 3.5 && !el.seeking && (now - (lastStemHardSeekRef.current[type] || 0) > 5000)) {
-              lastStemHardSeekRef.current[type] = now;
+          if (el && !el.paused && el.readyState >= 3 && !el.seeking) {
+            const diff = Math.abs(el.currentTime - time);
+            if (diff > 0.4) {
               try { el.currentTime = time; } catch (_) {}
-              el.playbackRate = 1.0;
-            } else if (absDiff > 0.25) {
-              // Smooth rate steering: 0.96x or 1.04x
-              el.playbackRate = diff > 0 ? 0.96 : 1.04;
-            } else if (absDiff <= 0.15 && el.playbackRate !== 1.0) {
-              // Deadband (within 150ms): perfectly in sync, run at native 1.0x rate
-              el.playbackRate = 1.0;
             }
+            if (el.playbackRate !== 1.0) el.playbackRate = 1.0;
           }
         });
       }
@@ -5452,32 +5368,17 @@ export default function App() {
     }
   };
 
-  const lastStemEndedCallRef = useRef(0);
-  const handleStemEnded = useCallback(() => {
-    if (!isMixerActiveRef.current) return;
-    const now = Date.now();
-    if (now - lastStemEndedCallRef.current < 2000) return;
-    lastStemEndedCallRef.current = now;
-    handleTrackEnded();
-  }, []);
+
 
   const handleStemLoadedMetadata = useCallback((e) => {
     const el = e.currentTarget;
     if (!el) return;
-    let targetTime = 0;
-    if (isMixerActiveRef.current) {
-      targetTime = lastStemTimeRef.current || 0;
-      if (!targetTime) {
-        const otherStem = [drumsRef, bassRef, otherRef, vocalsRef].find(r => r.current && r.current !== el && isFinite(r.current.currentTime) && r.current.currentTime > 0);
-        if (otherStem?.current) targetTime = otherStem.current.currentTime;
-      }
-    } else {
-      targetTime = (activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current)?.currentTime || 0;
-    }
+    const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
+    const targetTime = activeEl?.currentTime || 0;
     if (isFinite(targetTime) && targetTime > 0) {
       try { el.currentTime = targetTime; } catch (_) {}
     }
-    if (isPlayingRef.current && isMixerActiveRef.current && !jamRoomIdRef.current && el.paused) {
+    if (isPlayingRef.current && !jamRoomIdRef.current && el.paused) {
       el.play().catch(() => {});
     }
   }, []);
@@ -7092,7 +6993,6 @@ export default function App() {
                         if (targetRef?.current) {
                           const baseVol = isMutedRef.current ? 0 : (volumeRef.current || 1);
                           targetRef.current.volume = Math.max(0, Math.min(1, val * baseVol));
-                          targetRef.current.muted = (val === 0 || isMutedRef.current);
                         }
                         setStemVolumes(prev => ({ ...prev, [stemType]: val }));
                       }}
@@ -7942,48 +7842,44 @@ export default function App() {
       <audio
         ref={vocalsRef}
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_vocals) || undefined) : undefined}
-        preload={isMixerActive ? "auto" : "metadata"}
+        preload={shouldLoadStems ? "auto" : "metadata"}
         playsInline
-        muted={!isMixerActive || isMuted || stemVolumes.vocals === 0}
+        muted={Boolean(isMuted)}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
-        onEnded={handleStemEnded}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
       <audio
         ref={drumsRef}
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_drums) || undefined) : undefined}
-        preload={isMixerActive ? "auto" : "metadata"}
+        preload={shouldLoadStems ? "auto" : "metadata"}
         playsInline
-        muted={!isMixerActive || isMuted || stemVolumes.drums === 0}
+        muted={Boolean(isMuted)}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
-        onEnded={handleStemEnded}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
       <audio
         ref={bassRef}
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_bass) || undefined) : undefined}
-        preload={isMixerActive ? "auto" : "metadata"}
+        preload={shouldLoadStems ? "auto" : "metadata"}
         playsInline
-        muted={!isMixerActive || isMuted || stemVolumes.bass === 0}
+        muted={Boolean(isMuted)}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
-        onEnded={handleStemEnded}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
       <audio
         ref={otherRef}
         src={shouldLoadStems ? (getCdnUrl(currentTrack?.stem_other) || undefined) : undefined}
-        preload={isMixerActive ? "auto" : "metadata"}
+        preload={shouldLoadStems ? "auto" : "metadata"}
         playsInline
-        muted={!isMixerActive || isMuted || stemVolumes.other === 0}
+        muted={Boolean(isMuted)}
         loop={playMode === 'repeat-one'}
         onLoadedMetadata={handleStemLoadedMetadata}
-        onEnded={handleStemEnded}
         onError={() => setStemsBroken(true)}
         className="loop-audio-fix"
       />
