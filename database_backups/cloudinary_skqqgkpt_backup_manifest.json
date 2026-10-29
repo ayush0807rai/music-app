@@ -1,6 +1,6 @@
 {
   "cloud_name": "skqqgkpt",
-  "backup_timestamp": "2026-10-29T11:21:12.594Z",
+  "backup_timestamp": "2026-10-29T11:29:56.580Z",
   "total_files": 11,
   "files": [
     {
@@ -20,8 +20,8 @@
     {
       "filename": "euphony_website_complete_backup.zip",
       "public_id": "euphony_backups/euphony_website_complete_backup.zip",
-      "bytes": 1960559,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793272865/euphony_backups/euphony_website_complete_backup.zip",
+      "bytes": 1960404,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793273389/euphony_backups/euphony_website_complete_backup.zip",
       "uploaded_at": "2026-10-27T10:33:48Z"
     },
     {

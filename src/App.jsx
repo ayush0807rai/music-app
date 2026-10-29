@@ -7885,54 +7885,30 @@ export default function App() {
       />
 
       {/* TOASTS */}
-      {renderQueueToast && (() => {
-        const isCrossfadeToast = typeof safeQueueToast === "string" && safeQueueToast.startsWith("Crossfade enabled");
-        return (
-          <div
-            className={queueToastClosing ? "toast-exit" : "toast-enter"}
-            style={isCrossfadeToast ? {
-              position: "fixed",
-              top: "80px",
-              left: "50%",
-              background: COLORS.primary,
-              color: COLORS.bgPanel,
-              padding: "8px 18px",
-              borderRadius: "20px",
-              fontSize: "14px",
-              fontWeight: "700",
-              zIndex: 10010,
-              boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
-              pointerEvents: "none",
-              transform: "translateX(-50%)",
-              whiteSpace: "nowrap",
-              width: "max-content",
-              maxWidth: "92vw",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              lineHeight: 1.2
-            } : {
-              position: "fixed",
-              top: "80px",
-              left: "50%",
-              background: COLORS.primary,
-              color: COLORS.bgPanel,
-              padding: "10px 20px",
-              borderRadius: "20px",
-              fontSize: "14px",
-              fontWeight: "600",
-              zIndex: 10010,
-              boxShadow: "0 8px 16px rgba(0,0,0,0.25)",
-              pointerEvents: "none",
-              transform: "translateX(-50%)",
-              maxWidth: "85vw",
-              textAlign: "center"
-            }}
-          >
-            {safeQueueToast}
-          </div>
-        );
-      })()}
+      {renderQueueToast && (
+        <div
+          className={queueToastClosing ? "toast-exit" : "toast-enter"}
+          style={{
+            position: "fixed",
+            top: "80px",
+            left: "50%",
+            background: COLORS.primary,
+            color: COLORS.bgPanel,
+            padding: "10px 20px",
+            borderRadius: "20px",
+            fontSize: "14px",
+            fontWeight: "600",
+            zIndex: 10010,
+            boxShadow: "0 8px 16px rgba(0,0,0,0.25)",
+            pointerEvents: "none",
+            transform: "translateX(-50%)",
+            maxWidth: "85vw",
+            textAlign: "center"
+          }}
+        >
+          {safeQueueToast}
+        </div>
+      )}
       {renderExitToast && (
         <div className={exitToastClosing ? "toast-exit" : "toast-enter"} style={{ position: "fixed", bottom: isDesktop ? "40px" : "100px", left: "50%", background: COLORS.primary, color: COLORS.bgPanel, padding: "12px 24px", borderRadius: "24px", fontSize: "14px", fontWeight: "600", zIndex: 10010, backdropFilter: "blur(8px)", boxShadow: "0 8px 16px rgba(0,0,0,0.2)", pointerEvents: "none", transform: "translateX(-50%)", whiteSpace: "nowrap" }}>
           Press back again to exit
