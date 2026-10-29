@@ -1546,6 +1546,7 @@ export default function App() {
   const drumsRef = useRef(null);
   const bassRef = useRef(null);
   const otherRef = useRef(null);
+  const lastStemHardSeekRef = useRef(0);
 
   // Synchronous proxies: ALWAYS point to the active and background decks with zero delay
   const audioRef = useMemo(() => ({
@@ -3322,6 +3323,9 @@ export default function App() {
     drumsRef.current?.pause();
     bassRef.current?.pause();
     otherRef.current?.pause();
+    [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+      if (ref.current) try { ref.current.playbackRate = 1.0; } catch (_) {}
+    });
     // Keep silent audio loop playing while in a Jam to keep mobile audio session & WebSockets active
     if (!jamRoomIdRef.current) {
       silentAudioRef.current?.pause();
@@ -3388,10 +3392,14 @@ export default function App() {
   useEffect(() => {
     if (shouldLoadStems && audioRef.current && !stemsBroken) {
       const t = audioRef.current.currentTime || 0;
-      if (vocalsRef.current && vocalsRef.current.readyState >= 1) try { vocalsRef.current.currentTime = t; } catch (_) {}
-      if (drumsRef.current  && drumsRef.current.readyState >= 1)  try { drumsRef.current.currentTime  = t; } catch (_) {}
-      if (bassRef.current   && bassRef.current.readyState >= 1)   try { bassRef.current.currentTime   = t; } catch (_) {}
-      if (otherRef.current  && otherRef.current.readyState >= 1)  try { otherRef.current.currentTime  = t; } catch (_) {}
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        const el = ref.current;
+        if (el && el.readyState >= 1) {
+          if (Math.abs((el.currentTime || 0) - t) > 1.5) {
+            try { el.currentTime = t; } catch (_) {}
+          }
+        }
+      });
       if (isPlaying) {
         vocalsRef.current?.play().catch(e => e);
         drumsRef.current?.play().catch(e => e);
@@ -3399,7 +3407,7 @@ export default function App() {
         otherRef.current?.play().catch(e => e);
       }
     }
-  }, [shouldLoadStems, isPlaying, stemsBroken, isMixerActive, showMixer, currentTrack?.id]);
+  }, [shouldLoadStems, isPlaying, stemsBroken, currentTrack?.id]);
 
   
   const prefetchedSignatureRef = useRef("");
@@ -3642,10 +3650,31 @@ export default function App() {
           }
         }
 
-      if (currentTrack?.stem_vocals && !stemsBroken) {
+      if (currentTrack?.stem_vocals && !stemsBroken && isPlaying) {
         const syncStem = (ref) => {
-          if (ref.current && ref.current.readyState >= 3 && Math.abs(ref.current.currentTime - time) > 0.5) {
-            ref.current.currentTime = time;
+          const el = ref.current;
+          if (!el || el.readyState < 2 || el.seeking) return;
+          const diff = time - el.currentTime;
+          const absDiff = Math.abs(diff);
+
+          if (absDiff > 2.5 && (Date.now() - lastStemHardSeekRef.current > 3000)) {
+            lastStemHardSeekRef.current = Date.now();
+            try { el.currentTime = time; } catch (_) {}
+            try { el.playbackRate = 1.0; } catch (_) {}
+          } else if (absDiff > 0.08) {
+            const rate = diff > 0
+              ? (absDiff > 0.6 ? 1.06 : 1.03)
+              : (absDiff > 0.6 ? 0.94 : 0.97);
+            if (Math.abs(el.playbackRate - rate) > 0.005) {
+              try { el.playbackRate = rate; } catch (_) {}
+            }
+          } else {
+            if (el.playbackRate !== 1.0) {
+              try { el.playbackRate = 1.0; } catch (_) {}
+            }
+          }
+          if (el.paused && isPlayingRef.current && el.src) {
+            el.play().catch(e => e);
           }
         };
         syncStem(vocalsRef); syncStem(drumsRef); syncStem(bassRef); syncStem(otherRef);
@@ -3768,9 +3797,6 @@ export default function App() {
       preloadAbortRef.current.abort();
       preloadAbortRef.current = null;
     }
-    if (shouldLoadStems && !stemsBroken) {
-      vocalsRef.current?.pause(); drumsRef.current?.pause(); bassRef.current?.pause(); otherRef.current?.pause();
-    }
     // Auto-recover from background network stalls on mobile (Android Doze / iOS background) ONLY while user wants playback
     if (stallRecoveryTimerRef.current) clearTimeout(stallRecoveryTimerRef.current);
     stallRecoveryTimerRef.current = setTimeout(() => {
@@ -3798,10 +3824,13 @@ export default function App() {
       audioRef.current.currentTime = seekTime;
       setCurrentTime(seekTime);
       updateProgressVisuals();
-      if (vocalsRef.current) vocalsRef.current.currentTime = seekTime;
-      if (drumsRef.current)  drumsRef.current.currentTime  = seekTime;
-      if (bassRef.current)   bassRef.current.currentTime   = seekTime;
-      if (otherRef.current)  otherRef.current.currentTime  = seekTime;
+      lastStemHardSeekRef.current = Date.now();
+      [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+        if (ref.current) {
+          try { ref.current.currentTime = seekTime; } catch (_) {}
+          try { ref.current.playbackRate = 1.0; } catch (_) {}
+        }
+      });
     }
     isJamLeaderRef.current = true;
     broadcastJamSync({
@@ -3822,6 +3851,15 @@ export default function App() {
       audioRef.current.currentTime = time; 
       setCurrentTime(time); 
       updateProgressVisuals();
+      if (currentTrack?.stem_vocals && !stemsBroken) {
+        lastStemHardSeekRef.current = Date.now();
+        [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+          if (ref.current) {
+            try { ref.current.currentTime = time; } catch (_) {}
+            try { ref.current.playbackRate = 1.0; } catch (_) {}
+          }
+        });
+      }
       if (!isPlaying) setIsPlaying(true); 
     }
     isJamLeaderRef.current = true;
@@ -5429,10 +5467,13 @@ export default function App() {
           const target = dur > 0 ? Math.min(dur, cur + 5) : cur + 5;
           audioRef.current.currentTime = target;
           if (currentTrack.stem_vocals && !stemsBroken) {
-            if (vocalsRef.current) vocalsRef.current.currentTime = target;
-            if (drumsRef.current) drumsRef.current.currentTime = target;
-            if (bassRef.current) bassRef.current.currentTime = target;
-            if (otherRef.current) otherRef.current.currentTime = target;
+            lastStemHardSeekRef.current = Date.now();
+            [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+              if (ref.current) {
+                try { ref.current.currentTime = target; } catch (_) {}
+                try { ref.current.playbackRate = 1.0; } catch (_) {}
+              }
+            });
           }
           setCurrentTime(target);
           updateProgressVisuals();
@@ -5457,10 +5498,13 @@ export default function App() {
           const target = Math.max(0, cur - 5);
           audioRef.current.currentTime = target;
           if (currentTrack.stem_vocals && !stemsBroken) {
-            if (vocalsRef.current) vocalsRef.current.currentTime = target;
-            if (drumsRef.current) drumsRef.current.currentTime = target;
-            if (bassRef.current) bassRef.current.currentTime = target;
-            if (otherRef.current) otherRef.current.currentTime = target;
+            lastStemHardSeekRef.current = Date.now();
+            [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
+              if (ref.current) {
+                try { ref.current.currentTime = target; } catch (_) {}
+                try { ref.current.playbackRate = 1.0; } catch (_) {}
+              }
+            });
           }
           setCurrentTime(target);
           updateProgressVisuals();
@@ -6035,16 +6079,10 @@ export default function App() {
             updateStemEl(otherRef, payload.stemVolumes.other);
 
             if (isPlayingRef.current && currentActiveAudio) {
-              const t = currentActiveAudio.currentTime || 0;
               [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
                 const el = ref.current;
-                if (el && el.src) {
-                  if (el.readyState >= 1 && Math.abs((el.currentTime || 0) - t) > 0.8) {
-                    try { el.currentTime = t; } catch (e) {}
-                  }
-                  if (el.paused) {
-                    el.play().catch(e => e);
-                  }
+                if (el && el.src && el.paused) {
+                  el.play().catch(e => e);
                 }
               });
             }
@@ -6385,16 +6423,10 @@ export default function App() {
 
             // Ensure stems are playing if audio is playing in Jam
             if (isPlayingRef.current && currentActiveAudio) {
-              const t = currentActiveAudio.currentTime || 0;
               [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
                 const el = ref.current;
-                if (el && el.src) {
-                  if (el.readyState >= 1 && Math.abs((el.currentTime || 0) - t) > 0.8) {
-                    try { el.currentTime = t; } catch (e) {}
-                  }
-                  if (el.paused) {
-                    el.play().catch(e => e);
-                  }
+                if (el && el.src && el.paused) {
+                  el.play().catch(e => e);
                 }
               });
             }
@@ -6894,16 +6926,10 @@ export default function App() {
                         setStemVolumes(nextVols);
                         broadcastStemVolumes(nextVols);
                         if (isPlayingRef.current) {
-                          const curTime = audioRef.current?.currentTime || 0;
                           [vocalsRef, drumsRef, bassRef, otherRef].forEach(ref => {
                             const el = ref.current;
-                            if (el && el.src) {
-                              if (el.readyState >= 1 && Math.abs((el.currentTime || 0) - curTime) > 0.8) {
-                                try { el.currentTime = curTime; } catch (_) {}
-                              }
-                              if (el.paused) {
-                                el.play().catch(e => e);
-                              }
+                            if (el && el.src && el.paused) {
+                              el.play().catch(e => e);
                             }
                           });
                         }
