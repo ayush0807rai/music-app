@@ -178,5 +178,6 @@ export const STATIC_SONG_DURATIONS = {
   "41fa8b8a-fa9a-4539-8eed-01151434f639": 198,
   "c3cfc5bf-1b28-4cff-8626-c818d919b1a4": 197,
   "bb75c978-3a90-4772-9293-eadf698df19d": 174,
-  "bf153fd9-45c8-4c7e-8439-d023cd2fb014": 258
+  "bf153fd9-45c8-4c7e-8439-d023cd2fb014": 258,
+  "da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84": 212
 };
