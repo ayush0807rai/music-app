@@ -5,7 +5,7 @@ export const AVAILABLE_MOODS = [
   { id: 'Romantic', label: 'Romantic', emoji: '💖', color: '#ff4d88' },
   { id: 'Chill', label: 'Chill', emoji: '☕', color: '#4da6ff' },
   { id: 'Energetic', label: 'Energetic', emoji: '⚡', color: '#ffb84d' },
-  { id: 'Sad', label: 'Sad', emoji: '🌧️', color: '#a0a0c8' },
+  { id: 'Yearning', label: 'Yearning', emoji: '🌧️', color: '#a0a0c8' },
   { id: 'Classical', label: 'Classical', emoji: '🎻', color: '#d49b5a' },
   { id: 'Party', label: 'Party', emoji: '🪩', color: '#ff007f' },
   { id: 'Retro', label: 'Retro', emoji: '📻', color: '#2a9d8f' },
@@ -34,10 +34,10 @@ export const MOOD_KEYWORDS = {
     'spirit', 'run', 'workout', 'fitness', 'josh', 'junoon', 'aag', 'toofaan', 'dangal', 'sultan', 'challa',
     'singham', 'jai', 'sher', 'power'
   ],
-  Sad: [
+  Yearning: [
     'dard', 'judai', 'bewafa', 'ashq', 'aansoo', 'tanha', 'tanhai', 'gham', 'tuta', 'toota', 'chhod', 'alvida',
     'rone', 'bichhad', 'sad', 'cry', 'broken', 'alone', 'tears', 'hurt', 'pain', 'sorry', 'goodbye', 'heartbreak',
-    'yaad', 'rona', 'tadap', 'ruswa', 'chhod gaya'
+    'yaad', 'rona', 'tadap', 'ruswa', 'chhod gaya', 'yearning', 'yearn'
   ],
   Classical: [
     'classical', 'sitar', 'tabla', 'raag', 'raga', 'bandish', 'thumri', 'khayal', 'shehnai', 'ghazal',
@@ -130,6 +130,7 @@ export function clearCustomSongMoods() {
 }
 
 export function getMoodEmoji(moodId) {
+  if (moodId && (moodId.toLowerCase() === 'sad' || moodId.toLowerCase() === 'yearning')) return '🌧️';
   const match = AVAILABLE_MOODS.find(m => m.id === moodId);
   return match ? match.emoji : '🎵';
 }
@@ -144,37 +145,45 @@ export const CURATED_MOOD_OVERRIDES = {};
 export function getSongMoods(song, customOverrides = null) {
   if (!song) return ['Chill'];
 
+  const normalizeMood = (raw) => {
+    if (!raw || typeof raw !== 'string') return raw;
+    const t = raw.trim();
+    if (t.toLowerCase() === 'sad') return 'Yearning';
+    return t;
+  };
+
   // 1. Explicit mood tag embedded in lyrics (authoritative source of truth set by owner in database - shared with all users)
   if (song.lyrics && typeof song.lyrics === 'string') {
     const match = song.lyrics.match(/\[mood:\s*([a-zA-Z\s]+)\]/i);
     if (match && match[1]) {
-      const found = AVAILABLE_MOODS.find(m => m.id.toLowerCase() === match[1].trim().toLowerCase());
+      const normalized = normalizeMood(match[1]);
+      const found = AVAILABLE_MOODS.find(m => m.id.toLowerCase() === normalized.toLowerCase());
       if (found) return [found.id];
     }
   }
 
   // 2. Explicit mood stored on track (from database or local object)
   if (song.mood && typeof song.mood === 'string' && song.mood.trim()) {
-    const raw = song.mood.split(',').map(m => m.trim()).filter(Boolean);
+    const raw = song.mood.split(',').map(m => normalizeMood(m)).filter(Boolean);
     if (raw.length > 0) return raw;
   }
 
   // 3. User manual override / optimistic UI override
   if (customOverrides && customOverrides[song.id]) {
-    return [customOverrides[song.id]];
+    return [normalizeMood(customOverrides[song.id])];
   }
   if (!customOverrides && typeof window !== 'undefined') {
     try {
       const stored = getCustomMoodOverrides();
       if (stored && stored[song.id]) {
-        return [stored[song.id]];
+        return [normalizeMood(stored[song.id])];
       }
     } catch (e) {}
   }
 
   // 4. Curated owner overrides (fallback for legacy mappings)
   if (CURATED_MOOD_OVERRIDES[song.id]) {
-    return [CURATED_MOOD_OVERRIDES[song.id]];
+    return [normalizeMood(CURATED_MOOD_OVERRIDES[song.id])];
   }
 
   // 5. Intelligent lyrics & metadata scoring
