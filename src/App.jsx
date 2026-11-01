@@ -43,8 +43,14 @@ import {
   syncAccountStats,
   subscribeToCloudStats,
   flushCloudSync,
-  saveLocalStats
+  saveLocalStats,
+  getMonthDisplayName,
+  getCurrentMonthKey,
+  checkAndPerformMonthlyRollover,
+  getWrappedEligibility,
+  computeWrappedData
 } from "./statsManager";
+import SpotifyWrappedModal from "./components/SpotifyWrappedModal";
 import { STATIC_SONG_DURATIONS } from "./songDurations";
 
 const PLAY_MODES = ["order", "repeat-all", "repeat-one", "shuffle"];
@@ -1771,9 +1777,52 @@ export default function App() {
     return counts;
   }, [playlist, customMoodOverrides]);
 
+  const [statsTimeframe, setStatsTimeframe] = useState("active");
+  const [showWrappedModal, setShowWrappedModal] = useState(false);
+
+  // Account-specific monthly listening stats rollover:
+  // Automatically archives previous month stats into Supabase before resetting on the 1st of every month
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    checkAndPerformMonthlyRollover(session.user.id).then(didRollover => {
+      if (didRollover) {
+        setPlayCounts({});
+      }
+    });
+
+    const rolloverTimer = setInterval(() => {
+      checkAndPerformMonthlyRollover(session.user.id).then(didRollover => {
+        if (didRollover) {
+          setPlayCounts({});
+        }
+      });
+    }, 60000);
+
+    return () => clearInterval(rolloverTimer);
+  }, [session?.user?.id]);
+
   const listeningStats = useMemo(() => {
-    return computeListeningStats(playlist, s => getSongMoods(s, customMoodOverrides), session?.user?.id);
-  }, [playlist, playCounts, customMoodOverrides, showStatsModal, session?.user?.id]);
+    return computeListeningStats(
+      playlist,
+      s => getSongMoods(s, customMoodOverrides),
+      session?.user?.id,
+      statsTimeframe
+    );
+  }, [playlist, playCounts, customMoodOverrides, showStatsModal, statsTimeframe, session?.user?.id]);
+
+  const wrappedEligibility = useMemo(() => {
+    return getWrappedEligibility(session?.user?.id);
+  }, [session?.user?.id, playCounts, showStatsModal]);
+
+  const wrappedData = useMemo(() => {
+    if (!wrappedEligibility.targetYear) return null;
+    return computeWrappedData(
+      wrappedEligibility.targetYear,
+      playlist,
+      s => getSongMoods(s, customMoodOverrides),
+      session?.user?.id
+    );
+  }, [wrappedEligibility.targetYear, playlist, customMoodOverrides, session?.user?.id, playCounts]);
 
   const handleSwitchPlaylist = useCallback((playlistId) => {
     // If user re-taps the currently active playlist/smart-view (except global library which is null),
@@ -8383,7 +8432,7 @@ export default function App() {
               <button onClick={handleCloseStatsModal} style={{ position: "absolute", top: "20px", right: "20px", background: "none", border: "none", color: songTheme.textColor, cursor: "pointer" }} className="hover-effect">
                 <X size={20} />
               </button>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
                 <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "linear-gradient(135deg, #4da6ff, #9933ff)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <BarChart2 size={20} color="#fff" />
                 </div>
@@ -8391,6 +8440,137 @@ export default function App() {
                   <h2 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: songTheme.textColor, letterSpacing: "-0.3px" }}>Listening Stats</h2>
                   <span style={{ fontSize: "12px", color: songTheme.textMuted }}>Synced for {session?.user?.email || "your account"}</span>
                 </div>
+              </div>
+
+              {/* Spotify-style Wrapped Feature Card */}
+              <div
+                onClick={() => {
+                  if (wrappedEligibility.eligible) {
+                    setShowWrappedModal(true);
+                  }
+                }}
+                style={{
+                  background: wrappedEligibility.eligible
+                    ? "linear-gradient(135deg, rgba(255, 0, 127, 0.16), rgba(121, 40, 202, 0.22))"
+                    : (isDarkMode ? "rgba(255, 255, 255, 0.04)" : "rgba(26, 43, 76, 0.04)"),
+                  border: wrappedEligibility.eligible
+                    ? "1px solid rgba(255, 0, 127, 0.45)"
+                    : songTheme.rowBorder,
+                  borderRadius: "18px",
+                  padding: "14px 18px",
+                  marginBottom: "18px",
+                  cursor: wrappedEligibility.eligible ? "pointer" : "default",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  transition: "all 0.2s ease"
+                }}
+                className={wrappedEligibility.eligible ? "hover-effect" : ""}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div
+                    style={{
+                      width: "38px",
+                      height: "38px",
+                      borderRadius: "12px",
+                      background: wrappedEligibility.eligible
+                        ? "linear-gradient(135deg, #ff007f, #7928ca)"
+                        : "rgba(255, 255, 255, 0.1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      boxShadow: wrappedEligibility.eligible ? "0 4px 14px rgba(255, 0, 127, 0.4)" : "none"
+                    }}
+                  >
+                    {wrappedEligibility.eligible ? <Sparkles size={20} /> : <Lock size={18} />}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "15px", fontWeight: "800", color: songTheme.textColor }}>
+                      {wrappedEligibility.targetYear} Wrapped
+                    </div>
+                    <div style={{ fontSize: "12px", color: songTheme.textMuted }}>
+                      {wrappedEligibility.eligible
+                        ? "Your Spotify-style year in review is ready!"
+                        : `Unlocks at 15m of listening (${wrappedEligibility.totalMinutes}/15m)`}
+                    </div>
+                  </div>
+                </div>
+                {wrappedEligibility.eligible ? (
+                  <div
+                    style={{
+                      background: "#1db954",
+                      color: "#fff",
+                      padding: "6px 14px",
+                      borderRadius: "20px",
+                      fontSize: "12px",
+                      fontWeight: "800",
+                      letterSpacing: "0.5px"
+                    }}
+                  >
+                    VIEW
+                  </div>
+                ) : (
+                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>Locked</span>
+                )}
+              </div>
+
+              {/* Timeframe Selector Pills (This Month, Past Archives, Full Year) */}
+              <div style={{ display: "flex", gap: "8px", overflowX: "auto", marginBottom: "18px", paddingBottom: "4px" }} className="custom-scrollbar">
+                <button
+                  onClick={() => setStatsTimeframe("active")}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    border: statsTimeframe === "active" ? `1px solid ${COLORS.primary}` : songTheme.rowBorder,
+                    background: statsTimeframe === "active" ? (isDarkMode ? "rgba(77, 166, 255, 0.2)" : "rgba(77, 166, 255, 0.15)") : "transparent",
+                    color: statsTimeframe === "active" ? COLORS.primary : songTheme.textMuted,
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  This Month ({getMonthDisplayName(listeningStats.activeMonth)})
+                </button>
+                {(listeningStats.availableArchives || []).map(mKey => (
+                  <button
+                    key={mKey}
+                    onClick={() => setStatsTimeframe(mKey)}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: "20px",
+                      border: statsTimeframe === mKey ? `1px solid ${COLORS.primary}` : songTheme.rowBorder,
+                      background: statsTimeframe === mKey ? (isDarkMode ? "rgba(77, 166, 255, 0.2)" : "rgba(77, 166, 255, 0.15)") : "transparent",
+                      color: statsTimeframe === mKey ? COLORS.primary : songTheme.textMuted,
+                      fontSize: "12px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    {getMonthDisplayName(mKey)}
+                  </button>
+                ))}
+                {(listeningStats.availableYears || []).map(yKey => (
+                  <button
+                    key={yKey}
+                    onClick={() => setStatsTimeframe(yKey)}
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: "20px",
+                      border: statsTimeframe === yKey ? `1px solid ${COLORS.primary}` : songTheme.rowBorder,
+                      background: statsTimeframe === yKey ? (isDarkMode ? "rgba(77, 166, 255, 0.2)" : "rgba(77, 166, 255, 0.15)") : "transparent",
+                      color: statsTimeframe === yKey ? COLORS.primary : songTheme.textMuted,
+                      fontSize: "12px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    Year {yKey}
+                  </button>
+                ))}
               </div>
 
               {/* 4 Metrics Grid */}
@@ -8416,12 +8596,12 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Reset Option */}
-              {listeningStats.hasData && (
+              {/* Reset Option (Only for active month) */}
+              {statsTimeframe === "active" && listeningStats.hasData && (
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
                   <button
                     onClick={() => {
-                      if (window.confirm("Reset your listening stats for this account across all devices?")) {
+                      if (window.confirm("Reset your active monthly listening stats for this account across all devices?")) {
                         clearListeningHistory(session?.user?.id);
                         pendingListenDurationRef.current = 0;
                         sessionListenDurationRef.current = 0;
@@ -8431,7 +8611,7 @@ export default function App() {
                     }}
                     style={{ background: "transparent", border: "none", color: songTheme.textMuted, fontSize: "12px", cursor: "pointer", textDecoration: "underline" }}
                   >
-                    Reset Listening Stats
+                    Reset This Month's Stats
                   </button>
                 </div>
               )}
@@ -8456,8 +8636,8 @@ export default function App() {
                 color: songTheme.textColor
               }}
             >
-              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(26,43,76,0.2)", borderRadius: "2px", margin: "0 auto 20px" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <div style={{ width: "40px", height: "4px", background: isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(26,43,76,0.2)", borderRadius: "2px", margin: "0 auto 16px" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "linear-gradient(135deg, #4da6ff, #9933ff)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <BarChart2 size={20} color="#fff" />
@@ -8487,6 +8667,137 @@ export default function App() {
                 </button>
               </div>
 
+              {/* Spotify-style Wrapped Feature Card (Mobile) */}
+              <div
+                onClick={() => {
+                  if (wrappedEligibility.eligible) {
+                    setShowWrappedModal(true);
+                  }
+                }}
+                style={{
+                  background: wrappedEligibility.eligible
+                    ? "linear-gradient(135deg, rgba(255, 0, 127, 0.16), rgba(121, 40, 202, 0.22))"
+                    : (isDarkMode ? "rgba(255, 255, 255, 0.04)" : "rgba(26, 43, 76, 0.04)"),
+                  border: wrappedEligibility.eligible
+                    ? "1px solid rgba(255, 0, 127, 0.45)"
+                    : songTheme.rowBorder,
+                  borderRadius: "16px",
+                  padding: "12px 14px",
+                  marginBottom: "16px",
+                  cursor: wrappedEligibility.eligible ? "pointer" : "default",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  transition: "all 0.2s ease"
+                }}
+                className={wrappedEligibility.eligible ? "hover-effect" : ""}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
+                    style={{
+                      width: "34px",
+                      height: "34px",
+                      borderRadius: "10px",
+                      background: wrappedEligibility.eligible
+                        ? "linear-gradient(135deg, #ff007f, #7928ca)"
+                        : "rgba(255, 255, 255, 0.1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      boxShadow: wrappedEligibility.eligible ? "0 4px 14px rgba(255, 0, 127, 0.4)" : "none"
+                    }}
+                  >
+                    {wrappedEligibility.eligible ? <Sparkles size={18} /> : <Lock size={16} />}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "14px", fontWeight: "800", color: songTheme.textColor }}>
+                      {wrappedEligibility.targetYear} Wrapped
+                    </div>
+                    <div style={{ fontSize: "11px", color: songTheme.textMuted }}>
+                      {wrappedEligibility.eligible
+                        ? "Your Spotify-style year in review is ready!"
+                        : `Requires 15m listening (${wrappedEligibility.totalMinutes}/15m)`}
+                    </div>
+                  </div>
+                </div>
+                {wrappedEligibility.eligible ? (
+                  <div
+                    style={{
+                      background: "#1db954",
+                      color: "#fff",
+                      padding: "5px 12px",
+                      borderRadius: "20px",
+                      fontSize: "11px",
+                      fontWeight: "800",
+                      letterSpacing: "0.5px"
+                    }}
+                  >
+                    VIEW
+                  </div>
+                ) : (
+                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>Locked</span>
+                )}
+              </div>
+
+              {/* Timeframe Selector Pills (Mobile) */}
+              <div style={{ display: "flex", gap: "6px", overflowX: "auto", marginBottom: "16px", paddingBottom: "4px" }} className="custom-scrollbar">
+                <button
+                  onClick={() => setStatsTimeframe("active")}
+                  style={{
+                    padding: "5px 12px",
+                    borderRadius: "20px",
+                    border: statsTimeframe === "active" ? `1px solid ${COLORS.primary}` : songTheme.rowBorder,
+                    background: statsTimeframe === "active" ? (isDarkMode ? "rgba(77, 166, 255, 0.2)" : "rgba(77, 166, 255, 0.15)") : "transparent",
+                    color: statsTimeframe === "active" ? COLORS.primary : songTheme.textMuted,
+                    fontSize: "11px",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  This Month ({getMonthDisplayName(listeningStats.activeMonth)})
+                </button>
+                {(listeningStats.availableArchives || []).map(mKey => (
+                  <button
+                    key={mKey}
+                    onClick={() => setStatsTimeframe(mKey)}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: "20px",
+                      border: statsTimeframe === mKey ? `1px solid ${COLORS.primary}` : songTheme.rowBorder,
+                      background: statsTimeframe === mKey ? (isDarkMode ? "rgba(77, 166, 255, 0.2)" : "rgba(77, 166, 255, 0.15)") : "transparent",
+                      color: statsTimeframe === mKey ? COLORS.primary : songTheme.textMuted,
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    {getMonthDisplayName(mKey)}
+                  </button>
+                ))}
+                {(listeningStats.availableYears || []).map(yKey => (
+                  <button
+                    key={yKey}
+                    onClick={() => setStatsTimeframe(yKey)}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: "20px",
+                      border: statsTimeframe === yKey ? `1px solid ${COLORS.primary}` : songTheme.rowBorder,
+                      background: statsTimeframe === yKey ? (isDarkMode ? "rgba(77, 166, 255, 0.2)" : "rgba(77, 166, 255, 0.15)") : "transparent",
+                      color: statsTimeframe === yKey ? COLORS.primary : songTheme.textMuted,
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    Year {yKey}
+                  </button>
+                ))}
+              </div>
+
               {/* 4 Metrics Grid */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px" }}>
                 <div style={{ background: songTheme.rowBg, border: songTheme.rowBorder, borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -8510,12 +8821,12 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Reset Option */}
-              {listeningStats.hasData && (
+              {/* Reset Option (Only for active month) */}
+              {statsTimeframe === "active" && listeningStats.hasData && (
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
                   <button
                     onClick={() => {
-                      if (window.confirm("Reset your listening stats for this account across all devices?")) {
+                      if (window.confirm("Reset your active monthly listening stats for this account across all devices?")) {
                         clearListeningHistory(session?.user?.id);
                         pendingListenDurationRef.current = 0;
                         sessionListenDurationRef.current = 0;
@@ -8525,13 +8836,21 @@ export default function App() {
                     }}
                     style={{ background: "transparent", border: "none", color: songTheme.textMuted, fontSize: "11px", cursor: "pointer", textDecoration: "underline" }}
                   >
-                    Reset Listening Stats
+                    Reset This Month's Stats
                   </button>
                 </div>
               )}
             </SwipeableBottomSheet>
           )}
         </div>
+      )}
+
+      {/* SPOTIFY-STYLE WRAPPED MODAL */}
+      {showWrappedModal && wrappedData && (
+        <SpotifyWrappedModal
+          wrappedData={wrappedData}
+          onClose={() => setShowWrappedModal(false)}
+        />
       )}
 
       {/* SLEEP TIMER MODAL */}
@@ -9679,6 +9998,28 @@ export default function App() {
               <div onClick={handleOpenStatsModal} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "16px" : "10px", color: showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: isWideDesktop ? "15px" : "13.5px", cursor: "pointer" }}>
                 <BarChart2 size={isWideDesktop ? 24 : 18} color={showStatsModal ? COLORS.primary : COLORS.textMuted} /> Listening Stats
               </div>
+              {wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
+                <div
+                  onClick={() => setShowWrappedModal(true)}
+                  className="sidebar-item"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: isWideDesktop ? "16px" : "10px",
+                    color: "#ff007f",
+                    fontWeight: "bold",
+                    fontSize: isWideDesktop ? "15px" : "13.5px",
+                    cursor: "pointer",
+                    padding: "8px 12px",
+                    borderRadius: "12px",
+                    background: "linear-gradient(135deg, rgba(255, 0, 127, 0.15), rgba(121, 40, 202, 0.2))",
+                    border: "1px solid rgba(255, 0, 127, 0.35)",
+                    marginTop: "2px"
+                  }}
+                >
+                  <Sparkles size={isWideDesktop ? 22 : 18} color="#ff007f" /> {wrappedEligibility.targetYear} Wrapped
+                </div>
+              )}
             </div>
             <hr style={{ border: "none", borderTop: `1px solid ${COLORS.border}`, margin: 0 }} />
             <div style={{ display: "flex", flexDirection: "column", gap: isWideDesktop ? "12px" : "8px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
@@ -9715,9 +10056,9 @@ export default function App() {
             </div>
           )}
 
-          {/* MOBILE QUICK ACTION PILLS (Recent, Top, Stats) - BETWEEN PLAYLIST SECTION AND TOP ARTIST SECTION */}
+          {/* MOBILE QUICK ACTION PILLS (Recent, Top, Stats, Wrapped) - BETWEEN PLAYLIST SECTION AND TOP ARTIST SECTION */}
           {!isDesktop && !selectedArtist && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "28px", flexShrink: 0 }}>
+            <div style={{ display: "grid", gridTemplateColumns: (wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible) ? "repeat(4, 1fr)" : "repeat(3, 1fr)", gap: "8px", marginBottom: "28px", flexShrink: 0 }}>
               <button
                 onClick={() => handleSwitchPlaylist("smart_recently_played")}
                 className="hover-effect"
@@ -9726,8 +10067,8 @@ export default function App() {
                   color: viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.bgPanel : COLORS.primary,
                   border: `1px solid ${COLORS.primary}`,
                   borderRadius: "20px",
-                  padding: "8px 10px",
-                  fontSize: "13px",
+                  padding: "8px 8px",
+                  fontSize: "12px",
                   fontWeight: "bold",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
@@ -9735,10 +10076,10 @@ export default function App() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px"
+                  gap: "4px"
                 }}
               >
-                <History size={14} /> Recent
+                <History size={13} /> Recent
               </button>
               <button
                 onClick={() => handleSwitchPlaylist("smart_most_played")}
@@ -9748,8 +10089,8 @@ export default function App() {
                   color: viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.bgPanel : COLORS.primary,
                   border: `1px solid ${COLORS.primary}`,
                   borderRadius: "20px",
-                  padding: "8px 10px",
-                  fontSize: "13px",
+                  padding: "8px 8px",
+                  fontSize: "12px",
                   fontWeight: "bold",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
@@ -9757,10 +10098,10 @@ export default function App() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px"
+                  gap: "4px"
                 }}
               >
-                <Flame size={14} /> Top
+                <Flame size={13} /> Top
               </button>
               <button
                 onClick={handleOpenStatsModal}
@@ -9770,8 +10111,8 @@ export default function App() {
                   color: showStatsModal ? COLORS.bgPanel : COLORS.primary,
                   border: `1px solid ${COLORS.primary}`,
                   borderRadius: "20px",
-                  padding: "8px 10px",
-                  fontSize: "13px",
+                  padding: "8px 8px",
+                  fontSize: "12px",
                   fontWeight: "bold",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
@@ -9779,15 +10120,101 @@ export default function App() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "6px"
+                  gap: "4px"
                 }}
               >
-                <BarChart2 size={14} /> Stats
+                <BarChart2 size={13} /> Stats
               </button>
+              {wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
+                <button
+                  onClick={() => setShowWrappedModal(true)}
+                  className="hover-effect pulse-animation"
+                  style={{
+                    background: "linear-gradient(135deg, #ff007f, #7928ca)",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "20px",
+                    padding: "8px 8px",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "4px",
+                    boxShadow: "0 4px 14px rgba(255, 0, 127, 0.4)"
+                  }}
+                >
+                  <Sparkles size={13} /> Wrapped
+                </button>
+              )}
             </div>
           )}
 
           <div key={viewedPlaylistId || 'global'} className="fade-enter" style={{ width: "100%" }}>
+
+            {/* OFFICIAL SPOTIFY-STYLE WRAPPED BANNER (DEC 20 - JAN 20) */}
+            {viewedPlaylistId === null && wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
+              <div
+                onClick={() => setShowWrappedModal(true)}
+                style={{
+                  background: "linear-gradient(135deg, #18002e 0%, #3d0c5a 50%, #0d011a 100%)",
+                  border: "1px solid rgba(255, 0, 127, 0.45)",
+                  borderRadius: "18px",
+                  padding: isDesktop ? "20px 24px" : "16px 18px",
+                  marginBottom: "24px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  boxShadow: "0 15px 35px rgba(0, 0, 0, 0.4)",
+                  color: "#fff"
+                }}
+                className="hover-effect"
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      borderRadius: "14px",
+                      background: "linear-gradient(135deg, #ff007f, #7928ca)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      boxShadow: "0 6px 18px rgba(255, 0, 127, 0.5)",
+                      flexShrink: 0
+                    }}
+                  >
+                    <Sparkles size={24} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: isDesktop ? "18px" : "16px", fontWeight: "900", letterSpacing: "-0.3px" }}>
+                      Your {wrappedEligibility.targetYear} Wrapped is Here!
+                    </div>
+                    <div style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.75)", marginTop: "2px" }}>
+                      Tap to explore your year in music on Euphony
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    background: "#1db954",
+                    color: "#fff",
+                    padding: isDesktop ? "8px 18px" : "6px 12px",
+                    borderRadius: "24px",
+                    fontSize: "12px",
+                    fontWeight: "800",
+                    letterSpacing: "0.5px",
+                    flexShrink: 0
+                  }}
+                >
+                  EXPLORE
+                </div>
+              </div>
+            )}
 
             {/* PLAYLIST HERO */}
             {viewedPlaylistId !== null && activePlaylistObj && (

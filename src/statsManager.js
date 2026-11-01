@@ -7,6 +7,9 @@ const RECENTLY_PLAYED_KEY = "euphony_recently_played_ids";
 const PLAY_COUNTS_KEY = "euphony_song_play_counts";
 const LISTEN_SECONDS_KEY = "euphony_song_listen_seconds";
 const CUSTOM_MOODS_KEY = "euphony_custom_song_moods";
+const ACTIVE_MONTH_KEY = "euphony_active_month";
+const MONTHLY_ARCHIVES_KEY = "euphony_monthly_archives";
+const YEARLY_TOTALS_KEY = "euphony_yearly_totals";
 
 const CLOUD_DATA_PREFIX = "__euphony_user_data__:::";
 
@@ -14,6 +17,39 @@ let activeUserId = null;
 let activeUserEmail = null;
 let cloudSyncTimer = null;
 let cachedCloudRowId = null;
+
+export function isLeapYear(year) {
+  const y = Number(year);
+  return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+}
+
+export function getDaysInMonth(year, month) {
+  // month: 1 = Jan ... 12 = Dec
+  return new Date(year, month, 0).getDate();
+}
+
+export function getCurrentMonthKey(date = new Date()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+export function getCurrentYearKey(date = new Date()) {
+  return String(date.getFullYear());
+}
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+export function getMonthDisplayName(monthKey) {
+  if (!monthKey || !monthKey.includes("-")) return monthKey || "";
+  const [yearStr, monthStr] = monthKey.split("-");
+  const monthIdx = parseInt(monthStr, 10) - 1;
+  const monthName = MONTH_NAMES[monthIdx] || monthStr;
+  return `${monthName} ${yearStr}`;
+}
 
 export function setActiveUser(user) {
   if (!user) {
@@ -108,9 +144,55 @@ export function getCustomMoods(userId = activeUserId) {
   }
 }
 
-export function saveLocalStats({ playCounts, listenSeconds, recentlyPlayedIds, customMoods }, userId = activeUserId) {
+export function getActiveMonth(userId = activeUserId) {
+  try {
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      return localStorage.getItem(getUserKey(ACTIVE_MONTH_KEY, targetId)) || null;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function getMonthlyArchives(userId = activeUserId) {
+  try {
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      const raw = localStorage.getItem(getUserKey(MONTHLY_ARCHIVES_KEY, targetId));
+      return raw ? JSON.parse(raw) : {};
+    }
+    return {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function getYearlyTotals(userId = activeUserId) {
+  try {
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      const raw = localStorage.getItem(getUserKey(YEARLY_TOTALS_KEY, targetId));
+      return raw ? JSON.parse(raw) : {};
+    }
+    return {};
+  } catch (e) {
+    return {};
+  }
+}
+
+export function saveLocalStats({
+  playCounts,
+  listenSeconds,
+  recentlyPlayedIds,
+  customMoods,
+  activeMonth,
+  monthlyArchives,
+  yearlyTotals
+}, userId = activeUserId) {
   const targetId = userId || activeUserId;
-  if (!targetId) return; // Strictly isolate to authenticated accounts; do not write global un-scoped stats
+  if (!targetId) return; // Strictly isolate to authenticated accounts
   try {
     if (playCounts !== undefined) {
       localStorage.setItem(getUserKey(PLAY_COUNTS_KEY, targetId), JSON.stringify(playCounts));
@@ -124,9 +206,123 @@ export function saveLocalStats({ playCounts, listenSeconds, recentlyPlayedIds, c
     if (customMoods !== undefined) {
       localStorage.setItem(getUserKey(CUSTOM_MOODS_KEY, targetId), JSON.stringify(customMoods));
     }
+    if (activeMonth !== undefined) {
+      localStorage.setItem(getUserKey(ACTIVE_MONTH_KEY, targetId), activeMonth || "");
+    }
+    if (monthlyArchives !== undefined) {
+      localStorage.setItem(getUserKey(MONTHLY_ARCHIVES_KEY, targetId), JSON.stringify(monthlyArchives));
+    }
+    if (yearlyTotals !== undefined) {
+      localStorage.setItem(getUserKey(YEARLY_TOTALS_KEY, targetId), JSON.stringify(yearlyTotals));
+    }
   } catch (e) {
     console.warn("Failed saving local stats:", e);
   }
+}
+
+/**
+ * Check and perform monthly rollover:
+ * Resets active monthly listening stats on the 1st of every month at 00:00:00 local time,
+ * respecting the exact number of days of every month and leap years (e.g. Feb 28 or 29).
+ * CRITICAL: Before reset, all stats from that active month are permanently archived
+ * into monthlyArchives and aggregated into yearlyTotals, then flushed to Supabase.
+ */
+export async function checkAndPerformMonthlyRollover(userId = activeUserId) {
+  const targetId = userId || activeUserId;
+  if (!targetId) return false;
+
+  const currentMonth = getCurrentMonthKey();
+  let storedMonth = getActiveMonth(targetId);
+
+  // If no stored active month yet, check if there are existing counts/seconds to preserve
+  if (!storedMonth) {
+    const existingCounts = getPlayCounts(targetId);
+    const existingSeconds = getListenSeconds(targetId);
+    const hasData = Object.keys(existingCounts).length > 0 || Object.keys(existingSeconds).length > 0;
+
+    if (hasData) {
+      // Historical data accumulated before November 1, 2026 -> treat as October 2026 archive
+      storedMonth = "2026-10";
+    } else {
+      // Fresh user account
+      saveLocalStats({ activeMonth: currentMonth, monthlyArchives: {}, yearlyTotals: {} }, targetId);
+      return false;
+    }
+  }
+
+  // If stored active month matches current month, rollover is not needed
+  if (storedMonth === currentMonth) {
+    return false;
+  }
+
+  // Month has changed! Archive pre-reset stats permanently into the database before resetting.
+  const oldMonthCounts = getPlayCounts(targetId);
+  const oldMonthSeconds = getListenSeconds(targetId);
+
+  let oldMonthTotalPlays = 0;
+  for (const count of Object.values(oldMonthCounts)) {
+    oldMonthTotalPlays += Number(count) || 0;
+  }
+
+  let oldMonthTotalSeconds = 0;
+  for (const sec of Object.values(oldMonthSeconds)) {
+    oldMonthTotalSeconds += Number(sec) || 0;
+  }
+
+  // 1. Archive previous month
+  const archives = { ...getMonthlyArchives(targetId) };
+  archives[storedMonth] = {
+    playCounts: oldMonthCounts,
+    listenSeconds: oldMonthSeconds,
+    totalPlays: oldMonthTotalPlays,
+    totalSeconds: Math.round(oldMonthTotalSeconds),
+    archivedAt: new Date().toISOString()
+  };
+
+  // 2. Accumulate into yearly totals
+  const oldYear = storedMonth.split("-")[0] || getCurrentYearKey();
+  const yearly = { ...getYearlyTotals(targetId) };
+  const currentYearObj = yearly[oldYear] || { playCounts: {}, listenSeconds: {}, totalPlays: 0, totalSeconds: 0 };
+
+  const mergedPlayCounts = { ...(currentYearObj.playCounts || {}) };
+  for (const [id, cnt] of Object.entries(oldMonthCounts)) {
+    mergedPlayCounts[id] = (mergedPlayCounts[id] || 0) + cnt;
+  }
+
+  const mergedListenSeconds = { ...(currentYearObj.listenSeconds || {}) };
+  for (const [id, sec] of Object.entries(oldMonthSeconds)) {
+    mergedListenSeconds[id] = Math.round(((mergedListenSeconds[id] || 0) + Number(sec)) * 10) / 10;
+  }
+
+  let newYearTotalPlays = 0;
+  for (const c of Object.values(mergedPlayCounts)) newYearTotalPlays += Number(c) || 0;
+
+  let newYearTotalSeconds = 0;
+  for (const s of Object.values(mergedListenSeconds)) newYearTotalSeconds += Number(s) || 0;
+
+  yearly[oldYear] = {
+    playCounts: mergedPlayCounts,
+    listenSeconds: mergedListenSeconds,
+    totalPlays: newYearTotalPlays,
+    totalSeconds: Math.round(newYearTotalSeconds)
+  };
+
+  // 3. Reset active month stats to fresh state
+  const freshCounts = {};
+  const freshSeconds = {};
+
+  saveLocalStats({
+    activeMonth: currentMonth,
+    playCounts: freshCounts,
+    listenSeconds: freshSeconds,
+    monthlyArchives: archives,
+    yearlyTotals: yearly
+  }, targetId);
+
+  // 4. Immediately flush to database so Supabase permanently stores it!
+  await flushCloudSync(targetId);
+
+  return true;
 }
 
 /**
@@ -153,13 +349,16 @@ export async function flushCloudSync(userId = activeUserId) {
 
   try {
     const payloadObj = {
-      version: 1,
+      version: 2,
       userId: targetId,
       email: activeUserEmail,
+      activeMonth: getActiveMonth(targetId) || getCurrentMonthKey(),
       playCounts: getPlayCounts(targetId),
       listenSeconds: getListenSeconds(targetId),
       recentlyPlayedIds: getRecentlyPlayedIds(targetId),
       customMoods: getCustomMoods(targetId),
+      monthlyArchives: getMonthlyArchives(targetId),
+      yearlyTotals: getYearlyTotals(targetId),
       updatedAt: new Date().toISOString()
     };
     const payloadStr = CLOUD_DATA_PREFIX + JSON.stringify(payloadObj);
@@ -209,16 +408,37 @@ export function recordQualifiedPlay(track, userId = activeUserId) {
   if (!track || !track.id) return;
   const targetId = userId || activeUserId;
   try {
+    const currentYear = getCurrentYearKey();
+
     // 1. Update Recently Played list (keep most recent first, max 60)
     const existing = getRecentlyPlayedIds(targetId);
     const filtered = existing.filter(id => id !== track.id);
     const updated = [track.id, ...filtered].slice(0, 60);
 
-    // 2. Increment play count
+    // 2. Increment active month play count
     const counts = { ...getPlayCounts(targetId) };
     counts[track.id] = (counts[track.id] || 0) + 1;
 
-    saveLocalStats({ recentlyPlayedIds: updated, playCounts: counts }, targetId);
+    // 3. Accumulate into yearly totals
+    const yearly = { ...getYearlyTotals(targetId) };
+    const yObj = yearly[currentYear] || { playCounts: {}, listenSeconds: {}, totalPlays: 0, totalSeconds: 0 };
+    const yCounts = { ...(yObj.playCounts || {}) };
+    yCounts[track.id] = (yCounts[track.id] || 0) + 1;
+    let yTotalPlays = 0;
+    for (const c of Object.values(yCounts)) yTotalPlays += Number(c) || 0;
+
+    yearly[currentYear] = {
+      ...yObj,
+      playCounts: yCounts,
+      totalPlays: yTotalPlays
+    };
+
+    saveLocalStats({
+      recentlyPlayedIds: updated,
+      playCounts: counts,
+      yearlyTotals: yearly
+    }, targetId);
+
     scheduleCloudSync(targetId);
   } catch (e) {
     console.warn("Could not record qualified play:", e);
@@ -231,9 +451,32 @@ export function recordListeningDuration(trackId, seconds, userId = activeUserId)
   if (!trackId || !seconds || seconds <= 0) return;
   const targetId = userId || activeUserId;
   try {
+    const currentYear = getCurrentYearKey();
+    const addedSecs = Math.round(seconds * 10) / 10;
+
+    // 1. Increment active month listen seconds
     const times = { ...getListenSeconds(targetId) };
-    times[trackId] = (times[trackId] || 0) + Math.round(seconds * 10) / 10;
-    saveLocalStats({ listenSeconds: times }, targetId);
+    times[trackId] = (times[trackId] || 0) + addedSecs;
+
+    // 2. Accumulate into yearly totals
+    const yearly = { ...getYearlyTotals(targetId) };
+    const yObj = yearly[currentYear] || { playCounts: {}, listenSeconds: {}, totalPlays: 0, totalSeconds: 0 };
+    const ySecs = { ...(yObj.listenSeconds || {}) };
+    ySecs[trackId] = Math.round(((ySecs[trackId] || 0) + addedSecs) * 10) / 10;
+    let yTotalSecs = 0;
+    for (const s of Object.values(ySecs)) yTotalSecs += Number(s) || 0;
+
+    yearly[currentYear] = {
+      ...yObj,
+      listenSeconds: ySecs,
+      totalSeconds: Math.round(yTotalSecs)
+    };
+
+    saveLocalStats({
+      listenSeconds: times,
+      yearlyTotals: yearly
+    }, targetId);
+
     scheduleCloudSync(targetId);
   } catch (e) {
     // Ignore storage errors
@@ -254,13 +497,16 @@ export async function clearListeningHistory(userId = activeUserId) {
 
     if (targetId) {
       const emptyPayload = CLOUD_DATA_PREFIX + JSON.stringify({
-        version: 1,
+        version: 2,
         userId: targetId,
         email: activeUserEmail,
+        activeMonth: getActiveMonth(targetId) || getCurrentMonthKey(),
         playCounts: {},
         listenSeconds: {},
         recentlyPlayedIds: [],
         customMoods: getCustomMoods(targetId),
+        monthlyArchives: getMonthlyArchives(targetId),
+        yearlyTotals: getYearlyTotals(targetId),
         updatedAt: new Date().toISOString()
       });
 
@@ -282,7 +528,8 @@ export async function clearListeningHistory(userId = activeUserId) {
 /**
  * Main cross-device synchronization:
  * Connects the user account to Supabase, merges local stats with remote cloud stats,
- * and ensures both devices (desktop and mobile) have the exact same combined stats.
+ * checks for monthly rollover, and ensures both devices (desktop and mobile)
+ * have the exact same combined stats.
  */
 export async function syncAccountStats(user) {
   if (!user || !user.id) return null;
@@ -290,13 +537,7 @@ export async function syncAccountStats(user) {
   const targetId = user.id;
 
   try {
-    // 1. Read current local device stats
-    const localCounts = getPlayCounts(targetId);
-    const localSeconds = getListenSeconds(targetId);
-    const localRecent = getRecentlyPlayedIds(targetId);
-    const localMoods = getCustomMoods(targetId);
-
-    // 2. Fetch remote stats from Supabase
+    // 1. Fetch remote stats from Supabase
     const { data: rows, error: fetchErr } = await supabase
       .from("playlists")
       .select("id, name")
@@ -306,7 +547,12 @@ export async function syncAccountStats(user) {
 
     if (fetchErr) {
       console.warn("Could not fetch remote account stats:", fetchErr.message);
-      return { playCounts: localCounts, listenSeconds: localSeconds, recentlyPlayedIds: localRecent, customMoods: localMoods };
+      return {
+        playCounts: getPlayCounts(targetId),
+        listenSeconds: getListenSeconds(targetId),
+        recentlyPlayedIds: getRecentlyPlayedIds(targetId),
+        customMoods: getCustomMoods(targetId)
+      };
     }
 
     let remoteStats = null;
@@ -320,25 +566,87 @@ export async function syncAccountStats(user) {
       }
     }
 
+    const currentMonth = getCurrentMonthKey();
+
     if (remoteStats) {
       // Cloud database in Supabase is authoritative for this account.
-      // Update local device storage to exactly reflect the user's cloud account data.
+      let activeMonth = remoteStats.activeMonth;
+      let playCounts = remoteStats.playCounts || {};
+      let listenSeconds = remoteStats.listenSeconds || {};
+      let monthlyArchives = remoteStats.monthlyArchives || {};
+      let yearlyTotals = remoteStats.yearlyTotals || {};
+
+      // If activeMonth is missing from legacy data or month rolled over:
+      if (!activeMonth || activeMonth !== currentMonth) {
+        const legacyMonth = activeMonth || "2026-10";
+        const hasLegacyData = Object.keys(playCounts).length > 0 || Object.keys(listenSeconds).length > 0;
+
+        if (hasLegacyData) {
+          const oldPlays = Object.values(playCounts).reduce((a, b) => a + Number(b || 0), 0);
+          const oldSecs = Object.values(listenSeconds).reduce((a, b) => a + Number(b || 0), 0);
+
+          monthlyArchives[legacyMonth] = {
+            playCounts: { ...playCounts },
+            listenSeconds: { ...listenSeconds },
+            totalPlays: oldPlays,
+            totalSeconds: Math.round(oldSecs),
+            archivedAt: new Date().toISOString()
+          };
+
+          const oldYear = legacyMonth.split("-")[0] || getCurrentYearKey();
+          const currentYearObj = yearlyTotals[oldYear] || { playCounts: {}, listenSeconds: {}, totalPlays: 0, totalSeconds: 0 };
+          const mPlayCounts = { ...(currentYearObj.playCounts || {}) };
+          for (const [id, cnt] of Object.entries(playCounts)) {
+            mPlayCounts[id] = (mPlayCounts[id] || 0) + cnt;
+          }
+          const mListenSecs = { ...(currentYearObj.listenSeconds || {}) };
+          for (const [id, sec] of Object.entries(listenSeconds)) {
+            mListenSecs[id] = Math.round(((mListenSecs[id] || 0) + Number(sec)) * 10) / 10;
+          }
+          let yPlays = 0;
+          for (const c of Object.values(mPlayCounts)) yPlays += Number(c) || 0;
+          let ySecs = 0;
+          for (const s of Object.values(mListenSecs)) ySecs += Number(s) || 0;
+
+          yearlyTotals[oldYear] = {
+            playCounts: mPlayCounts,
+            listenSeconds: mListenSecs,
+            totalPlays: yPlays,
+            totalSeconds: Math.round(ySecs)
+          };
+
+          // Reset active month for current month
+          playCounts = {};
+          listenSeconds = {};
+        }
+
+        activeMonth = currentMonth;
+      }
+
       const synced = {
-        playCounts: remoteStats.playCounts || {},
-        listenSeconds: remoteStats.listenSeconds || {},
+        activeMonth,
+        playCounts,
+        listenSeconds,
         recentlyPlayedIds: remoteStats.recentlyPlayedIds || [],
-        customMoods: remoteStats.customMoods || {}
+        customMoods: remoteStats.customMoods || {},
+        monthlyArchives,
+        yearlyTotals
       };
 
       saveLocalStats(synced, targetId);
+      // Persist the upgraded/rolled-over state back to Supabase
+      await flushCloudSync(targetId);
       return synced;
     } else {
-      // First time this account connects: start completely fresh (0 plays, 0 seconds)
+      // First time this account connects: start completely fresh
       const fresh = {
+        activeMonth: currentMonth,
         playCounts: {},
         listenSeconds: {},
         recentlyPlayedIds: [],
-        customMoods: {}
+        customMoods: {},
+        monthlyArchives: {},
+        yearlyTotals: {}
       };
       saveLocalStats(fresh, targetId);
       await flushCloudSync(targetId);
@@ -392,9 +700,49 @@ export function subscribeToCloudStats(userId, onUpdateCallback) {
   }
 }
 
-export function computeListeningStats(allSongs = [], getSongMoodsFn, userId = activeUserId) {
-  const counts = getPlayCounts(userId);
-  const rawSeconds = getListenSeconds(userId);
+/**
+ * Compute listening stats for a given timeframe:
+ * - "active" (default): current month's active stats
+ * - "YYYY-MM": specific archived month
+ * - "YYYY": specific year totals
+ * - "all": all-time combined
+ */
+export function computeListeningStats(allSongs = [], getSongMoodsFn, userId = activeUserId, timeframe = "active") {
+  let counts = {};
+  let rawSeconds = {};
+
+  const monthlyArchives = getMonthlyArchives(userId);
+  const yearlyTotals = getYearlyTotals(userId);
+  const activeMonth = getActiveMonth(userId) || getCurrentMonthKey();
+
+  if (timeframe === "active" || timeframe === activeMonth) {
+    counts = getPlayCounts(userId);
+    rawSeconds = getListenSeconds(userId);
+  } else if (monthlyArchives[timeframe]) {
+    counts = monthlyArchives[timeframe].playCounts || {};
+    rawSeconds = monthlyArchives[timeframe].listenSeconds || {};
+  } else if (yearlyTotals[timeframe]) {
+    counts = yearlyTotals[timeframe].playCounts || {};
+    rawSeconds = yearlyTotals[timeframe].listenSeconds || {};
+  } else if (timeframe === "all") {
+    for (const yData of Object.values(yearlyTotals)) {
+      for (const [id, c] of Object.entries(yData.playCounts || {})) {
+        counts[id] = (counts[id] || 0) + c;
+      }
+      for (const [id, s] of Object.entries(yData.listenSeconds || {})) {
+        rawSeconds[id] = (rawSeconds[id] || 0) + s;
+      }
+    }
+    for (const [id, c] of Object.entries(getPlayCounts(userId))) {
+      counts[id] = (counts[id] || 0) + c;
+    }
+    for (const [id, s] of Object.entries(getListenSeconds(userId))) {
+      rawSeconds[id] = (rawSeconds[id] || 0) + s;
+    }
+  } else {
+    counts = getPlayCounts(userId);
+    rawSeconds = getListenSeconds(userId);
+  }
 
   const songMap = new Map((allSongs || []).map(s => [s.id, s]));
 
@@ -404,7 +752,7 @@ export function computeListeningStats(allSongs = [], getSongMoodsFn, userId = ac
   const moodPlayMap = {};
   const topTracksList = [];
 
-  // Calculate actual total listening time strictly from actively played seconds (no estimations)
+  // Calculate actual total listening time strictly from actively played seconds
   for (const s of Object.values(rawSeconds)) {
     const val = Number(s);
     if (!isNaN(val) && val > 0) {
@@ -471,6 +819,219 @@ export function computeListeningStats(allSongs = [], getSongMoodsFn, userId = ac
     topArtistPlays,
     topMood,
     topTracks: topTracksList.slice(0, 10),
-    hasData: totalPlays > 0 || totalSeconds > 0
+    hasData: totalPlays > 0 || totalSeconds > 0,
+    activeMonth,
+    availableArchives: Object.keys(monthlyArchives).sort().reverse(),
+    availableYears: Object.keys(yearlyTotals).sort().reverse()
   };
 }
+
+/**
+ * Check if the account is eligible for Spotify-style Wrapped:
+ * 1. Date window: Between December 20 and January 20 of every year.
+ *    - Dec 20 - Dec 31: Wrapped for current year
+ *    - Jan 01 - Jan 20: Wrapped for previous year
+ * 2. 15-Minute Threshold: If any user has listened < 15 minutes (900 seconds) in whole for that year,
+ *    there will be NO wrapped for that account.
+ */
+export function getWrappedEligibility(userId = activeUserId, now = new Date()) {
+  const month = now.getMonth(); // 0 = Jan, 11 = Dec
+  const day = now.getDate();
+  const currentYear = now.getFullYear();
+
+  let isWithinOfficialDates = false;
+  let targetYear = currentYear;
+
+  if (month === 11 && day >= 20) {
+    // Dec 20 - Dec 31: Wrapped for current year
+    isWithinOfficialDates = true;
+    targetYear = currentYear;
+  } else if (month === 0 && day <= 20) {
+    // Jan 01 - Jan 20: Wrapped for preceding year
+    isWithinOfficialDates = true;
+    targetYear = currentYear - 1;
+  } else {
+    // Outside the official window, default target is current year (allows previewing for testing)
+    isWithinOfficialDates = false;
+    targetYear = currentYear;
+  }
+
+  const yearlyTotals = getYearlyTotals(userId);
+  const targetYearData = yearlyTotals[String(targetYear)] || {};
+
+  // Also include any listening in the active month if targetYear is the current year
+  let totalSeconds = Number(targetYearData.totalSeconds || 0);
+  if (targetYear === currentYear) {
+    const activeSecs = Object.values(getListenSeconds(userId)).reduce((a, b) => a + (Number(b) || 0), 0);
+    // If yearly total is less than active seconds, ensure active seconds are factored in
+    if (activeSecs > 0 && totalSeconds < activeSecs) {
+      totalSeconds = activeSecs;
+    }
+  }
+
+  const eligible = totalSeconds >= 900; // >= 15 minutes (900 seconds)
+  const totalMinutes = Math.floor(totalSeconds / 60);
+
+  return {
+    isWithinOfficialDates,
+    targetYear,
+    eligible,
+    totalSeconds: Math.round(totalSeconds),
+    totalMinutes,
+    minutesRemaining: Math.max(0, 15 - totalMinutes)
+  };
+}
+
+/**
+ * Mood description dictionary for Spotify Wrapped Vibe slide
+ */
+const MOOD_VIBE_DESCRIPTIONS = {
+  Romantic: "You lived in the warmth of heartfelt melodies, serenading your days with passion and deep emotion.",
+  Yearning: "You chased nostalgic echoes and bittersweet longing, finding beauty and poetry in what could be.",
+  Chill: "You kept life smooth and serene, tuning into gentle soundscapes that kept the noise away.",
+  Energetic: "You powered through life with high-tempo rhythms and electrifying beats that never slowed down.",
+  Party: "You turned everyday moments into celebrations, bringing unmatched vibrancy everywhere you went.",
+  Soulful: "You connected deeply with raw vocal mastery and acoustic resonance that moved the spirit.",
+  Focus: "You immersed yourself in flow state harmony, letting melody guide your sharpest concentration."
+};
+
+/**
+ * Compute complete Spotify-style Wrapped data for an account
+ */
+export function computeWrappedData(targetYear, allSongs = [], getSongMoodsFn, userId = activeUserId) {
+  const yearKey = String(targetYear);
+  const yearlyTotals = getYearlyTotals(userId);
+  const yearData = yearlyTotals[yearKey] || { playCounts: {}, listenSeconds: {}, totalPlays: 0, totalSeconds: 0 };
+  const currentYear = getCurrentYearKey();
+
+  let counts = { ...(yearData.playCounts || {}) };
+  let rawSeconds = { ...(yearData.listenSeconds || {}) };
+
+  // If this is the current year, combine active month stats as well
+  if (yearKey === currentYear) {
+    const activeCounts = getPlayCounts(userId);
+    const activeSeconds = getListenSeconds(userId);
+    for (const [id, c] of Object.entries(activeCounts)) {
+      counts[id] = Math.max(counts[id] || 0, c);
+    }
+    for (const [id, s] of Object.entries(activeSeconds)) {
+      rawSeconds[id] = Math.max(rawSeconds[id] || 0, s);
+    }
+  }
+
+  let totalSeconds = 0;
+  for (const s of Object.values(rawSeconds)) {
+    const val = Number(s);
+    if (!isNaN(val) && val > 0) totalSeconds += val;
+  }
+
+  // 15-minute gate: if < 900 seconds, Wrapped is not available for this account
+  if (totalSeconds < 900) {
+    return {
+      eligible: false,
+      year: targetYear,
+      totalSeconds: Math.round(totalSeconds),
+      totalMinutes: Math.floor(totalSeconds / 60),
+      minutesRemaining: Math.max(0, 15 - Math.floor(totalSeconds / 60))
+    };
+  }
+
+  const songMap = new Map((allSongs || []).map(s => [s.id, s]));
+
+  let totalPlays = 0;
+  const artistPlayMap = {};
+  const artistSongMap = {};
+  const moodPlayMap = {};
+  const tracksList = [];
+
+  for (const [id, count] of Object.entries(counts)) {
+    const song = songMap.get(id);
+    totalPlays += count;
+
+    if (song) {
+      tracksList.push({
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        poster_url: song.poster_url,
+        plays: count,
+        duration: song.duration
+      });
+
+      const artists = getTrackArtists(song.artist);
+      artists.forEach(a => {
+        artistPlayMap[a] = (artistPlayMap[a] || 0) + count;
+        if (!artistSongMap[a] && song.poster_url) {
+          artistSongMap[a] = song.poster_url;
+        }
+      });
+
+      if (getSongMoodsFn) {
+        const moods = getSongMoodsFn(song);
+        moods.forEach(m => {
+          moodPlayMap[m] = (moodPlayMap[m] || 0) + count;
+        });
+      }
+    }
+  }
+
+  // Sort top tracks
+  tracksList.sort((a, b) => b.plays - a.plays);
+  const topTracks = tracksList.slice(0, 5);
+  const topSong = topTracks[0] || null;
+
+  // Sort top artists
+  const sortedArtists = Object.entries(artistPlayMap).sort((a, b) => b[1] - a[1]);
+  const topArtists = sortedArtists.slice(0, 5).map(([name, plays], idx) => ({
+    rank: idx + 1,
+    name,
+    plays,
+    image: artistSongMap[name] || (topSong ? topSong.poster_url : null)
+  }));
+  const topArtist = topArtists[0] || null;
+
+  // Top Mood
+  const sortedMoods = Object.entries(moodPlayMap).sort((a, b) => b[1] - a[1]);
+  const topMoodName = sortedMoods.length > 0 ? sortedMoods[0][0] : "Soulful";
+  const totalMoodPlays = sortedMoods.reduce((sum, item) => sum + item[1], 0);
+  const topMoodPercentage = totalMoodPlays > 0 ? Math.round((sortedMoods[0][1] / totalMoodPlays) * 100) : 100;
+
+  // Find peak listening month in this year
+  const monthlyArchives = getMonthlyArchives(userId);
+  let peakMonthName = "";
+  let peakMonthSeconds = 0;
+  for (const [mKey, mData] of Object.entries(monthlyArchives)) {
+    if (mKey.startsWith(yearKey)) {
+      if ((mData.totalSeconds || 0) > peakMonthSeconds) {
+        peakMonthSeconds = mData.totalSeconds;
+        peakMonthName = getMonthDisplayName(mKey);
+      }
+    }
+  }
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = (totalSeconds / 3600).toFixed(1);
+
+  return {
+    eligible: true,
+    year: targetYear,
+    userEmail: activeUserEmail || "Music Enthusiast",
+    userName: activeUserEmail ? activeUserEmail.split("@")[0] : "Music Lover",
+    totalSeconds: Math.round(totalSeconds),
+    totalMinutes,
+    totalHours,
+    totalPlays,
+    topSong,
+    topTracks,
+    topArtist,
+    topArtists,
+    topMood: {
+      name: topMoodName,
+      percentage: topMoodPercentage,
+      description: MOOD_VIBE_DESCRIPTIONS[topMoodName] || "Your musical journey was eclectic and wonderfully one-of-a-kind."
+    },
+    peakMonth: peakMonthName,
+    shareText: `My ${targetYear} Euphony Wrapped:\n🎵 ${totalMinutes.toLocaleString()} minutes listened\n🎤 Top Artist: ${topArtist?.name || "Music"}\n🔥 #1 Song: ${topSong?.title || "Favorites"}\n✨ Vibe: ${topMoodName}\n\nExperience yours on Euphony!`
+  };
+}
+
