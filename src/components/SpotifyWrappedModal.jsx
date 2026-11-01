@@ -69,7 +69,11 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
           zIndex: 10050,
           padding: "20px"
         }}
-        onClick={onClose}
+        onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
       >
         <div
           style={{
@@ -87,7 +91,10 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             style={{
               position: "absolute",
               top: "16px",
@@ -144,7 +151,10 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
             </span>
           </div>
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             style={{
               width: "100%",
               padding: "14px",
@@ -184,9 +194,10 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
       setCurrentSlide((prev) => prev + 1);
       setSlideProgress(0);
     } else {
-      setIsPaused(true);
+      // Tapping right on the last slide returns the user to the listening stats modal
+      onClose();
     }
-  }, [currentSlide]);
+  }, [currentSlide, onClose]);
 
   const handlePrevSlide = useCallback(() => {
     if (currentSlide > 0) {
@@ -231,15 +242,23 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleNextSlide, handlePrevSlide, onClose]);
 
+  const pointerDownPosRef = useRef({ x: 0, y: 0, time: 0 });
+
   // Hold to pause interaction
   const handlePointerDown = (e) => {
-    // Avoid pausing if clicking interactive buttons
+    e.stopPropagation();
     if (e.target.closest("button") || e.target.closest(".interactive-btn")) return;
+    pointerDownPosRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      time: Date.now()
+    };
     isHoldingRef.current = true;
     setIsPaused(true);
   };
 
   const handlePointerUp = (e) => {
+    e.stopPropagation();
     if (isHoldingRef.current) {
       isHoldingRef.current = false;
       setIsPaused(false);
@@ -247,12 +266,21 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
   };
 
   const handleSlideTap = (e) => {
+    e.stopPropagation();
     if (e.target.closest("button") || e.target.closest(".interactive-btn")) return;
+
+    // If held for > 450ms, it was a hold-to-pause; don't trigger slide advance
+    const holdDuration = Date.now() - pointerDownPosRef.current.time;
+    if (holdDuration > 450) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
-    const tapX = (e.clientX || (e.touches && e.touches[0]?.clientX) || 0) - rect.left;
+    const clickX = (e.clientX !== undefined && e.clientX !== 0)
+      ? e.clientX
+      : pointerDownPosRef.current.x;
+    const tapX = clickX - rect.left;
     const width = rect.width;
 
-    if (tapX < width * 0.32) {
+    if (tapX < width * 0.35) {
       handlePrevSlide();
     } else {
       handleNextSlide();
@@ -396,7 +424,11 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
         zIndex: 10050,
         userSelect: "none"
       }}
-      onClick={onClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       {/* Toast */}
       {copiedToast && (
@@ -429,6 +461,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
         ref={cardRef}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         onClick={handleSlideTap}
         style={{
           width: "100%",
@@ -442,7 +475,9 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
           boxShadow: "0 30px 90px rgba(0, 0, 0, 0.9)",
           borderRadius: "0px",
           overflow: "hidden",
-          transition: "background 0.6s ease"
+          transition: "background 0.6s ease",
+          touchAction: "manipulation",
+          cursor: "pointer"
         }}
         className="wrapped-container"
       >
