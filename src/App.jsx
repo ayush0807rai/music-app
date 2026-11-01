@@ -3437,6 +3437,16 @@ export default function App() {
   const pauseAllAudioDecksRef = useRef(pauseAllAudioDecks);
   pauseAllAudioDecksRef.current = pauseAllAudioDecks;
 
+  const handleOpenWrapped = useCallback(() => {
+    if (isPlayingRef.current) {
+      pauseAllAudioDecks();
+      if ('mediaSession' in navigator) {
+        try { navigator.mediaSession.playbackState = 'paused'; } catch (_) {}
+      }
+    }
+    setShowWrappedModal(true);
+  }, [pauseAllAudioDecks]);
+
   const resumeActiveAudioDecks = useCallback(() => {
     const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
     if (!activeEl) return;
@@ -8446,7 +8456,7 @@ export default function App() {
               <div
                 onClick={() => {
                   if (wrappedEligibility.eligible) {
-                    setShowWrappedModal(true);
+                    handleOpenWrapped();
                   }
                 }}
                 style={{
@@ -8652,7 +8662,7 @@ export default function App() {
               <div
                 onClick={() => {
                   if (wrappedEligibility.eligible) {
-                    setShowWrappedModal(true);
+                    handleOpenWrapped();
                   }
                 }}
                 style={{
@@ -9962,7 +9972,7 @@ export default function App() {
               </div>
               {wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
                 <div
-                  onClick={() => setShowWrappedModal(true)}
+                  onClick={handleOpenWrapped}
                   className="sidebar-item"
                   style={{
                     display: "flex",
@@ -10089,7 +10099,7 @@ export default function App() {
               </button>
               {wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
                 <button
-                  onClick={() => setShowWrappedModal(true)}
+                  onClick={handleOpenWrapped}
                   className="hover-effect pulse-animation"
                   style={{
                     background: "linear-gradient(135deg, #ff007f, #7928ca)",
@@ -10119,7 +10129,7 @@ export default function App() {
             {/* OFFICIAL SPOTIFY-STYLE WRAPPED BANNER (DEC 20 - JAN 20) */}
             {viewedPlaylistId === null && wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
               <div
-                onClick={() => setShowWrappedModal(true)}
+                onClick={handleOpenWrapped}
                 style={{
                   background: "linear-gradient(135deg, #18002e 0%, #3d0c5a 50%, #0d011a 100%)",
                   border: "1px solid rgba(255, 0, 127, 0.45)",

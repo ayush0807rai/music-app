@@ -953,6 +953,7 @@ export function computeWrappedData(targetYear, allSongs = [], getSongMoodsFn, us
         title: song.title,
         artist: song.artist,
         poster_url: song.poster_url,
+        url: song.url || song.song_url || song.audio_url || "",
         plays: count,
         duration: song.duration
       });
@@ -976,7 +977,7 @@ export function computeWrappedData(targetYear, allSongs = [], getSongMoodsFn, us
 
   // Sort top tracks
   tracksList.sort((a, b) => b.plays - a.plays);
-  const topTracks = tracksList.slice(0, 5);
+  const topTracks = tracksList.slice(0, 10);
   const topSong = topTracks[0] || null;
 
   // Sort top artists

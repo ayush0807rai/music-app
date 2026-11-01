@@ -1,6 +1,6 @@
 // src/components/SpotifyWrappedModal.jsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { X, Play, Pause, Share2, Download, RotateCcw, Sparkles, Music, Clock, Lock, Check, Award } from "lucide-react";
+import { X, Play, Pause, Share2, Download, RotateCcw, Sparkles, Music, Clock, Lock, Check, Award, Volume2, VolumeX } from "lucide-react";
 
 const SLIDE_DURATION_MS = 6500; // 6.5 seconds per slide
 const TOTAL_SLIDES = 6;
@@ -42,10 +42,12 @@ const SLIDE_THEMES = [
 export default function SpotifyWrappedModal({ wrappedData, onClose }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const [slideProgress, setSlideProgress] = useState(0); // 0 to 100
   const [copiedToast, setCopiedToast] = useState(false);
   const [isGeneratingCard, setIsGeneratingCard] = useState(false);
 
+  const previewAudioRef = useRef(null);
   const cardRef = useRef(null);
   const progressIntervalRef = useRef(null);
   const touchStartXRef = useRef(null);
@@ -71,7 +73,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
         }}
         onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onClose();
+          handleClose();
         }
       }}
       >
@@ -189,15 +191,28 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
 
   const currentTheme = SLIDE_THEMES[currentSlide] || SLIDE_THEMES[0];
 
+  // Guaranteed cleanup: immediately stop and unload audio on modal close
+  const handleClose = useCallback(() => {
+    const audio = previewAudioRef.current;
+    if (audio) {
+      try {
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+      } catch (_) {}
+    }
+    onClose();
+  }, [onClose]);
+
   const handleNextSlide = useCallback(() => {
     if (currentSlide < TOTAL_SLIDES - 1) {
       setCurrentSlide((prev) => prev + 1);
       setSlideProgress(0);
     } else {
       // Tapping right on the last slide returns the user to the listening stats modal
-      onClose();
+      handleClose();
     }
-  }, [currentSlide, onClose]);
+  }, [currentSlide, handleClose]);
 
   const handlePrevSlide = useCallback(() => {
     if (currentSlide > 0) {
@@ -205,6 +220,139 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
       setSlideProgress(0);
     }
   }, [currentSlide]);
+
+  // Determine top song assigned to each slide
+  const getSlideSong = useCallback((slideIdx) => {
+    if (!topTracks || topTracks.length === 0) return null;
+    if (topTracks.length === 1) return topTracks[0];
+
+    // Slide 3 is the "YOUR #1 SONG" slide -> strictly topTracks[0]
+    if (slideIdx === 3) return topTracks[0];
+
+    // Slide 2 is the "TOP ARTIST" slide -> pick top track by that artist, or topTracks[1]
+    if (slideIdx === 2) {
+      const artistTrack = topTracks.find(t =>
+        topArtist?.name && t.artist && t.artist.toLowerCase().includes(topArtist.name.toLowerCase())
+      );
+      if (artistTrack) return artistTrack;
+      return topTracks[1] || topTracks[0];
+    }
+
+    // Slide 5 is the final Summary -> celebratory topTracks[0]
+    if (slideIdx === 5) return topTracks[0];
+
+    // Slide 0 (Intro): #2 top track
+    if (slideIdx === 0) return topTracks[1] || topTracks[0];
+
+    // Slide 1 (Listening Stats): #3 top track
+    if (slideIdx === 1) return topTracks[2 % topTracks.length] || topTracks[0];
+
+    // Slide 4 (Mood / Audio Aura): #4 top track
+    if (slideIdx === 4) return topTracks[3 % topTracks.length] || topTracks[0];
+
+    return topTracks[slideIdx % topTracks.length] || topTracks[0];
+  }, [topTracks, topArtist?.name]);
+
+  const currentSlideSong = getSlideSong(currentSlide);
+
+  // 1. Initialize local preview audio on mount and destroy on unmount
+  useEffect(() => {
+    const audio = new Audio();
+    audio.preload = "auto";
+    audio.volume = 0.85;
+    previewAudioRef.current = audio;
+
+    return () => {
+      try {
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+      } catch (_) {}
+      previewAudioRef.current = null;
+    };
+  }, []);
+
+  // 2. Play current slide's top song on slide change
+  useEffect(() => {
+    const audio = previewAudioRef.current;
+    if (!audio) return;
+
+    if (!currentSlideSong || !currentSlideSong.url) {
+      try { audio.pause(); } catch (_) {}
+      return;
+    }
+
+    const targetUrl = currentSlideSong.url;
+    try {
+      audio.pause();
+      if (audio.src !== targetUrl) {
+        audio.src = targetUrl;
+      }
+      audio.currentTime = 0;
+      audio.muted = isMuted;
+
+      if (!isPaused) {
+        const p = audio.play();
+        if (p && typeof p.then === "function") {
+          p.catch(() => {
+            // Autoplay may need user gesture
+          });
+        }
+      }
+    } catch (_) {}
+  }, [currentSlide, currentSlideSong?.id, currentSlideSong?.url]);
+
+  // 3. Synchronize play/pause with story pause state and mute toggle
+  useEffect(() => {
+    const audio = previewAudioRef.current;
+    if (!audio || !audio.src) return;
+
+    audio.muted = isMuted;
+    if (isPaused) {
+      try { audio.pause(); } catch (_) {}
+    } else if (!isMuted) {
+      const p = audio.play();
+      if (p && typeof p.then === "function") {
+        p.catch(() => {});
+      }
+    }
+  }, [isPaused, isMuted]);
+
+  // 4. Tab visibility change: NEVER run in the background!
+  useEffect(() => {
+    const handleVisibility = () => {
+      const audio = previewAudioRef.current;
+      if (!audio) return;
+
+      if (document.hidden) {
+        try { audio.pause(); } catch (_) {}
+      } else if (!isPaused && !isMuted && audio.src) {
+        const p = audio.play();
+        if (p && typeof p.then === "function") {
+          p.catch(() => {});
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [isPaused, isMuted]);
+
+  const toggleMute = (e) => {
+    e.stopPropagation();
+    setIsMuted((prev) => {
+      const next = !prev;
+      if (previewAudioRef.current) {
+        previewAudioRef.current.muted = next;
+        if (!next && !isPaused) {
+          previewAudioRef.current.play().catch(() => {});
+        }
+      }
+      return next;
+    });
+  };
 
   // Story progress timer
   useEffect(() => {
@@ -234,13 +382,13 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleClose();
       else if (e.key === "ArrowRight" || e.key === " ") handleNextSlide();
       else if (e.key === "ArrowLeft") handlePrevSlide();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleNextSlide, handlePrevSlide, onClose]);
+  }, [handleNextSlide, handlePrevSlide, handleClose]);
 
   const pointerDownPosRef = useRef({ x: 0, y: 0, time: 0 });
 
@@ -253,6 +401,10 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
       y: e.clientY,
       time: Date.now()
     };
+    // Unlock audio on user touch
+    if (previewAudioRef.current && previewAudioRef.current.paused && !isPaused && !isMuted && previewAudioRef.current.src) {
+      previewAudioRef.current.play().catch(() => {});
+    }
     isHoldingRef.current = true;
     setIsPaused(true);
   };
@@ -268,6 +420,11 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
   const handleSlideTap = (e) => {
     e.stopPropagation();
     if (e.target.closest("button") || e.target.closest(".interactive-btn")) return;
+
+    // Ensure audio plays on user tap if autoplay was restricted
+    if (previewAudioRef.current && previewAudioRef.current.paused && !isPaused && !isMuted && previewAudioRef.current.src) {
+      previewAudioRef.current.play().catch(() => {});
+    }
 
     // If held for > 450ms, it was a hold-to-pause; don't trigger slide advance
     const holdDuration = Date.now() - pointerDownPosRef.current.time;
@@ -426,7 +583,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
-          onClose();
+          handleClose();
         }
       }}
     >
@@ -503,6 +660,28 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
           .pulse-animation {
             animation: pulseSoft 3s ease-in-out infinite;
           }
+          @keyframes eqBounce1 {
+            0%, 100% { height: 3px; }
+            50% { height: 11px; }
+          }
+          @keyframes eqBounce2 {
+            0%, 100% { height: 11px; }
+            50% { height: 3px; }
+          }
+          @keyframes eqBounce3 {
+            0%, 100% { height: 6px; }
+            50% { height: 12px; }
+          }
+          .eq-bar {
+            width: 2px;
+            background: #ffffff;
+            border-radius: 1px;
+            height: 4px;
+            transition: height 0.2s ease;
+          }
+          .eq-bar-1 { animation: eqBounce1 0.75s ease-in-out infinite; }
+          .eq-bar-2 { animation: eqBounce2 0.65s ease-in-out infinite 0.12s; }
+          .eq-bar-3 { animation: eqBounce3 0.85s ease-in-out infinite 0.25s; }
         `}</style>
 
         {/* Top Progress Bars (1 segment per slide) */}
@@ -554,20 +733,69 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
             zIndex: 10
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1, marginRight: "10px" }}>
             <span
               style={{
                 fontSize: "12px",
                 fontWeight: "900",
                 letterSpacing: "1px",
                 color: "rgba(255, 255, 255, 0.8)",
-                textTransform: "uppercase"
+                textTransform: "uppercase",
+                whiteSpace: "nowrap"
               }}
             >
               Euphony {year}
             </span>
+            {currentSlideSong && (
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  background: "rgba(0, 0, 0, 0.35)",
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255, 255, 255, 0.14)",
+                  borderRadius: "20px",
+                  padding: "3px 9px",
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "rgba(255, 255, 255, 0.9)",
+                  minWidth: 0,
+                  maxWidth: "160px"
+                }}
+                title={`${currentSlideSong.title} • ${currentSlideSong.artist}`}
+              >
+                <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "10px", flexShrink: 0 }}>
+                  <span className={!isPaused && !isMuted ? "eq-bar eq-bar-1" : "eq-bar"} />
+                  <span className={!isPaused && !isMuted ? "eq-bar eq-bar-2" : "eq-bar"} />
+                  <span className={!isPaused && !isMuted ? "eq-bar eq-bar-3" : "eq-bar"} />
+                </div>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "10.5px" }}>
+                  {currentSlideSong.title}
+                </span>
+              </div>
+            )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+            <button
+              onClick={toggleMute}
+              style={{
+                background: "rgba(255, 255, 255, 0.15)",
+                border: "none",
+                borderRadius: "50%",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                cursor: "pointer"
+              }}
+              title={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -585,13 +813,14 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
                 color: "#fff",
                 cursor: "pointer"
               }}
+              title={isPaused ? "Play" : "Pause"}
             >
               {isPaused ? <Play size={14} /> : <Pause size={14} />}
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onClose();
+                handleClose();
               }}
               style={{
                 background: "rgba(255, 255, 255, 0.15)",
@@ -605,6 +834,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
                 color: "#fff",
                 cursor: "pointer"
               }}
+              title="Close"
             >
               <X size={18} />
             </button>
@@ -1257,7 +1487,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onClose();
+                      handleClose();
                     }}
                     className="interactive-btn"
                     style={{
