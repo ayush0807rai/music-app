@@ -8486,14 +8486,14 @@ export default function App() {
                     {wrappedEligibility.eligible ? <Sparkles size={20} /> : <Lock size={18} />}
                   </div>
                   <div>
-                    <div style={{ fontSize: "15px", fontWeight: "800", color: songTheme.textColor }}>
+                    <div style={{ fontSize: "16px", fontWeight: "800", color: songTheme.textColor }}>
                       {wrappedEligibility.targetYear} Wrapped
                     </div>
-                    <div style={{ fontSize: "12px", color: songTheme.textMuted }}>
-                      {wrappedEligibility.eligible
-                        ? "Your Spotify-style year in review is ready!"
-                        : `Unlocks at 15m of listening (${wrappedEligibility.totalMinutes}/15m)`}
-                    </div>
+                    {!wrappedEligibility.eligible && (
+                      <div style={{ fontSize: "12px", color: songTheme.textMuted }}>
+                        {`Unlocks at 15m of listening (${wrappedEligibility.totalMinutes}/15m)`}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {wrappedEligibility.eligible ? (
@@ -8515,7 +8515,7 @@ export default function App() {
                 )}
               </div>
 
-              {/* Timeframe Selector Pills (This Month, Past Archives, Full Year) */}
+              {/* Timeframe Selector Pills (This Month, Past Archives) */}
               <div style={{ display: "flex", gap: "8px", overflowX: "auto", marginBottom: "18px", paddingBottom: "4px" }} className="custom-scrollbar">
                 <button
                   onClick={() => setStatsTimeframe("active")}
@@ -8550,25 +8550,6 @@ export default function App() {
                     }}
                   >
                     {getMonthDisplayName(mKey)}
-                  </button>
-                ))}
-                {(listeningStats.availableYears || []).map(yKey => (
-                  <button
-                    key={yKey}
-                    onClick={() => setStatsTimeframe(yKey)}
-                    style={{
-                      padding: "6px 14px",
-                      borderRadius: "20px",
-                      border: statsTimeframe === yKey ? `1px solid ${COLORS.primary}` : songTheme.rowBorder,
-                      background: statsTimeframe === yKey ? (isDarkMode ? "rgba(77, 166, 255, 0.2)" : "rgba(77, 166, 255, 0.15)") : "transparent",
-                      color: statsTimeframe === yKey ? COLORS.primary : songTheme.textMuted,
-                      fontSize: "12px",
-                      fontWeight: "700",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    Year {yKey}
                   </button>
                 ))}
               </div>
@@ -8711,14 +8692,14 @@ export default function App() {
                     {wrappedEligibility.eligible ? <Sparkles size={18} /> : <Lock size={16} />}
                   </div>
                   <div>
-                    <div style={{ fontSize: "14px", fontWeight: "800", color: songTheme.textColor }}>
+                    <div style={{ fontSize: "15px", fontWeight: "800", color: songTheme.textColor }}>
                       {wrappedEligibility.targetYear} Wrapped
                     </div>
-                    <div style={{ fontSize: "11px", color: songTheme.textMuted }}>
-                      {wrappedEligibility.eligible
-                        ? "Your Spotify-style year in review is ready!"
-                        : `Requires 15m listening (${wrappedEligibility.totalMinutes}/15m)`}
-                    </div>
+                    {!wrappedEligibility.eligible && (
+                      <div style={{ fontSize: "11px", color: songTheme.textMuted }}>
+                        {`Requires 15m listening (${wrappedEligibility.totalMinutes}/15m)`}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {wrappedEligibility.eligible ? (
@@ -8775,25 +8756,6 @@ export default function App() {
                     }}
                   >
                     {getMonthDisplayName(mKey)}
-                  </button>
-                ))}
-                {(listeningStats.availableYears || []).map(yKey => (
-                  <button
-                    key={yKey}
-                    onClick={() => setStatsTimeframe(yKey)}
-                    style={{
-                      padding: "5px 12px",
-                      borderRadius: "20px",
-                      border: statsTimeframe === yKey ? `1px solid ${COLORS.primary}` : songTheme.rowBorder,
-                      background: statsTimeframe === yKey ? (isDarkMode ? "rgba(77, 166, 255, 0.2)" : "rgba(77, 166, 255, 0.15)") : "transparent",
-                      color: statsTimeframe === yKey ? COLORS.primary : songTheme.textMuted,
-                      fontSize: "11px",
-                      fontWeight: "700",
-                      cursor: "pointer",
-                      whiteSpace: "nowrap"
-                    }}
-                  >
-                    Year {yKey}
                   </button>
                 ))}
               </div>
