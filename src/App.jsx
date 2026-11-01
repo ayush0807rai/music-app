@@ -48,7 +48,8 @@ import {
   getCurrentMonthKey,
   checkAndPerformMonthlyRollover,
   getWrappedEligibility,
-  computeWrappedData
+  computeWrappedData,
+  decodeWrappedSharePayload
 } from "./statsManager";
 import SpotifyWrappedModal from "./components/SpotifyWrappedModal";
 import { STATIC_SONG_DURATIONS } from "./songDurations";
@@ -1779,6 +1780,24 @@ export default function App() {
 
   const [statsTimeframe, setStatsTimeframe] = useState("active");
   const [showWrappedModal, setShowWrappedModal] = useState(false);
+  const [sharedWrappedData, setSharedWrappedData] = useState(null);
+
+  // Check URL query parameters for shared Wrapped links (?wrapped=...)
+  useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const wrappedPayload = searchParams.get("wrapped");
+      if (wrappedPayload) {
+        const decoded = decodeWrappedSharePayload(wrappedPayload);
+        if (decoded) {
+          setSharedWrappedData(decoded);
+          setShowWrappedModal(true);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not parse shared wrapped link:", e);
+    }
+  }, []);
 
   // Account-specific monthly listening stats rollover:
   // Automatically archives previous month stats into Supabase before resetting on the 1st of every month
@@ -8452,79 +8471,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Spotify-style Wrapped Feature Card */}
-              <div
-                onClick={() => {
-                  if (wrappedEligibility.eligible) {
-                    handleOpenWrapped();
-                  }
-                }}
-                style={{
-                  background: wrappedEligibility.eligible
-                    ? "linear-gradient(135deg, rgba(255, 0, 127, 0.16), rgba(121, 40, 202, 0.22))"
-                    : (isDarkMode ? "rgba(255, 255, 255, 0.04)" : "rgba(26, 43, 76, 0.04)"),
-                  border: wrappedEligibility.eligible
-                    ? "1px solid rgba(255, 0, 127, 0.45)"
-                    : songTheme.rowBorder,
-                  borderRadius: "18px",
-                  padding: "14px 18px",
-                  marginBottom: "18px",
-                  cursor: wrappedEligibility.eligible ? "pointer" : "default",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  transition: "all 0.2s ease"
-                }}
-                className={wrappedEligibility.eligible ? "hover-effect" : ""}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div
-                    style={{
-                      width: "38px",
-                      height: "38px",
-                      borderRadius: "12px",
-                      background: wrappedEligibility.eligible
-                        ? "linear-gradient(135deg, #ff007f, #7928ca)"
-                        : "rgba(255, 255, 255, 0.1)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      boxShadow: wrappedEligibility.eligible ? "0 4px 14px rgba(255, 0, 127, 0.4)" : "none"
-                    }}
-                  >
-                    {wrappedEligibility.eligible ? <Sparkles size={20} /> : <Lock size={18} />}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "16px", fontWeight: "800", color: songTheme.textColor }}>
-                      {wrappedEligibility.targetYear} Wrapped
-                    </div>
-                    {!wrappedEligibility.eligible && (
-                      <div style={{ fontSize: "12px", color: songTheme.textMuted }}>
-                        {`Unlocks at 15m of listening (${wrappedEligibility.totalMinutes}/15m)`}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {wrappedEligibility.eligible ? (
-                  <div
-                    style={{
-                      background: "#1db954",
-                      color: "#fff",
-                      padding: "6px 14px",
-                      borderRadius: "20px",
-                      fontSize: "12px",
-                      fontWeight: "800",
-                      letterSpacing: "0.5px"
-                    }}
-                  >
-                    VIEW
-                  </div>
-                ) : (
-                  <span style={{ fontSize: "11px", color: songTheme.textMuted }}>Locked</span>
-                )}
-              </div>
-
               {/* Timeframe Selector Pills (This Month, Past Archives) */}
               <div style={{ display: "flex", gap: "8px", overflowX: "auto", marginBottom: "18px", paddingBottom: "4px" }} className="custom-scrollbar">
                 <button
@@ -8658,79 +8604,6 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Spotify-style Wrapped Feature Card (Mobile) */}
-              <div
-                onClick={() => {
-                  if (wrappedEligibility.eligible) {
-                    handleOpenWrapped();
-                  }
-                }}
-                style={{
-                  background: wrappedEligibility.eligible
-                    ? "linear-gradient(135deg, rgba(255, 0, 127, 0.16), rgba(121, 40, 202, 0.22))"
-                    : (isDarkMode ? "rgba(255, 255, 255, 0.04)" : "rgba(26, 43, 76, 0.04)"),
-                  border: wrappedEligibility.eligible
-                    ? "1px solid rgba(255, 0, 127, 0.45)"
-                    : songTheme.rowBorder,
-                  borderRadius: "16px",
-                  padding: "12px 14px",
-                  marginBottom: "16px",
-                  cursor: wrappedEligibility.eligible ? "pointer" : "default",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  transition: "all 0.2s ease"
-                }}
-                className={wrappedEligibility.eligible ? "hover-effect" : ""}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div
-                    style={{
-                      width: "34px",
-                      height: "34px",
-                      borderRadius: "10px",
-                      background: wrappedEligibility.eligible
-                        ? "linear-gradient(135deg, #ff007f, #7928ca)"
-                        : "rgba(255, 255, 255, 0.1)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      boxShadow: wrappedEligibility.eligible ? "0 4px 14px rgba(255, 0, 127, 0.4)" : "none"
-                    }}
-                  >
-                    {wrappedEligibility.eligible ? <Sparkles size={18} /> : <Lock size={16} />}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "15px", fontWeight: "800", color: songTheme.textColor }}>
-                      {wrappedEligibility.targetYear} Wrapped
-                    </div>
-                    {!wrappedEligibility.eligible && (
-                      <div style={{ fontSize: "11px", color: songTheme.textMuted }}>
-                        {`Requires 15m listening (${wrappedEligibility.totalMinutes}/15m)`}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {wrappedEligibility.eligible ? (
-                  <div
-                    style={{
-                      background: "#1db954",
-                      color: "#fff",
-                      padding: "5px 12px",
-                      borderRadius: "20px",
-                      fontSize: "11px",
-                      fontWeight: "800",
-                      letterSpacing: "0.5px"
-                    }}
-                  >
-                    VIEW
-                  </div>
-                ) : (
-                  <span style={{ fontSize: "10px", color: songTheme.textMuted }}>Locked</span>
-                )}
-              </div>
-
               {/* Timeframe Selector Pills (Mobile) */}
               <div style={{ display: "flex", gap: "6px", overflowX: "auto", marginBottom: "16px", paddingBottom: "4px" }} className="custom-scrollbar">
                 <button
@@ -8818,10 +8691,21 @@ export default function App() {
       )}
 
       {/* SPOTIFY-STYLE WRAPPED MODAL */}
-      {showWrappedModal && wrappedData && (
+      {showWrappedModal && (sharedWrappedData || wrappedData) && (
         <SpotifyWrappedModal
-          wrappedData={wrappedData}
-          onClose={() => setShowWrappedModal(false)}
+          wrappedData={sharedWrappedData || wrappedData}
+          onClose={() => {
+            setShowWrappedModal(false);
+            if (sharedWrappedData) {
+              setSharedWrappedData(null);
+              try {
+                const url = new URL(window.location.href);
+                url.searchParams.delete("wrapped");
+                const newQuery = url.searchParams.toString();
+                window.history.replaceState({}, "", url.pathname + (newQuery ? `?${newQuery}` : ""));
+              } catch (_) {}
+            }
+          }}
         />
       )}
 

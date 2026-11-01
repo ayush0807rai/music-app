@@ -1029,3 +1029,142 @@ export function computeWrappedData(targetYear, allSongs = [], getSongMoodsFn, us
   };
 }
 
+/**
+ * Encodes a user's Wrapped data into a compact, URL-safe base64 string
+ * for shareable links that anyone can view without database dependence.
+ */
+export function encodeWrappedSharePayload(data) {
+  if (!data) return "";
+  try {
+    const compact = {
+      y: data.year,
+      u: data.userName,
+      m: data.totalMinutes,
+      h: data.totalHours,
+      p: data.totalPlays,
+      s: data.topSong ? {
+        t: data.topSong.title,
+        a: data.topSong.artist,
+        img: data.topSong.poster_url,
+        u: data.topSong.url,
+        p: data.topSong.plays
+      } : null,
+      art: data.topArtist ? {
+        n: data.topArtist.name,
+        p: data.topArtist.plays,
+        img: data.topArtist.image
+      } : null,
+      arts: (data.topArtists || []).slice(0, 5).map(a => ({
+        r: a.rank,
+        n: a.name,
+        p: a.plays,
+        img: a.image
+      })),
+      vibe: data.topMood ? {
+        n: data.topMood.name,
+        pct: data.topMood.percentage,
+        d: data.topMood.description
+      } : null,
+      trks: (data.topTracks || []).slice(0, 6).map(t => ({
+        t: t.title,
+        a: t.artist,
+        img: t.poster_url,
+        u: t.url,
+        p: t.plays
+      })),
+      pm: data.peakMonth || ""
+    };
+
+    const json = JSON.stringify(compact);
+    const utf8Bytes = encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+      String.fromCharCode("0x" + p1)
+    );
+    return btoa(utf8Bytes)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  } catch (err) {
+    console.error("Error encoding wrapped share payload:", err);
+    return "";
+  }
+}
+
+/**
+ * Decodes a shared Wrapped URL payload into a complete wrappedData object
+ */
+export function decodeWrappedSharePayload(str) {
+  if (!str) return null;
+  try {
+    let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4) {
+      base64 += "=";
+    }
+    const binary = atob(base64);
+    const json = decodeURIComponent(
+      Array.prototype.map.call(binary, ch =>
+        "%" + ("00" + ch.charCodeAt(0).toString(16)).slice(-2)
+      ).join("")
+    );
+    const c = JSON.parse(json);
+    if (!c || !c.y) return null;
+
+    const topTracks = (c.trks || []).map((t, idx) => ({
+      id: `shared_trk_${idx}`,
+      title: t.t,
+      artist: t.a,
+      poster_url: t.img,
+      url: t.u,
+      plays: t.p
+    }));
+
+    const topSong = c.s ? {
+      id: "shared_top_song",
+      title: c.s.t,
+      artist: c.s.a,
+      poster_url: c.s.img,
+      url: c.s.u,
+      plays: c.s.p
+    } : (topTracks[0] || null);
+
+    const topArtists = (c.arts || []).map(a => ({
+      rank: a.r,
+      name: a.n,
+      plays: a.p,
+      image: a.img
+    }));
+
+    const topArtist = c.art ? {
+      name: c.art.n,
+      plays: c.art.p,
+      image: c.art.img,
+      rank: 1
+    } : (topArtists[0] || null);
+
+    const topMood = c.vibe ? {
+      name: c.vibe.n,
+      percentage: c.vibe.pct,
+      description: c.vibe.d
+    } : { name: "Romantic", percentage: 100, description: "Deeply heartfelt" };
+
+    return {
+      eligible: true,
+      isSharedView: true,
+      year: c.y,
+      userName: c.u || "Friend",
+      totalMinutes: c.m || 0,
+      totalHours: c.h || ((c.m || 0) / 60).toFixed(1),
+      totalPlays: c.p || 0,
+      topSong,
+      topTracks,
+      topArtist,
+      topArtists,
+      topMood,
+      peakMonth: c.pm || "",
+      shareText: `${c.u || "My"}'s ${c.y} Euphony Wrapped:\n🎵 ${(c.m || 0).toLocaleString()} minutes listened\n🎤 Top Artist: ${topArtist?.name || "Music"}\n🔥 #1 Song: ${topSong?.title || "Favorites"}\n✨ Vibe: ${topMood.name}\n\nExperience yours on Euphony!`
+    };
+  } catch (err) {
+    console.error("Failed to decode shared wrapped payload:", err);
+    return null;
+  }
+}
+

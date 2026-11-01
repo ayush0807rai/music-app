@@ -1,6 +1,7 @@
 // src/components/SpotifyWrappedModal.jsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { X, Play, Pause, Share2, Download, RotateCcw, Sparkles, Music, Clock, Lock, Check, Award, Volume2, VolumeX } from "lucide-react";
+import { X, Play, Pause, Share2, Download, RotateCcw, Sparkles, Music, Clock, Lock, Check, Award, Volume2, VolumeX, Link as LinkIcon } from "lucide-react";
+import { encodeWrappedSharePayload } from "../statsManager";
 
 const SLIDE_DURATION_MS = 6500; // 6.5 seconds per slide
 const TOTAL_SLIDES = 6;
@@ -45,6 +46,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
   const [isMuted, setIsMuted] = useState(false);
   const [slideProgress, setSlideProgress] = useState(0); // 0 to 100
   const [copiedToast, setCopiedToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("Wrapped link copied to clipboard");
   const [isGeneratingCard, setIsGeneratingCard] = useState(false);
 
   const previewAudioRef = useRef(null);
@@ -186,7 +188,8 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
     topArtist,
     topArtists,
     topMood,
-    shareText
+    shareText,
+    isSharedView
   } = wrappedData;
 
   const currentTheme = SLIDE_THEMES[currentSlide] || SLIDE_THEMES[0];
@@ -444,9 +447,50 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
     }
   };
 
+  const shareWrappedLink = async () => {
+    try {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?wrapped=${encodeWrappedSharePayload(wrappedData)}`;
+      const title = `${userName}'s ${year} Euphony Wrapped`;
+      const text = `Check out my ${year} Euphony Wrapped:\n🎵 ${totalMinutes.toLocaleString()} minutes listened\n🎤 Top Artist: ${topArtist?.name || "Music"}\n🔥 #1 Song: ${topSong?.title || "Favorites"}\n✨ Vibe: ${topMood?.name || "Soulful"}\n\nExperience my Wrapped here:`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title,
+            text,
+            url: shareUrl
+          });
+          return;
+        } catch (err) {
+          if (err.name === "AbortError") return;
+        }
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setToastMessage("Wrapped link copied to clipboard");
+        setCopiedToast(true);
+        setTimeout(() => setCopiedToast(false), 2500);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        setToastMessage("Wrapped link copied to clipboard");
+        setCopiedToast(true);
+        setTimeout(() => setCopiedToast(false), 2500);
+      }
+    } catch (e) {
+      console.warn("Could not share wrapped link:", e);
+    }
+  };
+
   const copySummaryToClipboard = () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(shareText);
+      setToastMessage("Summary copied to clipboard");
       setCopiedToast(true);
       setTimeout(() => setCopiedToast(false), 2500);
     }
@@ -609,7 +653,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
           }}
         >
           <Check size={16} color="#1db954" />
-          Summary copied to clipboard
+          {toastMessage}
         </div>
       )}
 
@@ -910,7 +954,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
                   color: "rgba(255, 255, 255, 0.9)"
                 }}
               >
-                {userName}
+                {isSharedView ? `${userName}'s 2026 Wrapped` : userName}
               </div>
               <div
                 style={{
@@ -1406,7 +1450,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      copySummaryToClipboard();
+                      shareWrappedLink();
                     }}
                     className="interactive-btn"
                     style={{
@@ -1426,7 +1470,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
                     }}
                   >
                     <Share2 size={16} />
-                    Copy Summary
+                    Share Wrapped
                   </button>
                   <button
                     onClick={(e) => {
