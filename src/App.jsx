@@ -8532,26 +8532,6 @@ export default function App() {
                   <span style={{ fontSize: "11px", color: songTheme.textMuted }}>most listened vibe</span>
                 </div>
               </div>
-
-              {/* Reset Option (Only for active month) */}
-              {statsTimeframe === "active" && listeningStats.hasData && (
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
-                  <button
-                    onClick={() => {
-                      if (window.confirm("Reset your active monthly listening stats for this account across all devices?")) {
-                        clearListeningHistory(session?.user?.id);
-                        pendingListenDurationRef.current = 0;
-                        sessionListenDurationRef.current = 0;
-                        setRecentlyPlayedIds([]);
-                        setPlayCounts({});
-                      }
-                    }}
-                    style={{ background: "transparent", border: "none", color: songTheme.textMuted, fontSize: "12px", cursor: "pointer", textDecoration: "underline" }}
-                  >
-                    Reset This Month's Stats
-                  </button>
-                </div>
-              )}
             </div>
           ) : (
             <SwipeableBottomSheet
@@ -8665,26 +8645,6 @@ export default function App() {
                   <span style={{ fontSize: "10px", color: songTheme.textMuted }}>most listened</span>
                 </div>
               </div>
-
-              {/* Reset Option (Only for active month) */}
-              {statsTimeframe === "active" && listeningStats.hasData && (
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
-                  <button
-                    onClick={() => {
-                      if (window.confirm("Reset your active monthly listening stats for this account across all devices?")) {
-                        clearListeningHistory(session?.user?.id);
-                        pendingListenDurationRef.current = 0;
-                        sessionListenDurationRef.current = 0;
-                        setRecentlyPlayedIds([]);
-                        setPlayCounts({});
-                      }
-                    }}
-                    style={{ background: "transparent", border: "none", color: songTheme.textMuted, fontSize: "11px", cursor: "pointer", textDecoration: "underline" }}
-                  >
-                    Reset This Month's Stats
-                  </button>
-                </div>
-              )}
             </SwipeableBottomSheet>
           )}
         </div>
@@ -10077,9 +10037,11 @@ export default function App() {
               <div style={{ background: `linear-gradient(180deg, ${COLORS.heroTop} 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? (isWideDesktop ? "40px 32px" : "24px 20px") : "24px", borderRadius: "12px", marginBottom: isWideDesktop ? "32px" : "20px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: isWideDesktop ? "24px" : "16px", border: `1px solid ${COLORS.border}` }}>
                 {renderPlaylistCover()}
                 <div style={{ flex: 1, minWidth: 0, textAlign: isDesktop ? "left" : "center" }}>
-                  <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: COLORS.textMuted }}>
-                    {activePlaylistObj?.isSmart ? "Smart Playlist" : "Private Playlist"}
-                  </span>
+                  {!activePlaylistObj?.isSmart && (
+                    <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: COLORS.textMuted }}>
+                      Playlist
+                    </span>
+                  )}
                   <h2 style={{ margin: "8px 0 16px 0", fontSize: isDesktop ? (isWideDesktop ? "48px" : "28px") : "32px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{activePlaylistObj.name}</h2>
                   <p style={{ margin: 0, fontSize: "15px", color: COLORS.textMuted, fontWeight: "500" }}>
                     {activePlaylistObj?.isSmart
@@ -10102,53 +10064,6 @@ export default function App() {
                         </button>
                       )}
                       {!isDesktop && renderSortButton(true)}
-                      {activePlaylistObj?.id === "smart_recently_played" && rawViewedSongs.length > 0 && (
-                        <button
-                          onClick={() => {
-                            if (window.confirm("Clear your recently played listening history?")) {
-                              clearListeningHistory();
-                              setRecentlyPlayedIds([]);
-                            }
-                          }}
-                          style={{
-                            background: "transparent",
-                            color: COLORS.textMuted,
-                            border: `1px solid ${COLORS.border}`,
-                            borderRadius: "20px",
-                            padding: "6px 14px",
-                            fontSize: "12px",
-                            fontWeight: "bold",
-                            cursor: "pointer"
-                          }}
-                          className="hover-effect"
-                        >
-                          Clear History
-                        </button>
-                      )}
-                      {activePlaylistObj?.id === "smart_most_played" && rawViewedSongs.length > 0 && (
-                        <button
-                          onClick={() => {
-                            if (window.confirm("Reset your play counts and most played playlist on this device?")) {
-                              clearListeningHistory();
-                              setPlayCounts({});
-                              setRecentlyPlayedIds([]);
-                            }
-                          }}
-                          style={{
-                            background: "transparent",
-                            color: COLORS.textMuted,
-                            border: `1px solid ${COLORS.border}`,
-                            borderRadius: "20px",
-                            padding: "6px 14px",
-                            fontSize: "12px",
-                            fontWeight: "bold",
-                            cursor: "pointer"
-                          }}
-                          className="hover-effect"
-                        >
-                          Reset Plays
-                        </button>
-                      )}
                     </div>
                     
                     <div onClick={() => document.getElementById("playlist-search-input")?.focus()} style={{ display: "flex", alignItems: "center", background: "transparent", borderRadius: "20px", padding: "10px 16px", border: `1px solid ${COLORS.primary}`, flex: isDesktop ? "0 0 auto" : 1, cursor: "text", width: isDesktop ? "180px" : "100%", boxSizing: "border-box" }}>
