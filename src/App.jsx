@@ -631,7 +631,11 @@ export default function App() {
     imageBg: "#EAE2CF"
   };
 
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1200);
+  const isDesktop = windowWidth > 768;
+  const isWideDesktop = windowWidth >= 1150;
+  const showDesktopDate = windowWidth >= 1250;
+  const showDesktopAlbum = windowWidth >= 1050;
 
   const [viewedPlaylistId, setViewedPlaylistId] = useState(() => {
     const saved = localStorage.getItem("euphony_playlist_id");
@@ -2837,7 +2841,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth > 768);
+    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
 
     const checkUserSwitch = (newSession) => {
@@ -9582,7 +9586,7 @@ export default function App() {
       )}
 
       {/* TOP HEADER */}
-      <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? "0 24px" : "0 12px", zIndex: 10 }}>
+      <div style={{ height: "64px", flexShrink: 0, background: COLORS.bgBase, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isDesktop ? (isWideDesktop ? "0 24px" : "0 14px") : "0 12px", zIndex: 10 }}>
         <button
           onClick={() => fetchAllData(true)}
           disabled={isRefreshing}
@@ -9604,12 +9608,12 @@ export default function App() {
           }}
           title={isRefreshing ? "Refreshing Euphony..." : "Click Euphony to refresh"}
         >
-          <h1 style={{ margin: 0, fontSize: isDesktop ? "24px" : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px", lineHeight: 1 }}>
+          <h1 style={{ margin: 0, fontSize: isDesktop ? (isWideDesktop ? "24px" : "20px") : "20px", color: COLORS.primary, fontWeight: "800", letterSpacing: "-0.5px", lineHeight: 1 }}>
             Euphony
           </h1>
         </button>
-        <div style={{ display: "flex", gap: isDesktop ? "12px" : "6px", alignItems: "center", flexShrink: 0 }}>
-          <button className="hover-effect" onClick={toggleDarkMode} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+        <div style={{ display: "flex", gap: isDesktop ? (isWideDesktop ? "12px" : "8px") : "6px", alignItems: "center", flexShrink: 0 }}>
+          <button className="hover-effect" onClick={toggleDarkMode} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? (isWideDesktop ? "8px 16px" : "6px 12px") : "8px 12px", color: COLORS.primary, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             {isDesktop && (isDarkMode ? " Light" : " Dark")}
           </button>
@@ -9620,7 +9624,7 @@ export default function App() {
               background: jamRoomId ? "rgba(34, 197, 94, 0.2)" : "transparent",
               border: `1px solid ${jamRoomId ? "#22c55e" : COLORS.primary}`,
               borderRadius: "20px",
-              padding: isDesktop ? "8px 16px" : "8px 12px",
+              padding: isDesktop ? (isWideDesktop ? "8px 16px" : "6px 12px") : "8px 12px",
               color: jamRoomId ? "#22c55e" : COLORS.primary,
               cursor: "pointer",
               display: "flex",
@@ -9635,53 +9639,53 @@ export default function App() {
             {isDesktop ? (jamRoomId ? `Jam (${jamRoomId})` : "Live Jam") : ""}
           </button>
           {isDesktop && (
-            <button className="hover-effect" onClick={() => setShowShortcutsModal(true)} title="Keyboard Shortcuts (?)" style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: "8px 16px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
-              <Keyboard size={16} color={COLORS.bgPanel} /> Shortcuts
+            <button className="hover-effect" onClick={() => setShowShortcutsModal(true)} title="Keyboard Shortcuts (?)" style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isWideDesktop ? "8px 16px" : "6px 10px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+              <Keyboard size={16} color={COLORS.bgPanel} /> {isWideDesktop ? "Shortcuts" : ""}
             </button>
           )}
-          <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
-            <Plus size={16} color={COLORS.bgPanel} />{isDesktop && " Add Globally"}
+          <button className="hover-effect" onClick={() => setShowUploadModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? (isWideDesktop ? "8px 16px" : "6px 12px") : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+            <Plus size={16} color={COLORS.bgPanel} />{isDesktop && (isWideDesktop ? " Add Globally" : " Add")}
           </button>
-          <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
-            <FolderPlus size={16} color={COLORS.bgPanel} />{isDesktop && " New Playlist"}
+          <button className="hover-effect" onClick={() => setShowPlaylistModal(true)} style={{ background: COLORS.primary, border: "none", borderRadius: "20px", padding: isDesktop ? (isWideDesktop ? "8px 16px" : "6px 12px") : "8px 12px", color: COLORS.bgPanel, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: "bold" }}>
+            <FolderPlus size={16} color={COLORS.bgPanel} />{isDesktop && (isWideDesktop ? " New Playlist" : " Playlist")}
           </button>
-          <button className="hover-effect" onClick={handleLogout} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? "8px 16px" : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
-            {isDesktop ? "Log Out" : <LogOut size={16} />}
+          <button className="hover-effect" onClick={handleLogout} style={{ background: "transparent", border: `1px solid ${COLORS.primary}`, borderRadius: "20px", padding: isDesktop ? (isWideDesktop ? "8px 16px" : "6px 12px") : "8px 12px", color: COLORS.primary, cursor: "pointer", fontSize: "13px", fontWeight: "bold", display: "flex", alignItems: "center" }}>
+            {isDesktop ? (isWideDesktop ? "Log Out" : <LogOut size={16} />) : <LogOut size={16} />}
           </button>
         </div>
       </div>
 
       {/* MAIN BODY */}
-      <div style={{ display: "flex", flex: 1, overflow: "hidden", padding: isDesktop ? "12px" : "4px", gap: isDesktop ? "12px" : "0" }}>
+      <div style={{ display: "flex", flex: 1, overflow: "hidden", padding: isDesktop ? (isWideDesktop ? "12px" : "8px") : "4px", gap: isDesktop ? (isWideDesktop ? "12px" : "8px") : "0" }}>
 
         {/* LEFT SIDEBAR */}
         {isDesktop && (
-          <div style={{ width: "260px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: "24px", display: "flex", flexDirection: "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div onClick={() => handleSwitchPlaylist(null)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === null && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                <Home size={24} color={viewedPlaylistId === null && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Global Library
+          <div style={{ width: isWideDesktop ? "260px" : "200px", flexShrink: 0, background: COLORS.bgPanel, borderRadius: "12px", padding: isWideDesktop ? "24px" : "16px 12px", display: "flex", flexDirection: "column", gap: isWideDesktop ? "24px" : "16px", border: `1px solid ${COLORS.border}` }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: isWideDesktop ? "16px" : "10px" }}>
+              <div onClick={() => handleSwitchPlaylist(null)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "16px" : "10px", color: viewedPlaylistId === null && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: isWideDesktop ? "15px" : "13.5px", cursor: "pointer" }}>
+                <Home size={isWideDesktop ? 24 : 18} color={viewedPlaylistId === null && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Global Library
               </div>
               {likedPlaylist && (
-                <div onClick={() => handleSwitchPlaylist(likedPlaylist.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                  <Heart size={24} color={viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : COLORS.textMuted} fill={viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : "none"} /> Liked Songs
+                <div onClick={() => handleSwitchPlaylist(likedPlaylist.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "16px" : "10px", color: viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: isWideDesktop ? "15px" : "13.5px", cursor: "pointer" }}>
+                  <Heart size={isWideDesktop ? 24 : 18} color={viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : COLORS.textMuted} fill={viewedPlaylistId === likedPlaylist.id && !showStatsModal ? COLORS.primary : "none"} /> Liked Songs
                 </div>
               )}
-              <div onClick={() => handleSwitchPlaylist("smart_recently_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                <History size={24} color={viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Recently Played
+              <div onClick={() => handleSwitchPlaylist("smart_recently_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "16px" : "10px", color: viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: isWideDesktop ? "15px" : "13.5px", cursor: "pointer" }}>
+                <History size={isWideDesktop ? 24 : 18} color={viewedPlaylistId === "smart_recently_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Recently Played
               </div>
-              <div onClick={() => handleSwitchPlaylist("smart_most_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                <Flame size={24} color={viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Most Played
+              <div onClick={() => handleSwitchPlaylist("smart_most_played")} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "16px" : "10px", color: viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: isWideDesktop ? "15px" : "13.5px", cursor: "pointer" }}>
+                <Flame size={isWideDesktop ? 24 : 18} color={viewedPlaylistId === "smart_most_played" && !showStatsModal ? COLORS.primary : COLORS.textMuted} /> Most Played
               </div>
-              <div onClick={handleOpenStatsModal} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "16px", color: showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: "15px", cursor: "pointer" }}>
-                <BarChart2 size={24} color={showStatsModal ? COLORS.primary : COLORS.textMuted} /> Listening Stats
+              <div onClick={handleOpenStatsModal} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "16px" : "10px", color: showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: isWideDesktop ? "15px" : "13.5px", cursor: "pointer" }}>
+                <BarChart2 size={isWideDesktop ? 24 : 18} color={showStatsModal ? COLORS.primary : COLORS.textMuted} /> Listening Stats
               </div>
             </div>
             <hr style={{ border: "none", borderTop: `1px solid ${COLORS.border}`, margin: 0 }} />
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
+            <div style={{ display: "flex", flexDirection: "column", gap: isWideDesktop ? "12px" : "8px", overflowY: "auto", flex: 1 }} className="custom-scrollbar">
               <span style={{ fontSize: "12px", fontWeight: "bold", color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "1px" }}>Playlists</span>
               {userPlaylists.filter(pl => pl.name !== "Liked Songs").map(pl => (
-                <div key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: "12px", color: viewedPlaylistId === pl.id && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontSize: "15px", padding: "4px 0", fontWeight: viewedPlaylistId === pl.id && !showStatsModal ? "bold" : "normal", cursor: "pointer" }}>
-                  {renderMiniPlaylistCover(pl, 24)}
+                <div key={pl.id} onClick={() => handleSwitchPlaylist(pl.id)} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "12px" : "8px", color: viewedPlaylistId === pl.id && !showStatsModal ? COLORS.primary : COLORS.textMuted, fontSize: isWideDesktop ? "15px" : "13px", padding: "4px 0", fontWeight: viewedPlaylistId === pl.id && !showStatsModal ? "bold" : "normal", cursor: "pointer" }}>
+                  {renderMiniPlaylistCover(pl, isWideDesktop ? 24 : 20)}
                   <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pl.name}</span>
                 </div>
               ))}
@@ -9690,7 +9694,7 @@ export default function App() {
         )}
 
         {/* CENTER CONTENT */}
-        <div style={{ flex: 1, minWidth: 0, background: COLORS.bgPanel, borderRadius: isDesktop ? "12px" : "0", padding: isDesktop ? "32px" : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "100px" : "32px", border: isDesktop ? `1px solid ${COLORS.border}` : "none" }} className="custom-scrollbar main-scroll-container">
+        <div style={{ flex: 1, minWidth: 0, background: COLORS.bgPanel, borderRadius: isDesktop ? "12px" : "0", padding: isDesktop ? (isWideDesktop ? "32px" : "18px 14px") : "16px", overflowY: "auto", display: "flex", flexDirection: "column", paddingBottom: !isDesktop && currentTrack ? "100px" : "32px", border: isDesktop ? `1px solid ${COLORS.border}` : "none" }} className="custom-scrollbar main-scroll-container">
 
           {/* MOBILE PLAYLIST TABS */}
           {!isDesktop && !selectedArtist && (
@@ -9787,13 +9791,13 @@ export default function App() {
 
             {/* PLAYLIST HERO */}
             {viewedPlaylistId !== null && activePlaylistObj && (
-              <div style={{ background: `linear-gradient(180deg, ${COLORS.heroTop} 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? "40px 32px" : "24px", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: "24px", border: `1px solid ${COLORS.border}` }}>
+              <div style={{ background: `linear-gradient(180deg, ${COLORS.heroTop} 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? (isWideDesktop ? "40px 32px" : "24px 20px") : "24px", borderRadius: "12px", marginBottom: isWideDesktop ? "32px" : "20px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: isWideDesktop ? "24px" : "16px", border: `1px solid ${COLORS.border}` }}>
                 {renderPlaylistCover()}
                 <div style={{ flex: 1, minWidth: 0, textAlign: isDesktop ? "left" : "center" }}>
                   <span style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px", color: COLORS.textMuted }}>
                     {activePlaylistObj?.isSmart ? "Smart Playlist" : "Private Playlist"}
                   </span>
-                  <h2 style={{ margin: "8px 0 16px 0", fontSize: isDesktop ? "48px" : "32px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{activePlaylistObj.name}</h2>
+                  <h2 style={{ margin: "8px 0 16px 0", fontSize: isDesktop ? (isWideDesktop ? "48px" : "28px") : "32px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: COLORS.primary }}>{activePlaylistObj.name}</h2>
                   <p style={{ margin: 0, fontSize: "15px", color: COLORS.textMuted, fontWeight: "500" }}>
                     {activePlaylistObj?.isSmart
                       ? (activePlaylistObj.id === "smart_recently_played" ? "Your latest listened songs" : "Your top tracks on repeat")
@@ -9889,11 +9893,25 @@ export default function App() {
 
                 {displayedSongs.length > 0 ? (
                   <>
-                    <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", padding: "0 16px 12px 16px", borderBottom: `1px solid ${COLORS.border}`, color: COLORS.textMuted, fontSize: "13px", fontWeight: "bold" }}>
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: isDesktop
+                        ? (showDesktopDate && showDesktopAlbum
+                            ? "40px minmax(180px, 2fr) minmax(120px, 1.2fr) minmax(100px, 1fr) 90px"
+                            : (showDesktopAlbum
+                                ? "40px minmax(180px, 2.5fr) minmax(120px, 1.5fr) 90px"
+                                : "36px minmax(0, 1fr) 90px"))
+                        : "30px minmax(0, 1fr) auto",
+                      padding: isWideDesktop ? "0 16px 12px 16px" : "0 8px 10px 8px",
+                      borderBottom: `1px solid ${COLORS.border}`,
+                      color: COLORS.textMuted,
+                      fontSize: "13px",
+                      fontWeight: "bold"
+                    }}>
                       <span>#</span>
                       <span>Title</span>
-                      {isDesktop && <span>Album</span>}
-                      {isDesktop && <span>{viewedPlaylistId === "smart_most_played" ? "Plays" : "Date added"}</span>}
+                      {isDesktop && showDesktopAlbum && <span>Album</span>}
+                      {isDesktop && showDesktopDate && <span>{viewedPlaylistId === "smart_most_played" ? "Plays" : "Date added"}</span>}
                       <span style={{ textAlign: "right" }}><Clock size={16} /></span>
                     </div>
 
@@ -9902,17 +9920,29 @@ export default function App() {
                         const isSelected = currentTrack?.id === track.id;
                         return (
                           <SwipeableTrack key={track.id} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase} className={index >= 10 ? "song-row-deferred" : ""}>
-                            <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{ display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center", padding: "10px 16px", cursor: "pointer" }}>
-                              <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
-                              <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
-                                <div style={{ width: "44px", height: "44px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, activePlaylistObj?.name || "Playlist")} style={{
+                              display: "grid",
+                              gridTemplateColumns: isDesktop
+                                ? (showDesktopDate && showDesktopAlbum
+                                    ? "40px minmax(180px, 2fr) minmax(120px, 1.2fr) minmax(100px, 1fr) 90px"
+                                    : (showDesktopAlbum
+                                        ? "40px minmax(180px, 2.5fr) minmax(120px, 1.5fr) 90px"
+                                        : "36px minmax(0, 1fr) 90px"))
+                                : "30px minmax(0, 1fr) auto",
+                              alignItems: "center",
+                              padding: isWideDesktop ? "10px 16px" : "8px 10px",
+                              cursor: "pointer"
+                            }}>
+                              <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "14px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, paddingRight: "8px" }}>
+                                <div style={{ width: isWideDesktop ? "44px" : "40px", height: isWideDesktop ? "44px" : "40px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                   {track.poster_url ? <img src={track.poster_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                                 </div>
                                 <div style={{ minWidth: 0, flex: 1 }}>
-                                  <div style={{ fontSize: "15px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
-                                  <div style={{ fontSize: "13px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
+                                  <div style={{ fontSize: isWideDesktop ? "15px" : "14px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
+                                  <div style={{ fontSize: isWideDesktop ? "13px" : "12px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
                                     <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</span>
-                                    {!isDesktop && viewedPlaylistId === "smart_most_played" && (
+                                    {(!isDesktop || !showDesktopDate) && viewedPlaylistId === "smart_most_played" && (
                                       <span style={{ color: COLORS.primary, fontSize: "11px", fontWeight: "bold", background: isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(26,43,76,0.08)", border: `1px solid ${COLORS.border}`, padding: "1px 7px", borderRadius: "10px", flexShrink: 0, display: "inline-flex", alignItems: "center", gap: "3px" }}>
                                         🔥 {(playCounts && playCounts[track.id]) || 0} {((playCounts && playCounts[track.id]) === 1) ? 'play' : 'plays'}
                                       </span>
@@ -9920,8 +9950,8 @@ export default function App() {
                                   </div>
                                 </div>
                               </div>
-                              {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || '-'}</span>}
-                              {isDesktop && (
+                              {isDesktop && showDesktopAlbum && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || '-'}</span>}
+                              {isDesktop && showDesktopDate && (
                                 viewedPlaylistId === "smart_most_played" ? (
                                   <span style={{ color: COLORS.primary, fontSize: "14px", fontWeight: "700", paddingRight: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
                                     🔥 {(playCounts && playCounts[track.id]) || 0} {((playCounts && playCounts[track.id]) === 1) ? 'play' : 'plays'}
@@ -9930,7 +9960,7 @@ export default function App() {
                                   <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at || track.created_at)}</span>
                                 )
                               )}
-                              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "8px" : "2px", flexShrink: 0 }}>
+                              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: isDesktop ? "6px" : "2px", flexShrink: 0 }}>
                                 <button type="button" title="Add to Queue" onPointerDown={e => e.stopPropagation()} onClick={e => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><ListPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} /></button>
                                 <button type="button" title={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? "Unlike" : "Like"} onPointerDown={e => e.stopPropagation()} onClick={(e) => handleToggleLike(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect"><Heart size={isDesktop ? 18 : 16} fill={likedPlaylist?.playlist_songs?.some(ps => ps.song_id === track.id) ? COLORS.primary : "none"} style={{ pointerEvents: "none" }} /></button>
                                 {!activePlaylistObj?.isSmart && (
@@ -9968,7 +9998,7 @@ export default function App() {
               /* GLOBAL LIBRARY VIEW */
               <div>
                 {visibleTopArtists.length > 0 && !searchQuery && !selectedArtist && !selectedAlbum && (
-                  <div style={{ marginBottom: isDesktop ? "32px" : "20px", paddingLeft: isDesktop ? "16px" : "0" }}>
+                  <div style={{ marginBottom: isDesktop ? (isWideDesktop ? "32px" : "20px") : "20px", paddingLeft: isDesktop ? (isWideDesktop ? "16px" : "4px") : "0" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
                       <h3 style={{ fontSize: "20px", fontWeight: "bold", color: COLORS.primary, margin: 0 }}>Top Artists</h3>
                       <button
@@ -9980,7 +10010,7 @@ export default function App() {
                           color: COLORS.primary,
                           border: `1px solid ${COLORS.primary}`,
                           borderRadius: "20px",
-                          padding: isDesktop ? "6px 14px" : "6px 12px",
+                          padding: isDesktop ? (isWideDesktop ? "6px 14px" : "6px 12px") : "6px 12px",
                           cursor: "pointer",
                           display: "inline-flex",
                           alignItems: "center",
@@ -9995,9 +10025,9 @@ export default function App() {
                         <span>Shuffle</span>
                       </button>
                     </div>
-                    <div ref={handleTopArtistsRef} style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: isDesktop ? "12px" : "8px" }} className="custom-scrollbar horizontal-scroll-container">
+                    <div ref={handleTopArtistsRef} style={{ display: "flex", gap: isWideDesktop ? "16px" : "12px", overflowX: "auto", paddingBottom: isDesktop ? "12px" : "8px" }} className="custom-scrollbar horizontal-scroll-container">
                       {visibleTopArtists.map(artist => (
-                        <div key={artist.name} onClick={() => setSelectedArtist(artist.name)} style={{ cursor: "pointer", width: isDesktop ? "140px" : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
+                        <div key={artist.name} onClick={() => setSelectedArtist(artist.name)} style={{ cursor: "pointer", width: isDesktop ? (isWideDesktop ? "140px" : "110px") : "120px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }} className="hover-effect">
                           <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: "16px", overflow: "hidden", backgroundColor: COLORS.imageBg, boxShadow: "0 4px 12px rgba(0,0,0,0.3)" }}>
                             {artist.image_url ? (
                                <img 
@@ -10130,7 +10160,7 @@ export default function App() {
 
                 {/* MOOD FILTER BAR */}
                 {viewedPlaylistId === null && !selectedArtist && !selectedAlbum && (
-                  <div ref={handleMoodsRef} style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", paddingLeft: isDesktop ? "16px" : 0 }} className="custom-scrollbar horizontal-scroll-container">
+                  <div ref={handleMoodsRef} style={{ display: "flex", alignItems: "center", gap: "8px", overflowX: "auto", paddingBottom: "12px", marginBottom: "16px", paddingLeft: isDesktop ? (isWideDesktop ? "16px" : "4px") : 0 }} className="custom-scrollbar horizontal-scroll-container">
                     <button
                       onClick={() => handleSelectMood(null)}
                       style={{
@@ -10194,22 +10224,34 @@ export default function App() {
                     const isSelected = currentTrack?.id === track.id;
                     return (
                       <SwipeableTrack key={`g-${track.id}`} track={track} onAddQueue={addToQueue} baseColor={COLORS.bgBase} actionColor={COLORS.primary} iconColor={COLORS.bgBase} className={index >= 10 ? "song-row-deferred" : ""}>
-                        <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, selectedMood ? `${selectedMood} Mood` : (selectedArtist ? `${selectedArtist} Artist` : (selectedAlbum ? `${selectedAlbum} Album` : "Global Library")))} style={{ padding: "10px 16px", cursor: "pointer", display: "grid", gridTemplateColumns: isDesktop ? "40px 2fr 1.5fr 1.2fr 80px" : "30px minmax(0, 1fr) auto", alignItems: "center" }}>
-                          <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "15px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, paddingRight: "8px" }}>
-                            <div style={{ width: "48px", height: "48px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <div className={`glass-row song-stack-row ${isSelected ? 'active' : ''}`} onClick={() => handlePlaySong(index, displayedSongs, selectedMood ? `${selectedMood} Mood` : (selectedArtist ? `${selectedArtist} Artist` : (selectedAlbum ? `${selectedAlbum} Album` : "Global Library")))} style={{
+                          padding: isWideDesktop ? "10px 16px" : "8px 10px",
+                          cursor: "pointer",
+                          display: "grid",
+                          gridTemplateColumns: isDesktop
+                            ? (showDesktopDate && showDesktopAlbum
+                                ? "40px minmax(180px, 2fr) minmax(120px, 1.2fr) minmax(100px, 1fr) 90px"
+                                : (showDesktopAlbum
+                                    ? "40px minmax(180px, 2.5fr) minmax(120px, 1.5fr) 90px"
+                                    : "36px minmax(0, 1fr) 90px"))
+                            : "30px minmax(0, 1fr) auto",
+                          alignItems: "center"
+                        }}>
+                          <span style={{ color: isSelected ? COLORS.primary : COLORS.textMuted, fontSize: "14px", fontWeight: isSelected ? "bold" : "normal" }}>{index + 1}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, paddingRight: "8px" }}>
+                            <div style={{ width: isWideDesktop ? "48px" : "40px", height: isWideDesktop ? "48px" : "40px", borderRadius: "6px", backgroundColor: COLORS.imageBg, overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               {track.poster_url ? <img src={track.poster_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <ImageIcon size={20} color={COLORS.textMuted} />}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: "16px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
-                              <div style={{ fontSize: "14px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
+                              <div style={{ fontSize: isWideDesktop ? "16px" : "14px", fontWeight: isSelected ? "bold" : "600", color: isSelected ? COLORS.spotifyGreen : COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</div>
+                              <div style={{ fontSize: isWideDesktop ? "14px" : "12px", color: COLORS.textMuted, marginTop: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "flex", alignItems: "center", gap: "6px" }}>
                                 <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{track.artist}</span>
                               </div>
                             </div>
                           </div>
-                          {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || '-'}</span>}
-                          {isDesktop && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at || track.created_at)}</span>}
-                          <div style={{ display: "flex", alignItems: "center", gap: isDesktop ? "12px" : "2px", flexShrink: 0, justifyContent: "flex-end" }}>
+                          {isDesktop && showDesktopAlbum && <span style={{ color: COLORS.textMuted, fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: "16px" }}>{track.album || '-'}</span>}
+                          {isDesktop && showDesktopDate && <span style={{ color: COLORS.textMuted, fontSize: "14px", paddingRight: "16px" }}>{formatDate(track.added_at || track.created_at)}</span>}
+                          <div style={{ display: "flex", alignItems: "center", gap: isDesktop ? "6px" : "2px", flexShrink: 0, justifyContent: "flex-end" }}>
                             <button type="button" title="Add to Queue" onPointerDown={e => e.stopPropagation()} onClick={(e) => addToQueue(track, e)} style={{ background: "transparent", border: "none", color: COLORS.primary, cursor: "pointer", padding: isDesktop ? "4px" : "8px 6px", minWidth: isDesktop ? "auto" : "32px", minHeight: isDesktop ? "auto" : "32px", display: "inline-flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }} className="hover-effect">
                               <ListPlus size={isDesktop ? 18 : 16} style={{ pointerEvents: "none" }} />
                             </button>
@@ -10251,13 +10293,13 @@ export default function App() {
         {/* RIGHT DESKTOP PLAYER */}
         {isDesktop && currentTrack && (
           <div style={{
-            width: "320px",
+            width: isWideDesktop ? "320px" : "260px",
             flexShrink: 0,
             background: isDarkMode
               ? (dominantRgb ? `rgb(${Math.round(dominantRgb.r * 0.08 + 6)}, ${Math.round(dominantRgb.g * 0.08 + 8)}, ${Math.round(dominantRgb.b * 0.08 + 12)})` : "#0A0F1A")
               : "#F4EFE6",
             borderRadius: "12px",
-            padding: "24px",
+            padding: isWideDesktop ? "24px" : "16px 12px",
             display: "flex",
             flexDirection: "column",
             boxSizing: "border-box",
@@ -10278,7 +10320,7 @@ export default function App() {
             
             <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
               {/* TOP HEADER WITH MAXIMIZE BUTTON (Desktop Only) */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexShrink: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isWideDesktop ? "12px" : "8px", flexShrink: 0 }}>
                 <span style={{ fontSize: "13px", fontWeight: "700", color: "#FFFFFF", letterSpacing: "0.5px", textShadow: "0 1px 4px rgba(0,0,0,0.7)", textTransform: "uppercase" }}>
                   Now Playing
                 </span>
@@ -10334,8 +10376,31 @@ export default function App() {
               </div>
 
               {/* ARTWORK / DYNAMIC PLAYER VIEW */}
-              <div style={{ width: "100%", flex: 1, minHeight: 0, marginBottom: "20px", display: "flex", flexDirection: "column" }}>
-                <div style={{ width: "100%", height: "100%", borderRadius: "12px", overflow: "hidden", backgroundColor: isDarkMode ? "rgba(26,43,76,0.05)" : "rgba(26,43,76,0.04)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: isDarkMode ? "0 12px 30px rgba(26,43,76,0.12)" : "0 12px 30px rgba(26,43,76,0.08)", position: "relative" }}>
+              <div style={{
+                width: "100%",
+                flex: (showMixer || showQueue || showLyrics) ? 1 : (isWideDesktop ? 1 : "0 0 auto"),
+                minHeight: 0,
+                marginBottom: isWideDesktop ? "20px" : "12px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center"
+              }}>
+                <div style={{
+                  width: "100%",
+                  maxWidth: (!showMixer && !showQueue && !showLyrics && !isWideDesktop) ? "220px" : "100%",
+                  aspectRatio: (!showMixer && !showQueue && !showLyrics) ? "1 / 1" : "auto",
+                  height: (showMixer || showQueue || showLyrics) ? "100%" : (isWideDesktop ? "100%" : "auto"),
+                  maxHeight: (!showMixer && !showQueue && !showLyrics) ? (isWideDesktop ? "340px" : "220px") : "none",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  backgroundColor: isDarkMode ? "rgba(26,43,76,0.05)" : "rgba(26,43,76,0.04)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: isDarkMode ? "0 12px 30px rgba(26,43,76,0.12)" : "0 12px 30px rgba(26,43,76,0.08)",
+                  position: "relative"
+                }}>
                   <div key={showMixer ? 'mixer' : showQueue ? 'queue' : showLyrics ? 'lyrics' : 'art'} className="fade-enter" style={{ width: "100%", height: "100%" }}>
                     {showMixer ? renderMixerBlock(false) : showQueue ? renderQueueBlock(false) : showLyrics ? renderLyricsBlock(false) : renderCrossfadingCover(currentTrack?.poster_url, 80, "12px")}
                   </div>
@@ -10343,16 +10408,16 @@ export default function App() {
               </div>
               
               {/* TRACK INFO & SECONDARY ACTIONS */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexShrink: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isWideDesktop ? "16px" : "10px", flexShrink: 0 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   {renderCrossfadingTrackInfo(currentTrack, {
                     titleTag: "h3",
-                    titleStyle: { margin: "0 0 4px 0", fontSize: "19px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" },
+                    titleStyle: { margin: "0 0 4px 0", fontSize: isWideDesktop ? "19px" : "16px", fontWeight: "800", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#FFFFFF", textShadow: "0 2px 8px rgba(0,0,0,0.7)" },
                     artistTag: "p",
-                    artistStyle: { margin: 0, color: "rgba(255, 255, 255, 0.85)", fontSize: "14px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }
+                    artistStyle: { margin: 0, color: "rgba(255, 255, 255, 0.85)", fontSize: isWideDesktop ? "14px" : "12.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontWeight: "500", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }
                   })}
                 </div>
-                <div style={{ display: "flex", gap: "8px", flexShrink: 0, marginLeft: "8px" }}>
+                <div style={{ display: "flex", gap: isWideDesktop ? "8px" : "5px", flexShrink: 0, marginLeft: "8px" }}>
                   {[
                     { label: "Sleep Timer", active: !!sleepTimerTarget, icon: <Moon size={15} />, action: (e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowSleepTimerModal(true); } },
                     { label: "Options", active: false, icon: <MoreVertical size={15} />, action: (e) => { e.stopPropagation(); openedFromTrackOptionsRef.current = false; setShowTrackOptionsModal(true); } },
@@ -10360,7 +10425,7 @@ export default function App() {
                     { label: "Lyrics", active: showLyrics, icon: <Mic2 size={15} />, action: () => { setShowLyrics(v => !v); if (!showLyrics) { setShowQueue(false); setShowMixer(false); } } },
                     { label: "Queue", active: showQueue, icon: <ListMusic size={15} />, action: () => { setShowQueue(v => !v); if (!showQueue) { setShowLyrics(false); setShowMixer(false); } } }
                   ].map(({ label, active, disabled, icon, action }) => (
-                    <button key={label} onClick={action} title={label} style={{ background: active ? COLORS.spotifyGreen : "rgba(255, 255, 255, 0.12)", color: "#FFFFFF", border: "1px solid rgba(255, 255, 255, 0.18)", borderRadius: "20px", padding: "6px 10px", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, display: "flex", alignItems: "center", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
+                    <button key={label} onClick={action} title={label} style={{ background: active ? COLORS.spotifyGreen : "rgba(255, 255, 255, 0.12)", color: "#FFFFFF", border: "1px solid rgba(255, 255, 255, 0.18)", borderRadius: "20px", padding: isWideDesktop ? "6px 10px" : "5px 7px", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1, display: "flex", alignItems: "center", fontSize: "12px", fontWeight: "bold", backdropFilter: "blur(4px)" }}>
                       {icon}
                     </button>
                   ))}
@@ -10369,19 +10434,19 @@ export default function App() {
               
               {/* PRIMARY CONTROLS & PROGRESS */}
               <div style={{ marginTop: "auto", paddingBottom: "0px", flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: isWideDesktop ? "16px" : "10px" }}>
                   <span style={{ fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" }}>{formatTime(currentTime)}</span>
                   <input type="range" min={0} max={(isFinite(duration) && duration > 0) ? duration : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 100)} defaultValue={0} ref={desktopProgressRef} onChange={handleSeek} className="glow-slider" style={{ flex: 1 }} />
                   {renderCrossfadingDuration(duration, { fontSize: "12px", color: "rgba(255, 255, 255, 0.9)", minWidth: "36px", textAlign: "right", fontWeight: "600", textShadow: "0 1px 4px rgba(0,0,0,0.7)" })}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <button onClick={cyclePlayMode} style={{ background: "transparent", border: "none", padding: "4px", cursor: "pointer", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))" }} className="hover-effect">{renderModeIcon("#FFFFFF")}</button>
-                  <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipBack size={24} fill="currentColor" /></button>
-                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "56px", height: "56px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)", touchAction: "manipulation" }}>
-                      {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" style={{ marginLeft: "4px" }} />}
+                  <div style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "20px" : "14px" }}>
+                    <button onClick={handlePrev} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipBack size={isWideDesktop ? 24 : 20} fill="currentColor" /></button>
+                    <button onClick={handlePlayPause} className="hover-effect" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: isWideDesktop ? "56px" : "48px", height: isWideDesktop ? "56px" : "48px", borderRadius: "50%", border: "none", backgroundColor: "#FFFFFF", color: "#1A2B4C", cursor: "pointer", boxShadow: "0 8px 16px rgba(0,0,0,0.3)", touchAction: "manipulation" }}>
+                      {isPlaying ? <Pause size={isWideDesktop ? 24 : 20} fill="currentColor" /> : <Play size={isWideDesktop ? 24 : 20} fill="currentColor" style={{ marginLeft: "4px" }} />}
                     </button>
-                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipForward size={24} fill="currentColor" /></button>
+                    <button onClick={handleNext} style={{ background: "transparent", border: "none", color: "#FFFFFF", cursor: "pointer", display: "flex", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))", touchAction: "manipulation" }} className="hover-effect"><SkipForward size={isWideDesktop ? 24 : 20} fill="currentColor" /></button>
                   </div>
                   <button
                     onClick={handleOpenCrossfadeModal}
@@ -11251,7 +11316,7 @@ export default function App() {
                 ? (dominantRgb ? `0 -8px 24px rgba(0,0,0,0.4), 0 0 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.15)` : "0 -8px 24px rgba(0,0,0,0.4)")
                 : (dominantRgb ? `0 -6px 20px rgba(${dominantRgb.r}, ${dominantRgb.g}, ${dominantRgb.b}, 0.18)` : "0 -4px 20px rgba(26, 43, 76, 0.08)"),
               display: "grid",
-              gridTemplateColumns: "280px 1fr 280px",
+              gridTemplateColumns: isWideDesktop ? "280px 1fr 280px" : "200px 1fr 200px",
               alignItems: "center",
               flexShrink: 0
             }}
