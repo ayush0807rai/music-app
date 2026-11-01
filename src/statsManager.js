@@ -838,20 +838,14 @@ export function getWrappedEligibility(userId = activeUserId, now = new Date()) {
   const day = now.getDate();
   const currentYear = now.getFullYear();
 
-  let isWithinOfficialDates = false;
+  // Official dates are Dec 20 - Jan 20; enabled now for preview, viewing and testing
+  let isWithinOfficialDates = true;
   let targetYear = currentYear;
 
-  if (month === 11 && day >= 20) {
-    // Dec 20 - Dec 31: Wrapped for current year
-    isWithinOfficialDates = true;
-    targetYear = currentYear;
-  } else if (month === 0 && day <= 20) {
+  if (month === 0 && day <= 20) {
     // Jan 01 - Jan 20: Wrapped for preceding year
-    isWithinOfficialDates = true;
     targetYear = currentYear - 1;
   } else {
-    // Outside the official window, default target is current year (allows previewing for testing)
-    isWithinOfficialDates = false;
     targetYear = currentYear;
   }
 

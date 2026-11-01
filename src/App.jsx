@@ -9970,7 +9970,7 @@ export default function App() {
               <div onClick={handleOpenStatsModal} className="sidebar-item" style={{ display: "flex", alignItems: "center", gap: isWideDesktop ? "16px" : "10px", color: showStatsModal ? COLORS.primary : COLORS.textMuted, fontWeight: "bold", fontSize: isWideDesktop ? "15px" : "13.5px", cursor: "pointer" }}>
                 <BarChart2 size={isWideDesktop ? 24 : 18} color={showStatsModal ? COLORS.primary : COLORS.textMuted} /> Listening Stats
               </div>
-              {wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
+              {wrappedEligibility.isWithinOfficialDates && (
                 <div
                   onClick={handleOpenWrapped}
                   className="sidebar-item"
@@ -10030,7 +10030,7 @@ export default function App() {
 
           {/* MOBILE QUICK ACTION PILLS (Recent, Top, Stats, Wrapped) - BETWEEN PLAYLIST SECTION AND TOP ARTIST SECTION */}
           {!isDesktop && !selectedArtist && (
-            <div style={{ display: "grid", gridTemplateColumns: (wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible) ? "repeat(4, 1fr)" : "repeat(3, 1fr)", gap: "8px", marginBottom: "28px", flexShrink: 0 }}>
+            <div style={{ display: "grid", gridTemplateColumns: wrappedEligibility.isWithinOfficialDates ? "repeat(4, 1fr)" : "repeat(3, 1fr)", gap: "8px", marginBottom: "28px", flexShrink: 0 }}>
               <button
                 onClick={() => handleSwitchPlaylist("smart_recently_played")}
                 className="hover-effect"
@@ -10097,7 +10097,7 @@ export default function App() {
               >
                 <BarChart2 size={13} /> Stats
               </button>
-              {wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
+              {wrappedEligibility.isWithinOfficialDates && (
                 <button
                   onClick={handleOpenWrapped}
                   className="hover-effect pulse-animation"
@@ -10127,7 +10127,7 @@ export default function App() {
           <div key={viewedPlaylistId || 'global'} className="fade-enter" style={{ width: "100%" }}>
 
             {/* OFFICIAL SPOTIFY-STYLE WRAPPED BANNER (DEC 20 - JAN 20) */}
-            {viewedPlaylistId === null && wrappedEligibility.isWithinOfficialDates && wrappedEligibility.eligible && (
+            {viewedPlaylistId === null && wrappedEligibility.isWithinOfficialDates && (
               <div
                 onClick={handleOpenWrapped}
                 style={{
