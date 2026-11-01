@@ -32,6 +32,7 @@ import { AVAILABLE_MOODS, getSongMoods, suggestMood, getCustomMoodOverrides, set
 import { matchesArtist, getTrackArtists } from "./artistUtils";
 import {
   getRecentlyPlayedIds,
+  recordRecentlyPlayed,
   recordSongPlay,
   recordQualifiedPlay,
   getPlayCounts,
@@ -3583,9 +3584,11 @@ export default function App() {
 
         if (lastListenTickRef.current && isPlaying && isDevicePlaying && currentTrack?.id) {
           const delta = (now - lastListenTickRef.current) / 1000;
-          if (delta >= 0.1 && delta <= 3.0) {
-            sessionListenDurationRef.current += delta;
-            pendingListenDurationRef.current += delta;
+          if (delta >= 0.1) {
+            // Cap to 30.0s to allow background tabs and screen-off browser throttling to accumulate accurately
+            const safeDelta = Math.min(delta, 30.0);
+            sessionListenDurationRef.current += safeDelta;
+            pendingListenDurationRef.current += safeDelta;
           }
           lastListenTickRef.current = now;
         } else if (isPlaying && isDevicePlaying) {
@@ -3647,11 +3650,11 @@ export default function App() {
           pendingListenDurationRef.current = 0;
         }
 
-        // 1-minute qualified play:
-        // A song counts as a qualified play only after listening for at least 1 minute (60 seconds)
-        // (or when reaching the end if song duration is under 60s).
-        const dur = audioRef.current.duration;
-        const isQualifiedTime = sessionListenDurationRef.current >= 60 || (isFinite(dur) && dur > 0 && dur < 60 && time >= dur - 0.5);
+        // Qualified play threshold (Spotify standard: 30+ seconds of listening or song completion):
+        const dur = (activeEl && isFinite(activeEl.duration) && activeEl.duration > 0)
+          ? activeEl.duration
+          : (currentTrack?.duration || (currentTrack?.id && STATIC_SONG_DURATIONS[currentTrack.id]) || 0);
+        const isQualifiedTime = sessionListenDurationRef.current >= 30 || (time >= 30 && isDevicePlaying) || (isFinite(dur) && dur > 0 && dur < 30 && time >= dur - 0.5);
         if (isQualifiedTime && currentTrack?.id && qualifiedPlayLoggedRef.current !== currentTrack.id) {
           qualifiedPlayLoggedRef.current = currentTrack.id;
           recordQualifiedPlay(currentTrack);
@@ -4282,6 +4285,12 @@ export default function App() {
 
   const playTrackWithMetadata = (track, audioEl, cacheMap, skipJamBroadcast = false) => {
     if (!audioEl || !track) return;
+    if (track?.id) {
+      const updatedRecent = recordRecentlyPlayed(track, session?.user?.id);
+      if (updatedRecent && Array.isArray(updatedRecent)) {
+        setRecentlyPlayedIds(updatedRecent);
+      }
+    }
     if (track?.poster_url) {
       try {
         const preImg = new Image();
@@ -5425,9 +5434,9 @@ export default function App() {
       recordListeningDuration(currentTrack.id, pendingListenDurationRef.current);
       pendingListenDurationRef.current = 0;
     }
-    // 1-minute qualification fallback: If song completes playback (e.g. short track < 60s) or reached 60s
+    // Qualified play fallback on song completion (30s standard):
     const dur = audioRef.current?.duration;
-    const qualifiesOnEnd = sessionListenDurationRef.current >= 60 || (isFinite(dur) && dur > 0 && dur < 60);
+    const qualifiesOnEnd = sessionListenDurationRef.current >= 30 || (isFinite(dur) && dur > 0 && dur < 30);
     if (qualifiesOnEnd && currentTrack?.id && qualifiedPlayLoggedRef.current !== currentTrack.id) {
       qualifiedPlayLoggedRef.current = currentTrack.id;
       recordQualifiedPlay(currentTrack);

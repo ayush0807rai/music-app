@@ -400,9 +400,29 @@ export async function flushCloudSync(userId = activeUserId) {
 }
 
 /**
- * 1-minute qualified play recorder:
- * Called only when a track reaches >= 60 seconds (1 minute) of listening or completes playback.
- * Updates Recently Played and increments play counter, then syncs to cloud account.
+ * Record a song in Recently Played immediately when it is played
+ */
+export function recordRecentlyPlayed(track, userId = activeUserId) {
+  if (!track || !track.id) return [];
+  const targetId = userId || activeUserId;
+  try {
+    const existing = getRecentlyPlayedIds(targetId);
+    const filtered = existing.filter(id => id !== track.id);
+    const updated = [track.id, ...filtered].slice(0, 60);
+
+    saveLocalStats({ recentlyPlayedIds: updated }, targetId);
+    scheduleCloudSync(targetId);
+    return updated;
+  } catch (e) {
+    console.warn("Could not record recently played:", e);
+    return getRecentlyPlayedIds(targetId);
+  }
+}
+
+/**
+ * Qualified play recorder (Spotify standard: 30+ seconds or track completion):
+ * Called when a track reaches >= 30 seconds of listening or completes playback.
+ * Updates Recently Played and increments active month play counter, then syncs to cloud account.
  */
 export function recordQualifiedPlay(track, userId = activeUserId) {
   if (!track || !track.id) return;
@@ -440,6 +460,7 @@ export function recordQualifiedPlay(track, userId = activeUserId) {
     }, targetId);
 
     scheduleCloudSync(targetId);
+    return { playCounts: counts, recentlyPlayedIds: updated };
   } catch (e) {
     console.warn("Could not record qualified play:", e);
   }
@@ -623,12 +644,29 @@ export async function syncAccountStats(user) {
         activeMonth = currentMonth;
       }
 
+      // Merge remote authoritative data with any local device data
+      const localCounts = getPlayCounts(targetId);
+      const localSeconds = getListenSeconds(targetId);
+      const localRecent = getRecentlyPlayedIds(targetId);
+
+      const mergedCounts = { ...playCounts };
+      for (const [id, cnt] of Object.entries(localCounts)) {
+        mergedCounts[id] = Math.max(mergedCounts[id] || 0, Number(cnt) || 0);
+      }
+
+      const mergedSeconds = { ...listenSeconds };
+      for (const [id, sec] of Object.entries(localSeconds)) {
+        mergedSeconds[id] = Math.max(mergedSeconds[id] || 0, Number(sec) || 0);
+      }
+
+      const mergedRecent = Array.from(new Set([...(remoteStats.recentlyPlayedIds || []), ...(localRecent || [])])).slice(0, 60);
+
       const synced = {
         activeMonth,
-        playCounts,
-        listenSeconds,
-        recentlyPlayedIds: remoteStats.recentlyPlayedIds || [],
-        customMoods: remoteStats.customMoods || {},
+        playCounts: mergedCounts,
+        listenSeconds: mergedSeconds,
+        recentlyPlayedIds: mergedRecent,
+        customMoods: { ...(remoteStats.customMoods || {}), ...getCustomMoods(targetId) },
         monthlyArchives,
         yearlyTotals
       };
