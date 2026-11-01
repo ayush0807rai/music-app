@@ -971,7 +971,7 @@ export function computeWrappedData(targetYear, allSongs = [], getSongMoodsFn, us
 
   // Sort top tracks
   tracksList.sort((a, b) => b.plays - a.plays);
-  const topTracks = tracksList.slice(0, 10);
+  const topTracks = tracksList.slice(0, 25);
   const topSong = topTracks[0] || null;
 
   // Sort top artists
@@ -1065,12 +1065,13 @@ export function encodeWrappedSharePayload(data) {
         pct: data.topMood.percentage,
         d: data.topMood.description
       } : null,
-      trks: (data.topTracks || []).slice(0, 6).map(t => ({
+      trks: (data.topTracks || []).slice(0, 10).map(t => ({
         t: t.title,
         a: t.artist,
         img: t.poster_url,
         u: t.url,
-        p: t.plays
+        p: t.plays,
+        dur: t.duration
       })),
       pm: data.peakMonth || ""
     };
@@ -1114,7 +1115,8 @@ export function decodeWrappedSharePayload(str) {
       artist: t.a,
       poster_url: t.img,
       url: t.u,
-      plays: t.p
+      plays: t.p,
+      duration: t.dur
     }));
 
     const topSong = c.s ? {

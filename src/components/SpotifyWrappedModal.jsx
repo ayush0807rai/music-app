@@ -224,39 +224,68 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
     }
   }, [currentSlide]);
 
-  // Determine top song assigned to each slide
-  const getSlideSong = useCallback((slideIdx) => {
-    if (!topTracks || topTracks.length === 0) return null;
-    if (topTracks.length === 1) return topTracks[0];
+  // Helper to determine the main hook / chorus timestamp (~32% into track)
+  const getTrackMainPartStart = useCallback((track, audioEl) => {
+    const rawDur = Number(track?.duration);
+    const dur = (rawDur && isFinite(rawDur) && rawDur > 20)
+      ? rawDur
+      : (audioEl && isFinite(audioEl.duration) && audioEl.duration > 20 ? audioEl.duration : 180);
 
-    // Slide 3 is the "YOUR #1 SONG" slide -> strictly topTracks[0]
-    if (slideIdx === 3) return topTracks[0];
+    // Chorus / main hook drop is typically around 30% - 35% of song duration
+    const target = Math.floor(dur * 0.32);
+    return Math.max(15, Math.min(target, Math.floor(dur - 15)));
+  }, []);
 
-    // Slide 2 is the "TOP ARTIST" slide -> pick top track by that artist, or topTracks[1]
-    if (slideIdx === 2) {
-      const artistTrack = topTracks.find(t =>
-        topArtist?.name && t.artist && t.artist.toLowerCase().includes(topArtist.name.toLowerCase())
-      );
-      if (artistTrack) return artistTrack;
-      return topTracks[1] || topTracks[0];
+  // Randomized song mapping per slide on each view / replay session
+  // Slide 3 is the top song slide and MUST always play topTracks[0] (#1 song)
+  const [slideSongMap, setSlideSongMap] = useState({});
+
+  const assignSlideSongs = useCallback(() => {
+    if (!topTracks || topTracks.length === 0) {
+      setSlideSongMap({});
+      return;
     }
 
-    // Slide 5 is the final Summary -> celebratory topTracks[0]
-    if (slideIdx === 5) return topTracks[0];
+    const numTracks = topTracks.length;
+    const number1Song = topTracks[0];
 
-    // Slide 0 (Intro): #2 top track
-    if (slideIdx === 0) return topTracks[1] || topTracks[0];
+    // Slide 3: Strictly the #1 top song
+    const mapping = { 3: number1Song };
 
-    // Slide 1 (Listening Stats): #3 top track
-    if (slideIdx === 1) return topTracks[2 % topTracks.length] || topTracks[0];
+    if (numTracks === 1) {
+      [0, 1, 2, 4, 5].forEach((s) => {
+        mapping[s] = number1Song;
+      });
+      setSlideSongMap(mapping);
+      return;
+    }
 
-    // Slide 4 (Mood / Audio Aura): #4 top track
-    if (slideIdx === 4) return topTracks[3 % topTracks.length] || topTracks[0];
+    // Other top tracks (excluding #1 song)
+    const otherTracks = topTracks.slice(1);
+    // Shuffle other tracks randomly each time Wrapped is viewed/replayed
+    const shuffledOthers = [...otherTracks].sort(() => Math.random() - 0.5);
 
-    return topTracks[slideIdx % topTracks.length] || topTracks[0];
-  }, [topTracks, topArtist?.name]);
+    // Slides to assign: 0 (Intro), 1 (Time), 2 (Top Artist), 4 (Mood), 5 (Summary)
+    const otherSlides = [0, 1, 2, 4, 5];
+    otherSlides.forEach((slideIdx, i) => {
+      if (i < shuffledOthers.length) {
+        mapping[slideIdx] = shuffledOthers[i];
+      } else {
+        // Wrap around candidates if pool has fewer than 5 tracks
+        const fallback = otherTracks[i % otherTracks.length] || number1Song;
+        mapping[slideIdx] = fallback;
+      }
+    });
 
-  const currentSlideSong = getSlideSong(currentSlide);
+    setSlideSongMap(mapping);
+  }, [topTracks]);
+
+  // Assign fresh random songs on initial mount or when topTracks changes
+  useEffect(() => {
+    assignSlideSongs();
+  }, [assignSlideSongs]);
+
+  const currentSlideSong = slideSongMap[currentSlide] || (currentSlide === 3 ? topTracks[0] : (topTracks[1] || topTracks[0]));
 
   // 1. Initialize local preview audio on mount and destroy on unmount
   useEffect(() => {
@@ -275,7 +304,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
     };
   }, []);
 
-  // 2. Play current slide's top song on slide change
+  // 2. Play current slide's top song from its MAIN PART on slide change
   useEffect(() => {
     const audio = previewAudioRef.current;
     if (!audio) return;
@@ -291,19 +320,36 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
       if (audio.src !== targetUrl) {
         audio.src = targetUrl;
       }
-      audio.currentTime = 0;
+
+      // Calculate start time for the main part (chorus / hook drop)
+      const seekTarget = getTrackMainPartStart(currentSlideSong, audio);
+
+      // Attempt immediate seek
+      try {
+        audio.currentTime = seekTarget;
+      } catch (_) {}
+
+      // Seek to main part as soon as audio metadata is loaded/ready
+      const handleSeekOnLoad = () => {
+        try {
+          const accurateSeek = getTrackMainPartStart(currentSlideSong, audio);
+          audio.currentTime = accurateSeek;
+        } catch (_) {}
+      };
+
+      audio.addEventListener("loadedmetadata", handleSeekOnLoad, { once: true });
+      audio.addEventListener("canplay", handleSeekOnLoad, { once: true });
+
       audio.muted = isMuted;
 
       if (!isPaused) {
         const p = audio.play();
         if (p && typeof p.then === "function") {
-          p.catch(() => {
-            // Autoplay may need user gesture
-          });
+          p.catch(() => {});
         }
       }
     } catch (_) {}
-  }, [currentSlide, currentSlideSong?.id, currentSlideSong?.url]);
+  }, [currentSlide, currentSlideSong?.id, currentSlideSong?.url, isMuted, getTrackMainPartStart]);
 
   // 3. Synchronize play/pause with story pause state and mute toggle
   useEffect(() => {
@@ -1504,6 +1550,7 @@ export default function SpotifyWrappedModal({ wrappedData, onClose }) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      assignSlideSongs();
                       setCurrentSlide(0);
                       setSlideProgress(0);
                       setIsPaused(false);

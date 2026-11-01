@@ -1,6 +1,6 @@
 {
   "cloud_name": "skqqgkpt",
-  "backup_timestamp": "2026-11-01T11:49:13.042Z",
+  "backup_timestamp": "2026-11-01T11:57:59.794Z",
   "total_files": 11,
   "files": [
     {
@@ -20,15 +20,15 @@
     {
       "filename": "euphony_website_complete_backup.zip",
       "public_id": "euphony_backups/euphony_website_complete_backup.zip",
-      "bytes": 1988931,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793533738/euphony_backups/euphony_website_complete_backup.zip",
+      "bytes": 1989596,
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793534272/euphony_backups/euphony_website_complete_backup.zip",
       "uploaded_at": "2026-10-27T10:33:48Z"
     },
     {
       "filename": "complete_database_master.json",
       "public_id": "euphony_backups/database/complete_database_master.json",
       "bytes": 835022,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793533741/euphony_backups/database/complete_database_master.json",
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793534274/euphony_backups/database/complete_database_master.json",
       "uploaded_at": "2026-10-27T10:33:52Z"
     },
     {
@@ -49,7 +49,7 @@
       "filename": "playlists.json",
       "public_id": "euphony_backups/database/playlists.json",
       "bytes": 78551,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793533747/euphony_backups/database/playlists.json",
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793534276/euphony_backups/database/playlists.json",
       "uploaded_at": "2026-10-27T10:33:55Z"
     },
     {
@@ -63,7 +63,7 @@
       "filename": "restore_complete_database.sql",
       "public_id": "euphony_backups/database/restore_complete_database.sql",
       "bytes": 816169,
-      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793533751/euphony_backups/database/restore_complete_database.sql",
+      "url": "https://res.cloudinary.com/skqqgkpt/raw/upload/v1793534278/euphony_backups/database/restore_complete_database.sql",
       "uploaded_at": "2026-10-27T10:33:58Z"
     },
     {
