@@ -876,8 +876,8 @@ export function getWrappedEligibility(userId = activeUserId, now = new Date()) {
   const day = now.getDate();
   const currentYear = now.getFullYear();
 
-  // Official dates are Dec 20 - Jan 20; enabled now for preview, viewing and testing
-  let isWithinOfficialDates = true;
+  // Official dates are strictly between December 20 and January 20 of every year
+  const isWithinOfficialDates = (month === 11 && day >= 20) || (month === 0 && day <= 20);
   let targetYear = currentYear;
 
   if (month === 0 && day <= 20) {
