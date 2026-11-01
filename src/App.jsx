@@ -9979,68 +9979,6 @@ export default function App() {
 
           <div key={viewedPlaylistId || 'global'} className="fade-enter" style={{ width: "100%" }}>
 
-            {/* OFFICIAL SPOTIFY-STYLE WRAPPED BANNER (DEC 20 - JAN 20) */}
-            {viewedPlaylistId === null && wrappedEligibility.isWithinOfficialDates && (
-              <div
-                onClick={handleOpenWrapped}
-                style={{
-                  background: "linear-gradient(135deg, #18002e 0%, #3d0c5a 50%, #0d011a 100%)",
-                  border: "1px solid rgba(255, 0, 127, 0.45)",
-                  borderRadius: "18px",
-                  padding: isDesktop ? "20px 24px" : "16px 18px",
-                  marginBottom: "24px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  boxShadow: "0 15px 35px rgba(0, 0, 0, 0.4)",
-                  color: "#fff"
-                }}
-                className="hover-effect"
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                  <div
-                    style={{
-                      width: "48px",
-                      height: "48px",
-                      borderRadius: "14px",
-                      background: "linear-gradient(135deg, #ff007f, #7928ca)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      boxShadow: "0 6px 18px rgba(255, 0, 127, 0.5)",
-                      flexShrink: 0
-                    }}
-                  >
-                    <Sparkles size={24} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: isDesktop ? "18px" : "16px", fontWeight: "900", letterSpacing: "-0.3px" }}>
-                      Your {wrappedEligibility.targetYear} Wrapped is Here!
-                    </div>
-                    <div style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.75)", marginTop: "2px" }}>
-                      Tap to explore your year in music on Euphony
-                    </div>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    background: "#1db954",
-                    color: "#fff",
-                    padding: isDesktop ? "8px 18px" : "6px 12px",
-                    borderRadius: "24px",
-                    fontSize: "12px",
-                    fontWeight: "800",
-                    letterSpacing: "0.5px",
-                    flexShrink: 0
-                  }}
-                >
-                  EXPLORE
-                </div>
-              </div>
-            )}
-
             {/* PLAYLIST HERO */}
             {viewedPlaylistId !== null && activePlaylistObj && (
               <div style={{ background: `linear-gradient(180deg, ${COLORS.heroTop} 0%, ${COLORS.bgPanel} 100%)`, padding: isDesktop ? (isWideDesktop ? "40px 32px" : "24px 20px") : "24px", borderRadius: "12px", marginBottom: isWideDesktop ? "32px" : "20px", display: "flex", alignItems: isDesktop ? "flex-end" : "center", flexDirection: isDesktop ? "row" : "column", gap: isWideDesktop ? "24px" : "16px", border: `1px solid ${COLORS.border}` }}>

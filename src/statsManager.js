@@ -859,7 +859,7 @@ export function computeListeningStats(allSongs = [], getSongMoodsFn, userId = ac
     topTracks: topTracksList.slice(0, 10),
     hasData: totalPlays > 0 || totalSeconds > 0,
     activeMonth,
-    availableArchives: Object.keys(monthlyArchives).sort().reverse()
+    availableArchives: Object.keys(monthlyArchives).sort().reverse().slice(0, 2)
   };
 }
 
