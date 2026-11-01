@@ -9842,7 +9842,7 @@ export default function App() {
                     marginTop: "2px"
                   }}
                 >
-                  <Sparkles size={isWideDesktop ? 22 : 18} color="#ff007f" /> {wrappedEligibility.targetYear} Wrapped
+                  <Sparkles size={isWideDesktop ? 22 : 18} color="#ff007f" /> Wrapped
                 </div>
               )}
             </div>
