@@ -10,6 +10,7 @@ const CUSTOM_MOODS_KEY = "euphony_custom_song_moods";
 const ACTIVE_MONTH_KEY = "euphony_active_month";
 const MONTHLY_ARCHIVES_KEY = "euphony_monthly_archives";
 const YEARLY_TOTALS_KEY = "euphony_yearly_totals";
+const STATS_UPDATED_AT_KEY = "euphony_stats_updated_at";
 
 const CLOUD_DATA_PREFIX = "__euphony_user_data__:::";
 
@@ -97,7 +98,7 @@ export function getRecentlyPlayedIds(userId = activeUserId) {
     const targetId = userId || activeUserId;
     if (targetId) {
       const userRaw = localStorage.getItem(getUserKey(RECENTLY_PLAYED_KEY, targetId));
-      return userRaw ? JSON.parse(userRaw) : [];
+      return (userRaw ? JSON.parse(userRaw) : []).slice(0, 30);
     }
     return [];
   } catch (e) {
@@ -182,6 +183,27 @@ export function getYearlyTotals(userId = activeUserId) {
   }
 }
 
+export function getLocalUpdatedAt(userId = activeUserId) {
+  try {
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      return localStorage.getItem(getUserKey(STATS_UPDATED_AT_KEY, targetId)) || null;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function setLocalUpdatedAt(dateIso = new Date().toISOString(), userId = activeUserId) {
+  try {
+    const targetId = userId || activeUserId;
+    if (targetId) {
+      localStorage.setItem(getUserKey(STATS_UPDATED_AT_KEY, targetId), dateIso);
+    }
+  } catch (e) {}
+}
+
 export function saveLocalStats({
   playCounts,
   listenSeconds,
@@ -201,7 +223,7 @@ export function saveLocalStats({
       localStorage.setItem(getUserKey(LISTEN_SECONDS_KEY, targetId), JSON.stringify(listenSeconds));
     }
     if (recentlyPlayedIds !== undefined) {
-      localStorage.setItem(getUserKey(RECENTLY_PLAYED_KEY, targetId), JSON.stringify(recentlyPlayedIds));
+      localStorage.setItem(getUserKey(RECENTLY_PLAYED_KEY, targetId), JSON.stringify(recentlyPlayedIds.slice(0, 30)));
     }
     if (customMoods !== undefined) {
       localStorage.setItem(getUserKey(CUSTOM_MOODS_KEY, targetId), JSON.stringify(customMoods));
@@ -215,6 +237,7 @@ export function saveLocalStats({
     if (yearlyTotals !== undefined) {
       localStorage.setItem(getUserKey(YEARLY_TOTALS_KEY, targetId), JSON.stringify(yearlyTotals));
     }
+    setLocalUpdatedAt(new Date().toISOString(), targetId);
   } catch (e) {
     console.warn("Failed saving local stats:", e);
   }
@@ -408,7 +431,7 @@ export function recordRecentlyPlayed(track, userId = activeUserId) {
   try {
     const existing = getRecentlyPlayedIds(targetId);
     const filtered = existing.filter(id => id !== track.id);
-    const updated = [track.id, ...filtered].slice(0, 60);
+    const updated = [track.id, ...filtered].slice(0, 30);
 
     saveLocalStats({ recentlyPlayedIds: updated }, targetId);
     scheduleCloudSync(targetId);
@@ -433,7 +456,7 @@ export function recordQualifiedPlay(track, userId = activeUserId) {
     // 1. Update Recently Played list (keep most recent first, max 60)
     const existing = getRecentlyPlayedIds(targetId);
     const filtered = existing.filter(id => id !== track.id);
-    const updated = [track.id, ...filtered].slice(0, 60);
+    const updated = [track.id, ...filtered].slice(0, 30);
 
     // 2. Increment active month play count
     const counts = { ...getPlayCounts(targetId) };
@@ -659,7 +682,13 @@ export async function syncAccountStats(user) {
         mergedSeconds[id] = Math.max(mergedSeconds[id] || 0, Number(sec) || 0);
       }
 
-      const mergedRecent = Array.from(new Set([...(remoteStats.recentlyPlayedIds || []), ...(localRecent || [])])).slice(0, 60);
+      const localUpdatedAt = getLocalUpdatedAt(targetId);
+      const remoteUpdatedAt = remoteStats.updatedAt;
+      const localTime = localUpdatedAt ? new Date(localUpdatedAt).getTime() : 0;
+      const remoteTime = remoteUpdatedAt ? new Date(remoteUpdatedAt).getTime() : 0;
+      const primaryRecent = localTime >= remoteTime ? (localRecent || []) : (remoteStats.recentlyPlayedIds || []);
+      const secondaryRecent = localTime >= remoteTime ? (remoteStats.recentlyPlayedIds || []) : (localRecent || []);
+      const mergedRecent = Array.from(new Set([...primaryRecent, ...secondaryRecent])).slice(0, 30);
 
       const synced = {
         activeMonth,

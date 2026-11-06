@@ -1,7 +1,7 @@
 -- ====================================================
 -- EUPHONY COMPLETE DATABASE RESTORE SCRIPT
--- Generated: 2026-11-01T12:40:46.638Z
--- Total: 180 songs, 142 artists, 37 playlists, 103 playlist_songs
+-- Generated: 2026-11-06T22:02:34.697Z
+-- Total: 196 songs, 159 artists, 41 playlists, 104 playlist_songs
 -- ====================================================
 
 -- 1. Schema Definitions
@@ -49,7 +49,7 @@ ALTER TABLE public.artists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlists DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.playlist_songs DISABLE ROW LEVEL SECURITY;
 
--- 2. Restore Artists (142 rows)
+-- 2. Restore Artists (159 rows)
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b2b72353-374f-4aab-864d-d0fcce615d56', 'Darshan Raval', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610309/darshan.jpg', '2026-09-24T08:48:14.272076+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('68c3f5d9-7ae8-4c6c-ac6b-754ea8f572b6', 'Sonu Nigam', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791610542/sonu.webp', '2026-09-24T08:50:09.640436+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('69327c50-1d5e-4a38-a24d-576fb4463f96', 'Neeti Mohan', 'https://res.cloudinary.com/cpsimhz1/image/upload/v1791609585/q3wjlfr21srcuzddmfo9.jpg', '2026-09-24T09:03:20.194298+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
@@ -192,8 +192,25 @@ INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('d5e66ccf-7
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('784be2f2-dee6-420f-a896-bfaf51ef07d2', 'Ashish Pandit', NULL, '2026-10-28T13:28:15.781694+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b3f50b82-9394-4d5a-86f3-73b4583d0b88', 'Junaid Wasi', NULL, '2026-10-31T21:05:38.890556+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('834fc789-ed65-4686-9dde-2777f705525a', 'Chirantan Bhatt', NULL, '2026-10-31T21:06:05.745242+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('3efb4c78-3cfd-4dbf-8b3b-fbcf41e41e5b', 'Youngveer', NULL, '2026-11-02T14:01:41.745389+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('21826eae-e93f-40b2-8968-4d35d0ac13d8', 'Meet Bros', NULL, '2026-11-02T14:06:36.324427+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('e7ce59b0-faad-4ace-a7db-a1802c1ac3b9', 'Salman Khan', NULL, '2026-11-02T14:06:50.783659+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('1c9fcd49-bf10-4270-a68a-eb1fe035ea66', 'Sachet Tandon', NULL, '2026-11-02T14:11:56.409127+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('eb9d04e4-ede3-40bd-aaff-ec5c9b670980', 'The Fusion Project', NULL, '2026-11-02T14:12:29.665049+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('c10e22b5-95bc-443b-b3d1-35dd320dbd87', 'Kunaal Vermaa', NULL, '2026-11-02T14:13:39.846514+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('1c83473b-198a-4c93-8300-edfb645d783f', 'Shashwat Sachdev', NULL, '2026-11-02T14:14:44.70131+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('2c27ff61-ef57-48d1-ac91-dd448eed692e', 'Armaan Khan', NULL, '2026-11-02T14:15:13.630884+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('ce8035a9-5d3e-41ac-a0a9-c8d04c14ae96', 'Sanjay Masoomm', NULL, '2026-11-02T14:30:02.195127+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('24667259-0fa5-4904-aced-acfa08e454b2', 'Arko', NULL, '2026-11-02T14:33:13.987675+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('0af236f1-89cc-46f0-a3d2-0f820476e552', 'Yasser Desai', NULL, '2026-11-02T14:33:40.917555+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('2fda6c26-d3f3-43c0-ba8f-c18819f929a8', 'Rashmi Virag', NULL, '2026-11-02T14:38:50.771255+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('b3928b2f-8070-41eb-b788-6a416a322fe6', 'Sachet-Parampara', NULL, '2026-11-02T14:40:37.069983+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('276e23cf-6e57-4b91-b57a-0e6a9608d433', 'Parampara Thakur', NULL, '2026-11-02T14:41:09.023187+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('e0a77b3d-d9e6-4b3e-8035-1e20d4d0dcd0', 'W.i.S.H.', NULL, '2026-11-04T07:34:16.37835+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('f12c12c8-d43b-47e9-ab96-d15a01631428', 'Kirti Sagathia', NULL, '2026-11-05T18:55:15.038297+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
+INSERT INTO public.artists (id, name, image_url, created_at) VALUES ('438bddb4-739f-4422-b811-a785e8b5d12f', 'Pooja AV', NULL, '2026-11-05T18:56:39.47091+00:00') ON CONFLICT (name) DO UPDATE SET image_url = EXCLUDED.image_url;
 
--- 3. Restore Songs (180 rows)
+-- 3. Restore Songs (196 rows)
 INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
   '49b5b3e7-060a-4367-b2f9-83e4b7b2e096',
   'Asal Mein',
@@ -3347,72 +3364,92 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   'Jatin-Lalit, Amit Kumar, Sonu Nigam, Alka Yagnik, Udit Narayan, Kavita Krishnamurthy, Sameer',
   'Kabhi Khushi Kabhie Gham',
   '[mood: Energetic]
-[00:00.56] बोलें चूड़ियाँ, बोले कंगना
-[00:06.82] ਹਾਏ, ਮੈਂ ਹੋ ਗਈ ਤੇਰੀ, ਸਾਜਣਾ
-[00:13.42] ਤੇਰੇ ਬਿਨ ਜੀਉ ਨਹੀਓਂ ਲਗਦਾ
-[00:16.43] ਮੈਂ ਤੇ ਮਰ ਗਈਆਂ
-[00:19.31] ਲੈਜਾ-ਲੈਜਾ, ਦਿਲ ਲੈਜਾ-ਲੈਜਾ
-[00:24.47] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[00:29.42] ਲੈਜਾ-ਲੈਜਾ, ਦਿਲ ਲੈਜਾ-ਲੈਜਾ
-[00:34.24] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[00:41.63] बोलें चूड़ियाँ, बोले कंगना
-[00:46.48] ਹਾਏ, ਮੈਂ ਹੋ ਗਈ ਤੇਰੀ, ਸਾਜਣਾ
-[00:51.55] बोलें चूड़ियाँ, बोले कंगना
-[00:56.59] ਹਾਏ, ਮੈਂ ਹੋ ਗਈ ਤੇਰੀ, ਸਾਜਣਾ
-[01:01.34] ਤੇਰੇ ਬਿਨ ਜੀਉ ਨਹੀਓਂ ਲਗਦਾ
-[01:03.79] ਮੈਂ ਤੇ ਮਰ ਗਈਆਂ
-[01:06.37] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[01:11.08] ਦਿਲ ਲੈਜਾ-ਲੈਜਾ, ਹੋ
-[01:16.49] बोलें चूड़ियाँ, बोले कंगना
-[01:21.10] हाय, मैं हो गया तेरा, साजना
-[01:26.13] ਤੇਰੇ ਬਿਨ ਜੀਉ ਨਹੀਓਂ ਲਗਦਾ
-[01:28.47] ਮੈਂ ਤੇ ਮਰ ਜਾਵਾਂ
-[01:31.06] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[01:35.56] ਦਿਲ ਲੈਜਾ-ਲੈਜਾ, ਹੋ
-[02:18.11] ਹਾਏ-ਹਾਏ, ਮੈਂ ਮਰ ਜਾਵਾਂ, ਮਰ ਜਾਵਾਂ ਤੇਰੇ ਬਿਨ
-[02:23.04] अब तो मेरी रातें कटती तारे गिन-गिन
-[02:27.72] बस तुझ को पुकारा करे, मेरी बिंदिया इशारा करे
-[02:32.67] होए, लश्कारा-लश्कारा, तेरी बिंदिया का लश्कारा
-[02:37.91] ऐसे चमके जैसे चमके चाँद के पास सितारा
-[02:47.65] मेरी पायल बुलाए तुझे, जो रूठे-मनाए तुझे
-[02:52.28] ओ, सजन जी, हाँ, सजन जी
-[02:55.43] कुछ सोचो, कुछ समझो मेरी बात को
-[03:00.19] बोलें चूड़ियाँ, बोले कंगना
-[03:05.15] ਹਾਏ, ਮੈਂ ਹੋ ਗਿਆ ਤੇਰਾ, ਸਾਜਣਾ
-[03:10.16] ਤੇਰੇ ਬਿਨ ਜੀਉ ਨਹੀਓਂ ਲਗਦਾ
-[03:12.71] ਮੈਂ ਤੇ ਮਰ ਜਾਵਾਂ
-[03:15.18] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[03:19.77] ਦਿਲ ਲੈਜਾ-ਲੈਜਾ, ਹੋ
-[04:19.59] अपनी माँग सुहागन हो, संग हमेशा साजन हो
-[04:24.31] आ के मेरी दुनिया में वापस ना जाना
-[04:29.30] सेहरा बाँध के, माही, तू मेरे घर आना
-[04:37.02] ਓਏ, ਸੋਹਣੀ, ਕਿੱਤੀ ਸੋਹਣੀ ਆਜ ਤੂੰ ਲਗਦੀ ਵੇ
-[04:39.49] ਬਸ ਮੇਰੇ ਸਾਥ ਯੇ ਜੋੜੀ ਤੇਰੀ ਸਜਦੀ ਵੇ
-[04:41.86] रूप ऐसा सुहाना तेरा, चाँद भी है दीवाना तेरा
-[04:56.33] जा-रे-जा, ओ, झूठे, तेरी ਗੱਲਾਂ हम ना मानें
-[04:59.23] क्यूँ तारीफ़ें करता है तू? हम तो सब कुछ जानें
-[05:01.15] मेरे दिल की दुआ ये कहे
-[05:04.20] तेरी जोड़ी सलामत रहे
-[05:05.31] ओ, सजन जी, हाँ, सजन जी
-[05:06.64] यूँ ही बीते सारा जीवन साथ में
-[05:14.20] बोलें चूड़ियाँ, बोले कंगना
-[05:19.24] ਹਾਏ, ਮੈਂ ਹੋ ਗਿਆ ਤੇਰਾ, ਸਾਜਣਾ
-[05:24.03] ਮੇਰੇ ਬਿਨ ਜੀਉ ਨਹੀਓਂ ਲਗਦਾ
-[05:26.47] ਮੈਂ ਤੇ ਮਰ ਗਈਆਂ
-[05:29.01] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[05:33.53] ਦਿਲ ਲੈਜਾ-ਲੈਜਾ, ਹੋ
-[05:44.12] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[05:48.33] ਦਿਲ ਲੈਜਾ-ਲੈਜਾ, ਹੋ
-[05:53.31] ਆਜਾ, ਹੀਰੀਏ (ਹੋ, ਜਾ-ਜਾ, ਰਾਂਝਣਾ)
-[05:55.44] ਹੋ, ਆਜਾ, ਹੀਰੀਏ (ਜਾ-ਜਾ, ਰਾਂਝਣਾ)
-[06:02.38] ਲੈਜਾ-ਲੈਜਾ, ਦਿਲ ਲੈਜਾ-ਲੈਜਾ
-[06:04.50] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[06:06.88] ਲੈਜਾ-ਲੈਜਾ, ਦਿਲ ਲੈਜਾ-ਲੈਜਾ
-[06:11.18] ਲੈਜਾ-ਲੈਜਾ, ਸੋਹਣੀਏ, ਲੈਜਾ-ਲੈਜਾ
-[06:32.25] कभी खुशी, कभी ग़म
-[06:36.44] ना ज़ुदा होंगे हम
-[06:40.79] कभी खुशी, कभी ग़म
-[06:47.34]',
+[00:00.14]Bole chudiyan, bole kangana
+[00:06.58]Haye main ho gayi teri saajana
+[00:13.23]Tere bin jiyo naiyyo lag da main te margaiyaan
+[00:19.24]Le jaa-le jaa, dil le jaa-le jaa
+[00:24.16]Le jaa-le jaa, soniye le jaa-le jaa
+[00:29.13]Le jaa-le jaa, dil le jaa-le jaa
+[00:32.85]Ho
+[00:33.95]Le jaa-le jaa, soniye le jaa-le jaa
+[00:37.81]
+[00:37.82]Aa-aa-aa, aa-aa-aa-aa
+[00:41.54]Bole chudiyan, bole kangana
+[00:46.34]Haye main ho gayi teri saajana
+[00:51.03]Bole chudiyan, bole kangana
+[00:56.30]Haye main ho gayi teri saajana
+[01:01.26]Tere bin jiyo naiyyo lag da main te margaiyaan
+[01:06.22]Le jaa-le jaa, soniye le jaa-le jaa
+[01:10.77]Dil le jaa-le jaa, ho-oh-ho
+[01:15.74]
+[01:16.11]Bole chudiyan, bole kangana
+[01:20.97]Haye main ho gaya tera saajana
+[01:26.03]Tere bin jiyo naiyyo lag da main te marjaawan
+[01:30.89]Le jaa-le jaa, soniye le jaa-le jaa
+[01:35.52]Dil le jaa-le jaa, ho-oh-ho
+[01:40.58]
+[02:17.80]Haye- haye main marjaawan-marjaawan tere bin
+[02:22.84]Ab toh meri raatein katati taare gin-gin
+[02:27.78]Bas tujhko pukaara kare, meri bindiya ishaara kare
+[02:32.87]
+[02:32.45]Hoye, lashkaara-lashkaara teri bindiya ka lashkaara
+[02:37.96]Aise chamke jaise chamke chaand ke paas sitaara
+[02:42.62]
+[02:42.63]Oh...
+[02:47.52]Meri paayal bulaaye tujhe
+[02:49.94]Joh roothe manaaye tujhe
+[02:51.94]O sajan ji, haan sajan ji
+[02:55.25]Kuch socho, kuch samjho meri baat ko
+[03:00.08]
+[03:00.19]Bole chudiyan, bole kangana
+[03:05.07]Haye main ho gaya tera saajana
+[03:10.01]Tere bin jiyo naiyyo lag da main te marjaawan
+[03:14.87]Le jaa-le jaa, soniye le jaa-le jaa
+[03:19.65]Dil le jaa-le jaa, ho-oh-ho
+[03:24.56]
+[03:54.56]Apni maang suhaagan ho
+[03:59.46]Sang hamesha saajan ho
+[04:04.60]Aake meri duniya mein vaapas na jaana
+[04:09.41]Sehra baandhke maahi tu mere ghar aana
+[04:14.67]
+[04:19.17]Oye soni kitni soni aaj tu lagdi ve
+[04:24.15]Bas mere saath yeh jodi teri sajdi ve
+[04:28.89]Roop aisa suhaana tera
+[04:31.34]Chaand bhi hain deewana tera
+[04:34.21]
+[04:36.80]Jaa re jaa, oh jhoothe, teri gallaan hum na maane
+[04:41.72]Kyun taareefe karta hain tu humko sab kuch jaane
+[04:46.27]
+[04:46.63]Ho...
+[04:56.15]Mere dil ki dua yeh kahe
+[04:58.75]Teri jodi salaamat rahe
+[05:00.85]O sajan ji, haan sajan ji
+[05:04.07]Yunhi beete saara jeevan saath mein
+[05:09.26]
+[05:14.04]Bole chudiyan, bole kangana
+[05:18.92]Haye main ho gaya tera saajana
+[05:23.94]Tere bin jiyo naiyyo lag da main te margaiyaan
+[05:28.83]Le jaa-le jaa, soniye le jaa-le jaa
+[05:33.48]Dil le jaa-le jaa, ho-oh-ho
+[05:38.49]
+[05:43.62]Le jaa-le jaa, soniye le jaa-le jaa
+[05:48.22]Dil le jaa-le jaa, ho-oh-ho
+[05:52.97]
+[05:53.15]Aaja heeriye
+[05:55.22]Oh jaa-jaa ranjhana
+[05:57.43]Oh aaja heeriye
+[05:59.94]Jaa-jaa ranjhana
+[06:01.55]
+[06:02.12]Le jaa-le jaa, dil le jaa-le jaa
+[06:06.50]Le jaa-le jaa, soniye le jaa-le jaa
+[06:10.89]Le jaa-le jaa, dil le jaa-le jaa
+[06:15.13]Le jaa-le jaa, soniye le jaa-le jaa
+[06:18.32]
+[06:28.20]Aa...
+[06:32.25]Kabhi khushi, kabhi gham
+[06:36.26]Na judaa honge hum
+[06:40.28]Kabhi khushi, kabhi gham
+[06:44.80]',
   'https://res.cloudinary.com/cpsimhz1/video/upload/v1791529116/cwncgc8ycstnxepcnjcv.mp3',
   'https://res.cloudinary.com/cpsimhz1/image/upload/v1791529117/ko7rj7ixhtuhuibkezki.png',
   408,
@@ -7475,7 +7512,8 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   ' Sunn Raha Hai',
   'Ankit Tiwari, Sandeep Nath',
   'Aashiqui 2',
-  '[mood: Chill]
+  '[mood: Electronic]
+[mood: Chill]
 [00:12.26]अपने करम की कर अदाएँ
 [00:16.20]
 [00:35.37]यारा, यारा, यारा
@@ -12307,8 +12345,1034 @@ INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, dur
   FALSE,
   '2026-10-31T21:06:05.687444+00:00'
 ) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'd92ade56-4893-41a9-a3d5-728bc4cc56e6',
+  'Sirf Tum',
+  'Darshan Raval, Youngveer',
+  'The Everafter',
+  '[mood: Yearning] [00:11.84]Ab mein kaisey baat ye maan lun
+[00:17.38]Phirse hoga na mere saath tu
+[00:23.77]Yeh jo behte hi rahein raat-din
+[00:30.12]Aasunwon ko kaise mein rok lun?
+[00:36.20]Hm, kaise ho? Kahaan ho tum?
+[00:40.66]Chaahe ab na puche hum
+[00:43.80]Fikra rahegi ab yeh teri sada
+[00:48.48]O yaara, ek dil mera, ek dil tera
+[00:52.44]Tut gye ve dono, bacheya ki mera?
+[00:55.54]Pure jahaan ko meh kaisey bataaun
+[00:58.20]Mere paas the sirf tum
+[01:01.73]Ek dil mera, ek dil tera
+[01:04.82]Tut gye ve dono, bacheya ki mera?
+[01:07.92]Pure jahaan ko meh kaise bataaun
+[01:10.85]Mere paas the sirf tum
+[01:40.60]Pehle the
+[01:43.66]Jaise hum
+[01:47.05]Waise hi ho jaate hain na
+[01:53.30]Waade jo
+[01:56.12]The apne
+[01:59.20]Fir se wo nibhate hain na
+[02:06.32]Khaali si deewaron se
+[02:09.70]Roj puchne laga hun
+[02:13.05]Milti mohobbat mein kyun ye saza
+[02:17.70]O yaara, ek tera aana, ek tera jaana
+[02:21.80]Aisa Lage ke gujra zamana
+[02:24.90]Pure jahaan ko meh kaise bataaun
+[02:27.72]Mere paas the sirf tum
+[02:30.95]Ek dil mera, ek dil tera
+[02:34.00]Tut gye ve dono, bacheya ki mera?
+[02:37.00]Pure jahaan ko meh kaise bataaun
+[02:40.02]Mere paas the sirf tum
+[02:43.20]Tu kahin nazar aaye toh mujhe sukoon aaye
+[02:49.70]Tabtak judai ka itra hi sahi
+[02:55.95]Teri jo khabar aaye, toh mujhey araam aaye
+[03:02.05]Tu jo nahi, tera zikra hi sahi, zikra hi sahi
+[03:09.95]O yaara, ek khat mera, ek khat tera
+[03:13.98]Raaton mein roye na hoye savera
+[03:17.05]Pure jahaan ko meh kaise bataaun?
+[03:19.95]Mere paas the sirf tum
+[03:23.00]Ek dil mera, ek dil tera
+[03:25.92]Tut gye ve dono bacheya ki mera
+[03:29.15]Pure jahaan ko meh kaise bataaun?
+[03:32.12]Mere paas the sirf tum',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793628212/zrqwmsrrbc15grnmhkhd.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793628185/vsm7mjoutnl82hkpo7sa.jpg',
+  223,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631085/yrmtytzyo8ajfrg3lhir.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631057/ts99mgdcfky91wif7z1y.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631066/ubvlfa1alk4bnwprxunk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631075/gbiguis2qsaxpnrwqzi7.mp3',
+  FALSE,
+  '2026-11-02T14:03:33.479876+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'f1377f3b-533f-47b4-a85a-8ac276cd73e7',
+  'Hangover',
+  'Meet Bros, Salman Khan, Shreya Ghoshal, Kumaar',
+  'Kick',
+  '[mood: Romantic] [00:00.00]
+[00:05.51]Aww
+[00:11.27]
+[00:32.25]Jaane kab hothon pe
+[00:34.23]Dil ne rakh di dil ki baatein
+[00:37.38]Samjha nahi yeh dil
+[00:39.64]Isko hum toh rahe samjhate, aaw..
+[00:42.88]Jaane kab hothon pe
+[00:44.86]Dil ne rakh di dil ki baatein
+[00:48.27]Samjha nahi yeh dil
+[00:50.20]Isko hum toh rahe samjhate
+[00:53.79]Maine dekha tujhe bhula ke
+[00:55.98]Har ek tarqeeb laga ke
+[00:58.58]Har nuskhe ko aazma ke
+[01:01.13]Par dil se kabhi na utre (utre.. utre..)
+[01:06.98]Hangover teri yaadon ka
+[01:12.39]Hangover teri baaton ka
+[01:17.59]Hangover teri yaadon ka
+[01:22.89]Hangover teri baaton ka
+[01:27.98]Jaane kab hothon pe
+[01:30.33]Dil ne rakh di dil ki baatein
+[01:33.49]Samjha nahi yeh dil
+[01:35.67]Isko hum toh rahe samajhate, aaw..
+[01:38.80]Jaane kab hothon pe
+[01:40.85]Dil ne rakh di dil ki baatein
+[01:44.10]Samjha nahi yeh dil
+[01:46.26]Isko hum toh rahe samjhate
+[01:49.18]Maine dekha tujhe bhula ke
+[01:51.94]Har ek tarqeeb laga ke
+[01:54.52]Har nuskhe ko aazma ke
+[01:57.14]Par dil se kabhi na utre (utre.. utre..)
+[02:02.81]Hangover teri yaadon ka
+[02:08.31]Hangover teri baaton ka
+[02:13.63]Hangover teri yaadon ka
+[02:18.97]Hangover teri baaton ka
+[02:26.45]
+[02:26.45]...
+[02:56.22]
+[02:56.22]Jaane kab meri neend udi
+[02:58.93]Soyi soyi raaton mein
+[03:01.62]Jaane kab mera haath gaya
+[03:04.36]Soneya tere haathon mein, aaw..
+[03:07.13]Jaane kab meri neend udi
+[03:09.68]Soyi soyi raaton mein
+[03:12.44]Jaane kab mera haath gaya
+[03:15.70]Soneya tere haathon mein, aaw..
+[03:17.75]Chal badhte teri ore
+[03:19.93]Main jab bhi kadam uthati hoon
+[03:23.28]Jaaun tujh se duur duur
+[03:25.27]Toh paas tere aa jaati hoon
+[03:27.82]Maine dekha tujhe bhulaake
+[03:30.56]Har ek tarqeeb lagaake
+[03:33.16]Har nuskhe ko aazma ke
+[03:35.83]Par dil se kabhi na utre (utre.. utre..)
+[03:41.59]Hangover teri yaadon ka
+[03:46.91]Hangover teri baaton ka
+[03:52.25]Hangover teri yaadon ka
+[03:57.59]Hangover teri baaton ka
+[04:06.48]
+[04:06.48]...
+[04:35.47]
+[04:35.47]Ek jagah pe kabhi ruka nahin
+[04:37.66]Ek jagah pe kabhi tika nahin
+[04:40.43]Jaisa maine chaha mujhe
+[04:43.30]Waisa koyi dikha nahi, aaw..
+[04:45.77]Ek jagah pe kabhi ruka nahin
+[04:48.41]Ek jagah pe kabhi tika nahin
+[04:50.94]Jaisa maine chaha mujhe
+[04:53.75]Waisa koyi dikha nahi, aww..
+[04:56.37]Par jabse dekha tujhe
+[04:58.60]Jo huaa nahi wo hone laga
+[05:01.95]Dil mera mujhe jaga ke
+[05:04.29]Khud seene mein sone laga
+[05:06.54]Meri fitrat badal rahi hai
+[05:09.21]Jaise barqat koyi huyi hai
+[05:11.95]Bas ab toh duaa yehi hai
+[05:14.67]Ki dil se kabhi na utre (utre.. utre..)
+[05:20.26]Hangover teri yaadon ka
+[05:25.67]Hangover teri baaton ka
+[05:30.94]Hangover teri yaadon ka
+[05:36.26]Hangover teri baaton ka
+[05:45.77]Hangover... hangover... hangover...',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793628500/hoevwkd0s5nev5uxf9tb.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793628464/u8dnyngp1f7cxubpccrs.jpg',
+  376,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793630981/r33mowzdgjovbq7qhhfa.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793630936/efy9rjylvpaehmjlggwp.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793630949/jpkpm6xg2hi8oqagtmob.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793630966/p8chjulufbni4u3lwcrb.mp3',
+  FALSE,
+  '2026-11-02T14:08:22.624375+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'f0d235dc-812d-445a-8cd5-295abeed5602',
+  'Humraah',
+  'Sachet Tandon, The Fusion Project, Kunaal Vermaa',
+  'Malang - Unleash The Madness',
+  '[mood: Energetic] [00:16.92]Dil Ko Jaane Kya Hua Hai
+[00:22.80]Milke Apna Sa Tu Laga
+[00:28.92]Kaise Main Karun Bayaan
+[00:35.09]Tumse Ye Junoon Hai Ya Gumaan
+[00:40.44]Aise Mujhe Tum Mile Tum Mile
+[00:46.61]Jaise Koyi Din Khile Din Khile
+[00:52.72]Jaane Kahan Hum Chale Hum Chale
+[00:58.92]Chahe Jo Bhi Dil Kare Dil Kare
+[01:06.17]Jis Raah Jis Raah Bhi Jaaun
+[01:09.30]Tujhko Tujhko Hi Chaahun
+[01:12.38]Humrah Abse Mera Tu
+[01:15.45]Humraah Main Bhi Tera Hu
+[01:18.49]Jis Raah Jis Raah Bhi Jaaun
+[01:21.53]Tujhko Tujhko Hi Chaahun
+[01:24.65]Humrah Abse Mera Tu
+[01:27.49]Humraah Main Bhi Tera Hu
+[01:42.45]Ehshaan Mand Hai Dil Ab Se Tera
+[01:48.52]Ye Marz Kaisa Hai Kya Naam Du Bata
+[01:55.45]Koyi Jaane Na Dusra
+[02:01.57]Samjhe Tuhi Meri Zubaan
+[02:07.79]Maine Mujh Sa Deewanapan
+[02:12.83]Ho Ho Oh Dekha
+[02:16.23]Na Kahin Tere Siva
+[02:18.87]Tujhse Hi Din Shuru Shaamein Dhale
+[02:24.99]Ab Toh Nazar Se Bhi Na Tu Hate
+[02:31.10]Jitni Hai Fursatein Fursatein
+[02:37.27]De Du Saari Main Tujhe Tu Mujhe
+[02:44.66]Jis Raah Jis Raah Bhi Jaaun
+[02:47.83]Tujhko Tujhko Hi Chaahun
+[02:50.83]Humrah Abse Mera Tu
+[02:53.59]Humraah Main Bhi Tera Hu
+[02:56.95]Jis Raah Jis Raah Bhi Jaaun
+[03:00.03]Tujhko Tujhko Hi Chaahun
+[03:03.10]Humrah Abse Mera Tu
+[03:06.03]Humraah Main Bhi Tera Hu
+[03:20.93]Ehshaan Mand Hai Dil Ab Se Tera
+[03:27.01]Ye Marz Kaisa Hai Kya Naam Du Bata
+[03:33.22]Ghar Ki Diwaarein Tuti Hai
+[03:36.29]Dil Ka Jahan Dikha Hai
+[03:39.29]Aankhon Ne Aaj Dekha Khwaabon Ka Aasman Hai
+[03:46.24]Tera Karta Hu Shukriyan
+[03:58.52]Jis Raah Jis Raah Bhi Jaaun
+[04:01.60]Tujhko Tujhko Hi Chaahun
+[04:04.68]Humrah Abse Mera Tu
+[04:07.72]Humraah Main Bhi Tera Hu
+[04:10.80]Jis Raah Jis Raah Bhi Jaaun
+[04:13.87]Tujhko Tujhko Hi Chaahun
+[04:17.00]Humrah Abse Mera Tu
+[04:19.72]Humraah Main Bhi Tera Hu
+[04:25.97]Humraah Main Bhi Tera Hu
+[04:30.85]Jis Raah Jis Raah Main Bhi
+[04:34.77]Ehshaan Mand Hai Dil Ab Se Tera
+[04:40.84]Ye Marz Kaisa Hai Kya Naam Du Bata
+[04:59.81]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793628818/wltpq3vhyz60g7xmn9mi.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793628816/ooucjdfjke4bgjady2ry.jpg',
+  300,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631166/hdqkwevk3flh9uqpsdys.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631135/vphshers9dywh9zpq6w7.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631146/ue99qcuaiuodhynkuot6.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631157/b0g40kzhl1mngrgg0lby.mp3',
+  FALSE,
+  '2026-11-02T14:13:39.783482+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'afd1a7a5-cc17-4129-bd09-f80f7e6d13be',
+  'Gehra Hua',
+  'Shashwat Sachdev, Arijit Singh, Irshad Kamil, Armaan Khan',
+  'Dhurandhar',
+  '[mood: Romantic] [00:17.29]तू अगर मेरी, ये हवाएँ तेरी
+[00:21.01]तू अगर मेरी, सारी राहें तेरी
+[00:24.92]तू अगर मेरी, मैं हूँ तेरा
+[00:30.45]
+[00:32.60]तू अगर मेरी, ये उजाले तेरे
+[00:36.43]तू अगर मेरी, दिल हवाले तेरे
+[00:40.36]तू अगर मेरी, मैं हूँ तेरा
+[00:46.90]बेताब सा मोहब्बत का तू इंक़लाब है
+[00:54.62]मेरा जहाँ तेरी बाँहों में ख़्वाब-ख़्वाब है
+[01:02.22]गहरा हुआ, गहरा हुआ
+[01:09.95]रंग आशिक़ी गहरा हुआ
+[01:17.52]गहरा हुआ, गहरा हुआ
+[01:25.36]दरिया-दुआ गहरा हुआ
+[01:32.50]तेरा हुआ
+[01:34.09]तू अगर मेरी, ये हवाएँ तेरी
+[01:37.85]तू अगर मेरी, सारी राहें तेरी
+[01:41.68]तू अगर मेरी, मैं हूँ तेरा
+[01:47.57]
+[02:04.79]पलकें झपकता है आसमाँ
+[02:08.55]लाखों फ़रिश्तों की है तू जाँ
+[02:12.44]वो पूछते हैं, "रहती कहाँ?"
+[02:15.84]मेरी बाँहों में रहती, उनको बता
+[02:20.15]पलकें झपकता है आसमाँ
+[02:24.04]उसने भी तुझ सा देखा कहाँ
+[02:27.78]हैं रौनक़ें वहाँ, तू है जहाँ
+[02:31.14]मेरी बाँहों में रहना, यही है दुआ
+[02:35.41]तू अगर मेरी, है फ़साना तेरा
+[02:39.37]तू अगर मेरी तो ज़माना तेरा
+[02:43.12]तू अगर मेरी, मैं हूँ तेरा
+[02:49.82]बेताब सा मोहब्बत का तू इंक़लाब है
+[02:57.54]मेरा जहाँ तेरी बाँहों में ख़्वाब-ख़्वाब है
+[03:05.16]गहरा हुआ, गहरा हुआ
+[03:12.87]रंग आशिक़ी गहरा हुआ
+[03:20.09]तेरा हुआ
+[03:21.58]तू अगर मेरी, ये हवाएँ तेरी
+[03:25.32]तू अगर मेरी, सारी राहें तेरी
+[03:29.22]तू अगर मेरी, मैं हूँ तेरा
+[03:36.78]नि सा गा सा गा मा पा गा मा रे
+[03:40.78]नि सा गा सा गा मा पा गा रे सा
+[03:44.50]नि सा गा सा गा मा पा गा मा रे
+[03:48.40]नि सा गा सा गा मा पा गा रे सा
+[03:52.26]तेरी मोहब्बत में जलना भी है
+[03:56.13]और तुझसे बच के ही चलना भी है
+[03:59.96]कुछ रंग अपना बदलना भी है
+[04:03.32]मैंने ढलना तेरे रंग में है सदा
+[04:07.65]तू चाँद है एक धड़कता हुआ
+[04:11.45]चोरी से मुझको ही तकता हुआ
+[04:15.28]सीने से लग के चमकता हुआ
+[04:18.67]मेरी जन्नत का रस्ता तू ही तू हुआ
+[04:22.96]तू अगर मेरी, ये हवाएँ तेरी
+[04:26.87]तू अगर मेरी, सारी राहें तेरी
+[04:30.76]तू अगर मेरी, मैं हूँ तेरा
+[04:37.32]बेताब सा मोहब्बत का तू इंक़लाब है
+[04:45.01]मेरा जहाँ तेरी बाँहों में ख़्वाब-ख़्वाब है
+[04:52.76]गहरा हुआ, गहरा हुआ
+[05:00.34]रंग आशिक़ी गहरा हुआ
+[05:08.08]गहरा हुआ, गहरा हुआ
+[05:15.75]दरिया-दुआ गहरा हुआ
+[05:22.63]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793628956/utiifugq0arf3hrsa7b5.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793628956/egk39ejrrzmxttgqp55p.jpg',
+  362,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631269/xbkrc2ly8mo5yq073vql.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631231/tqlytw9teigzntl52euq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631243/t0b1hfmenz7yzxy230re.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631257/owlnzcea9et5gufjqmhg.mp3',
+  FALSE,
+  '2026-11-02T14:15:57.703892+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '7d2487d6-9a83-4903-918a-4f1ffb98dde9',
+  'Chori Kiya Re Jiya',
+  'Sajid-Wajid, Sonu Nigam, Shreya Ghoshal',
+  'Dabangg',
+  '[mood: Romantic] [00:14.99]साँची साँची तेरी नज़रें एक दर्पण
+[00:22.08]दे दे मन की ये खबरें एक पलछिन
+[00:28.33]अधरों ने कुछ ना कहा रे
+[00:35.32]नैनो ने कह दिया
+[00:43.29]तूने तो पल भर में चोरी किया रे जिया मोरा जिया
+[00:54.08]तूने भी पल भर में चोरी किया रे जिया मोरे पिया
+[01:04.57]
+[01:19.39]गुमसुम गुमसुम रहने वाली हमरी एक गुजरिया रे
+[01:30.23]कल-कल कल-कल बहने लागी जैसे प्रेम की नदिया रे
+[01:40.26]तुझ संग प्रीत हमने लगाई है
+[01:47.42]तब जाके ये रुत्त आई है
+[01:55.38]तूने तो पल भर में चोरी किया रे जिया मोरा जिया
+[02:06.18]तूने भी पल भर में चोरी किया रे जिया मोरे पिया
+[02:17.02]
+[02:35.15]गुपचुप गुपचुप दिल में आया सजना स्वांग रचैया रे
+[02:45.98]पल पल हर पल जिसकी छाया अपना पार लगिया रे
+[02:56.18]तुझ पर जान हमने लुटाई है
+[03:03.15]तब जाके तू संग आई है
+[03:11.20]तूने तो पल भर में चोरी किया रे जिया मोरे पिया
+[03:21.91]हो साँची साँची तेरी नज़रें एक दर्पण
+[03:29.71]देदे मन की ये खबरें एक पलछिन
+[03:35.91]अधरों ने कुछ ना कहा रे
+[03:42.84]नैनो ने कह दिया
+[03:51.07]तूने तो पल भर में चोरी किया रे जिया मोरे पिया
+[04:02.02]तूने भी पल भर में चोरी किया रे जिया मोरा जिया
+[04:12.43]
+',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793629144/ukk8uzgqz4njuvnxw6d5.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793629117/duqz4n07tnlbn0tjaq85.jpg',
+  287,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631361/wmcdr2r0h5o4zyfbbhsa.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631332/iq4m6mkmpxyq2cwlztzn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631342/cqusfxgkpglfcy2wcedo.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631352/vlckdr3h2481fzuduouk.mp3',
+  FALSE,
+  '2026-11-02T14:19:05.501575+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '3f56ede2-ac4c-4a6d-986f-c34ae54b4866',
+  'Ishq Hua',
+  'Salim-Sulaiman, Sonu Nigam, Shreya Ghoshal, Jaideep Sahni',
+  'Aaja Nachle',
+  '[mood: Romantic] [00:00.62]हलचल हुई, ज़रा शोर हुआ
+[00:05.83]दिल चोर हुआ, तेरी ओर हुआ
+[00:11.28]हलचल हुई, ज़रा शोर हुआ
+[00:16.45]दिल चोर हुआ, तेरी ओर हुआ
+[00:22.54]ऐसी चलें जब हवा इश्क़ हुआ ही हुआ
+[00:32.90]ऐसी चलें जब हवा इश्क़ हुआ ही हुआ
+[00:43.19]हलचल हुई, ज़रा शोर हुआ
+[00:48.32]दिल चोर हुआ, तेरी ओर हुआ
+[00:53.88]हलचल हुई (हलचल हुई), ज़रा शोर हुआ
+[00:59.05]दिल चोर हुआ (दिल चोर हुआ), तेरी ओर हुआ (तेरी ओर हुआ)
+[01:05.12]ऐसी चलें जब हवा इश्क़ हुआ ही हुआ
+[01:16.01]ऐसी चलें जब हवा इश्क़ हुआ ही हुआ
+[01:25.82]इश्क़ हुआ, हाए
+[01:32.79]इश्क़ हुआ, हाए
+[01:39.43]
+[01:47.77]पलकों से होठों तक जो राह निकलती है
+[01:53.05]गुज़रे ना वहाँ से ये तेरी ग़लती है
+[01:57.74]ओ, पलकों से होठों तक जो राह निकलती है
+[02:08.01]ओ, रहते हैं अब हम वहाँ इश्क़ हुआ ही हुआ
+[02:18.85]ओ, ऐसी चलें जब हवा इश्क़ हुआ ही हुआ
+[02:31.21](हलचल हुई, ज़रा शोर हुआ)
+[02:36.48](दिल चोर हुआ, तेरी ओर हुआ)
+[02:41.62]
+[02:57.26]इश्क़ हुआ
+[03:02.48]क़दमों को सँभाले, नज़रों का क्या करे?
+[03:07.74]नज़रों को सँभाले तो दिल का क्या करे?
+[03:12.58]ओ, क़दमों को सँभाले, नज़रों का क्या करे?
+[03:22.62]दिल को सँभाले ज़ुबाँ इश्क़ हुआ ही हुआ
+[03:33.95]ऐसी चलें जब हवा इश्क़ हुआ ही हुआ
+[03:44.76]हलचल हुई, ज़रा शोर हुआ
+[03:49.81]दिल चोर हुआ, तेरी ओर हुआ
+[03:55.35]हलचल हुई (हलचल हुई), ज़रा शोर हुआ
+[04:00.35]दिल चोर हुआ (दिल चोर हुआ), तेरी ओर हुआ
+[04:04.53]इश्क़ हुआ, हाँ
+[04:12.28]इश्क़ हुआ
+[04:18.55]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793629440/i42hjjkqys2uaorgmkb1.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793629410/plclfup2eggxadj7f5of.jpg',
+  263,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631486/puwrxla1gibkxbxmmooe.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631457/q3dklhb5ymp1oeijewf1.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631467/eqyc1fqiuozzpe7x24ke.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631477/jfciurozewzov9m8yjz3.mp3',
+  FALSE,
+  '2026-11-02T14:24:02.02858+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'e029da0f-3df4-4e2c-b4d4-8518cd213dbc',
+  'Oh My Love',
+  'Jeet Gannguli, Sonu Nigam, Shreya Ghoshal, Sanjay Masoomm',
+  'Raaz 3',
+  '[mood: Romantic] [00:01.07]You and me together make it all seem right
+[00:10.62]O o hey yea!
+[00:45.31]Tera saath mill gaya
+[00:49.01]Ye jahaan khill gaya
+[00:53.04]Tujhse waasta huaa
+[00:56.96]Harpal hai naya naya
+[01:00.52]Meri raahein tu
+[01:03.12]Chaahein tu, tu dua...
+[01:07.93]Oh My Love
+[01:11.71]Tu hi hai sukoon
+[01:15.47]Tu hi toh qaraar hai mera
+[01:19.62]Oh My Love
+[01:23.23]Be my Love. la ra la...
+[01:30.83]Tu hi toh qaraar hai mera
+[01:34.48]Oh My Love
+[01:52.45]You and me together make it all seem right
+[01:58.89]Khaali-khaali din thhe
+[02:00.34]Khaali-khaali raatein
+[02:02.19]Khaali thi ye zindagi
+[02:05.87]Mehki mehki si ho, behki behki si ho
+[02:09.58]Lamhe huey sharbati
+[02:12.99]Mujhko aasra mila
+[02:17.30]Mera tu jo ho gaya
+[02:20.23]Poori mannatein hui
+[02:24.07]Mujhko toh khuda mila
+[02:27.86]Meri raahein tu
+[02:30.66]Chaahein tu, tu dua...
+[02:35.31]Oh My Love
+[02:39.54]Tu hi hai sukoon
+[02:43.52]Tu hi toh qaraar hai mera
+[02:46.97]Oh my Love
+[02:51.21]Be my Love. la ra la...
+[02:58.55]Tu hi toh qaraar hai mera
+[03:02.28]Oh My Love
+[03:29.93]Ruki ruki si thi
+[03:31.79]Thami thami si thi
+[03:33.75]Dil mein ye dhadkanein
+[03:36.86]O o Jagi jagi si hain
+[03:39.31]Shaamo seher ab toh jismon mein khwahishein
+[03:44.08]Mujhko aasra mila
+[03:47.57]Mera tu jo ho gaya
+[03:51.79]Poori mannatein hui
+[03:55.21]Mujhko toh khuda mila
+[03:59.90]Meri raahein tu
+[04:02.12]Chaahein tu, tu dua...
+[04:06.89]Oh My Love
+[04:11.16]Tu hi hai sukoon
+[04:14.42]Tu hi toh qaraar hai mera
+[04:18.13]Oh my Love
+[04:22.05]Be my Love. la ra ra...
+[04:29.51]Tu hi toh qaraar hai mera
+[04:33.32]Oh My Love...
+[04:39.64]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793629800/is7xlww9yz8i5mzpxm6j.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793629739/sslst0wfofsb6qtkmgje.jpg',
+  298,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631611/tmppifk7d5ecu61e3jk9.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631578/autua8y31ej3hiu7ohlr.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631589/vd0zqsqoguexyapqdzzo.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631600/htmo9sej9bzi05uat6tl.mp3',
+  FALSE,
+  '2026-11-02T14:30:02.118211+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '0c8d22dd-e433-4429-ab90-28355dd44d9f',
+  ' Naino Ne Baandhi',
+  'Arko, Yasser Desai',
+  'Gold',
+  '[mood: Romantic] [00:23.67]दिल से सुन, पिया, ये दिल की दास्ताँ
+[00:29.11]जो लफ़्ज़ों में नहीं हो बयाँ
+[00:35.26]दिल से सुन, पिया, ये दिल की दास्ताँ
+[00:40.88]जो लफ़्ज़ों में नहीं हो बयाँ
+[00:46.19]अब जैसा भी रास्ता
+[00:49.27]टूटेगा ना वास्ता
+[00:52.30]ना रहेगा फ़ासला दरमियाँ
+[00:59.13]नैनों ने बाँधी कैसी डोर रे?
+[01:05.01]नैनों ने बाँधी कैसी डोर रे?
+[01:10.01]हो, मुंसिफ़ ही मेरा, मेरा चोर रे
+[01:16.78]दिल पे चले ना कोई ज़ोर रे
+[01:21.70]हाँ, दिल पे चले ना कोई ज़ोर रे
+[01:27.26]हो, खींचा चला जाए तेरी ओर रे
+[01:34.12]
+[01:56.45]हो, आजा तेरा दर्श दिखा दे, माही
+[01:59.55]मुझे मेरा अक्स दिखा दे, माही
+[02:03.75]तुझसे जुड़ी हैं सब कहानियाँ
+[02:08.19]हो, आजा तेरा दर्श दिखा दे, माही
+[02:11.22]मुझे मेरा अक्स दिखा दे, माही
+[02:15.43]तुझसे जुड़ी हैं सब कहानियाँ
+[02:20.94]
+[02:32.43]चाहे १०० गर्दिशें हों, पर कोई बैर नहीं
+[02:43.68]हम दुनिया से लड़ लेंगे, पर तेरे बग़ैर नहीं
+[02:55.83]दिल से सुन, पिया, ये दिल की दास्ताँ
+[03:01.30]जो लफ़्ज़ों में नहीं हो बयाँ
+[03:06.82]हमसफ़र, हमराज़ तू
+[03:09.83]जिस्म मैं और साँस तू
+[03:12.89]रहना मेरे पास तू यूँ सदा
+[03:19.47]नैनों ने बाँधी कैसी डोर रे?
+[03:24.75]हाँ, नैनों ने बाँधी कैसी डोर रे?
+[03:30.19]हो, मुंसिफ़ ही मेरा, मेरा चोर रे
+[03:37.23]दिल पे चले ना कोई ज़ोर रे
+[03:42.37]हाँ, दिल पे चले ना कोई ज़ोर रे
+[03:47.76]हो, खींचा चला जाए तेरी ओर रे
+[03:52.03]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793630087/zdceelic5r0trxttafcb.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793630081/lsad37vvzacaeqvvgtzx.jpg',
+  242,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631773/fctpunybnwuubqht8czb.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631744/o7yboubqhs7fa5nkj8dq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631755/zrvrwdvhwxqqbniazo3x.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793631764/wcvdzm7ku7geqmw19zty.mp3',
+  FALSE,
+  '2026-11-02T14:34:48.195368+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '88a30c67-044c-4ac4-ab2c-0d091b0025c3',
+  'Jitni Dafa',
+  'Jeet Gannguli, Yasser Desai, Rashmi Virag',
+  'Parmanu',
+  '[mood: Romantic] [00:20.65]जितनी दफ़ा देखूँ तुम्हें, धड़के ज़ोरों से
+[00:30.54]ऐसा तो कभी होता नहीं मिल के ग़ैरों से
+[00:40.69]जितनी दफ़ा देखूँ तुम्हें, धड़के ज़ोरों से
+[00:50.55]ऐसा तो कभी होता नहीं मिल के ग़ैरों से
+[00:59.69]दूर जाना नहीं, तुम को है क़सम
+[01:09.72]ख़ुद से ज़्यादा तुम्हें चाहते हैं, सनम
+[01:19.78]दूर जाना नहीं मुझ से, सनम
+[01:29.63]ख़ुद से ज़्यादा तुम्हें चाहते हैं, सनम
+[01:39.29]
+[02:00.58]दिल में जो भी है तेरा ही तो है
+[02:10.65]चाहे जो माँग लो, रोका किसने है?
+[02:20.63]क़त्ल अगर करना हो, करना धीरे से
+[02:30.67]उफ़ भी नहीं निकलेगी मेरे होंठों से
+[02:39.97]दूर जाना नहीं, तुम को है क़सम
+[02:49.75]ख़ुद से ज़्यादा तुम्हें चाहते हैं, सनम
+[02:59.76]दूर जाना नहीं मुझ से, सनम
+[03:09.76]ख़ुद से ज़्यादा तुम्हें चाहते हैं, सनम
+[03:17.99]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793630329/gq99wmn8oof1exgdbfsn.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793630322/rgg1rhgfkv7u6ekpzczo.jpg',
+  222,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632053/z3nnpyn1zd7utauwiqy9.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632027/z1lmr7gf7is4lstq1glf.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632034/dwu80l7qus27jniiqnom.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632044/uhbnsyifwjxagi2d6fgt.mp3',
+  FALSE,
+  '2026-11-02T14:38:50.707942+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '442bbab3-7409-4ebf-a5a4-2464b1f4ea49',
+  'Pal Pal Dil Ke Paas',
+  'Sachet-Parampara, Arijit Singh, Parampara Thakur',
+  'Pal Pal Dil Ke Paas',
+  '[mood: Romantic] [00:00.66]ਰਹਿਣਾ ਤੂੰ ਪਲ-ਪਲ ਦਿਲ ਕੇ ਪਾਸ
+[00:05.29]जुड़ी रहे तुझ से हर एक साँस
+[00:17.04]ख़ुद पे पहले ना इतना यक़ीं मुझ को हो पाया
+[00:28.78]मुश्किल सी घड़ियाँ आसाँ हुईं, अब जो तू आया
+[00:39.92]एक बात कहूँ तुझ से, तू पास है जो मेरे
+[00:48.76]सीने से तेरे सर को लगा के
+[00:54.27]सुनती मैं रहूँ नाम अपना
+[01:00.22]सीने से तेरे सर को लगा के
+[01:05.96]सुनती मैं रहूँ नाम अपना
+[01:12.05]ਓ, ਲਿਖਦੀ ਤੇਰੇ ਨਾਂ ਜਿੰਦੜੀ, ਜ਼ਾਨੀਏ
+[01:15.84]ਬਸ ਰਹਿਣਾ ਤੇਰੇ ਨਾਲ ਵੇ, ਜ਼ੁਰੀਏ
+[01:19.98]ਰਹਿਣਾ ਤੂੰ ਪਲ-ਪਲ ਦਿਲ ਕੇ ਪਾਸ
+[01:23.74]जुड़ी रहे तुझ से हर एक साँस
+[01:27.49]सीने से तेरे सर को लगा के
+[01:33.02]सुनता मैं रहूँ नाम अपना, ओ
+[01:39.35]नाम अपना
+[01:43.23]
+[01:48.19]ਨਾਲ ਤੇਰੇ ਇੱਕ ਘਰ ਮੈਂ ਸੋਚਾਂ
+[01:52.15]ਬਾਰੀ ਖੋਲ੍ਹਾਂ ਤੇ ਚੰਨ ਦਿਖ ਜਾਵੇ
+[01:55.94]ਅੱਖਾਂ ''ਚ ਬੀਤਣ ਰਾਤਾਂ ਸਾਰੀਆਂ
+[02:00.03]ਜੇ ਮੰਨ ਲਾਗੇ, ਤੇ ਅੱਖ ਨਾ ਲਾਗੇ
+[02:03.58]ਪਿਆਰ ਹੀ ਓੜ੍ਹੇਂ, ਤੇ ਪਿਆਰ ਹੀ ਖਾਣਾ
+[02:07.46]ਵਿੱਚ ਕੋਈ ਆਵੇ ਤੇ ਪਿਆਰ ਹੀ ਆਣਾ
+[02:11.35]ਦੁਨੀਆ ਦੇ ਵਿੱਚ ਅਸੀਂ ਦੁਨੀਆ ਤੋਂ ਦੂਰ
+[02:15.68]ਹੁਣ ਨਾਲ ਤੇਰੇ ਮੇਰਾ ਹਰ ਸਪਨਾ
+[02:21.72]सीने से तेरे सर को लगा के
+[02:27.11]सुनता मैं रहूँ नाम अपना, ओ
+[02:33.76]
+[02:49.91]तेरी उँगलियों से आसमाँ पे
+[02:53.95]खींचूँ एक लंबी लकीर
+[02:57.86]आधा तेरा, आधा मेरा
+[03:01.63]इस जहाँ में हम दो अमीर
+[03:05.62]ਕੋਈ ਨਜ਼ਰ ਨਾ ਆਏ ਮੈਨੂੰ
+[03:07.54]ਤੂੰ ਦੁਨੀਆ ਤੋਂ ਵੱਖਰੀ ਹੋ ਗਈ
+[03:09.52]ਉੱਠਾਂ, ਤੈਨੂੰ ਤੱਕਦਾ ਜਾਵਾਂ
+[03:11.48]तू ही मेरी नौकरी हो गई
+[03:13.52]ਕੋਈ ਨਜ਼ਰ ਨਾ ਆਏ ਮੈਨੂੰ
+[03:15.53]ਤੂੰ ਦੁਨੀਆ ਤੋਂ ਵੱਖਰੀ ਹੋ ਗਈ
+[03:17.44]ਉੱਠਾਂ, ਤੈਨੂੰ ਤੱਕਦਾ ਜਾਵਾਂ
+[03:19.38]तू ही मेरी नौकरी हो गई
+[03:20.95]दूरियाँ एक पल भी ना गवारा हों
+[03:28.40]चल, घूमें दुनिया, फिर संग आवारा हों
+[03:39.15]सीने से तेरे सर को (सीने से)
+[03:41.80]लगा के (तेरे सर को लगा के)
+[03:44.57]सुनता मैं रहूँ नाम अपना, हाँ
+[03:50.88]नाम अपना (नाम अपना)
+[03:58.78]ਰਹਿਣਾ ਤੂੰ ਪਲ-ਪਲ ਦਿਲ ਕੇ ਪਾਸ
+[04:02.51]जुड़ी रहे तुझ से हर एक साँस
+[04:10.53]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793630582/armivgtfbrfrisuwsa7g.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793630560/dxfqvmcmrgokfg9mkrhk.jpg',
+  255,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632117/f5rffjazcdzib76y4xdx.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632086/uw1eryqbn6pvxbzdppaz.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632095/t3atjh8tmvmtofi6gj6c.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632106/ngcagwqpwwqlcv8sfwai.mp3',
+  FALSE,
+  '2026-11-02T14:43:04.276012+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '52b879a7-3102-4815-a612-9d466f8d186d',
+  'Tu Jaane Na',
+  'Pritam, Atif Aslam, Irshad Kamil',
+  'Ajab Prem Ki Ghazab Kahani',
+  '[mood: Yearning] [00:00.00]
+[00:02.13]कैसे बताएँ क्यूँ तुझको चाहें?
+[00:05.94]यारा, बता ना पाएँ
+[00:10.12]बातें दिलों की देखो जो बाक़ी
+[00:13.98]आँखें तुझे समझाएँ
+[00:16.72]तू जाने ना, तू जाने ना
+[00:24.83]तू जाने ना, तू जाने ना
+[00:32.43]मिल के भी हम ना मिले तुमसे ना जाने क्यूँ
+[00:40.59]मीलों के हैं फ़ासले तुमसे ना जाने क्यूँ
+[00:48.45]अंजाने हैं सिलसिले तुमसे ना जाने क्यूँ
+[00:56.49]सपने हैं पलकों तले तुमसे ना जाने क्यूँ
+[01:08.04]कैसे बताएँ क्यूँ तुझको चाहें?
+[01:12.20]यारा, बता ना पाएँ
+[01:16.18]बातें दिलों की देखो जो बाक़ी
+[01:20.18]आँखें तुझे समझाएँ
+[01:22.99]तू जाने ना, तू जाने ना
+[01:30.70]तू जाने ना, तू जाने ना
+[01:39.08]
+[01:44.73]निगाहों में देखो मेरी जो है बस गया
+[01:52.58]वो है मिलता तुमसे हूबहू
+[01:58.46]ओ, जाने तेरी आँखें थीं या बातें थीं वजह
+[02:08.57]हुए तुम जो दिल की आरज़ू
+[02:14.91]तुम पास होके भी, तुम आस होके भी
+[02:22.84]एहसास होके भी अपने नहीं
+[02:28.73]ऐसे हैं हमको गिले तुमसे ना जाने क्यूँ
+[02:36.48]मीलों के हैं फ़ासले तुमसे ना जाने क्यूँ
+[02:48.82]तू जाने ना, तू जाने ना
+[02:56.85]तू जाने ना, तू जाने ना
+[03:05.99]हो, जाने ना, जाने ना, जाने ना
+[03:13.34]हाँ, तू जाने ना
+[03:20.70]ख़यालों में लाखों बातें यूँ तो कह गया
+[03:28.46]बोला कुछ ना तेरे सामने
+[03:34.37]हो, हुए ना बेगाने भी तुम होके और के
+[03:44.41]देखो तुम ना मेरे ही बने
+[03:50.78]अफ़सोस होता है, दिल भी ये रोता है
+[03:58.67]सपने संजोता है, पगला हुआ
+[04:04.59]सोचे ये, हम थे मिले तुमसे ना जाने क्यूँ
+[04:12.72]मीलों के हैं फ़ासले तुमसे ना जाने क्यूँ
+[04:20.40]अंजाने हैं सिलसिले तुमसे ना जाने क्यूँ
+[04:28.42]सपने हैं पलकों तले तुमसे ना जाने क्यूँ
+[04:40.20]कैसे बताएँ क्यूँ तुझको चाहें?
+[04:44.06]यारा, बता ना पाएँ
+[04:47.92]बातें दिलों की देखो जो बाक़ी
+[04:51.93]आँखें तुझे समझाएँ
+[04:54.65]तू जाने ना, तू जाने ना
+[05:02.90]तू जाने ना, तू जाने ना
+[05:10.62]तू जाने ना, तू जाने ना
+[05:16.55](सा रे गा रे गा मा मा मा पा)
+[05:18.71]तू जाने ना, तू जाने ना
+[05:26.74]तू जाने ना, तू जाने ना
+[05:34.72]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793630734/lzyjvj3ycvu4r6inpugl.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793630692/a8g6v6qe83kujkqcw9t0.jpg',
+  342,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632198/gkbz1bcxdr3srodybkww.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632160/p1wqvuyyl97t0pn0zsog.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632172/bxh1ldpkuefgkbag7pta.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793632186/xhrfpe2hs1qaimk8wngx.mp3',
+  FALSE,
+  '2026-11-02T14:45:35.963861+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'c297e2be-0a39-4cc7-9393-8d6adab6e309',
+  'Kasoor',
+  'W.i.S.H.',
+  'Kasoor/Doori',
+  '[mood: Desi Pop] [00:13.90] बहकी-बहकी बातें जो तू करने लगा
+[00:17.00] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[00:20.36] खोया तू ख़यालों में यूँ रहने लगा
+[00:23.43] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[00:27.16] क्यूँ सबर ना रखे तू?
+[00:30.23] पूरा असर मेरा होने दे तू
+[00:33.55] सुबह हो, तू शुरू है
+[00:36.45] You''ve been blowin'' up my phone
+[00:39.68] हँसता मेरी बातों पे तू
+[00:42.77] करता है मैं जो भी कहूँ
+[00:45.86] पड़ा पीछे but it''s kinda cute
+[00:48.88] हूँ मैं तेरा फ़ितूर, got a spell on you
+[00:52.46] बहकी-बहकी बातें जो तू करने लगा
+[00:55.42] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[00:58.81] खोया तू ख़यालों में यूँ रहने लगा
+[01:01.75] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[01:05.25] बहकी-बहकी बातें जो तू करने लगा
+[01:08.28] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[01:11.55] खोया तू ख़यालों में यूँ रहने लगा
+[01:14.70] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[01:19.62] मेरा ही क़सूर है
+[01:25.98] मेरा ही क़सूर है
+[01:29.23] हाँ
+[01:31.08] बना है घर ताश का तू
+[01:34.15] जाता बिख़र जो मैं पास आऊँ
+[01:37.64] एक नज़र में घुमा दूँ तेरी सारी दुनिया यूँ
+[01:43.67] हँसता मेरी बातों पे तू
+[01:46.88] करता है मैं जो भी कहूँ
+[01:50.05] पड़ा पीछे but it''s kinda cute
+[01:52.96] हूँ मैं तेरा फ़ितूर, got a spell on you
+[01:56.46] बहकी-बहकी बातें जो तू करने लगा
+[01:59.46] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[02:02.66] खोया तू ख़यालों में यूँ रहने लगा
+[02:05.73] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[02:09.19] बहकी-बहकी बातें जो तू करने लगा
+[02:12.23] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[02:15.55] खोया तू ख़यालों में यूँ रहने लगा
+[02:18.84] क्या मेरा ही क़सूर है? मेरा ही क़सूर है
+[02:22.69] क़सूर
+[02:25.84] क़सूर है, हाँ
+[02:29.92] मेरा ही क़सूर है
+[02:31.65] बहकी-बहकी बातें जो तू करने लगा
+[02:34.30] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793777701/s43khw5oa1jpxlxlems0.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793777699/d61wyt7kmmbjvadl7fsv.jpg',
+  157,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793778005/c6gj3tcoi0tso2lgu8wr.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793777986/mnyrvurfjqkikrsvm8e3.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793777993/a42wwduxpr4i4pr9qybu.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793777999/wvvckgbghhxxoo0arcln.mp3',
+  FALSE,
+  '2026-11-04T07:35:02.644771+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'c37848c7-c5d6-49d1-9f47-11f10b8f4063',
+  'Yeh Fitoor Mera',
+  'Amit Trivedi, Arijit Singh, Swanand Kirkire',
+  'Fitoor',
+  '[mood: Romantic] [00:28.78] Zindagi ne ki hai kaisi saazishein
+[00:37.30] Poori hui dil ki wo farmaishein
+[00:45.94] Maangi duaa ek tujh tak jaa pahunchi
+[00:50.40] Parvardigara, parvardigara
+[00:54.97] Kaisi suni tune meri khamoshi
+[00:58.86] O parvardigara
+[01:03.07] Ye fitoor mera laaya mujhko hai tere kareeb
+[01:11.97] Ye fitoor mera rehmat teri
+[01:20.43] Ye fitoor mera maine badla re mera naseeb
+[01:29.50] Ye fitoor mera chaahat teri
+[01:36.83] O parvardigara, parvardigara
+[01:42.86] 
+[02:00.90] Dheeme dheeme jal rahi thi khwaishein
+[02:09.52] Dil mein dabi, ghut rahi farmaaishein
+[02:18.13] Banke dhuaan wo
+[02:20.54] Tujh tak jaa pahunchi, parvardigara.
+[02:24.56] 
+[02:26.94] Deewangi ki hadd maine nochi o parvardigara
+[02:35.21] Ye fitoor mera laaya mujhko hai tere kareeb
+[02:43.96] Ye fitoor mera rehmat teri
+[02:52.88] Ye fitoor mera maine badla re mera naseeb
+[03:01.66] Ye fitoor mera chahat teri
+[03:09.29] O parvardigara, parvardigara
+[03:16.14] 
+[03:56.47] Ye fitoor mera laaya mujhko hai tere kareeb
+[04:05.45] Ye fitoor mera rehmat teri
+[04:14.18] Ye fitoor mera maine badla re mera naseeb
+[04:23.04] Ye fitoor mera chahat teri
+[04:31.32] Parvardigara...
+[04:35.90] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793866878/oeu0u2vmd6ooiqolsnmp.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793866862/imlcmhncomidemeawzhc.jpg',
+  283,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867610/g2pq07gto36pk3n867hh.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867577/t3qwrdjvbdxquelrvl97.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867588/h8w66xnjvp1xhghek8ww.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867600/rqqkngw3s4pc47ewz8g6.mp3',
+  FALSE,
+  '2026-11-05T08:21:19.58461+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  'd13aa88e-4d19-4651-91de-56ed23301b8e',
+  'Ishq Mubarak',
+  'Ankit Tiwari, Arijit Singh, Manoj Muntashir',
+  'Tum Bin 2',
+  '[mood: Romantic] [00:00.00]
+[00:15.50]Ishq mubarak dard mubarak
+[00:20.50]Ishq mubarak dard mubarak
+[00:26.00]Ishq mubarak dard mubarak
+[00:31.20]
+[00:32.17]Teri baarishein bhigaaye mujhe
+[00:42.48]Teri hawaaein bahaaye mujhe
+[00:52.43]Paaon tale mere
+[00:57.41]Zameenein chal padi
+[01:02.71]Aisa to kabhi hua hi nahi
+[01:12.70]
+[01:12.77]Ae mere dil mubarak ho
+[01:18.08]Yahi toh pyar hai
+[01:22.97]Ae mere dil mubarak ho
+[01:28.47]Yahi toh pyar hai
+[01:34.35]
+[01:55.40]Ishq mubarak
+[01:58.07]Dard mubarak
+[02:00.47]Ishq mubarak
+[02:03.10]Dard mubarak
+[02:05.85]Ishq mubarak
+[02:08.58]Dard mubarak
+[02:10.84]Ishq mubarak
+[02:13.54]Dard mubarak
+[02:16.28]
+[02:17.69]Aisa lagta hai kyun
+[02:21.10]Teri aankhen jaise
+[02:23.66]Aankhon mein meri reh gayi
+[02:27.45]
+[02:27.95]Kabhi pehle maine na suni jo
+[02:33.87]Aisi baatein keh gayi
+[02:37.35]Tu hi tu hai jo har taraf mere
+[02:42.26]Toh tujhse pare main jaaun kahan
+[02:47.60]Mere dil mubarak ho
+[02:52.41]Yahi toh pyar hai
+[02:57.64]Ae mere dil mubarak ho
+[03:02.87]Yahi toh pyar hai
+[03:09.79]
+[03:31.75]Jahan pehle pehal tu aa mila tha
+[03:37.71]Thehra hoon wahin main bhi
+[03:42.04]Tera dil woh shehar hai
+[03:45.32]Jis shehar se jaake lauta na main kabhi
+[03:51.35]Laapata sa mil jaaun kahin toh
+[03:56.20]Mujhse bhi mujhe mila de zara
+[04:01.45]Ae mere dil mubarak ho
+[04:06.40]Yahi toh pyar hai
+[04:11.55]Ae mere dil mubarak ho
+[04:16.73]Yahi toh pyar hai
+[04:21.83]
+[04:23.32]Ishq mubarak
+[04:26.29]Dard mubarak
+[04:28.73]Ishq mubarak
+[04:31.26]Dard mubarak
+[04:33.70]Ishq mubarak
+[04:36.28]Dard mubarak
+[04:38.71]Ishq mubarak
+[04:41.38]Dard mubarak
+[04:43.27]Ishq mubarak
+[04:49.12]',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867091/hc5wdv39zhdnoipzg1qm.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793867088/hpaomhghwivn2xxjjtpv.jpg',
+  297,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867678/ujqgzpiectzilqwmtmmk.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867647/qpkjgruaszo87fslhss5.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867656/nynqah4orifomvetw5e8.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867668/gz8og2wnbhso3vyobjpx.mp3',
+  FALSE,
+  '2026-11-05T08:24:52.987529+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '503110af-3eed-461f-bb26-7362b1b897d7',
+  'Manwa Laage',
+  'Vishal-Shekhar, Arijit Singh, Shreya Ghoshal, Irshad Kamil',
+  'HAPPY NEW YEAR',
+  '[mood: Romantic] [00:32.38] Manwa laage
+[00:35.25] O manwa laage
+[00:37.17] Laage re sanware
+[00:40.11] Laage re sanware
+[00:42.42] Le tera hua jiya ka, jiya ka, jiya ka ye gaanv re
 
--- 4. Restore Playlists (37 rows)
+[00:47.21] Manwa laage
+[00:49.98] O manwa laage
+[00:51.93] Laage re sanware
+[00:54.97] Laage re sanware
+[00:57.29] Le tera hua jiya ka, jiya ka, jiya ka ye gaanv re
+
+[01:01.79] Musaafir hoon main door ka
+[01:04.74] Deewana hoon main dhoop ka
+[01:07.69] Mujhe na bhaye
+[01:09.75] Na bhaye..na bhaye chaanv re
+
+[01:16.83] Manwa laage
+[01:19.59] O manwa laage
+[01:21.62] Laage re sanware
+[01:24.56] Laage re sanware
+[01:26.88] Le tera hua jiya ka, jiya ka, jiya ka ye gaanv re
+
+[02:02.07] Aisi kaisi boli tere naino ne boli
+[02:05.03] Jaane kyon main doli
+[02:06.42] Aisa lage teri ho li main
+[02:10.13] Tu mera
+
+[02:12.78] Humm.. tune baat kholi
+[02:15.31] Kacche dhaago mein piro li
+[02:16.81] Baaton ki rangoli se na khelun aise holi
+[02:19.78] Main.. naa tera
+
+[02:25.18] O kisi ka toh hoga hi tu
+[02:28.69] Kyun na tujhe main hi jeetun
+
+[02:32.20] Khule khabon mein
+[02:34.19] Jeete hain, jeete hain baawre
+
+[02:39.66] Mann ke dhaage
+[02:42.51] O mann ke dhaage
+[02:44.53] Dhaage pe saanwre
+[02:47.46] Dhaage pe saanwre
+[02:50.03] Hai likha mene tera hi, tera hi, tera hi toh naam re
+
+[03:00.86] Ras bundiya nayan piya raas rache
+[03:03.75] Dil dhad dhad dhadke shor mache
+[03:06.64] Yun dekh sek sa lag jaaye
+[03:09.67] Main jal jaaun bas pyaar bache
+
+[03:26.67] Aise dore daale kaala jaadu naina kaale
+[03:29.43] Tere main hawaale hua seene se laga le
+[03:32.32] Aa.. main tera
+[03:37.94] O.. dono dheeme dheeme jalein
+[03:41.29] Aaja dono aise mile
+[03:44.70] Zameen pe laage, na tere, na mere paanv re
+
+[03:52.30] Manwa laage
+[03:55.29] O manwa laage
+[03:57.21] Laage re sanware
+[04:00.10] Laage re sanware
+[04:02.48] Le tera hua jiya ka, jiya ka, jiya ka ye gaanv re
+
+[04:09.97] Rahoon main tere naino ki, naino ki
+[04:12.34] Naino ki hi chaanv re
+[04:15.93] Le tera hua jiya ka, jiya ka, jiya ka ye gaanv re
+[04:21.87] Rahoon main tere naino ki, naino ki
+[04:24.13] Naino ki hi chaanv re
+[04:32.08] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867294/tmprz4febqut571er6su.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793867284/bh6wljvfo22pr2nady9c.jpg',
+  272,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867744/mu8g7atzxr7ayrbws2aq.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867713/nmiibdephnaje3eijja6.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867723/pegtngrxnqciwm45agdv.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793867734/waghp0phxm64w5mb82fg.mp3',
+  FALSE,
+  '2026-11-05T08:28:15.506052+00:00'
+) ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.songs (id, title, artist, album, lyrics, url, poster_url, duration, stem_vocals, stem_drums, stem_bass, stem_other, needs_stems, created_at) VALUES (
+  '3711e712-762e-42b3-b1af-ec6df2c689c4',
+  'Tum Tak',
+  'A.R. Rahman, Javed Ali, Kirti Sagathia, Pooja AV, Irshad Kamil',
+  'Raanjhanaa',
+  '[mood: Romantic] [00:00.00]
+[00:17.00] ओ
+[00:19.04] मेरी हर मनमानी बस तुम तक
+[00:23.38] बातें बचकानी बस तुम तक
+[00:27.54] मेरी नज़र दीवानी बस तुम तक
+[00:33.32] मेरे सुख-दुख आते जाते सारे
+[00:35.84] तुम तक, तुम तक, तुम तक सोनिया रे
+[00:39.90] तुम तक, तुम तक, तुम तक सोनिया रे
+[00:44.28] तुम तक, तुम तक, अर्ज़ी मेरी
+[00:46.27] फिर आगे जो मर्ज़ी
+[00:48.33] तुम तक, तुम तक अर्ज़ी मेरी
+[00:50.44] फिर तेरी जो मर्ज़ी
+[00:52.02] मेरी हर दुश्वारी बस तुम तक
+[00:56.11] मेरी हर होशियारी बस तुम तक
+[01:00.40] मेरी हर तैयारी बस तुम तक
+[01:04.61] तुम तक, तुम तक, तुम तक, तुम तक
+[01:08.84] मेरी इश्क़ खुमारी बस तुम तक
+[01:14.00]
+[01:48.88] इक तक, इक तक, ना तक
+[01:52.95] गुम सुम, नाज़ुक-नाज़ुक दिल से हम तुम
+[02:00.23] तुम
+[02:01.82] तुम तुम तुम तुम तुम तुम
+[02:04.28] चाबुक नैना मारो
+[02:06.40] मारो तुम तुम तुम तुम तुम तुम
+[02:09.41] तुम
+[02:10.73] मारो ना नैना तुम
+[02:14.26] मारो ना नैना तुम
+[02:19.67] तुम तक
+[02:20.99] चला हूँ तुम तक
+[02:22.93] चलूँगा तुम तक
+[02:25.19] मिला हूँ तुम तक
+[02:27.28] मिलूँगा तुम तक
+[02:29.37] चला हूँ तुम तक
+[02:31.33] चलूँगा तुम तक
+[02:33.34] मिला हूँ तुम तक
+[02:35.35] मिलूँगा तुम तक
+[02:36.67] तुम तक, तुम तक, तुम तक तुम तक, तुम तक, तुम तक, तुम तक
+[02:40.95] तुम तक, तुम तक, तुम तक तुम तक, तुम तक, तुम तक, तुम तक
+[02:45.09] हाँ उखड़ा उखड़ा, मुखड़ा मुखड़ा
+[02:49.28] मुखड़े पे नैना काले
+[02:55.03] लड़ते लड़ते लडे, बढ़ते बढ़ते बढ़े
+[02:59.46] हाँ अपना सजना कभी, सपना सजना कभी
+[03:03.91] मुखड़े पे नैना डाले
+[03:08.38] नैनो की घाट ले जा
+[03:12.88] नैनो की नैय्या
+[03:17.02] पतवार तू है मेरी
+[03:21.57] तू खेवैयय्या
+[03:25.50] जाना है पार तेरे
+[03:29.86] तू ही भंवर है
+[03:33.94] पहुंचेगी पार कैसे
+[03:38.06] नाज़ुक सी नैय्या
+[03:41.37] तुम तक तुम तक तुम तक सोनिया रे
+[03:45.78] तुम तक तुम तक तुम तक सोनिया रे
+[03:49.85] तुम तक तुम तक अर्ज़ी मेरी
+[03:51.98] फिर आगे जो मर्ज़ी
+[03:54.08] तुम तक तुम तक अर्ज़ी मेरी
+[03:56.19] फिर तेरी जो मर्ज़ी
+[03:57.73] मेरी हर दुश्वारी बस तुम तक
+[04:01.83] मेरी हर होशियारी बस तुम तक
+[04:06.09] मेरी हर तैयारी बस तुम तक
+[04:10.37] तुम तक तुम तक तुम तक तुम तक
+[04:14.52] मेरी इश्क़ खुमारी बस तुम तक
+[04:18.77] तुम तक, तुम तक, तुम तक, तुम तक
+[04:23.12] तुम तक, तुम तक, तुम तक, तुम तक
+[04:27.17] मेरी अकल दीवानी तुम तक
+[04:29.10] मेरी सकल जवानी तुम तक
+[04:31.28] मेरी अकल दीवानी तुम तक
+[04:33.33] मेरी सकल जवानी तुम तक
+[04:35.36] मेरी ख़तम कहानी तुम तक
+[04:37.47] मेरी ख़तम कहानी बस तुम तक
+[04:40.11] तुम तक, तुम तक, तुम तक, तुम तक
+[04:42.19] तुम तक, तुम तक, तुम तक, तुम तक
+[04:44.13] तुम तक, तुम तक, तुम तक, तुम तक
+[04:46.13] तुम तक, तुम तक, तुम तक, तुम तक
+[04:48.18] तुम तक, तुम तक, तुम तक
+[04:50.42] तुम
+[04:55.13] ',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793904998/d24tw3krpmnfdhzj0ymc.mp3',
+  'https://res.cloudinary.com/cpsimhz1/image/upload/v1793904996/yyiljfrg7bfouajm3y8y.jpg',
+  306,
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793906245/rorkoqawo0rpg0bcwthh.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793906212/jjmrrp3lgogpyj34nzug.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793906223/wdyp0154i5hyieswlzrr.mp3',
+  'https://res.cloudinary.com/cpsimhz1/video/upload/v1793906234/wtcynxyrruuwg04c6a0c.mp3',
+  FALSE,
+  '2026-11-05T18:56:39.366221+00:00'
+) ON CONFLICT (id) DO NOTHING;
+
+-- 4. Restore Playlists (41 rows)
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('f9a25586-7289-4a1d-b57b-38464f2fd543', 'Songs We Sang', '1427121b-efda-49c6-abdf-59ad35523935', '2026-09-20T11:36:43.898631+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('6588f28e-74cc-4202-a7de-599205a2b100', 'peace out', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-09-21T04:55:01.15482+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('79006896-12a9-4356-8226-555a5c2f6041', 'Liked Songs', '1427121b-efda-49c6-abdf-59ad35523935', '2026-09-24T05:36:00.804275+00:00') ON CONFLICT (id) DO NOTHING;
@@ -12327,27 +13391,31 @@ INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('13d4f26f-0
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('39dec174-5860-466c-b96e-82840ad4b80a', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:45:36.529887+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('e9b1578f-12dc-4708-a762-6b2651487371', 'Liked Songs', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-11T09:51:43.397964+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('01113d88-41a6-4a2f-9846-88ede407d896', 'Liked Songs', '9cebd7da-e93e-4715-b6fd-487ee09e6f2f', '2026-10-12T14:29:37.787009+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":2,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","activeMonth":"2026-11","playCounts":{"f82eeec8-0dfa-4220-9865-dc5ef41dd146":1,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":60,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":120},"recentlyPlayedIds":["f82eeec8-0dfa-4220-9865-dc5ef41dd146","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4","cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1","41fa8b8a-fa9a-4539-8eed-01151434f639","1557fb62-6334-4922-86cb-c37ded9c04d8","51f1833c-800c-451c-8c34-79e667ccae4a","dc6b182a-b1e0-4ab5-876c-9406c4d75568","943fde3e-1809-490b-acd4-83db59006c30","0924bcb2-c1dc-4cdb-a3e7-6881f473f668","684b60fa-6f36-4e0b-b122-dd966f2ef7c3","26fae03b-6bfe-4254-8d90-19f01e8bde31","da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84","4c74c70b-d156-497b-a973-f071fbe422ae","a53e97ce-02e6-454c-b13a-0a26e2956e92","e0089026-ea1d-42dd-9093-a9696de6857b","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","07a53c4b-373d-4075-816e-c32fde3184db","83e790e9-1900-4ff5-ac56-7700d9d88354","923ec288-02e0-4ae2-a13c-accde7ab486e","daac84d3-0e68-40b3-94ea-9b9dbd01677c","c3cfc5bf-1b28-4cff-8626-c818d919b1a4","900af1a9-8b64-4092-913d-9dde80274d93","258e9ddc-de55-467f-bed6-202ee00c3466","8636cd1d-0358-44ef-ac0f-c301bfecf738","a72625ec-ca27-4357-9d70-6f85c17ef9a7","f456351b-e85d-444e-8a17-9fff90e946ca","f840a011-96b7-4b8f-8c0f-e30d4b52037d","14664d25-20dd-4660-a0e1-f9f11fcc98c4","ee60c07f-468b-419b-ad09-1ae770e2fbc4","5ba2a0c3-89ca-4229-9ae9-514806d0363a","acf108a0-de76-41ac-ab5b-d5b1017d4ac4","2b0e12fe-8ceb-426b-b758-6c62e22d783d","e2c1f860-e618-4521-b4f2-46e52fb6314d","bf153fd9-45c8-4c7e-8439-d023cd2fb014","e718bc53-19ab-497e-8ac7-43a2359a19d6","7d68389a-2538-4bfc-a4c7-cf515a572b26","8c853546-b82b-46f6-ba04-0fc90d54965d","9e515d2e-f8a7-41d4-a111-0d5233512391","327248c9-fba5-4973-a853-6041d1b7777c","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9","ffe570a6-d0cb-491d-9cda-f3ba839f6d72","6d493502-16ce-4915-8160-7b36cfd5cd05","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8","eb239fdd-2d58-4f54-9169-985d14dc9ccd","bb75c978-3a90-4772-9293-eadf698df19d","5bc16c90-38c4-4562-9aa8-89cf0785b079","30ad7c9d-0182-444d-b05f-3acac2f9ef35","642a9c68-e797-48ea-8dab-c42287322c26","0591dd49-6c49-40ee-8ec6-996c430b9691","4a14527e-95d0-43c9-a06a-281aebd6ff34","b83a94df-c760-4322-994f-f3ad2a31e883","dc0121d6-b3c4-4d60-aabb-c3000d7e3585","3c6bb417-0b5e-475d-b8f0-3671a51b657b","1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a","0074e3e9-7cc6-42d7-b4ef-999ebacd219e","fe63e132-d030-4bc5-9ce2-a11e077f60ab","4119cb2e-21ef-49b2-bccd-ee85253a1ad1","6b22c41d-1724-4bac-a2df-d9d61f442c95","0ebbc1b7-a451-4540-bbc6-96224926c015"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Pop","0591dd49-6c49-40ee-8ec6-996c430b9691":"Festival","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Pop","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Pop","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party","e6dd87c2-4847-4aef-bcfe-09569d3d1358":"Energetic","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":"Electronic","d6c4f539-c83d-4934-9bbe-41d5c16cdee2":"Romantic","908b2deb-0831-4091-b5e1-dd77e0695a5c":"Romantic","d7f9d821-191e-4f5b-af3e-bfb98b155465":"Romantic","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":"Retro","d17498d3-d2dc-4124-83a4-ae45d66c2aab":"Pop","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":"Pop","f6e83060-33c6-457b-8ccf-b825929b2be4":"Pop","8e0b4d15-45be-49dd-9692-2e171d330c09":"Romantic","d3328021-ffc8-4534-a748-44d195efc3cd":"Romantic","6973477f-4917-4f28-9ff8-888f03de9ba2":"Romantic","c0cbee49-81ba-4e72-8c52-410308ad361f":"Romantic","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":"Sad","2fa75852-1544-407c-a771-b9a2f7688e00":"Energetic","46136499-85f3-4da2-9484-9f451d511905":"Pop","63eb50bd-9772-4c3f-ab26-976301fd2705":"Energetic","d724987f-83a9-4351-bd60-3a7502a87c59":"Pop","f726f995-1776-4a2d-97c4-024cf22e851e":"Classical","9a5b4484-7ea6-4d04-bcd9-b49426cec421":"Romantic","ffe570a6-d0cb-491d-9cda-f3ba839f6d72":"Energetic","dd640b9c-21da-4d72-99ca-6b78c143997a":"Party","2db28891-244e-4cc7-8bbe-b50f54f46bdd":"Pop","39fd084d-c05f-42dc-9cdf-369d47b44153":"Romantic","0f80a99a-c418-4669-88ca-d64a5c857fdc":"Pop","eb4f3985-fd6a-4a20-a48f-10717982804a":"Pop","f7e6d9a4-e9b9-467b-bbf0-30e929696803":"Pop","684b60fa-6f36-4e0b-b122-dd966f2ef7c3":"Romantic","e758b7f7-1169-4bf9-8a41-e883b9f24b3a":"Chill","a26eea36-25f1-4754-a534-13ffd38f7ad5":"Romantic","d84c6343-8fa6-45e3-bc7a-a2803a8b220b":"Energetic","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":"Pop","8c853546-b82b-46f6-ba04-0fc90d54965d":"Pop","94e729cf-448c-490b-9926-bb9f5a1d4d50":"Chill","c0d286b0-5df5-485b-8963-5532c0b47991":"Romantic","10ea99a7-be01-45c2-82fd-14fa0bcadb58":"Chill","c4751b72-883d-40fe-8990-cb7dfeaac47b":"Energetic","3c6bb417-0b5e-475d-b8f0-3671a51b657b":"Romantic","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":"Romantic","e69cc1b8-f224-4cdd-8cae-aef42da87b5b":"Energetic","b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":"Energetic","a44df24d-9512-4327-ba2c-a5e86e4ba7cf":"Energetic","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":"Energetic","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":"Chill","1d83d33b-2146-4427-89b2-5b3c846a294d":"Desi Pop","b83a94df-c760-4322-994f-f3ad2a31e883":"Desi Pop","5ba2a0c3-89ca-4229-9ae9-514806d0363a":"Energetic","7a28b082-d69c-4ff8-ad0f-dbfda05f0685":"Romantic","a18f0c10-38ad-4de3-acd0-6dd637e1de10":"Chill","f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":"Chill","262fa689-d42b-42bf-bf33-b8f53c0c173c":"Classical","b35c820f-6400-4814-ab0e-2bbb1efb8f4a":"Romantic","fb2647d3-d6fa-4150-a8f5-fc841ae176c2":"Party","ebfeeb92-1900-4ad6-aec6-275dcce12453":"Chill","5a8d4c24-fff0-43cd-954f-201770da5be1":"Romantic","0924bcb2-c1dc-4cdb-a3e7-6881f473f668":"Romantic","a9e28652-60ce-46aa-b167-711225e2df54":"Sad","6aa041f9-9aa2-4fa4-882e-db9a4aac209b":"Romantic","f89d39c2-c7bf-48fa-8cd7-f242893f3609":"Romantic","572ad7f8-ea06-4521-bb3c-55410468ede0":"Romantic","14664d25-20dd-4660-a0e1-f9f11fcc98c4":"Energetic","f83a2b6e-e700-40c7-a406-3931b4ce8780":"Chill","daac84d3-0e68-40b3-94ea-9b9dbd01677c":"Sad","477ac65b-7ec7-4995-bfdf-656a0da42e6e":"Desi Pop","ce7b47f5-9331-45ac-b319-406722b07466":"Desi Pop","6b948690-fcfa-4fc9-adaf-7ea6582a89a4":"Chill","c63e6167-400a-4ff9-8c8c-e4737988d5aa":"Romantic","258e9ddc-de55-467f-bed6-202ee00c3466":"Desi Pop","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":"Desi Pop","f54b3464-b992-466d-9b96-8ca95c1ad5ce":"Pop","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":"Energetic","a53e97ce-02e6-454c-b13a-0a26e2956e92":"Sad","0ebbc1b7-a451-4540-bbc6-96224926c015":"Party","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":"Party","15f4bf7c-bb20-400b-b70e-45754916f38a":"Energetic","2b0e12fe-8ceb-426b-b758-6c62e22d783d":"Party","7abc6aed-540e-4cce-9fd5-5d59d45a360a":"Chill","ee60c07f-468b-419b-ad09-1ae770e2fbc4":"Romantic","918ee6bd-06b4-4288-a58c-f89f0389c978":"Energetic","30ad7c9d-0182-444d-b05f-3acac2f9ef35":"Energetic","ccd7fabf-d277-4420-84a8-4e5ff5b66d67":"Chill","ab99af69-2ebc-4543-a1fd-37895121e02f":"Romantic","9e36f778-6b04-4cb3-a674-e4960347cda8":"Chill","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":"Romantic","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":"Energetic","b1beda6e-b846-478f-bae6-d92ec4128556":"Romantic","6f2cc188-8453-4faa-853c-8c4a69917830":"Energetic","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":"Party","61243ae6-1193-4cb1-ab1d-37ef5a95a055":"Monsoon","a0e110cc-62dc-46f7-ba0a-ff8c781b5585":"Monsoon","748d9b27-fec5-4dd9-a872-e3b15582e0b5":"Sad","943fde3e-1809-490b-acd4-83db59006c30":"Monsoon","bc010c39-b880-42e6-91fa-0336d8b0bc6c":"Sad","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":"Romantic","00ebe386-442b-4f95-9825-0ebda1b41813":"Pop","f82eeec8-0dfa-4220-9865-dc5ef41dd146":"Pop","e2c1f860-e618-4521-b4f2-46e52fb6314d":"Chill","6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":"Romantic","e0089026-ea1d-42dd-9093-a9696de6857b":"Pop","6b22c41d-1724-4bac-a2df-d9d61f442c95":"Chill","9a86ca77-4c06-41c4-9270-136103ecce10":"Sad","e932ec12-66bb-42d3-bdba-c2e40fa27623":"Energetic","1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":"Romantic","cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":"Pop","7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":"Chill","03294ca0-8782-4468-a2fe-e138754f3156":"Pop","2579167d-dced-4fca-aebf-e703dff1884b":"Pop","70417a45-7af3-4c1f-97c5-6b9116c31f05":"Romantic","fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":"Energetic","cd9f67bb-f9bb-49a1-a699-df27dedefe25":"Pop","26fae03b-6bfe-4254-8d90-19f01e8bde31":"Pop","787256d8-659b-4297-9514-5e3b4bf87f36":"Chill","f840a011-96b7-4b8f-8c0f-e30d4b52037d":"Chill","a72625ec-ca27-4357-9d70-6f85c17ef9a7":"Energetic","efba21ea-42c2-4657-bc4a-9b3b08e10e07":"Energetic","327248c9-fba5-4973-a853-6041d1b7777c":"Pop","8636cd1d-0358-44ef-ac0f-c301bfecf738":"Energetic","8263c87d-5688-421e-abc4-438d81b41480":"Chill","fe63e132-d030-4bc5-9ce2-a11e077f60ab":"Pop","0074e3e9-7cc6-42d7-b4ef-999ebacd219e":"Pop","f2b7fcd6-959a-4b73-8b53-e5a500643a84":"Energetic","4119cb2e-21ef-49b2-bccd-ee85253a1ad1":"Pop","e088c9c8-d047-46fe-b9de-8d0c1efa344e":"Pop","8b390487-4bb1-48d5-9dcf-447be1265589":"Party","f456351b-e85d-444e-8a17-9fff90e946ca":"Party","acf108a0-de76-41ac-ab5b-d5b1017d4ac4":"Party","eb239fdd-2d58-4f54-9169-985d14dc9ccd":"Festival","1557fb62-6334-4922-86cb-c37ded9c04d8":"Festival","5bc16c90-38c4-4562-9aa8-89cf0785b079":"Festival","7d68389a-2538-4bfc-a4c7-cf515a572b26":"Festival","41fa8b8a-fa9a-4539-8eed-01151434f639":"Pop","c3cfc5bf-1b28-4cff-8626-c818d919b1a4":"Pop","bb75c978-3a90-4772-9293-eadf698df19d":"Chill","bf153fd9-45c8-4c7e-8439-d023cd2fb014":"Pop","4c74c70b-d156-497b-a973-f071fbe422ae":"Romantic","da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":"Romantic","dc6b182a-b1e0-4ab5-876c-9406c4d75568":"Yearning"},"monthlyArchives":{"2026-10":{"playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":2,"e6657092-d62b-4754-a347-548d0f3bde39":10,"e718bc53-19ab-497e-8ac7-43a2359a19d6":3,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":4,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":5,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":3,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":3,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":3,"47d3fd86-a418-444e-9fdd-842ea10d06b7":2,"be6f92a1-abc7-4992-9c9e-96e2701774c9":3,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":3,"4a14527e-95d0-43c9-a06a-281aebd6ff34":2,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":3,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":3,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":2,"46136499-85f3-4da2-9484-9f451d511905":2,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":5,"258e9ddc-de55-467f-bed6-202ee00c3466":5,"8c853546-b82b-46f6-ba04-0fc90d54965d":3,"ab99af69-2ebc-4543-a1fd-37895121e02f":2,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":8,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":7,"fa8e1c6f-b07b-4553-b154-146604e82c05":1,"b83a94df-c760-4322-994f-f3ad2a31e883":5,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":9,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":2,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":7,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":3,"9531118f-2926-4918-9156-ef8a543e757f":3,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":4,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":6,"908b2deb-0831-4091-b5e1-dd77e0695a5c":3,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":3,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"923ec288-02e0-4ae2-a13c-accde7ab486e":8,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":5,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":5,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2,"947df50e-7088-46bc-805f-0ad97369e835":1,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":4,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":2,"15f4bf7c-bb20-400b-b70e-45754916f38a":2,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"5157f0c1-5938-4987-b80d-0329f8758ca1":3,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":4,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":3,"56c68e50-f532-4925-9592-1cddf47850cd":4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"d3328021-ffc8-4534-a748-44d195efc3cd":7,"c55017cd-15ec-4546-99e8-f12bd5626f11":1,"354bb599-a2c0-413e-bbba-70cc7b783841":3,"9e515d2e-f8a7-41d4-a111-0d5233512391":5,"6d493502-16ce-4915-8160-7b36cfd5cd05":6,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":2,"918ee6bd-06b4-4288-a58c-f89f0389c978":2,"39fd084d-c05f-42dc-9cdf-369d47b44153":1,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":1,"0f80a99a-c418-4669-88ca-d64a5c857fdc":1,"6f2cc188-8453-4faa-853c-8c4a69917830":4,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":3,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":3,"00ebe386-442b-4f95-9825-0ebda1b41813":2,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":3,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":3,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":2,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":1,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":5,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":1,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":2,"e2c1f860-e618-4521-b4f2-46e52fb6314d":7,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1,"9a86ca77-4c06-41c4-9270-136103ecce10":1,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":2,"e0089026-ea1d-42dd-9093-a9696de6857b":5,"26fae03b-6bfe-4254-8d90-19f01e8bde31":9,"e932ec12-66bb-42d3-bdba-c2e40fa27623":2,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":4,"6973477f-4917-4f28-9ff8-888f03de9ba2":2,"70417a45-7af3-4c1f-97c5-6b9116c31f05":2,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":2,"900af1a9-8b64-4092-913d-9dde80274d93":7,"787256d8-659b-4297-9514-5e3b4bf87f36":4,"327248c9-fba5-4973-a853-6041d1b7777c":3,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":3,"8636cd1d-0358-44ef-ac0f-c301bfecf738":4,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":7,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":2,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"6b22c41d-1724-4bac-a2df-d9d61f442c95":3,"642a9c68-e797-48ea-8dab-c42287322c26":5,"8263c87d-5688-421e-abc4-438d81b41480":2,"cd1fd534-4f13-443d-966d-3021ba004440":1,"72903aae-1d9a-487d-930f-418cfa6b0205":2,"8e0b4d15-45be-49dd-9692-2e171d330c09":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"bf558395-c784-4100-93eb-cfa239715ca9":1,"07a53c4b-373d-4075-816e-c32fde3184db":3,"c0cbee49-81ba-4e72-8c52-410308ad361f":3,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":2,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":2,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":2,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":6,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":2,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":2,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":2,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":2,"51f1833c-800c-451c-8c34-79e667ccae4a":3,"a26eea36-25f1-4754-a534-13ffd38f7ad5":2,"8b390487-4bb1-48d5-9dcf-447be1265589":5,"f456351b-e85d-444e-8a17-9fff90e946ca":2,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":4,"f83a2b6e-e700-40c7-a406-3931b4ce8780":1,"a53e97ce-02e6-454c-b13a-0a26e2956e92":3,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":2,"f6e83060-33c6-457b-8ccf-b825929b2be4":3,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":2,"5a8d4c24-fff0-43cd-954f-201770da5be1":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":1,"1557fb62-6334-4922-86cb-c37ded9c04d8":6,"5bc16c90-38c4-4562-9aa8-89cf0785b079":1,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2,"41fa8b8a-fa9a-4539-8eed-01151434f639":3,"bb75c978-3a90-4772-9293-eadf698df19d":2,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":2,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":1,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":1,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":3,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":1,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":1,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":1,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":1,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":1,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":1,"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":6,"4c74c70b-d156-497b-a973-f071fbe422ae":1,"943fde3e-1809-490b-acd4-83db59006c30":1,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":1,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":970.7000000000091,"0591dd49-6c49-40ee-8ec6-996c430b9691":871.1000000000091,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":271.29999999999944,"c3e49428-958a-4272-b658-dcc665373ba6":49.500000000000014,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":406.80000000000103,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":340.1000000000001,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":357.1999999999994,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":508.00000000000205,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":529.0000000000014,"47d3fd86-a418-444e-9fdd-842ea10d06b7":376.10000000000065,"be6f92a1-abc7-4992-9c9e-96e2701774c9":487.70000000000215,"f6e83060-33c6-457b-8ccf-b825929b2be4":649.300000000004,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":638.3000000000037,"4a14527e-95d0-43c9-a06a-281aebd6ff34":423.6000000000017,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":418.30000000000086,"b1beda6e-b846-478f-bae6-d92ec4128556":121.89999999999985,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":245.59999999999937,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":662.3000000000056,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":480.700000000002,"a9e28652-60ce-46aa-b167-711225e2df54":213.9999999999994,"c0d286b0-5df5-485b-8963-5532c0b47991":189.99999999999957,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":492.8000000000031,"900af1a9-8b64-4092-913d-9dde80274d93":1354.2999999999975,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":330.80000000000047,"9e515d2e-f8a7-41d4-a111-0d5233512391":787.4000000000066,"e718bc53-19ab-497e-8ac7-43a2359a19d6":520.7000000000023,"46136499-85f3-4da2-9484-9f451d511905":263.99999999999943,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":302.7,"e6657092-d62b-4754-a347-548d0f3bde39":1369.0999999999956,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":285.4999999999994,"bf558395-c784-4100-93eb-cfa239715ca9":214.3999999999995,"86ff8290-aa80-454d-8d35-b408f6463b49":50.60000000000003,"c55017cd-15ec-4546-99e8-f12bd5626f11":186.39999999999975,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":862.8000000000079,"72903aae-1d9a-487d-930f-418cfa6b0205":382.30000000000103,"6d493502-16ce-4915-8160-7b36cfd5cd05":1095.2000000000069,"923ec288-02e0-4ae2-a13c-accde7ab486e":1368.7999999999968,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":1058.0000000000082,"283edc91-b796-45aa-a22e-e5ecf26c164f":241.19999999999962,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":509.10000000000053,"83e790e9-1900-4ff5-ac56-7700d9d88354":20.100000000000005,"258e9ddc-de55-467f-bed6-202ee00c3466":632.4000000000044,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":361.0000000000005,"8c853546-b82b-46f6-ba04-0fc90d54965d":473.500000000002,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":237.89999999999938,"642a9c68-e797-48ea-8dab-c42287322c26":1140.2000000000057,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":374.70000000000084,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":423.0000000000011,"908b2deb-0831-4091-b5e1-dd77e0695a5c":838.2000000000083,"d7f9d821-191e-4f5b-af3e-bfb98b155465":592.2000000000039,"354bb599-a2c0-413e-bbba-70cc7b783841":546.8000000000035,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":286.8999999999996,"947df50e-7088-46bc-805f-0ad97369e835":297.3999999999998,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":41.30000000000001,"8e0b4d15-45be-49dd-9692-2e171d330c09":190.49999999999966,"d3328021-ffc8-4534-a748-44d195efc3cd":1209.9000000000028,"6973477f-4917-4f28-9ff8-888f03de9ba2":505.7000000000028,"c0cbee49-81ba-4e72-8c52-410308ad361f":735.9000000000051,"2fa75852-1544-407c-a771-b9a2f7688e00":20.900000000000002,"63eb50bd-9772-4c3f-ab26-976301fd2705":40.60000000000002,"d724987f-83a9-4351-bd60-3a7502a87c59":87.59999999999995,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":1074.5000000000082,"f726f995-1776-4a2d-97c4-024cf22e851e":35.60000000000001,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":304.7999999999999,"dd640b9c-21da-4d72-99ca-6b78c143997a":61.300000000000026,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":685.6000000000053,"39fd084d-c05f-42dc-9cdf-369d47b44153":303.1999999999998,"0f80a99a-c418-4669-88ca-d64a5c857fdc":170.59999999999962,"eb4f3985-fd6a-4a20-a48f-10717982804a":31.30000000000001,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":181.29999999999964,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":87.49999999999994,"a26eea36-25f1-4754-a534-13ffd38f7ad5":311.10000000000014,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":321.4000000000002,"94e729cf-448c-490b-9926-bb9f5a1d4d50":51.30000000000003,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":91.39999999999995,"c4751b72-883d-40fe-8990-cb7dfeaac47b":217.9999999999995,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":252.29999999999936,"4b17d938-0d77-4ccc-8da7-82cd9167218a":5.4,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":65.50000000000004,"07a53c4b-373d-4075-816e-c32fde3184db":622.2000000000046,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":70.80000000000003,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":626.8000000000046,"6e4bf9a4-092a-42d3-81f0-b8563690b929":275.0999999999995,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":373.80000000000075,"1d83d33b-2146-4427-89b2-5b3c846a294d":299.0999999999994,"b83a94df-c760-4322-994f-f3ad2a31e883":788.7000000000061,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":244.29999999999953,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1173.6000000000045,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":164.69999999999973,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1752.3999999999805,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":11.099999999999998,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":323.3000000000002,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":32.70000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":173.29999999999973,"5157f0c1-5938-4987-b80d-0329f8758ca1":500.80000000000166,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":198.89999999999944,"51f1833c-800c-451c-8c34-79e667ccae4a":375.39999999999935,"ebfeeb92-1900-4ad6-aec6-275dcce12453":6.1,"9531118f-2926-4918-9156-ef8a543e757f":614.8000000000055,"5a8d4c24-fff0-43cd-954f-201770da5be1":131.59999999999985,"fa8e1c6f-b07b-4553-b154-146604e82c05":221.39999999999938,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":338.3000000000005,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":21.500000000000004,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":64.80000000000003,"f83a2b6e-e700-40c7-a406-3931b4ce8780":264.6999999999994,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":203.79999999999956,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":317.3999999999998,"ce7b47f5-9331-45ac-b319-406722b07466":8.2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":375.2000000000007,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":156.69999999999973,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1492.599999999989,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1292.7999999999986,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":829.3000000000075,"a53e97ce-02e6-454c-b13a-0a26e2956e92":572.6000000000007,"0ebbc1b7-a451-4540-bbc6-96224926c015":1575.1999999999873,"56c68e50-f532-4925-9592-1cddf47850cd":532.9000000000033,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":482.1000000000018,"15f4bf7c-bb20-400b-b70e-45754916f38a":367.30000000000086,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":647.9000000000051,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":460.20000000000135,"cd1fd534-4f13-443d-966d-3021ba004440":180.29999999999967,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":329.2000000000002,"918ee6bd-06b4-4288-a58c-f89f0389c978":464.3000000000009,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":603.1000000000041,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":350.8000000000004,"ab99af69-2ebc-4543-a1fd-37895121e02f":361.50000000000074,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":20.400000000000002,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":71.90000000000002,"9e36f778-6b04-4cb3-a674-e4960347cda8":72.90000000000002,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":65.00000000000004,"6f2cc188-8453-4faa-853c-8c4a69917830":1190.4000000000033,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":169.7999999999997,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":400.7000000000007,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":795.2000000000065,"943fde3e-1809-490b-acd4-83db59006c30":212.3999999999995,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":359.80000000000024,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":647.3000000000046,"00ebe386-442b-4f95-9825-0ebda1b41813":342.4000000000003,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":448.0000000000015,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1373.6999999999955,"6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":123.79999999999983,"9a86ca77-4c06-41c4-9270-136103ecce10":186.19999999999962,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":357.0000000000008,"e0089026-ea1d-42dd-9093-a9696de6857b":555.3000000000023,"6b22c41d-1724-4bac-a2df-d9d61f442c95":499.20000000000203,"e932ec12-66bb-42d3-bdba-c2e40fa27623":306.49999999999983,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":193.99999999999977,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":496.3000000000014,"03294ca0-8782-4468-a2fe-e138754f3156":44.700000000000024,"2579167d-dced-4fca-aebf-e703dff1884b":52.10000000000004,"70417a45-7af3-4c1f-97c5-6b9116c31f05":342.20000000000033,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":305.99999999999983,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":403.500000000001,"26fae03b-6bfe-4254-8d90-19f01e8bde31":1241.6000000000088,"787256d8-659b-4297-9514-5e3b4bf87f36":396.2000000000012,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":107.19999999999992,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":215.79999999999956,"327248c9-fba5-4973-a853-6041d1b7777c":406.70000000000135,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":394.50000000000114,"8636cd1d-0358-44ef-ac0f-c301bfecf738":516.2000000000024,"8263c87d-5688-421e-abc4-438d81b41480":364.60000000000076,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":1206.400000000001,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":817.2000000000071,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":255.59999999999937,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":302.09999999999974,"f2b7fcd6-959a-4b73-8b53-e5a500643a84":65.00000000000004,"f456351b-e85d-444e-8a17-9fff90e946ca":316.0000000000001,"8b390487-4bb1-48d5-9dcf-447be1265589":935.2000000000089,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":849.3000000000084,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":354.2000000000001,"1557fb62-6334-4922-86cb-c37ded9c04d8":821.1000000000072,"5bc16c90-38c4-4562-9aa8-89cf0785b079":156.4999999999998,"7d68389a-2538-4bfc-a4c7-cf515a572b26":195.79999999999959,"41fa8b8a-fa9a-4539-8eed-01151434f639":539.4000000000016,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":218.49999999999955,"bb75c978-3a90-4772-9293-eadf698df19d":380.5000000000002,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":520.4000000000013,"4c74c70b-d156-497b-a973-f071fbe422ae":56.70000000000004,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":1711.1000000000085,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":177.79999999999984},"totalPlays":426,"totalSeconds":79033,"archivedAt":"2026-11-01T10:53:37.808Z"}},"yearlyTotals":{"2026":{"playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":2,"e6657092-d62b-4754-a347-548d0f3bde39":10,"e718bc53-19ab-497e-8ac7-43a2359a19d6":3,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":4,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":6,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":3,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":3,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":3,"47d3fd86-a418-444e-9fdd-842ea10d06b7":2,"be6f92a1-abc7-4992-9c9e-96e2701774c9":3,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":3,"4a14527e-95d0-43c9-a06a-281aebd6ff34":2,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":3,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":3,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":2,"46136499-85f3-4da2-9484-9f451d511905":2,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":5,"258e9ddc-de55-467f-bed6-202ee00c3466":5,"8c853546-b82b-46f6-ba04-0fc90d54965d":3,"ab99af69-2ebc-4543-a1fd-37895121e02f":2,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":8,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":7,"fa8e1c6f-b07b-4553-b154-146604e82c05":1,"b83a94df-c760-4322-994f-f3ad2a31e883":5,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":9,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":2,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":7,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":3,"9531118f-2926-4918-9156-ef8a543e757f":3,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":4,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":6,"908b2deb-0831-4091-b5e1-dd77e0695a5c":3,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":3,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"923ec288-02e0-4ae2-a13c-accde7ab486e":8,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":5,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":5,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2,"947df50e-7088-46bc-805f-0ad97369e835":1,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":4,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":2,"15f4bf7c-bb20-400b-b70e-45754916f38a":2,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"5157f0c1-5938-4987-b80d-0329f8758ca1":3,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":4,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":3,"56c68e50-f532-4925-9592-1cddf47850cd":4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"d3328021-ffc8-4534-a748-44d195efc3cd":7,"c55017cd-15ec-4546-99e8-f12bd5626f11":1,"354bb599-a2c0-413e-bbba-70cc7b783841":3,"9e515d2e-f8a7-41d4-a111-0d5233512391":5,"6d493502-16ce-4915-8160-7b36cfd5cd05":6,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":2,"918ee6bd-06b4-4288-a58c-f89f0389c978":2,"39fd084d-c05f-42dc-9cdf-369d47b44153":1,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":1,"0f80a99a-c418-4669-88ca-d64a5c857fdc":1,"6f2cc188-8453-4faa-853c-8c4a69917830":4,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":3,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":3,"00ebe386-442b-4f95-9825-0ebda1b41813":2,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":4,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":3,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":2,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":1,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":5,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":1,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":2,"e2c1f860-e618-4521-b4f2-46e52fb6314d":7,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1,"9a86ca77-4c06-41c4-9270-136103ecce10":1,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":2,"e0089026-ea1d-42dd-9093-a9696de6857b":5,"26fae03b-6bfe-4254-8d90-19f01e8bde31":9,"e932ec12-66bb-42d3-bdba-c2e40fa27623":2,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":4,"6973477f-4917-4f28-9ff8-888f03de9ba2":2,"70417a45-7af3-4c1f-97c5-6b9116c31f05":2,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":2,"900af1a9-8b64-4092-913d-9dde80274d93":7,"787256d8-659b-4297-9514-5e3b4bf87f36":4,"327248c9-fba5-4973-a853-6041d1b7777c":3,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":3,"8636cd1d-0358-44ef-ac0f-c301bfecf738":4,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":7,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":2,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"6b22c41d-1724-4bac-a2df-d9d61f442c95":3,"642a9c68-e797-48ea-8dab-c42287322c26":5,"8263c87d-5688-421e-abc4-438d81b41480":2,"cd1fd534-4f13-443d-966d-3021ba004440":1,"72903aae-1d9a-487d-930f-418cfa6b0205":2,"8e0b4d15-45be-49dd-9692-2e171d330c09":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"bf558395-c784-4100-93eb-cfa239715ca9":1,"07a53c4b-373d-4075-816e-c32fde3184db":3,"c0cbee49-81ba-4e72-8c52-410308ad361f":3,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":2,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":2,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":2,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":6,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":2,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":2,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":2,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":2,"51f1833c-800c-451c-8c34-79e667ccae4a":3,"a26eea36-25f1-4754-a534-13ffd38f7ad5":2,"8b390487-4bb1-48d5-9dcf-447be1265589":5,"f456351b-e85d-444e-8a17-9fff90e946ca":2,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":4,"f83a2b6e-e700-40c7-a406-3931b4ce8780":1,"a53e97ce-02e6-454c-b13a-0a26e2956e92":3,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":2,"f6e83060-33c6-457b-8ccf-b825929b2be4":3,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":2,"5a8d4c24-fff0-43cd-954f-201770da5be1":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":1,"1557fb62-6334-4922-86cb-c37ded9c04d8":6,"5bc16c90-38c4-4562-9aa8-89cf0785b079":1,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2,"41fa8b8a-fa9a-4539-8eed-01151434f639":3,"bb75c978-3a90-4772-9293-eadf698df19d":2,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":2,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":1,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":1,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":3,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":1,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":1,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":1,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":1,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":1,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":1,"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":6,"4c74c70b-d156-497b-a973-f071fbe422ae":1,"943fde3e-1809-490b-acd4-83db59006c30":1,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":1,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":1063.1,"0591dd49-6c49-40ee-8ec6-996c430b9691":871.1000000000091,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":271.29999999999944,"c3e49428-958a-4272-b658-dcc665373ba6":49.500000000000014,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":406.80000000000103,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":340.1000000000001,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":357.1999999999994,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":508.00000000000205,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":529.0000000000014,"47d3fd86-a418-444e-9fdd-842ea10d06b7":376.10000000000065,"be6f92a1-abc7-4992-9c9e-96e2701774c9":487.70000000000215,"f6e83060-33c6-457b-8ccf-b825929b2be4":649.300000000004,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":638.3000000000037,"4a14527e-95d0-43c9-a06a-281aebd6ff34":423.6000000000017,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":418.30000000000086,"b1beda6e-b846-478f-bae6-d92ec4128556":121.89999999999985,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":245.59999999999937,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":662.3000000000056,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":480.700000000002,"a9e28652-60ce-46aa-b167-711225e2df54":213.9999999999994,"c0d286b0-5df5-485b-8963-5532c0b47991":189.99999999999957,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":492.8000000000031,"900af1a9-8b64-4092-913d-9dde80274d93":1354.2999999999975,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":330.80000000000047,"9e515d2e-f8a7-41d4-a111-0d5233512391":787.4000000000066,"e718bc53-19ab-497e-8ac7-43a2359a19d6":520.7000000000023,"46136499-85f3-4da2-9484-9f451d511905":263.99999999999943,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":302.7,"e6657092-d62b-4754-a347-548d0f3bde39":1369.0999999999956,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":285.4999999999994,"bf558395-c784-4100-93eb-cfa239715ca9":214.3999999999995,"86ff8290-aa80-454d-8d35-b408f6463b49":50.60000000000003,"c55017cd-15ec-4546-99e8-f12bd5626f11":186.39999999999975,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":862.8000000000079,"72903aae-1d9a-487d-930f-418cfa6b0205":382.30000000000103,"6d493502-16ce-4915-8160-7b36cfd5cd05":1095.2000000000069,"923ec288-02e0-4ae2-a13c-accde7ab486e":1368.7999999999968,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":1058.0000000000082,"283edc91-b796-45aa-a22e-e5ecf26c164f":241.19999999999962,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":509.10000000000053,"83e790e9-1900-4ff5-ac56-7700d9d88354":20.100000000000005,"258e9ddc-de55-467f-bed6-202ee00c3466":632.4000000000044,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":361.0000000000005,"8c853546-b82b-46f6-ba04-0fc90d54965d":473.500000000002,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":237.89999999999938,"642a9c68-e797-48ea-8dab-c42287322c26":1140.2000000000057,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":374.70000000000084,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":423.0000000000011,"908b2deb-0831-4091-b5e1-dd77e0695a5c":838.2000000000083,"d7f9d821-191e-4f5b-af3e-bfb98b155465":592.2000000000039,"354bb599-a2c0-413e-bbba-70cc7b783841":546.8000000000035,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":286.8999999999996,"947df50e-7088-46bc-805f-0ad97369e835":297.3999999999998,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":41.30000000000001,"8e0b4d15-45be-49dd-9692-2e171d330c09":190.49999999999966,"d3328021-ffc8-4534-a748-44d195efc3cd":1209.9000000000028,"6973477f-4917-4f28-9ff8-888f03de9ba2":505.7000000000028,"c0cbee49-81ba-4e72-8c52-410308ad361f":735.9000000000051,"2fa75852-1544-407c-a771-b9a2f7688e00":20.900000000000002,"63eb50bd-9772-4c3f-ab26-976301fd2705":40.60000000000002,"d724987f-83a9-4351-bd60-3a7502a87c59":87.59999999999995,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":1074.5000000000082,"f726f995-1776-4a2d-97c4-024cf22e851e":35.60000000000001,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":304.7999999999999,"dd640b9c-21da-4d72-99ca-6b78c143997a":61.300000000000026,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":685.6000000000053,"39fd084d-c05f-42dc-9cdf-369d47b44153":303.1999999999998,"0f80a99a-c418-4669-88ca-d64a5c857fdc":170.59999999999962,"eb4f3985-fd6a-4a20-a48f-10717982804a":31.30000000000001,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":181.29999999999964,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":87.49999999999994,"a26eea36-25f1-4754-a534-13ffd38f7ad5":311.10000000000014,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":321.4000000000002,"94e729cf-448c-490b-9926-bb9f5a1d4d50":51.30000000000003,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":91.39999999999995,"c4751b72-883d-40fe-8990-cb7dfeaac47b":217.9999999999995,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":252.29999999999936,"4b17d938-0d77-4ccc-8da7-82cd9167218a":5.4,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":65.50000000000004,"07a53c4b-373d-4075-816e-c32fde3184db":622.2000000000046,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":70.80000000000003,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":626.8000000000046,"6e4bf9a4-092a-42d3-81f0-b8563690b929":275.0999999999995,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":373.80000000000075,"1d83d33b-2146-4427-89b2-5b3c846a294d":299.0999999999994,"b83a94df-c760-4322-994f-f3ad2a31e883":788.7000000000061,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":244.29999999999953,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1173.6000000000045,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":164.69999999999973,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1752.3999999999805,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":11.099999999999998,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":323.3000000000002,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":32.70000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":173.29999999999973,"5157f0c1-5938-4987-b80d-0329f8758ca1":500.80000000000166,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":198.89999999999944,"51f1833c-800c-451c-8c34-79e667ccae4a":375.39999999999935,"ebfeeb92-1900-4ad6-aec6-275dcce12453":6.1,"9531118f-2926-4918-9156-ef8a543e757f":614.8000000000055,"5a8d4c24-fff0-43cd-954f-201770da5be1":131.59999999999985,"fa8e1c6f-b07b-4553-b154-146604e82c05":221.39999999999938,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":338.3000000000005,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":21.500000000000004,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":64.80000000000003,"f83a2b6e-e700-40c7-a406-3931b4ce8780":264.6999999999994,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":203.79999999999956,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":317.3999999999998,"ce7b47f5-9331-45ac-b319-406722b07466":8.2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":375.2000000000007,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":156.69999999999973,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1492.599999999989,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1292.7999999999986,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":829.3000000000075,"a53e97ce-02e6-454c-b13a-0a26e2956e92":572.6000000000007,"0ebbc1b7-a451-4540-bbc6-96224926c015":1575.1999999999873,"56c68e50-f532-4925-9592-1cddf47850cd":532.9000000000033,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":482.1000000000018,"15f4bf7c-bb20-400b-b70e-45754916f38a":367.30000000000086,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":647.9000000000051,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":460.20000000000135,"cd1fd534-4f13-443d-966d-3021ba004440":180.29999999999967,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":329.2000000000002,"918ee6bd-06b4-4288-a58c-f89f0389c978":464.3000000000009,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":603.1000000000041,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":350.8000000000004,"ab99af69-2ebc-4543-a1fd-37895121e02f":361.50000000000074,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":20.400000000000002,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":71.90000000000002,"9e36f778-6b04-4cb3-a674-e4960347cda8":72.90000000000002,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":65.00000000000004,"6f2cc188-8453-4faa-853c-8c4a69917830":1190.4000000000033,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":169.7999999999997,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":400.7000000000007,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":795.2000000000065,"943fde3e-1809-490b-acd4-83db59006c30":212.3999999999995,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":359.80000000000024,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":647.3000000000046,"00ebe386-442b-4f95-9825-0ebda1b41813":342.4000000000003,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":580.3,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1373.6999999999955,"6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":123.79999999999983,"9a86ca77-4c06-41c4-9270-136103ecce10":186.19999999999962,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":357.0000000000008,"e0089026-ea1d-42dd-9093-a9696de6857b":555.3000000000023,"6b22c41d-1724-4bac-a2df-d9d61f442c95":499.20000000000203,"e932ec12-66bb-42d3-bdba-c2e40fa27623":306.49999999999983,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":193.99999999999977,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":496.3000000000014,"03294ca0-8782-4468-a2fe-e138754f3156":44.700000000000024,"2579167d-dced-4fca-aebf-e703dff1884b":52.10000000000004,"70417a45-7af3-4c1f-97c5-6b9116c31f05":342.20000000000033,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":305.99999999999983,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":403.500000000001,"26fae03b-6bfe-4254-8d90-19f01e8bde31":1241.6000000000088,"787256d8-659b-4297-9514-5e3b4bf87f36":396.2000000000012,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":107.19999999999992,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":215.79999999999956,"327248c9-fba5-4973-a853-6041d1b7777c":406.70000000000135,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":394.50000000000114,"8636cd1d-0358-44ef-ac0f-c301bfecf738":516.2000000000024,"8263c87d-5688-421e-abc4-438d81b41480":364.60000000000076,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":1206.400000000001,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":817.2000000000071,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":255.59999999999937,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":302.09999999999974,"f2b7fcd6-959a-4b73-8b53-e5a500643a84":65.00000000000004,"f456351b-e85d-444e-8a17-9fff90e946ca":316.0000000000001,"8b390487-4bb1-48d5-9dcf-447be1265589":935.2000000000089,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":849.3000000000084,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":354.2000000000001,"1557fb62-6334-4922-86cb-c37ded9c04d8":821.1000000000072,"5bc16c90-38c4-4562-9aa8-89cf0785b079":156.4999999999998,"7d68389a-2538-4bfc-a4c7-cf515a572b26":195.79999999999959,"41fa8b8a-fa9a-4539-8eed-01151434f639":539.4000000000016,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":218.49999999999955,"bb75c978-3a90-4772-9293-eadf698df19d":380.5000000000002,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":520.4000000000013,"4c74c70b-d156-497b-a973-f071fbe422ae":56.70000000000004,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":1711.1000000000085,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":177.79999999999984},"totalPlays":428,"totalSeconds":79258}},"updatedAt":"2026-11-01T12:38:48.169Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('2b35caac-5d09-49a2-a0e8-cd414a57c0f5', '__euphony_user_data__:::{"version":2,"userId":"e1f037de-41f6-4ce0-9fc4-f90b4aa27d62","email":"garv.anand187@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["f7e6d9a4-e9b9-467b-bbf0-30e929696803","eb4f3985-fd6a-4a20-a48f-10717982804a","83e790e9-1900-4ff5-ac56-7700d9d88354","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4","283edc91-b796-45aa-a22e-e5ecf26c164f","daac84d3-0e68-40b3-94ea-9b9dbd01677c","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c","c4751b72-883d-40fe-8990-cb7dfeaac47b","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","e6657092-d62b-4754-a347-548d0f3bde39","30ad7c9d-0182-444d-b05f-3acac2f9ef35"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"eb4f3985-fd6a-4a20-a48f-10717982804a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"e6657092-d62b-4754-a347-548d0f3bde39":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1},"listenSeconds":{"283edc91-b796-45aa-a22e-e5ecf26c164f":245.3999999999994,"47d3fd86-a418-444e-9fdd-842ea10d06b7":7.8,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":195.19999999999956,"83e790e9-1900-4ff5-ac56-7700d9d88354":113.99999999999987,"9e515d2e-f8a7-41d4-a111-0d5233512391":56.00000000000003,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1.3,"eb4f3985-fd6a-4a20-a48f-10717982804a":80.49999999999999,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":69.60000000000001,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":197.89999999999955,"e6657092-d62b-4754-a347-548d0f3bde39":180.99999999999963,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":194.4999999999996,"c4751b72-883d-40fe-8990-cb7dfeaac47b":67.80000000000003,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":214.3999999999995,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":106.69999999999987},"totalPlays":11,"totalSeconds":1732,"archivedAt":"2026-11-01T10:53:37.489Z"}},"yearlyTotals":{"2026":{"playCounts":{"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"eb4f3985-fd6a-4a20-a48f-10717982804a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"e6657092-d62b-4754-a347-548d0f3bde39":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1},"listenSeconds":{"283edc91-b796-45aa-a22e-e5ecf26c164f":245.3999999999994,"47d3fd86-a418-444e-9fdd-842ea10d06b7":7.8,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":195.19999999999956,"83e790e9-1900-4ff5-ac56-7700d9d88354":113.99999999999987,"9e515d2e-f8a7-41d4-a111-0d5233512391":56.00000000000003,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1.3,"eb4f3985-fd6a-4a20-a48f-10717982804a":80.49999999999999,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":69.60000000000001,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":197.89999999999955,"e6657092-d62b-4754-a347-548d0f3bde39":180.99999999999963,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":194.4999999999996,"c4751b72-883d-40fe-8990-cb7dfeaac47b":67.80000000000003,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":214.3999999999995,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":106.69999999999987},"totalPlays":11,"totalSeconds":1732}},"updatedAt":"2026-11-01T10:53:37.489Z"}', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-13T08:06:36.196156+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('b51ec0af-c205-4b09-8025-cb3fbadf04ba', '__euphony_user_data__:::{"version":2,"userId":"9a70cd01-9ddd-43bb-97ab-b868721cb2c6","email":"rishabhraj17853@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"monthlyArchives":{},"yearlyTotals":{},"updatedAt":"2026-11-01T10:53:37.170Z"}', '9a70cd01-9ddd-43bb-97ab-b868721cb2c6', '2026-10-14T07:40:25.960109+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('8c6f6915-1a91-4d43-be1a-bbdb5d3f3350', '__euphony_user_data__:::{"version":2,"userId":"1427121b-efda-49c6-abdf-59ad35523935","email":"ayush080705@gmail.com","activeMonth":"2026-11","playCounts":{"f82eeec8-0dfa-4220-9865-dc5ef41dd146":2,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":1,"00ebe386-442b-4f95-9825-0ebda1b41813":2,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":5,"f83a2b6e-e700-40c7-a406-3931b4ce8780":2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1,"354bb599-a2c0-413e-bbba-70cc7b783841":3,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":2,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":3,"8b390487-4bb1-48d5-9dcf-447be1265589":4,"d3328021-ffc8-4534-a748-44d195efc3cd":4,"923ec288-02e0-4ae2-a13c-accde7ab486e":2,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":2,"b83a94df-c760-4322-994f-f3ad2a31e883":1,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":3,"51f1833c-800c-451c-8c34-79e667ccae4a":2,"be6f92a1-abc7-4992-9c9e-96e2701774c9":2,"258e9ddc-de55-467f-bed6-202ee00c3466":1,"70417a45-7af3-4c1f-97c5-6b9116c31f05":1,"642a9c68-e797-48ea-8dab-c42287322c26":3,"8263c87d-5688-421e-abc4-438d81b41480":1,"e2c1f860-e618-4521-b4f2-46e52fb6314d":4,"56c68e50-f532-4925-9592-1cddf47850cd":2,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":2,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":1,"f1377f3b-533f-47b4-a85a-8ac276cd73e7":4,"3f56ede2-ac4c-4a6d-986f-c34ae54b4866":3,"e029da0f-3df4-4e2c-b4d4-8518cd213dbc":3,"0c8d22dd-e433-4429-ab90-28355dd44d9f":6,"442bbab3-7409-4ebf-a5a4-2464b1f4ea49":10,"52b879a7-3102-4815-a612-9d466f8d186d":2,"f0d235dc-812d-445a-8cd5-295abeed5602":5,"88a30c67-044c-4ac4-ab2c-0d091b0025c3":4,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":2,"e932ec12-66bb-42d3-bdba-c2e40fa27623":1,"a53e97ce-02e6-454c-b13a-0a26e2956e92":2,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":3,"afd1a7a5-cc17-4129-bd09-f80f7e6d13be":6,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":1,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":2,"7d2487d6-9a83-4903-918a-4f1ffb98dde9":1,"e6657092-d62b-4754-a347-548d0f3bde39":2,"572ad7f8-ea06-4521-bb3c-55410468ede0":1,"f6e83060-33c6-457b-8ccf-b825929b2be4":3,"eb4f3985-fd6a-4a20-a48f-10717982804a":2,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1,"fa8e1c6f-b07b-4553-b154-146604e82c05":2,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1,"943fde3e-1809-490b-acd4-83db59006c30":2,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":1,"72903aae-1d9a-487d-930f-418cfa6b0205":1,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":2,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":1,"900af1a9-8b64-4092-913d-9dde80274d93":1,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":2,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":1,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":2,"5a8d4c24-fff0-43cd-954f-201770da5be1":2,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":1,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2,"1557fb62-6334-4922-86cb-c37ded9c04d8":1,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":3,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"6b22c41d-1724-4bac-a2df-d9d61f442c95":1,"9531118f-2926-4918-9156-ef8a543e757f":1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":1,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":3,"2579167d-dced-4fca-aebf-e703dff1884b":1,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":1,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":1,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":1,"c297e2be-0a39-4cc7-9393-8d6adab6e309":5,"86ff8290-aa80-454d-8d35-b408f6463b49":3,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":2,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":1,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":3,"8c853546-b82b-46f6-ba04-0fc90d54965d":4,"503110af-3eed-461f-bb26-7362b1b897d7":2,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"d13aa88e-4d19-4651-91de-56ed23301b8e":8,"c37848c7-c5d6-49d1-9f47-11f10b8f4063":4,"d92ade56-4893-41a9-a3d5-728bc4cc56e6":15,"3711e712-762e-42b3-b1af-ec6df2c689c4":7,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":2,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"8636cd1d-0358-44ef-ac0f-c301bfecf738":2,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":1,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":1,"39fd084d-c05f-42dc-9cdf-369d47b44153":1,"26fae03b-6bfe-4254-8d90-19f01e8bde31":1,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":2,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"918ee6bd-06b4-4288-a58c-f89f0389c978":2,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"6d493502-16ce-4915-8160-7b36cfd5cd05":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":60,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":336.2999999999994,"bb75c978-3a90-4772-9293-eadf698df19d":10.6,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":645.0000000000014,"00ebe386-442b-4f95-9825-0ebda1b41813":117.50000000000004,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":1314.80000000001,"f83a2b6e-e700-40c7-a406-3931b4ce8780":620.0000000000009,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":168.6999999999999,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":222.09999999999965,"354bb599-a2c0-413e-bbba-70cc7b783841":515.7999999999993,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":466.49999999999966,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":637.3000000000026,"8b390487-4bb1-48d5-9dcf-447be1265589":860.2000000000052,"d3328021-ffc8-4534-a748-44d195efc3cd":402.6999999999995,"923ec288-02e0-4ae2-a13c-accde7ab486e":297.09999999999945,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":341.4999999999992,"b83a94df-c760-4322-994f-f3ad2a31e883":188.1999999999998,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":291.8999999999996,"83e790e9-1900-4ff5-ac56-7700d9d88354":145.09999999999994,"51f1833c-800c-451c-8c34-79e667ccae4a":0.9,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":496.9999999999993,"be6f92a1-abc7-4992-9c9e-96e2701774c9":190.09999999999974,"258e9ddc-de55-467f-bed6-202ee00c3466":165.19999999999985,"70417a45-7af3-4c1f-97c5-6b9116c31f05":174.29999999999984,"642a9c68-e797-48ea-8dab-c42287322c26":464.6999999999996,"8263c87d-5688-421e-abc4-438d81b41480":110.70000000000005,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":238.09999999999962,"e2c1f860-e618-4521-b4f2-46e52fb6314d":983.0000000000073,"56c68e50-f532-4925-9592-1cddf47850cd":458.29999999999933,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":296.79999999999944,"a53e97ce-02e6-454c-b13a-0a26e2956e92":100.90000000000003,"7d2487d6-9a83-4903-918a-4f1ffb98dde9":324.09999999999957,"f1377f3b-533f-47b4-a85a-8ac276cd73e7":505.59999999999985,"d92ade56-4893-41a9-a3d5-728bc4cc56e6":861.6000000000056,"f0d235dc-812d-445a-8cd5-295abeed5602":1045.200000000008,"afd1a7a5-cc17-4129-bd09-f80f7e6d13be":1842.0000000000073,"3f56ede2-ac4c-4a6d-986f-c34ae54b4866":304.7999999999997,"e029da0f-3df4-4e2c-b4d4-8518cd213dbc":127.00000000000003,"0c8d22dd-e433-4429-ab90-28355dd44d9f":854.0000000000053,"88a30c67-044c-4ac4-ab2c-0d091b0025c3":649.3000000000015,"442bbab3-7409-4ebf-a5a4-2464b1f4ea49":1239.4000000000096,"52b879a7-3102-4815-a612-9d466f8d186d":78.50000000000004,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":582.6000000000004,"e932ec12-66bb-42d3-bdba-c2e40fa27623":201.9999999999998,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":224.49999999999966,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":90.10000000000001,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":226.29999999999964,"e6657092-d62b-4754-a347-548d0f3bde39":458.69999999999925,"572ad7f8-ea06-4521-bb3c-55410468ede0":205.0999999999997,"f6e83060-33c6-457b-8ccf-b825929b2be4":527.5999999999999,"eb4f3985-fd6a-4a20-a48f-10717982804a":247.0999999999995,"908b2deb-0831-4091-b5e1-dd77e0695a5c":329.8999999999996,"86ff8290-aa80-454d-8d35-b408f6463b49":68.60000000000001,"fa8e1c6f-b07b-4553-b154-146604e82c05":464.29999999999933,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":200.6999999999997,"943fde3e-1809-490b-acd4-83db59006c30":71.50000000000003,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":195.99999999999977,"72903aae-1d9a-487d-930f-418cfa6b0205":214.29999999999964,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":397.79999999999933,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":106.2,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":22.899999999999995,"8636cd1d-0358-44ef-ac0f-c301bfecf738":792.8000000000037,"900af1a9-8b64-4092-913d-9dde80274d93":68.40000000000003,"7d68389a-2538-4bfc-a4c7-cf515a572b26":447.1999999999993,"5bc16c90-38c4-4562-9aa8-89cf0785b079":8.200000000000001,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":478.8999999999993,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":395.59999999999934,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":227.19999999999968,"5a8d4c24-fff0-43cd-954f-201770da5be1":274.5999999999995,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":331.89999999999947,"1557fb62-6334-4922-86cb-c37ded9c04d8":166.89999999999992,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":689.000000000001,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":252.19999999999948,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":0.6,"6b22c41d-1724-4bac-a2df-d9d61f442c95":88.30000000000005,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":24.1,"dd640b9c-21da-4d72-99ca-6b78c143997a":0.6,"9531118f-2926-4918-9156-ef8a543e757f":32.50000000000001,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":215.89999999999975,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":586.2000000000003,"2579167d-dced-4fca-aebf-e703dff1884b":231.09999999999962,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":216.79999999999973,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":173.29999999999984,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":255.8999999999995,"c297e2be-0a39-4cc7-9393-8d6adab6e309":629.5000000000016,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":332.29999999999933,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":161.79999999999993,"c37848c7-c5d6-49d1-9f47-11f10b8f4063":881.9000000000049,"d13aa88e-4d19-4651-91de-56ed23301b8e":968.6000000000066,"503110af-3eed-461f-bb26-7362b1b897d7":56.600000000000016,"8e0b4d15-45be-49dd-9692-2e171d330c09":24.399999999999995,"8c853546-b82b-46f6-ba04-0fc90d54965d":624.6000000000015,"15f4bf7c-bb20-400b-b70e-45754916f38a":17.5,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":262.09999999999945,"41fa8b8a-fa9a-4539-8eed-01151434f639":3.6999999999999997,"4a14527e-95d0-43c9-a06a-281aebd6ff34":9.6,"ce7b47f5-9331-45ac-b319-406722b07466":2.7,"1d83d33b-2146-4427-89b2-5b3c846a294d":2,"6973477f-4917-4f28-9ff8-888f03de9ba2":3,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1.7000000000000002,"c0cbee49-81ba-4e72-8c52-410308ad361f":1,"c0d286b0-5df5-485b-8963-5532c0b47991":286.39999999999947,"947df50e-7088-46bc-805f-0ad97369e835":5.6,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":5.3999999999999995,"3711e712-762e-42b3-b1af-ec6df2c689c4":1384.0000000000107,"918ee6bd-06b4-4288-a58c-f89f0389c978":207.19999999999976,"26fae03b-6bfe-4254-8d90-19f01e8bde31":178.19999999999982,"bf558395-c784-4100-93eb-cfa239715ca9":0.9,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":279.79999999999944,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":329.29999999999944,"787256d8-659b-4297-9514-5e3b4bf87f36":8.4,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":57.20000000000003,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":1.3,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":246.29999999999953,"6e4bf9a4-092a-42d3-81f0-b8563690b929":331.89999999999935,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":200.19999999999973,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":12.099999999999998,"39fd084d-c05f-42dc-9cdf-369d47b44153":214.7999999999997,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":286.79999999999944,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":304.2999999999995,"ebfeeb92-1900-4ad6-aec6-275dcce12453":1.6,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":311.2999999999995,"6d493502-16ce-4915-8160-7b36cfd5cd05":218.09999999999962},"recentlyPlayedIds":["f82eeec8-0dfa-4220-9865-dc5ef41dd146","3cfe46d0-7912-4d3b-bc38-539d3b775bcf","d8ffecc7-42ea-432b-8ec1-a79366bc2da7","6d493502-16ce-4915-8160-7b36cfd5cd05","f0d235dc-812d-445a-8cd5-295abeed5602","7d68389a-2538-4bfc-a4c7-cf515a572b26","c3cfc5bf-1b28-4cff-8626-c818d919b1a4","918ee6bd-06b4-4288-a58c-f89f0389c978","c94a4670-1f14-4e93-8e18-6a75c6562d6f","afd1a7a5-cc17-4129-bd09-f80f7e6d13be","39fd084d-c05f-42dc-9cdf-369d47b44153","c297e2be-0a39-4cc7-9393-8d6adab6e309","3711e712-762e-42b3-b1af-ec6df2c689c4","8c853546-b82b-46f6-ba04-0fc90d54965d","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7","d13aa88e-4d19-4651-91de-56ed23301b8e","d92ade56-4893-41a9-a3d5-728bc4cc56e6","c0d286b0-5df5-485b-8963-5532c0b47991","503110af-3eed-461f-bb26-7362b1b897d7","fb2647d3-d6fa-4150-a8f5-fc841ae176c2","fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8","f54b3464-b992-466d-9b96-8ca95c1ad5ce","9531118f-2926-4918-9156-ef8a543e757f","ffe570a6-d0cb-491d-9cda-f3ba839f6d72","6b22c41d-1724-4bac-a2df-d9d61f442c95","5a8d4c24-fff0-43cd-954f-201770da5be1","bf153fd9-45c8-4c7e-8439-d023cd2fb014","cd9f67bb-f9bb-49a1-a699-df27dedefe25","442bbab3-7409-4ebf-a5a4-2464b1f4ea49","900af1a9-8b64-4092-913d-9dde80274d93"],"customMoods":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":"Pop","0591dd49-6c49-40ee-8ec6-996c430b9691":"Festival","49b5b3e7-060a-4367-b2f9-83e4b7b2e096":"Sad","c3e49428-958a-4272-b658-dcc665373ba6":"Sad","9e515d2e-f8a7-41d4-a111-0d5233512391":"Romantic","e718bc53-19ab-497e-8ac7-43a2359a19d6":"Romantic","900af1a9-8b64-4092-913d-9dde80274d93":"Desi Pop","5bfb6815-217d-4173-b8c8-93b69f3a7c0b":"Pop","86ff8290-aa80-454d-8d35-b408f6463b49":"Romantic","cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":"Pop","72903aae-1d9a-487d-930f-418cfa6b0205":"Party","47d3fd86-a418-444e-9fdd-842ea10d06b7":"Energetic","6d493502-16ce-4915-8160-7b36cfd5cd05":"Sad","be6f92a1-abc7-4992-9c9e-96e2701774c9":"Chill","923ec288-02e0-4ae2-a13c-accde7ab486e":"Romantic","c94a4670-1f14-4e93-8e18-6a75c6562d6f":"Desi Pop","283edc91-b796-45aa-a22e-e5ecf26c164f":"Sad","83e790e9-1900-4ff5-ac56-7700d9d88354":"Party","e6dd87c2-4847-4aef-bcfe-09569d3d1358":"Energetic","bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":"Electronic","d6c4f539-c83d-4934-9bbe-41d5c16cdee2":"Romantic","908b2deb-0831-4091-b5e1-dd77e0695a5c":"Romantic","d7f9d821-191e-4f5b-af3e-bfb98b155465":"Romantic","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":"Retro","d17498d3-d2dc-4124-83a4-ae45d66c2aab":"Pop","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":"Pop","f6e83060-33c6-457b-8ccf-b825929b2be4":"Pop","8e0b4d15-45be-49dd-9692-2e171d330c09":"Romantic","d3328021-ffc8-4534-a748-44d195efc3cd":"Romantic","6973477f-4917-4f28-9ff8-888f03de9ba2":"Romantic","c0cbee49-81ba-4e72-8c52-410308ad361f":"Romantic","e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":"Sad","2fa75852-1544-407c-a771-b9a2f7688e00":"Energetic","46136499-85f3-4da2-9484-9f451d511905":"Pop","63eb50bd-9772-4c3f-ab26-976301fd2705":"Energetic","d724987f-83a9-4351-bd60-3a7502a87c59":"Pop","f726f995-1776-4a2d-97c4-024cf22e851e":"Classical","9a5b4484-7ea6-4d04-bcd9-b49426cec421":"Romantic","ffe570a6-d0cb-491d-9cda-f3ba839f6d72":"Energetic","dd640b9c-21da-4d72-99ca-6b78c143997a":"Party","2db28891-244e-4cc7-8bbe-b50f54f46bdd":"Pop","39fd084d-c05f-42dc-9cdf-369d47b44153":"Romantic","0f80a99a-c418-4669-88ca-d64a5c857fdc":"Pop","eb4f3985-fd6a-4a20-a48f-10717982804a":"Pop","f7e6d9a4-e9b9-467b-bbf0-30e929696803":"Pop","684b60fa-6f36-4e0b-b122-dd966f2ef7c3":"Romantic","e758b7f7-1169-4bf9-8a41-e883b9f24b3a":"Chill","a26eea36-25f1-4754-a534-13ffd38f7ad5":"Romantic","d84c6343-8fa6-45e3-bc7a-a2803a8b220b":"Energetic","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":"Pop","8c853546-b82b-46f6-ba04-0fc90d54965d":"Pop","94e729cf-448c-490b-9926-bb9f5a1d4d50":"Chill","c0d286b0-5df5-485b-8963-5532c0b47991":"Romantic","10ea99a7-be01-45c2-82fd-14fa0bcadb58":"Chill","c4751b72-883d-40fe-8990-cb7dfeaac47b":"Energetic","3c6bb417-0b5e-475d-b8f0-3671a51b657b":"Romantic","fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":"Romantic","e69cc1b8-f224-4cdd-8cae-aef42da87b5b":"Energetic","b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":"Energetic","a44df24d-9512-4327-ba2c-a5e86e4ba7cf":"Energetic","134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":"Energetic","5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":"Chill","1d83d33b-2146-4427-89b2-5b3c846a294d":"Desi Pop","b83a94df-c760-4322-994f-f3ad2a31e883":"Desi Pop","5ba2a0c3-89ca-4229-9ae9-514806d0363a":"Energetic","7a28b082-d69c-4ff8-ad0f-dbfda05f0685":"Romantic","a18f0c10-38ad-4de3-acd0-6dd637e1de10":"Chill","f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":"Chill","262fa689-d42b-42bf-bf33-b8f53c0c173c":"Classical","b35c820f-6400-4814-ab0e-2bbb1efb8f4a":"Romantic","fb2647d3-d6fa-4150-a8f5-fc841ae176c2":"Party","ebfeeb92-1900-4ad6-aec6-275dcce12453":"Chill","5a8d4c24-fff0-43cd-954f-201770da5be1":"Romantic","0924bcb2-c1dc-4cdb-a3e7-6881f473f668":"Romantic","a9e28652-60ce-46aa-b167-711225e2df54":"Sad","6aa041f9-9aa2-4fa4-882e-db9a4aac209b":"Romantic","f89d39c2-c7bf-48fa-8cd7-f242893f3609":"Romantic","572ad7f8-ea06-4521-bb3c-55410468ede0":"Romantic","14664d25-20dd-4660-a0e1-f9f11fcc98c4":"Energetic","f83a2b6e-e700-40c7-a406-3931b4ce8780":"Chill","daac84d3-0e68-40b3-94ea-9b9dbd01677c":"Sad","477ac65b-7ec7-4995-bfdf-656a0da42e6e":"Desi Pop","ce7b47f5-9331-45ac-b319-406722b07466":"Desi Pop","6b948690-fcfa-4fc9-adaf-7ea6582a89a4":"Chill","c63e6167-400a-4ff9-8c8c-e4737988d5aa":"Romantic","258e9ddc-de55-467f-bed6-202ee00c3466":"Desi Pop","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":"Desi Pop","f54b3464-b992-466d-9b96-8ca95c1ad5ce":"Pop","93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":"Energetic","a53e97ce-02e6-454c-b13a-0a26e2956e92":"Sad","0ebbc1b7-a451-4540-bbc6-96224926c015":"Party","05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":"Party","15f4bf7c-bb20-400b-b70e-45754916f38a":"Energetic","2b0e12fe-8ceb-426b-b758-6c62e22d783d":"Party","7abc6aed-540e-4cce-9fd5-5d59d45a360a":"Chill","ee60c07f-468b-419b-ad09-1ae770e2fbc4":"Romantic","918ee6bd-06b4-4288-a58c-f89f0389c978":"Energetic","30ad7c9d-0182-444d-b05f-3acac2f9ef35":"Energetic","ccd7fabf-d277-4420-84a8-4e5ff5b66d67":"Chill","ab99af69-2ebc-4543-a1fd-37895121e02f":"Romantic","9e36f778-6b04-4cb3-a674-e4960347cda8":"Chill","3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":"Romantic","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":"Energetic","b1beda6e-b846-478f-bae6-d92ec4128556":"Romantic","6f2cc188-8453-4faa-853c-8c4a69917830":"Energetic","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":"Party","61243ae6-1193-4cb1-ab1d-37ef5a95a055":"Monsoon","a0e110cc-62dc-46f7-ba0a-ff8c781b5585":"Monsoon","748d9b27-fec5-4dd9-a872-e3b15582e0b5":"Sad","943fde3e-1809-490b-acd4-83db59006c30":"Monsoon","bc010c39-b880-42e6-91fa-0336d8b0bc6c":"Sad","70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":"Romantic","00ebe386-442b-4f95-9825-0ebda1b41813":"Pop","f82eeec8-0dfa-4220-9865-dc5ef41dd146":"Pop","e2c1f860-e618-4521-b4f2-46e52fb6314d":"Chill","6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":"Romantic","e0089026-ea1d-42dd-9093-a9696de6857b":"Pop","6b22c41d-1724-4bac-a2df-d9d61f442c95":"Chill","9a86ca77-4c06-41c4-9270-136103ecce10":"Sad","e932ec12-66bb-42d3-bdba-c2e40fa27623":"Energetic","1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":"Romantic","cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":"Pop","7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":"Chill","03294ca0-8782-4468-a2fe-e138754f3156":"Pop","2579167d-dced-4fca-aebf-e703dff1884b":"Pop","70417a45-7af3-4c1f-97c5-6b9116c31f05":"Romantic","fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":"Energetic","cd9f67bb-f9bb-49a1-a699-df27dedefe25":"Pop","26fae03b-6bfe-4254-8d90-19f01e8bde31":"Pop","787256d8-659b-4297-9514-5e3b4bf87f36":"Chill","f840a011-96b7-4b8f-8c0f-e30d4b52037d":"Chill","a72625ec-ca27-4357-9d70-6f85c17ef9a7":"Energetic","efba21ea-42c2-4657-bc4a-9b3b08e10e07":"Energetic","327248c9-fba5-4973-a853-6041d1b7777c":"Pop","8636cd1d-0358-44ef-ac0f-c301bfecf738":"Energetic","8263c87d-5688-421e-abc4-438d81b41480":"Chill","fe63e132-d030-4bc5-9ce2-a11e077f60ab":"Pop","0074e3e9-7cc6-42d7-b4ef-999ebacd219e":"Pop","f2b7fcd6-959a-4b73-8b53-e5a500643a84":"Energetic","4119cb2e-21ef-49b2-bccd-ee85253a1ad1":"Pop","e088c9c8-d047-46fe-b9de-8d0c1efa344e":"Pop","8b390487-4bb1-48d5-9dcf-447be1265589":"Party","f456351b-e85d-444e-8a17-9fff90e946ca":"Party","acf108a0-de76-41ac-ab5b-d5b1017d4ac4":"Party","eb239fdd-2d58-4f54-9169-985d14dc9ccd":"Festival","1557fb62-6334-4922-86cb-c37ded9c04d8":"Festival","5bc16c90-38c4-4562-9aa8-89cf0785b079":"Festival","7d68389a-2538-4bfc-a4c7-cf515a572b26":"Festival","41fa8b8a-fa9a-4539-8eed-01151434f639":"Pop","c3cfc5bf-1b28-4cff-8626-c818d919b1a4":"Pop","bb75c978-3a90-4772-9293-eadf698df19d":"Chill","bf153fd9-45c8-4c7e-8439-d023cd2fb014":"Pop","4c74c70b-d156-497b-a973-f071fbe422ae":"Romantic","da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":"Romantic","dc6b182a-b1e0-4ab5-876c-9406c4d75568":"Yearning","d92ade56-4893-41a9-a3d5-728bc4cc56e6":"Yearning","f1377f3b-533f-47b4-a85a-8ac276cd73e7":"Romantic","f0d235dc-812d-445a-8cd5-295abeed5602":"Energetic","afd1a7a5-cc17-4129-bd09-f80f7e6d13be":"Romantic","7d2487d6-9a83-4903-918a-4f1ffb98dde9":"Romantic","3f56ede2-ac4c-4a6d-986f-c34ae54b4866":"Romantic","e029da0f-3df4-4e2c-b4d4-8518cd213dbc":"Romantic","0c8d22dd-e433-4429-ab90-28355dd44d9f":"Romantic","88a30c67-044c-4ac4-ab2c-0d091b0025c3":"Romantic","442bbab3-7409-4ebf-a5a4-2464b1f4ea49":"Romantic","52b879a7-3102-4815-a612-9d466f8d186d":"Yearning","c297e2be-0a39-4cc7-9393-8d6adab6e309":"Desi Pop","c37848c7-c5d6-49d1-9f47-11f10b8f4063":"Romantic","d13aa88e-4d19-4651-91de-56ed23301b8e":"Romantic","503110af-3eed-461f-bb26-7362b1b897d7":"Romantic","3711e712-762e-42b3-b1af-ec6df2c689c4":"Romantic"},"monthlyArchives":{"2026-10":{"playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":2,"e6657092-d62b-4754-a347-548d0f3bde39":10,"e718bc53-19ab-497e-8ac7-43a2359a19d6":3,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":4,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":5,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":3,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":3,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":3,"47d3fd86-a418-444e-9fdd-842ea10d06b7":2,"be6f92a1-abc7-4992-9c9e-96e2701774c9":3,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":3,"4a14527e-95d0-43c9-a06a-281aebd6ff34":2,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":3,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":3,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":2,"46136499-85f3-4da2-9484-9f451d511905":2,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":5,"258e9ddc-de55-467f-bed6-202ee00c3466":5,"8c853546-b82b-46f6-ba04-0fc90d54965d":3,"ab99af69-2ebc-4543-a1fd-37895121e02f":2,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":8,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":7,"fa8e1c6f-b07b-4553-b154-146604e82c05":1,"b83a94df-c760-4322-994f-f3ad2a31e883":5,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":9,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":2,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":7,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":3,"9531118f-2926-4918-9156-ef8a543e757f":3,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":4,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":6,"908b2deb-0831-4091-b5e1-dd77e0695a5c":3,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":3,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"923ec288-02e0-4ae2-a13c-accde7ab486e":8,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":5,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":5,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2,"947df50e-7088-46bc-805f-0ad97369e835":1,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":4,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":2,"15f4bf7c-bb20-400b-b70e-45754916f38a":2,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"5157f0c1-5938-4987-b80d-0329f8758ca1":3,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":4,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":3,"56c68e50-f532-4925-9592-1cddf47850cd":4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3,"d3328021-ffc8-4534-a748-44d195efc3cd":7,"c55017cd-15ec-4546-99e8-f12bd5626f11":1,"354bb599-a2c0-413e-bbba-70cc7b783841":3,"9e515d2e-f8a7-41d4-a111-0d5233512391":5,"6d493502-16ce-4915-8160-7b36cfd5cd05":6,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":2,"918ee6bd-06b4-4288-a58c-f89f0389c978":2,"39fd084d-c05f-42dc-9cdf-369d47b44153":1,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":1,"0f80a99a-c418-4669-88ca-d64a5c857fdc":1,"6f2cc188-8453-4faa-853c-8c4a69917830":4,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":3,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":3,"00ebe386-442b-4f95-9825-0ebda1b41813":2,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":3,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":3,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":2,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":1,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":5,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":1,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":2,"e2c1f860-e618-4521-b4f2-46e52fb6314d":7,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1,"9a86ca77-4c06-41c4-9270-136103ecce10":1,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":2,"e0089026-ea1d-42dd-9093-a9696de6857b":5,"26fae03b-6bfe-4254-8d90-19f01e8bde31":9,"e932ec12-66bb-42d3-bdba-c2e40fa27623":2,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":4,"6973477f-4917-4f28-9ff8-888f03de9ba2":2,"70417a45-7af3-4c1f-97c5-6b9116c31f05":2,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":2,"900af1a9-8b64-4092-913d-9dde80274d93":7,"787256d8-659b-4297-9514-5e3b4bf87f36":4,"327248c9-fba5-4973-a853-6041d1b7777c":3,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":3,"8636cd1d-0358-44ef-ac0f-c301bfecf738":4,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":7,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":2,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"6b22c41d-1724-4bac-a2df-d9d61f442c95":3,"642a9c68-e797-48ea-8dab-c42287322c26":5,"8263c87d-5688-421e-abc4-438d81b41480":2,"cd1fd534-4f13-443d-966d-3021ba004440":1,"72903aae-1d9a-487d-930f-418cfa6b0205":2,"8e0b4d15-45be-49dd-9692-2e171d330c09":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"bf558395-c784-4100-93eb-cfa239715ca9":1,"07a53c4b-373d-4075-816e-c32fde3184db":3,"c0cbee49-81ba-4e72-8c52-410308ad361f":3,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":2,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":2,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":2,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":6,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":2,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":2,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":2,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":2,"51f1833c-800c-451c-8c34-79e667ccae4a":3,"a26eea36-25f1-4754-a534-13ffd38f7ad5":2,"8b390487-4bb1-48d5-9dcf-447be1265589":5,"f456351b-e85d-444e-8a17-9fff90e946ca":2,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":4,"f83a2b6e-e700-40c7-a406-3931b4ce8780":1,"a53e97ce-02e6-454c-b13a-0a26e2956e92":3,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":2,"f6e83060-33c6-457b-8ccf-b825929b2be4":3,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":2,"5a8d4c24-fff0-43cd-954f-201770da5be1":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":1,"1557fb62-6334-4922-86cb-c37ded9c04d8":6,"5bc16c90-38c4-4562-9aa8-89cf0785b079":1,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2,"41fa8b8a-fa9a-4539-8eed-01151434f639":3,"bb75c978-3a90-4772-9293-eadf698df19d":2,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":2,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":1,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":1,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":3,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":1,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":1,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":1,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":1,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":1,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":1,"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":6,"4c74c70b-d156-497b-a973-f071fbe422ae":1,"943fde3e-1809-490b-acd4-83db59006c30":1,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":1,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":1},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":970.7000000000091,"0591dd49-6c49-40ee-8ec6-996c430b9691":871.1000000000091,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":271.29999999999944,"c3e49428-958a-4272-b658-dcc665373ba6":49.500000000000014,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":406.80000000000103,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":340.1000000000001,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":357.1999999999994,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":508.00000000000205,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":529.0000000000014,"47d3fd86-a418-444e-9fdd-842ea10d06b7":376.10000000000065,"be6f92a1-abc7-4992-9c9e-96e2701774c9":487.70000000000215,"f6e83060-33c6-457b-8ccf-b825929b2be4":649.300000000004,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":638.3000000000037,"4a14527e-95d0-43c9-a06a-281aebd6ff34":423.6000000000017,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":418.30000000000086,"b1beda6e-b846-478f-bae6-d92ec4128556":121.89999999999985,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":245.59999999999937,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":662.3000000000056,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":480.700000000002,"a9e28652-60ce-46aa-b167-711225e2df54":213.9999999999994,"c0d286b0-5df5-485b-8963-5532c0b47991":189.99999999999957,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":492.8000000000031,"900af1a9-8b64-4092-913d-9dde80274d93":1354.2999999999975,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":330.80000000000047,"9e515d2e-f8a7-41d4-a111-0d5233512391":787.4000000000066,"e718bc53-19ab-497e-8ac7-43a2359a19d6":520.7000000000023,"46136499-85f3-4da2-9484-9f451d511905":263.99999999999943,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":302.7,"e6657092-d62b-4754-a347-548d0f3bde39":1369.0999999999956,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":285.4999999999994,"bf558395-c784-4100-93eb-cfa239715ca9":214.3999999999995,"86ff8290-aa80-454d-8d35-b408f6463b49":50.60000000000003,"c55017cd-15ec-4546-99e8-f12bd5626f11":186.39999999999975,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":862.8000000000079,"72903aae-1d9a-487d-930f-418cfa6b0205":382.30000000000103,"6d493502-16ce-4915-8160-7b36cfd5cd05":1095.2000000000069,"923ec288-02e0-4ae2-a13c-accde7ab486e":1368.7999999999968,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":1058.0000000000082,"283edc91-b796-45aa-a22e-e5ecf26c164f":241.19999999999962,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":509.10000000000053,"83e790e9-1900-4ff5-ac56-7700d9d88354":20.100000000000005,"258e9ddc-de55-467f-bed6-202ee00c3466":632.4000000000044,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":361.0000000000005,"8c853546-b82b-46f6-ba04-0fc90d54965d":473.500000000002,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":237.89999999999938,"642a9c68-e797-48ea-8dab-c42287322c26":1140.2000000000057,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":374.70000000000084,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":423.0000000000011,"908b2deb-0831-4091-b5e1-dd77e0695a5c":838.2000000000083,"d7f9d821-191e-4f5b-af3e-bfb98b155465":592.2000000000039,"354bb599-a2c0-413e-bbba-70cc7b783841":546.8000000000035,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":286.8999999999996,"947df50e-7088-46bc-805f-0ad97369e835":297.3999999999998,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":41.30000000000001,"8e0b4d15-45be-49dd-9692-2e171d330c09":190.49999999999966,"d3328021-ffc8-4534-a748-44d195efc3cd":1209.9000000000028,"6973477f-4917-4f28-9ff8-888f03de9ba2":505.7000000000028,"c0cbee49-81ba-4e72-8c52-410308ad361f":735.9000000000051,"2fa75852-1544-407c-a771-b9a2f7688e00":20.900000000000002,"63eb50bd-9772-4c3f-ab26-976301fd2705":40.60000000000002,"d724987f-83a9-4351-bd60-3a7502a87c59":87.59999999999995,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":1074.5000000000082,"f726f995-1776-4a2d-97c4-024cf22e851e":35.60000000000001,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":304.7999999999999,"dd640b9c-21da-4d72-99ca-6b78c143997a":61.300000000000026,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":685.6000000000053,"39fd084d-c05f-42dc-9cdf-369d47b44153":303.1999999999998,"0f80a99a-c418-4669-88ca-d64a5c857fdc":170.59999999999962,"eb4f3985-fd6a-4a20-a48f-10717982804a":31.30000000000001,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":181.29999999999964,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":87.49999999999994,"a26eea36-25f1-4754-a534-13ffd38f7ad5":311.10000000000014,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":321.4000000000002,"94e729cf-448c-490b-9926-bb9f5a1d4d50":51.30000000000003,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":91.39999999999995,"c4751b72-883d-40fe-8990-cb7dfeaac47b":217.9999999999995,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":252.29999999999936,"4b17d938-0d77-4ccc-8da7-82cd9167218a":5.4,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":65.50000000000004,"07a53c4b-373d-4075-816e-c32fde3184db":622.2000000000046,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":70.80000000000003,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":626.8000000000046,"6e4bf9a4-092a-42d3-81f0-b8563690b929":275.0999999999995,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":373.80000000000075,"1d83d33b-2146-4427-89b2-5b3c846a294d":299.0999999999994,"b83a94df-c760-4322-994f-f3ad2a31e883":788.7000000000061,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":244.29999999999953,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1173.6000000000045,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":164.69999999999973,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1752.3999999999805,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":11.099999999999998,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":323.3000000000002,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":32.70000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":173.29999999999973,"5157f0c1-5938-4987-b80d-0329f8758ca1":500.80000000000166,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":198.89999999999944,"51f1833c-800c-451c-8c34-79e667ccae4a":375.39999999999935,"ebfeeb92-1900-4ad6-aec6-275dcce12453":6.1,"9531118f-2926-4918-9156-ef8a543e757f":614.8000000000055,"5a8d4c24-fff0-43cd-954f-201770da5be1":131.59999999999985,"fa8e1c6f-b07b-4553-b154-146604e82c05":221.39999999999938,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":338.3000000000005,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":21.500000000000004,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":64.80000000000003,"f83a2b6e-e700-40c7-a406-3931b4ce8780":264.6999999999994,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":203.79999999999956,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":317.3999999999998,"ce7b47f5-9331-45ac-b319-406722b07466":8.2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":375.2000000000007,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":156.69999999999973,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1492.599999999989,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1292.7999999999986,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":829.3000000000075,"a53e97ce-02e6-454c-b13a-0a26e2956e92":572.6000000000007,"0ebbc1b7-a451-4540-bbc6-96224926c015":1575.1999999999873,"56c68e50-f532-4925-9592-1cddf47850cd":532.9000000000033,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":482.1000000000018,"15f4bf7c-bb20-400b-b70e-45754916f38a":367.30000000000086,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":647.9000000000051,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":460.20000000000135,"cd1fd534-4f13-443d-966d-3021ba004440":180.29999999999967,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":329.2000000000002,"918ee6bd-06b4-4288-a58c-f89f0389c978":464.3000000000009,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":603.1000000000041,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":350.8000000000004,"ab99af69-2ebc-4543-a1fd-37895121e02f":361.50000000000074,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":20.400000000000002,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":71.90000000000002,"9e36f778-6b04-4cb3-a674-e4960347cda8":72.90000000000002,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":65.00000000000004,"6f2cc188-8453-4faa-853c-8c4a69917830":1190.4000000000033,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":169.7999999999997,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":400.7000000000007,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":795.2000000000065,"943fde3e-1809-490b-acd4-83db59006c30":212.3999999999995,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":359.80000000000024,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":647.3000000000046,"00ebe386-442b-4f95-9825-0ebda1b41813":342.4000000000003,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":448.0000000000015,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1373.6999999999955,"6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":123.79999999999983,"9a86ca77-4c06-41c4-9270-136103ecce10":186.19999999999962,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":357.0000000000008,"e0089026-ea1d-42dd-9093-a9696de6857b":555.3000000000023,"6b22c41d-1724-4bac-a2df-d9d61f442c95":499.20000000000203,"e932ec12-66bb-42d3-bdba-c2e40fa27623":306.49999999999983,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":193.99999999999977,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":496.3000000000014,"03294ca0-8782-4468-a2fe-e138754f3156":44.700000000000024,"2579167d-dced-4fca-aebf-e703dff1884b":52.10000000000004,"70417a45-7af3-4c1f-97c5-6b9116c31f05":342.20000000000033,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":305.99999999999983,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":403.500000000001,"26fae03b-6bfe-4254-8d90-19f01e8bde31":1241.6000000000088,"787256d8-659b-4297-9514-5e3b4bf87f36":396.2000000000012,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":107.19999999999992,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":215.79999999999956,"327248c9-fba5-4973-a853-6041d1b7777c":406.70000000000135,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":394.50000000000114,"8636cd1d-0358-44ef-ac0f-c301bfecf738":516.2000000000024,"8263c87d-5688-421e-abc4-438d81b41480":364.60000000000076,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":1206.400000000001,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":817.2000000000071,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":255.59999999999937,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":302.09999999999974,"f2b7fcd6-959a-4b73-8b53-e5a500643a84":65.00000000000004,"f456351b-e85d-444e-8a17-9fff90e946ca":316.0000000000001,"8b390487-4bb1-48d5-9dcf-447be1265589":935.2000000000089,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":849.3000000000084,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":354.2000000000001,"1557fb62-6334-4922-86cb-c37ded9c04d8":821.1000000000072,"5bc16c90-38c4-4562-9aa8-89cf0785b079":156.4999999999998,"7d68389a-2538-4bfc-a4c7-cf515a572b26":195.79999999999959,"41fa8b8a-fa9a-4539-8eed-01151434f639":539.4000000000016,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":218.49999999999955,"bb75c978-3a90-4772-9293-eadf698df19d":380.5000000000002,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":520.4000000000013,"4c74c70b-d156-497b-a973-f071fbe422ae":56.70000000000004,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":1711.1000000000085,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":177.79999999999984},"totalPlays":426,"totalSeconds":79033,"archivedAt":"2026-11-01T10:53:37.808Z"}},"yearlyTotals":{"2026":{"playCounts":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":2,"e6657092-d62b-4754-a347-548d0f3bde39":10,"e718bc53-19ab-497e-8ac7-43a2359a19d6":3,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":4,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":6,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":3,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":3,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":3,"47d3fd86-a418-444e-9fdd-842ea10d06b7":2,"be6f92a1-abc7-4992-9c9e-96e2701774c9":4,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":3,"4a14527e-95d0-43c9-a06a-281aebd6ff34":2,"b1beda6e-b846-478f-bae6-d92ec4128556":1,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":3,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":3,"a9e28652-60ce-46aa-b167-711225e2df54":1,"c0d286b0-5df5-485b-8963-5532c0b47991":2,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":2,"46136499-85f3-4da2-9484-9f451d511905":2,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":2,"0591dd49-6c49-40ee-8ec6-996c430b9691":5,"258e9ddc-de55-467f-bed6-202ee00c3466":5,"8c853546-b82b-46f6-ba04-0fc90d54965d":4,"ab99af69-2ebc-4543-a1fd-37895121e02f":2,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":8,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":1,"0ebbc1b7-a451-4540-bbc6-96224926c015":7,"fa8e1c6f-b07b-4553-b154-146604e82c05":2,"b83a94df-c760-4322-994f-f3ad2a31e883":5,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":9,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":2,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":8,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":3,"9531118f-2926-4918-9156-ef8a543e757f":4,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":4,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":6,"908b2deb-0831-4091-b5e1-dd77e0695a5c":4,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":3,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"923ec288-02e0-4ae2-a13c-accde7ab486e":8,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":6,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":5,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2,"947df50e-7088-46bc-805f-0ad97369e835":1,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":4,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":3,"15f4bf7c-bb20-400b-b70e-45754916f38a":2,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"5157f0c1-5938-4987-b80d-0329f8758ca1":3,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":4,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":3,"56c68e50-f532-4925-9592-1cddf47850cd":4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":5,"d3328021-ffc8-4534-a748-44d195efc3cd":8,"c55017cd-15ec-4546-99e8-f12bd5626f11":1,"354bb599-a2c0-413e-bbba-70cc7b783841":5,"9e515d2e-f8a7-41d4-a111-0d5233512391":5,"6d493502-16ce-4915-8160-7b36cfd5cd05":7,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":3,"918ee6bd-06b4-4288-a58c-f89f0389c978":3,"39fd084d-c05f-42dc-9cdf-369d47b44153":2,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":2,"0f80a99a-c418-4669-88ca-d64a5c857fdc":1,"6f2cc188-8453-4faa-853c-8c4a69917830":4,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":3,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":3,"00ebe386-442b-4f95-9825-0ebda1b41813":3,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":4,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":3,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":2,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":1,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":5,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":1,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":2,"e2c1f860-e618-4521-b4f2-46e52fb6314d":7,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1,"9a86ca77-4c06-41c4-9270-136103ecce10":1,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":2,"e0089026-ea1d-42dd-9093-a9696de6857b":5,"26fae03b-6bfe-4254-8d90-19f01e8bde31":9,"e932ec12-66bb-42d3-bdba-c2e40fa27623":3,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":4,"6973477f-4917-4f28-9ff8-888f03de9ba2":2,"70417a45-7af3-4c1f-97c5-6b9116c31f05":2,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":2,"900af1a9-8b64-4092-913d-9dde80274d93":8,"787256d8-659b-4297-9514-5e3b4bf87f36":4,"327248c9-fba5-4973-a853-6041d1b7777c":3,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":3,"8636cd1d-0358-44ef-ac0f-c301bfecf738":4,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":7,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":4,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"6b22c41d-1724-4bac-a2df-d9d61f442c95":4,"642a9c68-e797-48ea-8dab-c42287322c26":6,"8263c87d-5688-421e-abc4-438d81b41480":2,"cd1fd534-4f13-443d-966d-3021ba004440":1,"72903aae-1d9a-487d-930f-418cfa6b0205":2,"8e0b4d15-45be-49dd-9692-2e171d330c09":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"bf558395-c784-4100-93eb-cfa239715ca9":1,"07a53c4b-373d-4075-816e-c32fde3184db":3,"c0cbee49-81ba-4e72-8c52-410308ad361f":3,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":2,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":2,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":2,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":6,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":2,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":3,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":2,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":2,"51f1833c-800c-451c-8c34-79e667ccae4a":3,"a26eea36-25f1-4754-a534-13ffd38f7ad5":2,"8b390487-4bb1-48d5-9dcf-447be1265589":6,"f456351b-e85d-444e-8a17-9fff90e946ca":2,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":4,"f83a2b6e-e700-40c7-a406-3931b4ce8780":1,"a53e97ce-02e6-454c-b13a-0a26e2956e92":4,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":2,"f6e83060-33c6-457b-8ccf-b825929b2be4":3,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":2,"5a8d4c24-fff0-43cd-954f-201770da5be1":2,"6e4bf9a4-092a-42d3-81f0-b8563690b929":1,"1557fb62-6334-4922-86cb-c37ded9c04d8":6,"5bc16c90-38c4-4562-9aa8-89cf0785b079":1,"7d68389a-2538-4bfc-a4c7-cf515a572b26":3,"41fa8b8a-fa9a-4539-8eed-01151434f639":3,"bb75c978-3a90-4772-9293-eadf698df19d":2,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":2,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":4,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":2,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":5,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":1,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":1,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":1,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":1,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":1,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":1,"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":3,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":6,"4c74c70b-d156-497b-a973-f071fbe422ae":1,"943fde3e-1809-490b-acd4-83db59006c30":2,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":1,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":1,"f1377f3b-533f-47b4-a85a-8ac276cd73e7":1,"3f56ede2-ac4c-4a6d-986f-c34ae54b4866":1,"e029da0f-3df4-4e2c-b4d4-8518cd213dbc":1,"442bbab3-7409-4ebf-a5a4-2464b1f4ea49":4,"52b879a7-3102-4815-a612-9d466f8d186d":2,"f0d235dc-812d-445a-8cd5-295abeed5602":3,"afd1a7a5-cc17-4129-bd09-f80f7e6d13be":3,"0c8d22dd-e433-4429-ab90-28355dd44d9f":2,"eb4f3985-fd6a-4a20-a48f-10717982804a":1,"c297e2be-0a39-4cc7-9393-8d6adab6e309":3,"503110af-3eed-461f-bb26-7362b1b897d7":1,"d13aa88e-4d19-4651-91de-56ed23301b8e":6,"d92ade56-4893-41a9-a3d5-728bc4cc56e6":13,"3711e712-762e-42b3-b1af-ec6df2c689c4":3},"listenSeconds":{"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":1063.1,"0591dd49-6c49-40ee-8ec6-996c430b9691":871.1000000000091,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":273.3,"c3e49428-958a-4272-b658-dcc665373ba6":49.500000000000014,"cbb3ca3e-67ca-43a8-8ac7-79a9390776a8":406.80000000000103,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":340.1000000000001,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":357.1999999999994,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":508.00000000000205,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":529.0000000000014,"47d3fd86-a418-444e-9fdd-842ea10d06b7":376.10000000000065,"be6f92a1-abc7-4992-9c9e-96e2701774c9":541.9,"f6e83060-33c6-457b-8ccf-b825929b2be4":731.1,"3f3b8c10-24b9-4ea0-be7f-fd13e01a73bc":638.3000000000037,"4a14527e-95d0-43c9-a06a-281aebd6ff34":423.6000000000017,"8d9660f6-95dc-40c7-bf37-3963bcc6ecf4":418.30000000000086,"b1beda6e-b846-478f-bae6-d92ec4128556":121.89999999999985,"572ad7f8-ea06-4521-bb3c-55410468ede0":4.5,"3c6bb417-0b5e-475d-b8f0-3671a51b657b":245.59999999999937,"e69cc1b8-f224-4cdd-8cae-aef42da87b5b":662.3000000000056,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":480.700000000002,"a9e28652-60ce-46aa-b167-711225e2df54":213.9999999999994,"c0d286b0-5df5-485b-8963-5532c0b47991":246,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":492.8000000000031,"900af1a9-8b64-4092-913d-9dde80274d93":1422.7,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":330.80000000000047,"9e515d2e-f8a7-41d4-a111-0d5233512391":787.4000000000066,"e718bc53-19ab-497e-8ac7-43a2359a19d6":520.7000000000023,"46136499-85f3-4da2-9484-9f451d511905":263.99999999999943,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":359.9,"e6657092-d62b-4754-a347-548d0f3bde39":1440.8,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":285.4999999999994,"bf558395-c784-4100-93eb-cfa239715ca9":214.3999999999995,"86ff8290-aa80-454d-8d35-b408f6463b49":51.7,"c55017cd-15ec-4546-99e8-f12bd5626f11":186.39999999999975,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":1215.7,"72903aae-1d9a-487d-930f-418cfa6b0205":382.30000000000103,"6d493502-16ce-4915-8160-7b36cfd5cd05":1117.2,"923ec288-02e0-4ae2-a13c-accde7ab486e":1423.8,"c94a4670-1f14-4e93-8e18-6a75c6562d6f":1114.5,"283edc91-b796-45aa-a22e-e5ecf26c164f":241.19999999999962,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":509.10000000000053,"83e790e9-1900-4ff5-ac56-7700d9d88354":108,"258e9ddc-de55-467f-bed6-202ee00c3466":632.4000000000044,"a44df24d-9512-4327-ba2c-a5e86e4ba7cf":361.0000000000005,"8c853546-b82b-46f6-ba04-0fc90d54965d":587.3,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":237.89999999999938,"642a9c68-e797-48ea-8dab-c42287322c26":1178.1,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":374.70000000000084,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":423.0000000000011,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1163.2,"d7f9d821-191e-4f5b-af3e-bfb98b155465":592.2000000000039,"354bb599-a2c0-413e-bbba-70cc7b783841":619.2,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":286.8999999999996,"947df50e-7088-46bc-805f-0ad97369e835":301.9,"d17498d3-d2dc-4124-83a4-ae45d66c2aab":41.30000000000001,"8e0b4d15-45be-49dd-9692-2e171d330c09":190.49999999999966,"d3328021-ffc8-4534-a748-44d195efc3cd":1416.6,"6973477f-4917-4f28-9ff8-888f03de9ba2":505.7000000000028,"c0cbee49-81ba-4e72-8c52-410308ad361f":735.9000000000051,"2fa75852-1544-407c-a771-b9a2f7688e00":20.900000000000002,"63eb50bd-9772-4c3f-ab26-976301fd2705":40.60000000000002,"d724987f-83a9-4351-bd60-3a7502a87c59":87.59999999999995,"dc0121d6-b3c4-4d60-aabb-c3000d7e3585":1074.5000000000082,"f726f995-1776-4a2d-97c4-024cf22e851e":35.60000000000001,"ffe570a6-d0cb-491d-9cda-f3ba839f6d72":695.6,"dd640b9c-21da-4d72-99ca-6b78c143997a":61.9,"2db28891-244e-4cc7-8bbe-b50f54f46bdd":703.2,"39fd084d-c05f-42dc-9cdf-369d47b44153":435.5,"0f80a99a-c418-4669-88ca-d64a5c857fdc":170.59999999999962,"eb4f3985-fd6a-4a20-a48f-10717982804a":33.9,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":181.29999999999964,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":87.49999999999994,"a26eea36-25f1-4754-a534-13ffd38f7ad5":311.10000000000014,"d84c6343-8fa6-45e3-bc7a-a2803a8b220b":321.4000000000002,"94e729cf-448c-490b-9926-bb9f5a1d4d50":51.30000000000003,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":91.39999999999995,"c4751b72-883d-40fe-8990-cb7dfeaac47b":217.9999999999995,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":302,"4b17d938-0d77-4ccc-8da7-82cd9167218a":5.4,"d1b3e3bc-77f6-4ee5-82ea-1e691b0b11c6":65.50000000000004,"07a53c4b-373d-4075-816e-c32fde3184db":622.2000000000046,"b3f57c3c-8dec-4681-b3aa-18f5aaf7f81d":70.80000000000003,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":626.8000000000046,"6e4bf9a4-092a-42d3-81f0-b8563690b929":275.0999999999995,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":373.80000000000075,"1d83d33b-2146-4427-89b2-5b3c846a294d":299.0999999999994,"b83a94df-c760-4322-994f-f3ad2a31e883":788.7000000000061,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":245.6,"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1173.9,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":164.69999999999973,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1752.3999999999805,"1127a496-89ee-4958-9e90-0ff0d81cfdaa":11.099999999999998,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":323.3000000000002,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":32.70000000000001,"262fa689-d42b-42bf-bf33-b8f53c0c173c":173.29999999999973,"5157f0c1-5938-4987-b80d-0329f8758ca1":500.80000000000166,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":211.5,"51f1833c-800c-451c-8c34-79e667ccae4a":376.3,"ebfeeb92-1900-4ad6-aec6-275dcce12453":6.1,"9531118f-2926-4918-9156-ef8a543e757f":647.3,"5a8d4c24-fff0-43cd-954f-201770da5be1":132.9,"fa8e1c6f-b07b-4553-b154-146604e82c05":380.5,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":338.3000000000005,"f89d39c2-c7bf-48fa-8cd7-f242893f3609":21.500000000000004,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":69,"f83a2b6e-e700-40c7-a406-3931b4ce8780":321.8,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":203.79999999999956,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":317.3999999999998,"ce7b47f5-9331-45ac-b319-406722b07466":8.2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":375.2000000000007,"c63e6167-400a-4ff9-8c8c-e4737988d5aa":156.69999999999973,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1607.5,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1349.3,"93e4d462-6ffb-4ea1-bb08-0c8ddd7b6d67":829.3000000000075,"a53e97ce-02e6-454c-b13a-0a26e2956e92":670.5,"0ebbc1b7-a451-4540-bbc6-96224926c015":1575.1999999999873,"56c68e50-f532-4925-9592-1cddf47850cd":532.9000000000033,"05f44a2b-b1b6-4efe-bdb5-42c26e9838c8":666.5,"15f4bf7c-bb20-400b-b70e-45754916f38a":367.30000000000086,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":647.9000000000051,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":460.20000000000135,"cd1fd534-4f13-443d-966d-3021ba004440":180.29999999999967,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":329.2000000000002,"918ee6bd-06b4-4288-a58c-f89f0389c978":519.8,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":603.1000000000041,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":350.8000000000004,"ab99af69-2ebc-4543-a1fd-37895121e02f":361.50000000000074,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":20.400000000000002,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":71.90000000000002,"9e36f778-6b04-4cb3-a674-e4960347cda8":72.90000000000002,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":65.00000000000004,"6f2cc188-8453-4faa-853c-8c4a69917830":1190.4000000000033,"61243ae6-1193-4cb1-ab1d-37ef5a95a055":169.7999999999997,"a0e110cc-62dc-46f7-ba0a-ff8c781b5585":400.7000000000007,"748d9b27-fec5-4dd9-a872-e3b15582e0b5":961.1,"943fde3e-1809-490b-acd4-83db59006c30":212.3999999999995,"bc010c39-b880-42e6-91fa-0336d8b0bc6c":359.80000000000024,"70b4dcf8-3adb-4e8d-aba5-d5ed69ca2ab9":653,"00ebe386-442b-4f95-9825-0ebda1b41813":419.1,"f82eeec8-0dfa-4220-9865-dc5ef41dd146":636.5,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1376.3,"6ed503a4-8f78-4c68-ba7b-07dda8f7b5bf":123.79999999999983,"9a86ca77-4c06-41c4-9270-136103ecce10":186.19999999999962,"1d6b9cd3-dd8f-47f7-9faa-b7d3f523d87a":357.0000000000008,"e0089026-ea1d-42dd-9093-a9696de6857b":555.3000000000023,"6b22c41d-1724-4bac-a2df-d9d61f442c95":586.4,"e932ec12-66bb-42d3-bdba-c2e40fa27623":389.2,"cc704f4b-f680-49fa-8ee9-66d7e6e7fdb1":193.99999999999977,"7f7a2f34-b59d-4705-b4e6-a4c1fd1998dc":496.3000000000014,"03294ca0-8782-4468-a2fe-e138754f3156":44.700000000000024,"2579167d-dced-4fca-aebf-e703dff1884b":52.10000000000004,"70417a45-7af3-4c1f-97c5-6b9116c31f05":342.20000000000033,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":339.7,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":474.7,"26fae03b-6bfe-4254-8d90-19f01e8bde31":1249.1,"787256d8-659b-4297-9514-5e3b4bf87f36":396.2000000000012,"f840a011-96b7-4b8f-8c0f-e30d4b52037d":107.19999999999992,"a72625ec-ca27-4357-9d70-6f85c17ef9a7":215.79999999999956,"327248c9-fba5-4973-a853-6041d1b7777c":406.70000000000135,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":394.50000000000114,"8636cd1d-0358-44ef-ac0f-c301bfecf738":624,"8263c87d-5688-421e-abc4-438d81b41480":364.60000000000076,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":1206.400000000001,"0074e3e9-7cc6-42d7-b4ef-999ebacd219e":817.2000000000071,"e088c9c8-d047-46fe-b9de-8d0c1efa344e":255.59999999999937,"4119cb2e-21ef-49b2-bccd-ee85253a1ad1":302.09999999999974,"f2b7fcd6-959a-4b73-8b53-e5a500643a84":65.00000000000004,"f456351b-e85d-444e-8a17-9fff90e946ca":316.0000000000001,"8b390487-4bb1-48d5-9dcf-447be1265589":993.5,"acf108a0-de76-41ac-ab5b-d5b1017d4ac4":849.3000000000084,"eb239fdd-2d58-4f54-9169-985d14dc9ccd":387.6,"1557fb62-6334-4922-86cb-c37ded9c04d8":821.1000000000072,"5bc16c90-38c4-4562-9aa8-89cf0785b079":156.4999999999998,"7d68389a-2538-4bfc-a4c7-cf515a572b26":401,"41fa8b8a-fa9a-4539-8eed-01151434f639":539.4000000000016,"bf153fd9-45c8-4c7e-8439-d023cd2fb014":258.4,"bb75c978-3a90-4772-9293-eadf698df19d":382.1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":578.4,"4c74c70b-d156-497b-a973-f071fbe422ae":56.70000000000004,"da9fde71-8e53-4fd9-b75a-1ec2b1d4ea84":1711.9,"dc6b182a-b1e0-4ab5-876c-9406c4d75568":221.7,"7d2487d6-9a83-4903-918a-4f1ffb98dde9":36.4,"f1377f3b-533f-47b4-a85a-8ac276cd73e7":20.9,"d92ade56-4893-41a9-a3d5-728bc4cc56e6":631,"f0d235dc-812d-445a-8cd5-295abeed5602":433.7,"afd1a7a5-cc17-4129-bd09-f80f7e6d13be":249.3,"3f56ede2-ac4c-4a6d-986f-c34ae54b4866":15.6,"e029da0f-3df4-4e2c-b4d4-8518cd213dbc":76,"0c8d22dd-e433-4429-ab90-28355dd44d9f":124.8,"88a30c67-044c-4ac4-ab2c-0d091b0025c3":119.5,"442bbab3-7409-4ebf-a5a4-2464b1f4ea49":272.9,"52b879a7-3102-4815-a612-9d466f8d186d":49.6,"c297e2be-0a39-4cc7-9393-8d6adab6e309":331.4,"c37848c7-c5d6-49d1-9f47-11f10b8f4063":108.3,"d13aa88e-4d19-4651-91de-56ed23301b8e":498.6,"503110af-3eed-461f-bb26-7362b1b897d7":9.3,"3711e712-762e-42b3-b1af-ec6df2c689c4":368.6},"totalPlays":513,"totalSeconds":86841}},"updatedAt":"2026-11-06T21:53:00.157Z"}', '1427121b-efda-49c6-abdf-59ad35523935', '2026-10-12T16:27:04.414362+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('2b35caac-5d09-49a2-a0e8-cd414a57c0f5', '__euphony_user_data__:::{"version":2,"userId":"e1f037de-41f6-4ce0-9fc4-f90b4aa27d62","email":"garv.anand187@gmail.com","activeMonth":"2026-11","playCounts":{"e718bc53-19ab-497e-8ac7-43a2359a19d6":1,"d92ade56-4893-41a9-a3d5-728bc4cc56e6":1},"listenSeconds":{"943fde3e-1809-490b-acd4-83db59006c30":1,"e718bc53-19ab-497e-8ac7-43a2359a19d6":2,"d92ade56-4893-41a9-a3d5-728bc4cc56e6":225.59999999999957,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":3.0999999999999996},"recentlyPlayedIds":["e718bc53-19ab-497e-8ac7-43a2359a19d6","f7e6d9a4-e9b9-467b-bbf0-30e929696803","eb4f3985-fd6a-4a20-a48f-10717982804a","83e790e9-1900-4ff5-ac56-7700d9d88354","c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4","283edc91-b796-45aa-a22e-e5ecf26c164f","daac84d3-0e68-40b3-94ea-9b9dbd01677c","6fe20cd3-69b5-44a0-a25a-d57c4fc1204c","c4751b72-883d-40fe-8990-cb7dfeaac47b","0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0","e6657092-d62b-4754-a347-548d0f3bde39","30ad7c9d-0182-444d-b05f-3acac2f9ef35","943fde3e-1809-490b-acd4-83db59006c30","d92ade56-4893-41a9-a3d5-728bc4cc56e6","49b5b3e7-060a-4367-b2f9-83e4b7b2e096"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"eb4f3985-fd6a-4a20-a48f-10717982804a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"e6657092-d62b-4754-a347-548d0f3bde39":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1},"listenSeconds":{"283edc91-b796-45aa-a22e-e5ecf26c164f":245.3999999999994,"47d3fd86-a418-444e-9fdd-842ea10d06b7":7.8,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":195.19999999999956,"83e790e9-1900-4ff5-ac56-7700d9d88354":113.99999999999987,"9e515d2e-f8a7-41d4-a111-0d5233512391":56.00000000000003,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1.3,"eb4f3985-fd6a-4a20-a48f-10717982804a":80.49999999999999,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":69.60000000000001,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":197.89999999999955,"e6657092-d62b-4754-a347-548d0f3bde39":180.99999999999963,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":194.4999999999996,"c4751b72-883d-40fe-8990-cb7dfeaac47b":67.80000000000003,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":214.3999999999995,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":106.69999999999987},"totalPlays":11,"totalSeconds":1732,"archivedAt":"2026-11-01T10:53:37.489Z"}},"yearlyTotals":{"2026":{"playCounts":{"283edc91-b796-45aa-a22e-e5ecf26c164f":1,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"eb4f3985-fd6a-4a20-a48f-10717982804a":1,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"e6657092-d62b-4754-a347-548d0f3bde39":1,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":1,"c4751b72-883d-40fe-8990-cb7dfeaac47b":1,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":1,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":1,"e718bc53-19ab-497e-8ac7-43a2359a19d6":1},"listenSeconds":{"283edc91-b796-45aa-a22e-e5ecf26c164f":245.3999999999994,"47d3fd86-a418-444e-9fdd-842ea10d06b7":7.8,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":195.19999999999956,"83e790e9-1900-4ff5-ac56-7700d9d88354":113.99999999999987,"9e515d2e-f8a7-41d4-a111-0d5233512391":56.00000000000003,"908b2deb-0831-4091-b5e1-dd77e0695a5c":1.3,"eb4f3985-fd6a-4a20-a48f-10717982804a":80.49999999999999,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":69.60000000000001,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":197.89999999999955,"e6657092-d62b-4754-a347-548d0f3bde39":180.99999999999963,"0ebbdcd5-7c1a-4d5c-96a2-71e6e5338cb0":194.4999999999996,"c4751b72-883d-40fe-8990-cb7dfeaac47b":67.80000000000003,"6fe20cd3-69b5-44a0-a25a-d57c4fc1204c":214.3999999999995,"daac84d3-0e68-40b3-94ea-9b9dbd01677c":106.69999999999987,"e718bc53-19ab-497e-8ac7-43a2359a19d6":2,"d92ade56-4893-41a9-a3d5-728bc4cc56e6":1.9,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":0.8},"totalPlays":12,"totalSeconds":1737}},"updatedAt":"2026-11-06T21:52:59.171Z"}', 'e1f037de-41f6-4ce0-9fc4-f90b4aa27d62', '2026-10-13T08:06:36.196156+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('b51ec0af-c205-4b09-8025-cb3fbadf04ba', '__euphony_user_data__:::{"version":2,"userId":"9a70cd01-9ddd-43bb-97ab-b868721cb2c6","email":"rishabhraj17853@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"monthlyArchives":{},"yearlyTotals":{},"updatedAt":"2026-11-06T21:52:57.909Z"}', '9a70cd01-9ddd-43bb-97ab-b868721cb2c6', '2026-10-14T07:40:25.960109+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d69d5801-2605-4b18-935a-d41dd43ab4f1', 'Liked Songs', '9a70cd01-9ddd-43bb-97ab-b868721cb2c6', '2026-10-14T07:40:26.37098+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('ce4ce0a6-a78d-4807-ab31-aa18d2c29f52', '__euphony_user_data__:::{"version":2,"userId":"cca2e5c2-d079-4909-b163-f0b9640e88cd","email":"ayush24486@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"monthlyArchives":{},"yearlyTotals":{},"updatedAt":"2026-11-01T10:53:37.349Z"}', 'cca2e5c2-d079-4909-b163-f0b9640e88cd', '2026-10-14T10:18:06.489127+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('ce4ce0a6-a78d-4807-ab31-aa18d2c29f52', '__euphony_user_data__:::{"version":2,"userId":"cca2e5c2-d079-4909-b163-f0b9640e88cd","email":"ayush24486@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"monthlyArchives":{},"yearlyTotals":{},"updatedAt":"2026-11-06T21:52:58.710Z"}', 'cca2e5c2-d079-4909-b163-f0b9640e88cd', '2026-10-14T10:18:06.489127+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('856fbc28-bd6b-4754-8d12-317f3944427e', 'Liked Songs', 'cca2e5c2-d079-4909-b163-f0b9640e88cd', '2026-10-14T10:18:07.555303+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d439fec6-1efd-49fd-8128-c8f0e8b4bd99', 'Liked Songs', 'cca2e5c2-d079-4909-b163-f0b9640e88cd', '2026-10-14T10:18:07.976088+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('ef85134b-fb2a-4c0f-b137-bd56f0592d14', '__euphony_user_data__:::{"version":2,"userId":"c2f47b61-48cd-4a5b-90cd-7bc319b914b3","email":"dev1527b@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["684b60fa-6f36-4e0b-b122-dd966f2ef7c3","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","bb75c978-3a90-4772-9293-eadf698df19d","e2c1f860-e618-4521-b4f2-46e52fb6314d","efba21ea-42c2-4657-bc4a-9b3b08e10e07","c3cfc5bf-1b28-4cff-8626-c818d919b1a4","f40239c2-1f6b-45c5-9416-9eb733f7cd19","72903aae-1d9a-487d-930f-418cfa6b0205","6e4bf9a4-092a-42d3-81f0-b8563690b929","b83a94df-c760-4322-994f-f3ad2a31e883","1d83d33b-2146-4427-89b2-5b3c846a294d","83e790e9-1900-4ff5-ac56-7700d9d88354","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","15f4bf7c-bb20-400b-b70e-45754916f38a","a18f0c10-38ad-4de3-acd0-6dd637e1de10","5ba2a0c3-89ca-4229-9ae9-514806d0363a"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"b83a94df-c760-4322-994f-f3ad2a31e883":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":2,"72903aae-1d9a-487d-930f-418cfa6b0205":1,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":1,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":1,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1,"bb75c978-3a90-4772-9293-eadf698df19d":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1},"listenSeconds":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":259.69999999999936,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":110.0999999999999,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":2.2,"15f4bf7c-bb20-400b-b70e-45754916f38a":75.39999999999999,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":4.2,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":3.3,"cd1fd534-4f13-443d-966d-3021ba004440":0.6,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":0.5,"918ee6bd-06b4-4288-a58c-f89f0389c978":0.8,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":0.8,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":0.5,"ab99af69-2ebc-4543-a1fd-37895121e02f":0.4,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":0.6,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":4.4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":40.20000000000002,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":208.99999999999957,"f6e83060-33c6-457b-8ccf-b825929b2be4":1,"8e0b4d15-45be-49dd-9692-2e171d330c09":19.1,"c55017cd-15ec-4546-99e8-f12bd5626f11":8.5,"83e790e9-1900-4ff5-ac56-7700d9d88354":166.19999999999968,"0591dd49-6c49-40ee-8ec6-996c430b9691":4.4,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1.8000000000000003,"642a9c68-e797-48ea-8dab-c42287322c26":0.7999999999999999,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":4.6,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":1.2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":2.8,"908b2deb-0831-4091-b5e1-dd77e0695a5c":46.50000000000003,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2.1,"354bb599-a2c0-413e-bbba-70cc7b783841":49.60000000000003,"6e4bf9a4-092a-42d3-81f0-b8563690b929":277.2999999999996,"1d83d33b-2146-4427-89b2-5b3c846a294d":152.7999999999997,"b83a94df-c760-4322-994f-f3ad2a31e883":134.8999999999998,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":132.5999999999998,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":0.9,"72903aae-1d9a-487d-930f-418cfa6b0205":157.59999999999974,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":14.4,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":24.400000000000006,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":10.399999999999999,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":30.200000000000006,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":189.19999999999965,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":95.79999999999995,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":29.200000000000006,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":193.5999999999997,"1557fb62-6334-4922-86cb-c37ded9c04d8":14.299999999999999,"e2c1f860-e618-4521-b4f2-46e52fb6314d":142.49999999999994,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":3.4,"bb75c978-3a90-4772-9293-eadf698df19d":61.300000000000026,"e0089026-ea1d-42dd-9093-a9696de6857b":50.90000000000002,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":96.40000000000002,"bf558395-c784-4100-93eb-cfa239715ca9":0.5,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":36.300000000000004,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":32.800000000000004,"8b390487-4bb1-48d5-9dcf-447be1265589":34.3},"totalPlays":17,"totalSeconds":2937,"archivedAt":"2026-11-01T10:53:37.541Z"}},"yearlyTotals":{"2026":{"playCounts":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"b83a94df-c760-4322-994f-f3ad2a31e883":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":2,"72903aae-1d9a-487d-930f-418cfa6b0205":1,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":1,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":1,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1,"bb75c978-3a90-4772-9293-eadf698df19d":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1},"listenSeconds":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":259.69999999999936,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":110.0999999999999,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":2.2,"15f4bf7c-bb20-400b-b70e-45754916f38a":75.39999999999999,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":4.2,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":3.3,"cd1fd534-4f13-443d-966d-3021ba004440":0.6,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":0.5,"918ee6bd-06b4-4288-a58c-f89f0389c978":0.8,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":0.8,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":0.5,"ab99af69-2ebc-4543-a1fd-37895121e02f":0.4,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":0.6,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":4.4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":40.20000000000002,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":208.99999999999957,"f6e83060-33c6-457b-8ccf-b825929b2be4":1,"8e0b4d15-45be-49dd-9692-2e171d330c09":19.1,"c55017cd-15ec-4546-99e8-f12bd5626f11":8.5,"83e790e9-1900-4ff5-ac56-7700d9d88354":166.19999999999968,"0591dd49-6c49-40ee-8ec6-996c430b9691":4.4,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1.8000000000000003,"642a9c68-e797-48ea-8dab-c42287322c26":0.7999999999999999,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":4.6,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":1.2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":2.8,"908b2deb-0831-4091-b5e1-dd77e0695a5c":46.50000000000003,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2.1,"354bb599-a2c0-413e-bbba-70cc7b783841":49.60000000000003,"6e4bf9a4-092a-42d3-81f0-b8563690b929":277.2999999999996,"1d83d33b-2146-4427-89b2-5b3c846a294d":152.7999999999997,"b83a94df-c760-4322-994f-f3ad2a31e883":134.8999999999998,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":132.5999999999998,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":0.9,"72903aae-1d9a-487d-930f-418cfa6b0205":157.59999999999974,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":14.4,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":24.400000000000006,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":10.399999999999999,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":30.200000000000006,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":189.19999999999965,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":95.79999999999995,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":29.200000000000006,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":193.5999999999997,"1557fb62-6334-4922-86cb-c37ded9c04d8":14.299999999999999,"e2c1f860-e618-4521-b4f2-46e52fb6314d":142.49999999999994,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":3.4,"bb75c978-3a90-4772-9293-eadf698df19d":61.300000000000026,"e0089026-ea1d-42dd-9093-a9696de6857b":50.90000000000002,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":96.40000000000002,"bf558395-c784-4100-93eb-cfa239715ca9":0.5,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":36.300000000000004,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":32.800000000000004,"8b390487-4bb1-48d5-9dcf-447be1265589":34.3},"totalPlays":17,"totalSeconds":2937}},"updatedAt":"2026-11-01T10:53:37.541Z"}', 'c2f47b61-48cd-4a5b-90cd-7bc319b914b3', '2026-10-14T11:30:43.336776+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('fae2f00a-c7ba-4df1-b8db-56a936439b3a', '__euphony_user_data__:::{"version":2,"userId":"ceda8c9c-bcfb-46b6-85b1-9eacd1a7560b","email":"bhimsinghnegi178@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["c0d286b0-5df5-485b-8963-5532c0b47991","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1},"listenSeconds":{"be6f92a1-abc7-4992-9c9e-96e2701774c9":1.5,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1.1,"d7f9d821-191e-4f5b-af3e-bfb98b155465":5.8,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":177.29999999999967,"c0d286b0-5df5-485b-8963-5532c0b47991":157.09999999999974},"totalPlays":2,"totalSeconds":343,"archivedAt":"2026-11-01T10:53:37.008Z"}},"yearlyTotals":{"2026":{"playCounts":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1},"listenSeconds":{"be6f92a1-abc7-4992-9c9e-96e2701774c9":1.5,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1.1,"d7f9d821-191e-4f5b-af3e-bfb98b155465":5.8,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":177.29999999999967,"c0d286b0-5df5-485b-8963-5532c0b47991":157.09999999999974},"totalPlays":2,"totalSeconds":343}},"updatedAt":"2026-11-01T10:53:37.009Z"}', 'ceda8c9c-bcfb-46b6-85b1-9eacd1a7560b', '2026-10-14T17:47:02.092905+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d25d16d8-4721-46c9-8ce3-9a6899dddc5e', '__euphony_user_data__:::{"version":2,"userId":"91e4824b-829e-481a-b049-15f997998a07","email":"vanayushrai@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["15f4bf7c-bb20-400b-b70e-45754916f38a","9a5b4484-7ea6-4d04-bcd9-b49426cec421","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10","7abc6aed-540e-4cce-9fd5-5d59d45a360a","0591dd49-6c49-40ee-8ec6-996c430b9691","30ad7c9d-0182-444d-b05f-3acac2f9ef35","642a9c68-e797-48ea-8dab-c42287322c26","d629ffbc-dada-4dab-ab5b-cd0a800cc184"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1,"642a9c68-e797-48ea-8dab-c42287322c26":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":1,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1},"listenSeconds":{"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":1,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":169.99999999999972,"642a9c68-e797-48ea-8dab-c42287322c26":276.4999999999997,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":186.79999999999967,"39fd084d-c05f-42dc-9cdf-369d47b44153":29.000000000000007,"86ff8290-aa80-454d-8d35-b408f6463b49":49.00000000000003,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":17.6,"283edc91-b796-45aa-a22e-e5ecf26c164f":5.7,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":8.4,"0591dd49-6c49-40ee-8ec6-996c430b9691":186.69999999999962,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":246.89999999999938,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":198.69999999999956,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":52.20000000000003,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":219.39999999999952,"15f4bf7c-bb20-400b-b70e-45754916f38a":106.69999999999987,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":0.5},"totalPlays":8,"totalSeconds":1755,"archivedAt":"2026-11-01T10:53:37.427Z"}},"yearlyTotals":{"2026":{"playCounts":{"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1,"642a9c68-e797-48ea-8dab-c42287322c26":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":1,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1},"listenSeconds":{"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":1,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":169.99999999999972,"642a9c68-e797-48ea-8dab-c42287322c26":276.4999999999997,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":186.79999999999967,"39fd084d-c05f-42dc-9cdf-369d47b44153":29.000000000000007,"86ff8290-aa80-454d-8d35-b408f6463b49":49.00000000000003,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":17.6,"283edc91-b796-45aa-a22e-e5ecf26c164f":5.7,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":8.4,"0591dd49-6c49-40ee-8ec6-996c430b9691":186.69999999999962,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":246.89999999999938,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":198.69999999999956,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":52.20000000000003,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":219.39999999999952,"15f4bf7c-bb20-400b-b70e-45754916f38a":106.69999999999987,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":0.5},"totalPlays":8,"totalSeconds":1755}},"updatedAt":"2026-11-01T10:53:37.427Z"}', '91e4824b-829e-481a-b049-15f997998a07', '2026-10-15T13:07:31.822224+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('51a42a2a-0eb1-45f8-a0aa-46db966576ac', '__euphony_user_data__:::{"version":2,"userId":"603713cc-a0aa-4670-820d-abeac19a0597","email":"avicharai@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["c3e49428-958a-4272-b658-dcc665373ba6"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"c3e49428-958a-4272-b658-dcc665373ba6":1},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":7.699999999999999,"c3e49428-958a-4272-b658-dcc665373ba6":98.10000000000001},"totalPlays":1,"totalSeconds":106,"archivedAt":"2026-11-01T10:53:37.704Z"}},"yearlyTotals":{"2026":{"playCounts":{"c3e49428-958a-4272-b658-dcc665373ba6":1},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":7.699999999999999,"c3e49428-958a-4272-b658-dcc665373ba6":98.10000000000001},"totalPlays":1,"totalSeconds":106}},"updatedAt":"2026-11-01T10:53:37.704Z"}', '603713cc-a0aa-4670-820d-abeac19a0597', '2026-10-15T16:29:28.620258+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('ef85134b-fb2a-4c0f-b137-bd56f0592d14', '__euphony_user_data__:::{"version":2,"userId":"c2f47b61-48cd-4a5b-90cd-7bc319b914b3","email":"dev1527b@gmail.com","activeMonth":"2026-11","playCounts":{"e718bc53-19ab-497e-8ac7-43a2359a19d6":1},"listenSeconds":{"e718bc53-19ab-497e-8ac7-43a2359a19d6":197.6999999999997,"ebfeeb92-1900-4ad6-aec6-275dcce12453":13.5,"c297e2be-0a39-4cc7-9393-8d6adab6e309":14.699999999999998},"recentlyPlayedIds":["e718bc53-19ab-497e-8ac7-43a2359a19d6","684b60fa-6f36-4e0b-b122-dd966f2ef7c3","12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd","bb75c978-3a90-4772-9293-eadf698df19d","e2c1f860-e618-4521-b4f2-46e52fb6314d","efba21ea-42c2-4657-bc4a-9b3b08e10e07","c3cfc5bf-1b28-4cff-8626-c818d919b1a4","f40239c2-1f6b-45c5-9416-9eb733f7cd19","72903aae-1d9a-487d-930f-418cfa6b0205","6e4bf9a4-092a-42d3-81f0-b8563690b929","b83a94df-c760-4322-994f-f3ad2a31e883","1d83d33b-2146-4427-89b2-5b3c846a294d","83e790e9-1900-4ff5-ac56-7700d9d88354","a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9","15f4bf7c-bb20-400b-b70e-45754916f38a","a18f0c10-38ad-4de3-acd0-6dd637e1de10","5ba2a0c3-89ca-4229-9ae9-514806d0363a","ebfeeb92-1900-4ad6-aec6-275dcce12453","c297e2be-0a39-4cc7-9393-8d6adab6e309"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"b83a94df-c760-4322-994f-f3ad2a31e883":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":2,"72903aae-1d9a-487d-930f-418cfa6b0205":1,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":1,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":1,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1,"bb75c978-3a90-4772-9293-eadf698df19d":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1},"listenSeconds":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":259.69999999999936,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":110.0999999999999,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":2.2,"15f4bf7c-bb20-400b-b70e-45754916f38a":75.39999999999999,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":4.2,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":3.3,"cd1fd534-4f13-443d-966d-3021ba004440":0.6,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":0.5,"918ee6bd-06b4-4288-a58c-f89f0389c978":0.8,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":0.8,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":0.5,"ab99af69-2ebc-4543-a1fd-37895121e02f":0.4,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":0.6,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":4.4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":40.20000000000002,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":208.99999999999957,"f6e83060-33c6-457b-8ccf-b825929b2be4":1,"8e0b4d15-45be-49dd-9692-2e171d330c09":19.1,"c55017cd-15ec-4546-99e8-f12bd5626f11":8.5,"83e790e9-1900-4ff5-ac56-7700d9d88354":166.19999999999968,"0591dd49-6c49-40ee-8ec6-996c430b9691":4.4,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1.8000000000000003,"642a9c68-e797-48ea-8dab-c42287322c26":0.7999999999999999,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":4.6,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":1.2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":2.8,"908b2deb-0831-4091-b5e1-dd77e0695a5c":46.50000000000003,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2.1,"354bb599-a2c0-413e-bbba-70cc7b783841":49.60000000000003,"6e4bf9a4-092a-42d3-81f0-b8563690b929":277.2999999999996,"1d83d33b-2146-4427-89b2-5b3c846a294d":152.7999999999997,"b83a94df-c760-4322-994f-f3ad2a31e883":134.8999999999998,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":132.5999999999998,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":0.9,"72903aae-1d9a-487d-930f-418cfa6b0205":157.59999999999974,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":14.4,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":24.400000000000006,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":10.399999999999999,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":30.200000000000006,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":189.19999999999965,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":95.79999999999995,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":29.200000000000006,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":193.5999999999997,"1557fb62-6334-4922-86cb-c37ded9c04d8":14.299999999999999,"e2c1f860-e618-4521-b4f2-46e52fb6314d":142.49999999999994,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":3.4,"bb75c978-3a90-4772-9293-eadf698df19d":61.300000000000026,"e0089026-ea1d-42dd-9093-a9696de6857b":50.90000000000002,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":96.40000000000002,"bf558395-c784-4100-93eb-cfa239715ca9":0.5,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":36.300000000000004,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":32.800000000000004,"8b390487-4bb1-48d5-9dcf-447be1265589":34.3},"totalPlays":17,"totalSeconds":2937,"archivedAt":"2026-11-01T10:53:37.541Z"}},"yearlyTotals":{"2026":{"playCounts":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":1,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":1,"83e790e9-1900-4ff5-ac56-7700d9d88354":1,"1d83d33b-2146-4427-89b2-5b3c846a294d":1,"b83a94df-c760-4322-994f-f3ad2a31e883":1,"6e4bf9a4-092a-42d3-81f0-b8563690b929":2,"72903aae-1d9a-487d-930f-418cfa6b0205":1,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":1,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":1,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":1,"e2c1f860-e618-4521-b4f2-46e52fb6314d":1,"bb75c978-3a90-4772-9293-eadf698df19d":1,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":1,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":1,"e718bc53-19ab-497e-8ac7-43a2359a19d6":1},"listenSeconds":{"5ba2a0c3-89ca-4229-9ae9-514806d0363a":259.69999999999936,"a18f0c10-38ad-4de3-acd0-6dd637e1de10":110.0999999999999,"6aa041f9-9aa2-4fa4-882e-db9a4aac209b":2.2,"15f4bf7c-bb20-400b-b70e-45754916f38a":75.39999999999999,"2b0e12fe-8ceb-426b-b758-6c62e22d783d":4.2,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":3.3,"cd1fd534-4f13-443d-966d-3021ba004440":0.6,"ee60c07f-468b-419b-ad09-1ae770e2fbc4":0.5,"918ee6bd-06b4-4288-a58c-f89f0389c978":0.8,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":0.8,"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":0.5,"ab99af69-2ebc-4543-a1fd-37895121e02f":0.4,"6144cc42-418f-4439-b2e7-3b3eb73c49ed":0.6,"1b04a96c-f7ab-4f85-9e0b-082d8edd71b2":4.4,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":40.20000000000002,"a3c7a170-b0f1-48ae-8cf4-a0bef69ee2b9":208.99999999999957,"f6e83060-33c6-457b-8ccf-b825929b2be4":1,"8e0b4d15-45be-49dd-9692-2e171d330c09":19.1,"c55017cd-15ec-4546-99e8-f12bd5626f11":8.5,"83e790e9-1900-4ff5-ac56-7700d9d88354":166.19999999999968,"0591dd49-6c49-40ee-8ec6-996c430b9691":4.4,"e6dd87c2-4847-4aef-bcfe-09569d3d1358":1.8000000000000003,"642a9c68-e797-48ea-8dab-c42287322c26":0.7999999999999999,"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":4.6,"862a7fa8-2236-42b0-bbd6-b8a280a49c69":1.2,"d6c4f539-c83d-4934-9bbe-41d5c16cdee2":2.8,"908b2deb-0831-4091-b5e1-dd77e0695a5c":46.50000000000003,"d7f9d821-191e-4f5b-af3e-bfb98b155465":2.1,"354bb599-a2c0-413e-bbba-70cc7b783841":49.60000000000003,"6e4bf9a4-092a-42d3-81f0-b8563690b929":277.2999999999996,"1d83d33b-2146-4427-89b2-5b3c846a294d":152.7999999999997,"b83a94df-c760-4322-994f-f3ad2a31e883":134.8999999999998,"f40239c2-1f6b-45c5-9416-9eb733f7cd19":132.5999999999998,"7a28b082-d69c-4ff8-ad0f-dbfda05f0685":0.9,"72903aae-1d9a-487d-930f-418cfa6b0205":157.59999999999974,"5f0b72d0-cd38-4f5d-9837-ba6925b10cbb":14.4,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":24.400000000000006,"10ea99a7-be01-45c2-82fd-14fa0bcadb58":10.399999999999999,"fc041aa8-1b69-4f0e-ab4a-18e89d3499e0":30.200000000000006,"c3cfc5bf-1b28-4cff-8626-c818d919b1a4":189.19999999999965,"efba21ea-42c2-4657-bc4a-9b3b08e10e07":95.79999999999995,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":29.200000000000006,"12b7b4c1-e3c6-4a0a-9769-8e9d3543b0bd":193.5999999999997,"1557fb62-6334-4922-86cb-c37ded9c04d8":14.299999999999999,"e2c1f860-e618-4521-b4f2-46e52fb6314d":142.49999999999994,"f7e6d9a4-e9b9-467b-bbf0-30e929696803":3.4,"bb75c978-3a90-4772-9293-eadf698df19d":61.300000000000026,"e0089026-ea1d-42dd-9093-a9696de6857b":50.90000000000002,"684b60fa-6f36-4e0b-b122-dd966f2ef7c3":96.40000000000002,"bf558395-c784-4100-93eb-cfa239715ca9":0.5,"cd9f67bb-f9bb-49a1-a699-df27dedefe25":36.300000000000004,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":32.800000000000004,"8b390487-4bb1-48d5-9dcf-447be1265589":34.3,"e718bc53-19ab-497e-8ac7-43a2359a19d6":131.5,"ebfeeb92-1900-4ad6-aec6-275dcce12453":13.5,"c297e2be-0a39-4cc7-9393-8d6adab6e309":14.7},"totalPlays":18,"totalSeconds":3097}},"updatedAt":"2026-11-06T21:52:59.325Z"}', 'c2f47b61-48cd-4a5b-90cd-7bc319b914b3', '2026-10-14T11:30:43.336776+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('fae2f00a-c7ba-4df1-b8db-56a936439b3a', '__euphony_user_data__:::{"version":2,"userId":"ceda8c9c-bcfb-46b6-85b1-9eacd1a7560b","email":"bhimsinghnegi178@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["c0d286b0-5df5-485b-8963-5532c0b47991","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1},"listenSeconds":{"be6f92a1-abc7-4992-9c9e-96e2701774c9":1.5,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1.1,"d7f9d821-191e-4f5b-af3e-bfb98b155465":5.8,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":177.29999999999967,"c0d286b0-5df5-485b-8963-5532c0b47991":157.09999999999974},"totalPlays":2,"totalSeconds":343,"archivedAt":"2026-11-01T10:53:37.008Z"}},"yearlyTotals":{"2026":{"playCounts":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"c0d286b0-5df5-485b-8963-5532c0b47991":1},"listenSeconds":{"be6f92a1-abc7-4992-9c9e-96e2701774c9":1.5,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1.1,"d7f9d821-191e-4f5b-af3e-bfb98b155465":5.8,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":177.29999999999967,"c0d286b0-5df5-485b-8963-5532c0b47991":157.09999999999974},"totalPlays":2,"totalSeconds":343}},"updatedAt":"2026-11-06T21:52:57.770Z"}', 'ceda8c9c-bcfb-46b6-85b1-9eacd1a7560b', '2026-10-14T17:47:02.092905+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('d25d16d8-4721-46c9-8ce3-9a6899dddc5e', '__euphony_user_data__:::{"version":2,"userId":"91e4824b-829e-481a-b049-15f997998a07","email":"vanayushrai@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["15f4bf7c-bb20-400b-b70e-45754916f38a","9a5b4484-7ea6-4d04-bcd9-b49426cec421","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10","7abc6aed-540e-4cce-9fd5-5d59d45a360a","0591dd49-6c49-40ee-8ec6-996c430b9691","30ad7c9d-0182-444d-b05f-3acac2f9ef35","642a9c68-e797-48ea-8dab-c42287322c26","d629ffbc-dada-4dab-ab5b-cd0a800cc184"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1,"642a9c68-e797-48ea-8dab-c42287322c26":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":1,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1},"listenSeconds":{"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":1,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":169.99999999999972,"642a9c68-e797-48ea-8dab-c42287322c26":276.4999999999997,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":186.79999999999967,"39fd084d-c05f-42dc-9cdf-369d47b44153":29.000000000000007,"86ff8290-aa80-454d-8d35-b408f6463b49":49.00000000000003,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":17.6,"283edc91-b796-45aa-a22e-e5ecf26c164f":5.7,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":8.4,"0591dd49-6c49-40ee-8ec6-996c430b9691":186.69999999999962,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":246.89999999999938,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":198.69999999999956,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":52.20000000000003,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":219.39999999999952,"15f4bf7c-bb20-400b-b70e-45754916f38a":106.69999999999987,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":0.5},"totalPlays":8,"totalSeconds":1755,"archivedAt":"2026-11-06T12:38:15.037Z"}},"yearlyTotals":{"2026":{"playCounts":{"d629ffbc-dada-4dab-ab5b-cd0a800cc184":1,"642a9c68-e797-48ea-8dab-c42287322c26":1,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":1,"0591dd49-6c49-40ee-8ec6-996c430b9691":1,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":1,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1,"15f4bf7c-bb20-400b-b70e-45754916f38a":1},"listenSeconds":{"bd2f6814-1d6e-48a6-9f78-d8fd90c2bed8":1,"d629ffbc-dada-4dab-ab5b-cd0a800cc184":170,"642a9c68-e797-48ea-8dab-c42287322c26":276.5,"30ad7c9d-0182-444d-b05f-3acac2f9ef35":186.8,"39fd084d-c05f-42dc-9cdf-369d47b44153":29,"86ff8290-aa80-454d-8d35-b408f6463b49":49,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":17.6,"283edc91-b796-45aa-a22e-e5ecf26c164f":5.7,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":8.4,"0591dd49-6c49-40ee-8ec6-996c430b9691":186.7,"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":246.9,"7abc6aed-540e-4cce-9fd5-5d59d45a360a":198.7,"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":52.2,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":219.4,"15f4bf7c-bb20-400b-b70e-45754916f38a":106.7,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":0.5},"totalPlays":8,"totalSeconds":1755}},"updatedAt":"2026-11-06T21:52:59.251Z"}', '91e4824b-829e-481a-b049-15f997998a07', '2026-10-15T13:07:31.822224+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('51a42a2a-0eb1-45f8-a0aa-46db966576ac', '__euphony_user_data__:::{"version":2,"userId":"603713cc-a0aa-4670-820d-abeac19a0597","email":"avicharai@gmail.com","activeMonth":"2026-11","playCounts":{"c3e49428-958a-4272-b658-dcc665373ba6":1},"listenSeconds":{},"recentlyPlayedIds":["c3e49428-958a-4272-b658-dcc665373ba6"],"customMoods":{},"monthlyArchives":{},"yearlyTotals":{},"updatedAt":"2026-11-06T21:52:59.792Z"}', '603713cc-a0aa-4670-820d-abeac19a0597', '2026-10-15T16:29:28.620258+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('82c9069c-f91f-4e1a-8b4f-331b2a5d9a0d', 'Liked Songs', '603713cc-a0aa-4670-820d-abeac19a0597', '2026-10-15T16:29:28.707718+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('871f712c-f6d7-4e8a-80d2-46bbd9e1ccf1', '__euphony_user_data__:::{"version":2,"userId":"21986b70-e6e7-49b4-ab6e-8d224d740401","email":"ashokkumarrai1520@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["9a5b4484-7ea6-4d04-bcd9-b49426cec421","262fa689-d42b-42bf-bf33-b8f53c0c173c","6f2cc188-8453-4faa-853c-8c4a69917830","f54b3464-b992-466d-9b96-8ca95c1ad5ce","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1,"6f2cc188-8453-4faa-853c-8c4a69917830":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1},"listenSeconds":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":247.39999999999932,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":60.80000000000005,"6f2cc188-8453-4faa-853c-8c4a69917830":72.90000000000002,"f726f995-1776-4a2d-97c4-024cf22e851e":23.500000000000007,"262fa689-d42b-42bf-bf33-b8f53c0c173c":190.0999999999996,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":119.89999999999992},"totalPlays":5,"totalSeconds":715,"archivedAt":"2026-11-01T10:53:37.603Z"}},"yearlyTotals":{"2026":{"playCounts":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1,"6f2cc188-8453-4faa-853c-8c4a69917830":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1},"listenSeconds":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":247.39999999999932,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":60.80000000000005,"6f2cc188-8453-4faa-853c-8c4a69917830":72.90000000000002,"f726f995-1776-4a2d-97c4-024cf22e851e":23.500000000000007,"262fa689-d42b-42bf-bf33-b8f53c0c173c":190.0999999999996,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":119.89999999999992},"totalPlays":5,"totalSeconds":715}},"updatedAt":"2026-11-01T10:53:37.603Z"}', '21986b70-e6e7-49b4-ab6e-8d224d740401', '2026-10-18T14:51:57.910994+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('871f712c-f6d7-4e8a-80d2-46bbd9e1ccf1', '__euphony_user_data__:::{"version":2,"userId":"21986b70-e6e7-49b4-ab6e-8d224d740401","email":"ashokkumarrai1520@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":["9a5b4484-7ea6-4d04-bcd9-b49426cec421","262fa689-d42b-42bf-bf33-b8f53c0c173c","6f2cc188-8453-4faa-853c-8c4a69917830","f54b3464-b992-466d-9b96-8ca95c1ad5ce","acaa79a3-7ab7-49ca-bd1c-a7aef81eda10"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1,"6f2cc188-8453-4faa-853c-8c4a69917830":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1},"listenSeconds":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":247.39999999999932,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":60.80000000000005,"6f2cc188-8453-4faa-853c-8c4a69917830":72.90000000000002,"f726f995-1776-4a2d-97c4-024cf22e851e":23.500000000000007,"262fa689-d42b-42bf-bf33-b8f53c0c173c":190.0999999999996,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":119.89999999999992},"totalPlays":5,"totalSeconds":715,"archivedAt":"2026-11-01T10:53:37.603Z"}},"yearlyTotals":{"2026":{"playCounts":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":1,"6f2cc188-8453-4faa-853c-8c4a69917830":1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":1,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":1},"listenSeconds":{"acaa79a3-7ab7-49ca-bd1c-a7aef81eda10":247.39999999999932,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":60.80000000000005,"6f2cc188-8453-4faa-853c-8c4a69917830":72.90000000000002,"f726f995-1776-4a2d-97c4-024cf22e851e":23.500000000000007,"262fa689-d42b-42bf-bf33-b8f53c0c173c":190.0999999999996,"9a5b4484-7ea6-4d04-bcd9-b49426cec421":119.89999999999992},"totalPlays":5,"totalSeconds":715}},"updatedAt":"2026-11-06T21:52:59.407Z"}', '21986b70-e6e7-49b4-ab6e-8d224d740401', '2026-10-18T14:51:57.910994+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('cb61fa45-6349-4858-aa90-9c53487a2d16', 'Liked Songs', '21986b70-e6e7-49b4-ab6e-8d224d740401', '2026-10-18T14:51:58.141304+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('a255d057-ddae-4a03-b410-a2a7475be508', 'Liked Songs', '21986b70-e6e7-49b4-ab6e-8d224d740401', '2026-10-18T14:51:58.860007+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('f14445fa-d4c1-40c4-8e1c-3e62a1d45341', '__euphony_user_data__:::{"version":2,"userId":"397740bf-69c1-4a77-ac5e-1c085d0c65ff","email":"abhitarget2023@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":32.00000000000001,"923ec288-02e0-4ae2-a13c-accde7ab486e":38.40000000000001,"70417a45-7af3-4c1f-97c5-6b9116c31f05":15.499999999999996,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":9.8},"totalPlays":0,"totalSeconds":96,"archivedAt":"2026-11-01T10:53:37.654Z"}},"yearlyTotals":{"2026":{"playCounts":{},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":32.00000000000001,"923ec288-02e0-4ae2-a13c-accde7ab486e":38.40000000000001,"70417a45-7af3-4c1f-97c5-6b9116c31f05":15.499999999999996,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":9.8},"totalPlays":0,"totalSeconds":96}},"updatedAt":"2026-11-01T10:53:37.654Z"}', '397740bf-69c1-4a77-ac5e-1c085d0c65ff', '2026-10-27T12:05:06.916159+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('f14445fa-d4c1-40c4-8e1c-3e62a1d45341', '__euphony_user_data__:::{"version":2,"userId":"397740bf-69c1-4a77-ac5e-1c085d0c65ff","email":"abhitarget2023@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":32.00000000000001,"923ec288-02e0-4ae2-a13c-accde7ab486e":38.40000000000001,"70417a45-7af3-4c1f-97c5-6b9116c31f05":15.499999999999996,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":9.8},"totalPlays":0,"totalSeconds":96,"archivedAt":"2026-11-01T10:53:37.654Z"}},"yearlyTotals":{"2026":{"playCounts":{},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":32.00000000000001,"923ec288-02e0-4ae2-a13c-accde7ab486e":38.40000000000001,"70417a45-7af3-4c1f-97c5-6b9116c31f05":15.499999999999996,"e33a0f4a-0ab2-4184-8b60-cd153a7ac3c7":9.8},"totalPlays":0,"totalSeconds":96}},"updatedAt":"2026-11-06T21:52:59.742Z"}', '397740bf-69c1-4a77-ac5e-1c085d0c65ff', '2026-10-27T12:05:06.916159+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('27c65121-70a7-41fe-bb30-85ca97434151', 'Liked Songs', '397740bf-69c1-4a77-ac5e-1c085d0c65ff', '2026-10-27T12:05:06.994463+00:00') ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('27acf9eb-e4f6-4b9e-979e-a6a3f9da7d00', 'Liked Songs', '8012a3fc-8aa6-402a-bbd1-2748e454fa21', '2026-10-28T13:46:30.480333+00:00') ON CONFLICT (id) DO NOTHING;
-INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('c36971ab-f789-486b-bd99-cb640cd71680', '__euphony_user_data__:::{"version":2,"userId":"8012a3fc-8aa6-402a-bbd1-2748e454fa21","email":"raiayush8705@gmail.com","activeMonth":"2026-11","playCounts":{"72903aae-1d9a-487d-930f-418cfa6b0205":1},"listenSeconds":{"72903aae-1d9a-487d-930f-418cfa6b0205":67.70000000000003,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":50.80000000000002},"recentlyPlayedIds":["72903aae-1d9a-487d-930f-418cfa6b0205","07a53c4b-373d-4075-816e-c32fde3184db","9e515d2e-f8a7-41d4-a111-0d5233512391"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"9e515d2e-f8a7-41d4-a111-0d5233512391":1,"07a53c4b-373d-4075-816e-c32fde3184db":1},"listenSeconds":{"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":12.399999999999999,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":46.60000000000002,"4c74c70b-d156-497b-a973-f071fbe422ae":27.400000000000013,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":21.000000000000004,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":7.2,"1d83d33b-2146-4427-89b2-5b3c846a294d":7.6,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2.7,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":111.09999999999994,"cd1fd534-4f13-443d-966d-3021ba004440":47.100000000000016,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":5.300000000000001,"f83a2b6e-e700-40c7-a406-3931b4ce8780":4.5,"94e729cf-448c-490b-9926-bb9f5a1d4d50":32.500000000000014,"4a14527e-95d0-43c9-a06a-281aebd6ff34":3.2,"2fa75852-1544-407c-a771-b9a2f7688e00":34.600000000000016,"c55017cd-15ec-4546-99e8-f12bd5626f11":20.1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":51.90000000000002,"9e515d2e-f8a7-41d4-a111-0d5233512391":196.19999999999962,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":62.60000000000002,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":8.1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":2.3,"d724987f-83a9-4351-bd60-3a7502a87c59":32.300000000000004,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":34.80000000000002,"46136499-85f3-4da2-9484-9f451d511905":23.400000000000006,"354bb599-a2c0-413e-bbba-70cc7b783841":51.700000000000024,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":96.10000000000001,"900af1a9-8b64-4092-913d-9dde80274d93":10.8,"5157f0c1-5938-4987-b80d-0329f8758ca1":1.8,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":7.299999999999999,"c3e49428-958a-4272-b658-dcc665373ba6":2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":1.1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":0.1,"b83a94df-c760-4322-994f-f3ad2a31e883":8.9,"dd640b9c-21da-4d72-99ca-6b78c143997a":18.3,"72903aae-1d9a-487d-930f-418cfa6b0205":3.1,"a9e28652-60ce-46aa-b167-711225e2df54":62.400000000000034,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":11.9,"923ec288-02e0-4ae2-a13c-accde7ab486e":9.299999999999999,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":13.499999999999998,"07a53c4b-373d-4075-816e-c32fde3184db":74.90000000000006,"1557fb62-6334-4922-86cb-c37ded9c04d8":37.10000000000001},"totalPlays":2,"totalSeconds":1205,"archivedAt":"2026-11-01T10:53:37.752Z"}},"yearlyTotals":{"2026":{"playCounts":{"9e515d2e-f8a7-41d4-a111-0d5233512391":1,"07a53c4b-373d-4075-816e-c32fde3184db":1,"72903aae-1d9a-487d-930f-418cfa6b0205":1},"listenSeconds":{"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":12.399999999999999,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":46.60000000000002,"4c74c70b-d156-497b-a973-f071fbe422ae":27.400000000000013,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":21.000000000000004,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":7.2,"1d83d33b-2146-4427-89b2-5b3c846a294d":7.6,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2.7,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":111.09999999999994,"cd1fd534-4f13-443d-966d-3021ba004440":47.100000000000016,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":5.300000000000001,"f83a2b6e-e700-40c7-a406-3931b4ce8780":4.5,"94e729cf-448c-490b-9926-bb9f5a1d4d50":32.500000000000014,"4a14527e-95d0-43c9-a06a-281aebd6ff34":3.2,"2fa75852-1544-407c-a771-b9a2f7688e00":34.600000000000016,"c55017cd-15ec-4546-99e8-f12bd5626f11":20.1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":51.90000000000002,"9e515d2e-f8a7-41d4-a111-0d5233512391":196.19999999999962,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":62.60000000000002,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":8.1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":2.3,"d724987f-83a9-4351-bd60-3a7502a87c59":32.300000000000004,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":34.80000000000002,"46136499-85f3-4da2-9484-9f451d511905":23.400000000000006,"354bb599-a2c0-413e-bbba-70cc7b783841":51.700000000000024,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":96.10000000000001,"900af1a9-8b64-4092-913d-9dde80274d93":10.8,"5157f0c1-5938-4987-b80d-0329f8758ca1":1.8,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":7.299999999999999,"c3e49428-958a-4272-b658-dcc665373ba6":2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":1.1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":0.1,"b83a94df-c760-4322-994f-f3ad2a31e883":8.9,"dd640b9c-21da-4d72-99ca-6b78c143997a":18.3,"72903aae-1d9a-487d-930f-418cfa6b0205":70.8,"a9e28652-60ce-46aa-b167-711225e2df54":62.400000000000034,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":11.9,"923ec288-02e0-4ae2-a13c-accde7ab486e":9.299999999999999,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":13.499999999999998,"07a53c4b-373d-4075-816e-c32fde3184db":74.90000000000006,"1557fb62-6334-4922-86cb-c37ded9c04d8":37.10000000000001,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":50.8},"totalPlays":3,"totalSeconds":1324}},"updatedAt":"2026-11-01T12:35:21.105Z"}', '8012a3fc-8aa6-402a-bbd1-2748e454fa21', '2026-10-28T13:46:30.622588+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('c36971ab-f789-486b-bd99-cb640cd71680', '__euphony_user_data__:::{"version":2,"userId":"8012a3fc-8aa6-402a-bbd1-2748e454fa21","email":"raiayush8705@gmail.com","activeMonth":"2026-11","playCounts":{"72903aae-1d9a-487d-930f-418cfa6b0205":1,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3},"listenSeconds":{"72903aae-1d9a-487d-930f-418cfa6b0205":67.70000000000003,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":50.80000000000002},"recentlyPlayedIds":["3cfe46d0-7912-4d3b-bc38-539d3b775bcf","72903aae-1d9a-487d-930f-418cfa6b0205","07a53c4b-373d-4075-816e-c32fde3184db","9e515d2e-f8a7-41d4-a111-0d5233512391"],"customMoods":{},"monthlyArchives":{"2026-10":{"playCounts":{"9e515d2e-f8a7-41d4-a111-0d5233512391":1,"07a53c4b-373d-4075-816e-c32fde3184db":1},"listenSeconds":{"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":12.399999999999999,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":46.60000000000002,"4c74c70b-d156-497b-a973-f071fbe422ae":27.400000000000013,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":21.000000000000004,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":7.2,"1d83d33b-2146-4427-89b2-5b3c846a294d":7.6,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2.7,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":111.09999999999994,"cd1fd534-4f13-443d-966d-3021ba004440":47.100000000000016,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":5.300000000000001,"f83a2b6e-e700-40c7-a406-3931b4ce8780":4.5,"94e729cf-448c-490b-9926-bb9f5a1d4d50":32.500000000000014,"4a14527e-95d0-43c9-a06a-281aebd6ff34":3.2,"2fa75852-1544-407c-a771-b9a2f7688e00":34.600000000000016,"c55017cd-15ec-4546-99e8-f12bd5626f11":20.1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":51.90000000000002,"9e515d2e-f8a7-41d4-a111-0d5233512391":196.19999999999962,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":62.60000000000002,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":8.1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":2.3,"d724987f-83a9-4351-bd60-3a7502a87c59":32.300000000000004,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":34.80000000000002,"46136499-85f3-4da2-9484-9f451d511905":23.400000000000006,"354bb599-a2c0-413e-bbba-70cc7b783841":51.700000000000024,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":96.10000000000001,"900af1a9-8b64-4092-913d-9dde80274d93":10.8,"5157f0c1-5938-4987-b80d-0329f8758ca1":1.8,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":7.299999999999999,"c3e49428-958a-4272-b658-dcc665373ba6":2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":1.1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":0.1,"b83a94df-c760-4322-994f-f3ad2a31e883":8.9,"dd640b9c-21da-4d72-99ca-6b78c143997a":18.3,"72903aae-1d9a-487d-930f-418cfa6b0205":3.1,"a9e28652-60ce-46aa-b167-711225e2df54":62.400000000000034,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":11.9,"923ec288-02e0-4ae2-a13c-accde7ab486e":9.299999999999999,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":13.499999999999998,"07a53c4b-373d-4075-816e-c32fde3184db":74.90000000000006,"1557fb62-6334-4922-86cb-c37ded9c04d8":37.10000000000001},"totalPlays":2,"totalSeconds":1205,"archivedAt":"2026-11-01T10:53:37.752Z"}},"yearlyTotals":{"2026":{"playCounts":{"9e515d2e-f8a7-41d4-a111-0d5233512391":1,"07a53c4b-373d-4075-816e-c32fde3184db":1,"72903aae-1d9a-487d-930f-418cfa6b0205":1,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":3},"listenSeconds":{"ccd7fabf-d277-4420-84a8-4e5ff5b66d67":12.399999999999999,"e758b7f7-1169-4bf9-8a41-e883b9f24b3a":46.60000000000002,"4c74c70b-d156-497b-a973-f071fbe422ae":27.400000000000013,"f6780e85-8ae8-48b8-9c40-6c06e40fa3e6":21.000000000000004,"0924bcb2-c1dc-4cdb-a3e7-6881f473f668":7.2,"1d83d33b-2146-4427-89b2-5b3c846a294d":7.6,"7d68389a-2538-4bfc-a4c7-cf515a572b26":2.7,"fb8ab2e4-6a2f-4850-badd-5e1fe8d899b8":111.09999999999994,"cd1fd534-4f13-443d-966d-3021ba004440":47.100000000000016,"fe63e132-d030-4bc5-9ce2-a11e077f60ab":5.300000000000001,"f83a2b6e-e700-40c7-a406-3931b4ce8780":4.5,"94e729cf-448c-490b-9926-bb9f5a1d4d50":32.500000000000014,"4a14527e-95d0-43c9-a06a-281aebd6ff34":3.2,"2fa75852-1544-407c-a771-b9a2f7688e00":34.600000000000016,"c55017cd-15ec-4546-99e8-f12bd5626f11":20.1,"477ac65b-7ec7-4995-bfdf-656a0da42e6e":51.90000000000002,"9e515d2e-f8a7-41d4-a111-0d5233512391":196.19999999999962,"14664d25-20dd-4660-a0e1-f9f11fcc98c4":62.60000000000002,"134e552c-6ff2-45e4-ae48-8d8fbcec0bbb":8.1,"f54b3464-b992-466d-9b96-8ca95c1ad5ce":2.3,"d724987f-83a9-4351-bd60-3a7502a87c59":32.300000000000004,"b35c820f-6400-4814-ab0e-2bbb1efb8f4a":34.80000000000002,"46136499-85f3-4da2-9484-9f451d511905":23.400000000000006,"354bb599-a2c0-413e-bbba-70cc7b783841":51.700000000000024,"5bfb6815-217d-4173-b8c8-93b69f3a7c0b":96.10000000000001,"900af1a9-8b64-4092-913d-9dde80274d93":10.8,"5157f0c1-5938-4987-b80d-0329f8758ca1":1.8,"fb2647d3-d6fa-4150-a8f5-fc841ae176c2":7.299999999999999,"c3e49428-958a-4272-b658-dcc665373ba6":2,"6b948690-fcfa-4fc9-adaf-7ea6582a89a4":1.1,"262fa689-d42b-42bf-bf33-b8f53c0c173c":0.1,"b83a94df-c760-4322-994f-f3ad2a31e883":8.9,"dd640b9c-21da-4d72-99ca-6b78c143997a":18.3,"72903aae-1d9a-487d-930f-418cfa6b0205":70.8,"a9e28652-60ce-46aa-b167-711225e2df54":62.400000000000034,"d8ffecc7-42ea-432b-8ec1-a79366bc2da7":11.9,"923ec288-02e0-4ae2-a13c-accde7ab486e":9.299999999999999,"c62f7eaa-4ca6-4f1c-a72e-89e7a40410d4":13.499999999999998,"07a53c4b-373d-4075-816e-c32fde3184db":74.90000000000006,"1557fb62-6334-4922-86cb-c37ded9c04d8":37.10000000000001,"3cfe46d0-7912-4d3b-bc38-539d3b775bcf":50.8},"totalPlays":6,"totalSeconds":1324}},"updatedAt":"2026-11-06T21:52:59.843Z"}', '8012a3fc-8aa6-402a-bbd1-2748e454fa21', '2026-10-28T13:46:30.622588+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('73863d3d-cfde-42be-9739-46b199b862e7', '__euphony_user_data__:::{"version":2,"userId":"c6ed3e8f-fed6-4b72-88d7-78ed8f059d0c","email":"druude2006@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":3.5},"recentlyPlayedIds":[],"customMoods":{},"monthlyArchives":{},"yearlyTotals":{"2026":{"playCounts":{},"listenSeconds":{"49b5b3e7-060a-4367-b2f9-83e4b7b2e096":3.5},"totalPlays":0,"totalSeconds":4}},"updatedAt":"2026-11-06T21:52:58.788Z"}', 'c6ed3e8f-fed6-4b72-88d7-78ed8f059d0c', '2026-11-02T03:30:02.068712+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('156689a4-62f6-470e-b1a0-1c02843ca725', 'Liked Songs', 'c6ed3e8f-fed6-4b72-88d7-78ed8f059d0c', '2026-11-02T03:30:02.143944+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('bfeaf830-f588-466a-a88e-157b415cc660', 'Liked Songs', '266429c9-cda8-4390-850a-17ed957be051', '2026-11-03T02:47:02.92796+00:00') ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.playlists (id, name, user_id, created_at) VALUES ('ab33bd4c-c376-4ded-ba6c-fa386807f553', '__euphony_user_data__:::{"version":2,"userId":"266429c9-cda8-4390-850a-17ed957be051","email":"raikshitiz97@gmail.com","activeMonth":"2026-11","playCounts":{},"listenSeconds":{},"recentlyPlayedIds":[],"customMoods":{},"monthlyArchives":{},"yearlyTotals":{},"updatedAt":"2026-11-06T21:52:59.095Z"}', '266429c9-cda8-4390-850a-17ed957be051', '2026-11-03T02:47:02.99657+00:00') ON CONFLICT (id) DO NOTHING;
 
--- 5. Restore Playlist Songs (103 rows)
+-- 5. Restore Playlist Songs (104 rows)
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (121, 'f9a25586-7289-4a1d-b57b-38464f2fd543', 'd8ffecc7-42ea-432b-8ec1-a79366bc2da7', '2026-09-20T18:50:30.73165+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (122, '6588f28e-74cc-4202-a7de-599205a2b100', '49b5b3e7-060a-4367-b2f9-83e4b7b2e096', '2026-09-21T04:55:13.295771+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (123, 'f9a25586-7289-4a1d-b57b-38464f2fd543', '4a14527e-95d0-43c9-a06a-281aebd6ff34', '2026-09-22T17:47:15.802924+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
@@ -12451,4 +13519,5 @@ INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (2
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (223, '13d4f26f-0307-4c7f-b8f3-4c735505a30d', 'c3cfc5bf-1b28-4cff-8626-c818d919b1a4', '2026-11-01T07:24:08.60396+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (224, '13d4f26f-0307-4c7f-b8f3-4c735505a30d', 'bb75c978-3a90-4772-9293-eadf698df19d', '2026-11-01T07:24:10.873653+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
 INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (225, '13d4f26f-0307-4c7f-b8f3-4c735505a30d', 'bf153fd9-45c8-4c7e-8439-d023cd2fb014', '2026-11-01T07:24:13.516772+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
+INSERT INTO public.playlist_songs (id, playlist_id, song_id, added_at) VALUES (226, '79006896-12a9-4356-8226-555a5c2f6041', '51f1833c-800c-451c-8c34-79e667ccae4a', '2026-11-02T11:09:55.520679+00:00') ON CONFLICT (playlist_id, song_id) DO NOTHING;
 

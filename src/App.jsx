@@ -1701,7 +1701,7 @@ export default function App() {
     if (viewedPlaylistId === null) return playlist;
     if (viewedPlaylistId === "smart_recently_played") {
       const map = new Map((playlist || []).map(s => [s.id, s]));
-      return (recentlyPlayedIds || []).map(id => map.get(id)).filter(Boolean);
+      return (recentlyPlayedIds || []).slice(0, 30).map(id => map.get(id)).filter(Boolean);
     }
     if (viewedPlaylistId === "smart_most_played") {
       const map = new Map((playlist || []).map(s => [s.id, s]));
@@ -4288,7 +4288,7 @@ export default function App() {
     if (track?.id) {
       const updatedRecent = recordRecentlyPlayed(track, session?.user?.id);
       if (updatedRecent && Array.isArray(updatedRecent)) {
-        setRecentlyPlayedIds(updatedRecent);
+        setRecentlyPlayedIds(updatedRecent.slice(0, 30));
       }
     }
     if (track?.poster_url) {
@@ -5012,6 +5012,13 @@ export default function App() {
     nextAudio._trackId = incomingTrack.id;
     if (outgoing?.id) {
       currentAudio._trackId = outgoing.id;
+    }
+
+    if (incomingTrack?.id) {
+      const updatedRecent = recordRecentlyPlayed(incomingTrack, session?.user?.id);
+      if (updatedRecent && Array.isArray(updatedRecent)) {
+        setRecentlyPlayedIds(updatedRecent.slice(0, 30));
+      }
     }
 
     // Preload incoming track image for instant render so crossfade never flashes white/empty
