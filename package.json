@@ -17,7 +17,6 @@
     "switch:cpsimhz1": "node scripts/switch_to_cpsimhz1.cjs"
   },
   "dependencies": {
-    "@awesome-cordova-plugins/background-mode": "^9.6.0",
     "@awesome-cordova-plugins/core": "^9.6.0",
     "@capacitor/android": "^8.6.0",
     "@capacitor/app": "^8.1.2",
@@ -29,7 +28,6 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@gradio/client": "^2.7.0",
     "@supabase/supabase-js": "^2.116.0",
-    "cordova-plugin-background-mode": "^0.7.3",
     "cordova-plugin-device": "^3.0.0",
     "lucide-react": "^1.47.0",
     "react": "^19.2.8",

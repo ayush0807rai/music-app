@@ -3,24 +3,22 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { registerSW } from 'virtual:pwa-register'
-import { Capacitor } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core'
 
-if (Capacitor.isNativePlatform()) {
-  import('@awesome-cordova-plugins/background-mode').then(({ BackgroundMode }) => {
-    try {
-      BackgroundMode.enable();
-      BackgroundMode.on('activate').subscribe(() => {
-        BackgroundMode.disableWebViewOptimizations();
-      });
-    } catch(e) {}
-  }).catch(e => console.error(e));
-}
+// Only register PWA service worker and manage browser caches when running on regular web, NOT native mobile
+if (!Capacitor.isNativePlatform()) {
+  const updateSW = registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      updateSW(true);
+    }
+  });
 
-// Automatically purge legacy poisoned cache so stale Supabase database queries are cleared immediately
-if (typeof window !== 'undefined' && 'caches' in window) {
-  caches.delete('euphony-audio-cache').catch(() => {});
-  caches.delete('euphony-cloudinary-audio-v1').catch(() => {});
-  caches.delete('euphony-cloudinary-audio-v2').catch(() => {});
+  if (typeof window !== 'undefined' && 'caches' in window) {
+    caches.delete('euphony-audio-cache').catch(() => {});
+    caches.delete('euphony-cloudinary-audio-v1').catch(() => {});
+    caches.delete('euphony-cloudinary-audio-v2').catch(() => {});
+  }
 }
 
 // Prevent context menu (except on text inputs and textareas) and image dragging globally
@@ -38,13 +36,6 @@ if (typeof window !== 'undefined') {
     }
   }, { capture: true });
 }
-
-const updateSW = registerSW({
-  immediate: true,
-  onNeedRefresh() {
-    updateSW(true);
-  }
-});
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
