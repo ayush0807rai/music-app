@@ -27,6 +27,8 @@ import {
   Share2, Radio, Users, Copy
 } from "lucide-react";
 import { supabase } from "./supabase";
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import Auth from "./Auth";
 import { AVAILABLE_MOODS, getSongMoods, suggestMood, getCustomMoodOverrides, setCustomSongMood, getMoodEmoji } from "./moods";
 import { matchesArtist, getTrackArtists } from "./artistUtils";
@@ -589,6 +591,33 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem("euphony_dark_mode", isDarkMode);
+
+    const applyThemeToSystem = async () => {
+      const bgColor = isDarkMode ? "#121A2F" : "#F3F0E6";
+
+      // 1. Update HTML meta theme-color for web browsers & PWA
+      try {
+        let metaTag = document.querySelector('meta[name="theme-color"]');
+        if (!metaTag) {
+          metaTag = document.createElement('meta');
+          metaTag.name = 'theme-color';
+          document.head.appendChild(metaTag);
+        }
+        metaTag.setAttribute('content', bgColor);
+      } catch (e) {}
+
+      // 2. Update native Android status bar dynamically
+      try {
+        if (Capacitor.isNativePlatform()) {
+          await StatusBar.setBackgroundColor({ color: bgColor });
+          await StatusBar.setStyle({ style: isDarkMode ? Style.Dark : Style.Light });
+        }
+      } catch (e) {
+        console.warn("Could not set native status bar theme:", e);
+      }
+    };
+
+    applyThemeToSystem();
   }, [isDarkMode]);
 
   const toggleDarkMode = () => {
@@ -1094,9 +1123,9 @@ export default function App() {
   const currentTimeRef = useRef(0);
   currentTimeRef.current = currentTime;
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.8);
+  const [volume, setVolume] = useState(1.0);
   const [isMuted, setIsMuted] = useState(false);
-  const [previousVolume, setPreviousVolume] = useState(0.8);
+  const [previousVolume, setPreviousVolume] = useState(1.0);
   const [playMode, setPlayMode] = useState(() => {
     return localStorage.getItem("euphony_play_mode") || "repeat-all";
   });
