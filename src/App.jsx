@@ -674,10 +674,7 @@ export default function App() {
   const showDesktopDate = windowWidth >= 1250;
   const showDesktopAlbum = windowWidth >= 1050;
 
-  const [viewedPlaylistId, setViewedPlaylistId] = useState(() => {
-    const saved = localStorage.getItem("euphony_playlist_id");
-    return saved && saved !== "null" ? saved : null;
-  });
+  const [viewedPlaylistId, setViewedPlaylistId] = useState(null);
 
   const [sortOrders, setSortOrders] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -3057,9 +3054,10 @@ export default function App() {
   }, [session, jamRoomId, triggerToast]);
 
   useEffect(() => {
-    if (viewedPlaylistId) localStorage.setItem("euphony_playlist_id", viewedPlaylistId);
-    else localStorage.removeItem("euphony_playlist_id");
-  }, [viewedPlaylistId]);
+    try {
+      localStorage.removeItem("euphony_playlist_id");
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     let isActive = true;
