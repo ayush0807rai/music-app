@@ -2273,7 +2273,13 @@ export default function App() {
 
   const updateProgressVisuals = () => {
     if (!audioRef.current) return;
-    const time = isMixerActiveRef.current ? (lastStemTimeRef.current || audioRef.current.currentTime || 0) : (audioRef.current.currentTime || 0);
+    const time = (() => {
+      if (isMixerActiveRef.current) {
+        const stem = [drumsRef, vocalsRef, bassRef, otherRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0);
+        if (stem?.current) return stem.current.currentTime;
+      }
+      return audioRef.current.currentTime || 0;
+    })();
     const audioDur = audioRef.current.duration;
     const effectiveDur = (isFinite(audioDur) && audioDur > 0)
       ? audioDur
@@ -2307,13 +2313,31 @@ export default function App() {
     const loop = () => {
       updateProgressVisuals();
       if (parsedLyrics.length > 0 && ((isMixerActiveRef.current && isPlaying) || (audioRef.current && !audioRef.current.paused))) {
-        const time = isMixerActiveRef.current ? (lastStemTimeRef.current || 0) : (audioRef.current?.currentTime || 0);
+        const time = (() => {
+          if (isMixerActiveRef.current) {
+            const stem = [drumsRef, vocalsRef, bassRef, otherRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0);
+            if (stem?.current) return stem.current.currentTime;
+          }
+          return audioRef.current?.currentTime || 0;
+        })();
+        lastStemTimeRef.current = time;
         let activeIndex = -1;
         for (let i = 0; i < parsedLyrics.length; i++) {
           if (time >= parsedLyrics[i].time) activeIndex = i;
           else break;
         }
         setActiveLyricIndex(prev => (prev !== activeIndex ? activeIndex : prev));
+        if (activeIndex !== -1 && parsedLyrics[activeIndex]?.words) {
+          const words = parsedLyrics[activeIndex].words;
+          let wIndex = -1;
+          for (let j = 0; j < words.length; j++) {
+            if (time >= words[j].time) wIndex = j;
+            else break;
+          }
+          setActiveWordIndex(prev => (prev !== wIndex ? wIndex : prev));
+        } else {
+          setActiveWordIndex(prev => (prev !== -1 ? -1 : prev));
+        }
       }
       if (isPlaying) {
         animationFrameRef.current = requestAnimationFrame(loop);
@@ -3591,6 +3615,11 @@ export default function App() {
         
         const activeEl = activeDeckRef.current === 'A' ? deckARef.current : deckBRef.current;
         let time = activeEl?.currentTime || 0;
+        if (isMixerActiveRef.current) {
+          const stem = [drumsRef, vocalsRef, bassRef, otherRef].find(r => r.current && !r.current.paused && isFinite(r.current.currentTime) && r.current.currentTime > 0);
+          if (stem?.current) time = stem.current.currentTime;
+        }
+        lastStemTimeRef.current = time;
 
         const currentInt = Math.floor(time);
         if (currentInt !== Math.floor(currentTimeRef.current || 0)) {
@@ -3899,10 +3928,11 @@ export default function App() {
       pendingAutoPlayRef.current = false;
     }
     if (isPlayingRef.current && isPlaying) {
+      if (audioRef.current && audioRef.current.paused) {
+        audioRef.current.play().catch(e => console.log("canplay-play err:", e));
+      }
       if (isMixerActiveRef.current && !jamRoomIdRef.current && currentTrack?.stem_vocals && !stemsBroken) {
         playAudibleStems();
-      } else if (audioRef.current && audioRef.current.paused) {
-        audioRef.current.play().catch(e => console.log("canplay-play err:", e));
       }
     }
   };
